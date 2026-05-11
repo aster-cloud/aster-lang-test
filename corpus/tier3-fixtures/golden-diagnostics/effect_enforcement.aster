@@ -1,4 +1,0 @@
-Module demo.effects.
-
-Rule missingIO, produce:
-  Return IO.print("x").

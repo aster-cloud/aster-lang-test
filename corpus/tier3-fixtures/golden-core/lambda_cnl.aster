@@ -1,4 +1,0 @@
-Module demo.lambdacnl.
-
-Rule greet given pfx, produce:
-  Return f("there").

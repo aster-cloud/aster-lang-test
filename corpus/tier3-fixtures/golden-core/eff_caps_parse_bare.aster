@@ -1,4 +1,0 @@
-Module demo.capcaps.bare.
-
-Rule ping, produce. It performs io:
-  Return "ok".

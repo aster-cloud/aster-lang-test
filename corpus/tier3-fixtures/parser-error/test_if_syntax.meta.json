@@ -1,0 +1,7 @@
+{
+  "tier": 3,
+  "bucket": "parser-error",
+  "engines": [],
+  "source": "aster-lang-ts/test/cnl/programs/basics/test_if_syntax.aster",
+  "notes": "Parser-error fixture: If ... is N is not Aster syntax (should be equals to N)."
+}

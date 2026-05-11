@@ -1,4 +1,0 @@
-Module test.eff.violation.files_only.
-
-Rule read_file, produce. It performs io [Files]:
-  Return Files.read("/tmp/data.txt").

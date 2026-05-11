@@ -1,7 +1,0 @@
-Module demo.capcaps.enforce.
-
-Rule bad, produce. It performs io [Http]:
-  Return Db.query("select 1").
-
-Rule ok, produce. It performs io [Http, Sql]:
-  Return Http.get("/ping").

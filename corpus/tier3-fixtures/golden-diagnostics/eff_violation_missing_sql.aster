@@ -1,4 +1,0 @@
-Module test.eff.violation.missing_sql.
-
-Rule query_user, produce. It performs io [Http]:
-  Return Db.query("SELECT * FROM users").

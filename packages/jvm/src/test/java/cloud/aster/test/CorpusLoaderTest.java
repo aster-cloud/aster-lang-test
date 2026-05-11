@@ -12,10 +12,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 class CorpusLoaderTest {
 
     @Test
-    @DisplayName("listAll returns every sample (> 400)")
+    @DisplayName("listAll returns the full corpus (≥ 300 after dedup)")
     void listAll() {
         List<CorpusLoader.Sample> all = CorpusLoader.listAll();
-        assertThat(all).hasSizeGreaterThan(400);
+        assertThat(all).hasSizeGreaterThanOrEqualTo(300);
     }
 
     @Test

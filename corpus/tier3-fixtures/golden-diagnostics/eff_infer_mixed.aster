@@ -1,8 +1,0 @@
-Module demo.eff_infer_mixed.
-
-Rule helperIO, produce. It performs io:
-  Return Http.get("https://api.example.com").
-
-Rule mixedFunction given data, produce. It performs io:
-  Let result be helperIO().
-  Return Http.post("https://webhook.example.com", result).

@@ -1,4 +1,0 @@
-Module demo.lambdalengthcmp.
-
-Rule isLongerThan given s, n, produce:
-  Return pred(s, n).

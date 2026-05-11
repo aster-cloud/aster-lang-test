@@ -1,4 +1,0 @@
-Module demo.bad_generic.
-
-Rule id, produce:
-  Return 1.

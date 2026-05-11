@@ -1,4 +1,0 @@
-Module demo.capcaps.single.
-
-Rule ping, produce. It performs io [Http]:
-  Return "ok".

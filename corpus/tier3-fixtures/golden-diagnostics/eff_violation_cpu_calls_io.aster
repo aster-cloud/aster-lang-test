@@ -1,7 +1,0 @@
-Module test.eff.violation.cpu_calls_io.
-
-Rule fetch_data, produce. It performs io [Http]:
-  Return Http.get("/api/data").
-
-Rule process, produce. It performs cpu:
-  Return fetch_data().

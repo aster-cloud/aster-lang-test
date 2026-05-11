@@ -1,4 +1,0 @@
-Module test.eff.valid.subset_declared.
-
-Rule simple_query, produce. It performs io [Http, Sql, Time]:
-  Return Db.query("SELECT NOW()").

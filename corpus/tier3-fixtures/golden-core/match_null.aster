@@ -1,6 +1,0 @@
-Module demo.match.
-
-Rule classify given v, produce:
-  Match v:
-    When null, Return "none".
-    When value, Return "some".

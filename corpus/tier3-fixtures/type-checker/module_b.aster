@@ -1,6 +1,0 @@
-Module tests.effects.module_b.
-
-Use tests.effects.module_a as A.
-
-Rule load_data, produce. It performs io:
-  Return A.fetch_data().

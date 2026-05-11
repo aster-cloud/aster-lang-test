@@ -1,4 +1,0 @@
-Module test.pii.ssn.
-
-Rule get_ssn, produce:
-  Return "123-45-6789".

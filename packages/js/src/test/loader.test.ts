@@ -13,9 +13,9 @@ describe('CorpusLoader', () => {
     assert.ok(CORPUS_ROOT.endsWith('corpus'), `got ${CORPUS_ROOT}`);
   });
 
-  it('listSamples returns all tier1 + tier2 + tier3', () => {
+  it('listSamples returns the full corpus (≥ 300 samples after dedup)', () => {
     const all = listSamples();
-    assert.ok(all.length > 400, `expected > 400 samples, got ${all.length}`);
+    assert.ok(all.length >= 300, `expected ≥ 300 samples, got ${all.length}`);
   });
 
   it('listTier1 returns >= 160 samples and all have engines=[java,ts]', () => {

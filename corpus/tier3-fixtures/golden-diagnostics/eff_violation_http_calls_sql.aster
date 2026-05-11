@@ -1,4 +1,0 @@
-Module test.eff.violation.http_calls_sql.
-
-Rule fetch_data, produce. It performs io [Http]:
-  Return Sql.query("SELECT * FROM users").

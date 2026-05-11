@@ -1,4 +1,0 @@
-Module demo.capcaps.unused_files.
-
-Rule onlyFiles, produce. It performs io [Files, Time]:
-  Return Files.read("/tmp/foo").

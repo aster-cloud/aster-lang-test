@@ -1,9 +1,0 @@
-Module test.eff.valid.all_caps.
-
-Rule complex_flow, produce. It performs io [Http, Sql, Time, Files, Secrets, AiModel]:
-  Let key be Secrets.get("API_KEY").
-  Let resp be Http.get("/data").
-  Let timestamp be Time.now().
-  File.write("/tmp/data.txt", resp).
-  Db.insert("logs", timestamp).
-  Return AiModel.generate(resp).

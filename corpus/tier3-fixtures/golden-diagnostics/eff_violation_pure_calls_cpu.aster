@@ -1,7 +1,0 @@
-Module test.eff.violation.pure_calls_cpu.
-
-Rule compute, produce. It performs cpu:
-  Return 42 plus 58.
-
-Rule calc, produce:
-  Return compute().

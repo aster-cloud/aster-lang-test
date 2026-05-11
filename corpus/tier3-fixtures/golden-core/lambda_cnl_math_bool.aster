@@ -1,7 +1,0 @@
-Module demo.lambdamath.
-
-Rule compute, produce:
-  Return inc(41).
-
-Rule invert given v, produce:
-  Return neg(v).

@@ -1,4 +1,0 @@
-Module demo.generic.
-
-Rule identity given x, produce:
-  Return x.

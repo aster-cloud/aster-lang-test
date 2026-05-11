@@ -1,4 +1,0 @@
-Module test.pii.http_safe.
-
-Rule store_email given email, produce:
-  Return email.

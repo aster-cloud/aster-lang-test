@@ -1,4 +1,0 @@
-Module demo.capcaps.unused_time.
-
-Rule okHttp, produce. It performs io [Time, Http]:
-  Return Http.get("/").

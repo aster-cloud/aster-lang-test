@@ -1,8 +1,0 @@
-Module demo.matchenum.
-
-Define Err as one of NotFound, Invalid.
-
-Rule explain given e, produce:
-  Match e:
-    When NotFound, Return "missing".
-    When Invalid, Return "invalid".
