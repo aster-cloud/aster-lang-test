@@ -1,0 +1,8 @@
+Module app.
+
+Define User has id, name.
+
+Rule greet given user, produce:
+  Match user:
+    When null, Return "Hi, guest".
+    When User(id, name), Return "Welcome, {name}".

@@ -1,0 +1,12 @@
+Module test.eff.alias_unmapped.
+
+Use Http as H.
+
+Rule call_unmapped_alias, produce:
+  Return X.get("/api").
+
+Rule call_partial_match, produce:
+  Return H.get("/api").
+
+Rule call_nonexistent_prefix, produce:
+  Return UnknownModule.method().

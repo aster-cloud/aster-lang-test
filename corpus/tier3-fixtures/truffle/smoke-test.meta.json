@@ -1,0 +1,9 @@
+{
+  "tier": 3,
+  "bucket": "truffle",
+  "engines": [
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "aster-lang-ts/test/truffle/smoke-test.aster"
+}

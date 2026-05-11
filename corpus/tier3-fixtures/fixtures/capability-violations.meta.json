@@ -1,0 +1,9 @@
+{
+  "tier": 3,
+  "bucket": "fixtures",
+  "engines": [
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "aster-lang-ts/test/fixtures/capability-violations.aster"
+}

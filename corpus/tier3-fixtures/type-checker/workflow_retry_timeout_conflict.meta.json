@@ -1,0 +1,9 @@
+{
+  "tier": 3,
+  "bucket": "type-checker",
+  "engines": [
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "aster-lang-ts/test/type-checker/golden/workflow_retry_timeout_conflict.aster"
+}

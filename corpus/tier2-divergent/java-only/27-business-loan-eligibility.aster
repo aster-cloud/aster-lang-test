@@ -1,0 +1,4 @@
+Module dual.engine.business.loan.
+
+Rule eligible given age, credit_score, annual_income, produce:
+  Return age greater than 17 and credit_score greater than 599 and annual_income greater than 19999.

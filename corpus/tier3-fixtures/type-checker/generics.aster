@@ -1,0 +1,4 @@
+Module tests.typecheck.generics.
+
+Rule identity given value, produce:
+  Return value.

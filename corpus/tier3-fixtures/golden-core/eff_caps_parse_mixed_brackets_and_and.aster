@@ -1,0 +1,4 @@
+Module demo.capcaps.mixed.
+
+Rule ping, produce. It performs io [Http, Sql, Time]:
+  Return "ok".

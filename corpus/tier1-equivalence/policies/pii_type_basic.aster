@@ -1,0 +1,4 @@
+Module test.pii.basic.
+
+Rule get_email, produce:
+  Return "user@example.com".

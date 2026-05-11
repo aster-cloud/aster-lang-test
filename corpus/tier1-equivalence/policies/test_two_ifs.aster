@@ -1,0 +1,4 @@
+Module test.two.ifs.
+
+Rule testTwoIfs given x, produce:
+  Return 0.

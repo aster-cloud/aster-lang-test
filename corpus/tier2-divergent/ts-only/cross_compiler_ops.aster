@@ -1,0 +1,73 @@
+Module ops.cross_compiler.
+
+Rule kwLessThan given x, y, produce:
+  Return x less than y.
+
+Rule kwGreaterThan given x, y, produce:
+  Return x greater than y.
+
+Rule kwEqualsTo given x, y, produce:
+  Return x equals to y.
+
+Rule kwNotEqualTo given x, y, produce:
+  Return x not equal to y.
+
+Rule kwAtLeast given x, y, produce:
+  Return x at least y.
+
+Rule kwAtMost given x, y, produce:
+  Return x at most y.
+
+Rule synUnder given x, y, produce:
+  Return x under y.
+
+Rule synOver given x, y, produce:
+  Return x over y.
+
+Rule synMoreThan given x, y, produce:
+  Return x more than y.
+
+Rule symLt given x, y, produce:
+  Return x < y.
+
+Rule symGt given x, y, produce:
+  Return x > y.
+
+Rule symLe given x, y, produce:
+  Return x <= y.
+
+Rule symGe given x, y, produce:
+  Return x >= y.
+
+Rule symNe given x, y, produce:
+  Return x != y.
+
+Rule symEqEq given x, y, produce:
+  Return x == y.
+
+Rule symEqSingle given x, y, produce:
+  Return x = y.
+
+Rule kwPlus given x, y, produce:
+  Return x plus y.
+
+Rule kwMinus given x, y, produce:
+  Return x minus y.
+
+Rule kwTimes given x, y, produce:
+  Return x times y.
+
+Rule kwDividedBy given x, y, produce:
+  Return x divided by y.
+
+Rule symAdd given x, y, produce:
+  Return x + y.
+
+Rule symSub given x, y, produce:
+  Return x - y.
+
+Rule symMul given x, y, produce:
+  Return x * y.
+
+Rule symDiv given x, y, produce:
+  Return x / y.

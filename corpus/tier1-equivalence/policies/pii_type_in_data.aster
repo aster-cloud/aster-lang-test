@@ -1,0 +1,6 @@
+Module test.pii.in_data.
+
+Define User has email, name.
+
+Rule create_user, produce:
+  Return User("test@example.com", "John").

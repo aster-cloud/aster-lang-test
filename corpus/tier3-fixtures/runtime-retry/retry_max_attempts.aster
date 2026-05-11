@@ -1,0 +1,13 @@
+Module tests.runtime.retry.max_attempts.
+
+Rule retryMaxAttempts, produce. It performs io:
+
+  workflow:
+    step processPayment:
+      Return ok of "processed".
+
+    retry:
+      max attempts: 5.
+      backoff: linear.
+
+  .

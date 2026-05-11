@@ -1,0 +1,5 @@
+Module tests.typecheck.async.start.
+
+Rule launchTask given userId, produce:
+  Start profile as async ProfileSvc.load(userId).
+  Return "queued".

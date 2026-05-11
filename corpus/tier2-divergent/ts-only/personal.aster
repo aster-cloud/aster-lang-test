@@ -1,0 +1,113 @@
+Module aster.finance.personal_lending.
+
+Define PersonalInfo has applicantId, age, educationLevel, employmentStatus, occupation, yearsAtJob, monthsAtAddress, maritalStatus, dependents.
+
+Define IncomeProfile has monthlyIncome, additionalIncome, spouseIncome, rentIncome, incomeStability, incomeGrowthRate.
+
+Define CreditProfile has creditScore, creditHistory, activeLoans, creditCardCount, creditUtilization, latePayments, defaults, bankruptcies, inquiries.
+
+Define DebtProfile has totalMonthlyDebt, mortgagePayment, carPayment, studentLoanPayment, creditCardMinPayment, otherDebtPayment.
+
+Define LoanRequest has requestedAmount, purpose, termMonths, downPayment, collateralValue.
+
+Define LoanDecision has approved, approvedAmount, interestRateBps, termMonths, monthlyPayment, downPaymentRequired, conditions, riskLevel, decisionScore, reasonCode, recommendations.
+
+Define CreditAssessment has scoreGrade, historyGrade, utilizationRatio, negativeMarks, riskIndicator, maxLoanAmount.
+
+Define IncomeAssessment has totalMonthlyIncome, stabilityGrade, adequacy, loanCapacity.
+
+Define AffordabilityAnalysis has debtToIncomeRatio, residualIncome, affordabilityGrade, maxMonthlyPayment.
+
+Rule assessCredit given profile, produce:
+  Let utilizationRatio be profile.creditUtilization.
+  Let negativeMarks be (profile.latePayments plus (profile.defaults times 3)) plus (profile.bankruptcies times 5).
+  If profile.creditScore at least 750
+    Return CreditAssessment("EXCELLENT", "STRONG", utilizationRatio, negativeMarks, "LOW", 50000).
+  If profile.creditScore at least 700
+    Return CreditAssessment("GOOD", "SOLID", utilizationRatio, negativeMarks, "LOW", 30000).
+  If profile.creditScore at least 650
+    Return CreditAssessment("FAIR", "ADEQUATE", utilizationRatio, negativeMarks, "MEDIUM", 20000).
+  Return CreditAssessment("POOR", "LIMITED", utilizationRatio, negativeMarks, "HIGH", 10000).
+
+Rule assessIncome given personal, income, produce:
+  Let totalIncome be income.monthlyIncome plus income.additionalIncome plus income.spouseIncome plus income.rentIncome.
+  Let loanCapacity be totalIncome times 6.
+  If income.incomeStability equals to "PERMANENT"
+    Return IncomeAssessment(totalIncome, "GOOD", "ADEQUATE", loanCapacity).
+  If totalIncome at least 3000
+    Return IncomeAssessment(totalIncome, "FAIR", "LOW", loanCapacity).
+  Return IncomeAssessment(totalIncome, "POOR", "VERY_LOW", 0).
+
+Rule assessAffordability given income, debt, request, produce:
+  Let totalIncome be income.monthlyIncome plus income.additionalIncome plus income.spouseIncome plus income.rentIncome.
+  Let totalDebt be debt.totalMonthlyDebt.
+  Let estimatedPayment be (request.requestedAmount times 8) divided by 1000.
+  Let totalDebtWithLoan be totalDebt plus estimatedPayment.
+  Let dtiWithLoan be (totalDebtWithLoan times 100) divided by totalIncome.
+  Let residual be totalIncome minus totalDebtWithLoan.
+  Let maxPayment be (totalIncome times 30) divided by 100.
+  If dtiWithLoan at most 36
+    Return AffordabilityAnalysis(dtiWithLoan, residual, "EXCELLENT", maxPayment).
+  If dtiWithLoan at most 43
+    Return AffordabilityAnalysis(dtiWithLoan, residual, "FAIR", maxPayment).
+  Return AffordabilityAnalysis(dtiWithLoan, residual, "POOR", maxPayment).
+
+Rule calculateStabilityScore given personal, income, produce:
+  Let score be 0.
+  If personal.age at least 35
+    Let score be score plus 10.
+  If personal.yearsAtJob at least 5
+    Let score be score plus 10.
+  If income.incomeStability equals to "PERMANENT"
+    Let score be score plus 10.
+  If personal.educationLevel equals to "GRADUATE"
+    Let score be score plus 5.
+  Return score.
+
+Rule calculatePurposeAdjustment given purpose, produce:
+  If purpose equals to "HOME_RENOVATION"
+    Return 105.
+  If purpose equals to "EDUCATION"
+    Return 108.
+  If purpose equals to "BUSINESS"
+    Return 100.
+  If purpose equals to "DEBT_CONSOLIDATION"
+    Return 95.
+  If purpose equals to "CAR_PURCHASE"
+    Return 100.
+  If purpose equals to "MEDICAL"
+    Return 105.
+  If purpose equals to "WEDDING"
+    Return 90.
+  If purpose equals to "VACATION"
+    Return 80.
+  Return 85.
+
+Rule evaluatePersonalLoan given personal, income, credit, debt, request, produce:
+  If credit.bankruptcies greater than 0
+    Return LoanDecision(false, 0, 0, 0, 0, 0, "Declined", "HIGH_RISK", 0, "BANKRUPTCY_HISTORY", "Previous bankruptcy on record").
+  Let creditAssessment be assessCredit(credit).
+  Let incomeAssessment be assessIncome(personal, income).
+  Let affordabilityAnalysis be assessAffordability(income, debt, request).
+  Let stabilityScore be calculateStabilityScore(personal, income).
+  Let purposeAdjustment be calculatePurposeAdjustment(request.purpose).
+  Let baseScore be stabilityScore.
+  If creditAssessment.riskIndicator equals to "LOW"
+    Let baseScore be baseScore plus 20.
+  If incomeAssessment.adequacy equals to "ADEQUATE"
+    Let baseScore be baseScore plus 10.
+  If affordabilityAnalysis.affordabilityGrade equals to "EXCELLENT"
+    Let baseScore be baseScore plus 10.
+  Let adjustedScore be (baseScore times purposeAdjustment) divided by 100.
+  Let maxLoanAmount be creditAssessment.maxLoanAmount.
+  If incomeAssessment.loanCapacity less than maxLoanAmount
+    Let maxLoanAmount be incomeAssessment.loanCapacity.
+  Let approvedAmt be request.requestedAmount.
+  If approvedAmt greater than maxLoanAmount
+    Let approvedAmt be maxLoanAmount.
+  If adjustedScore at least 70
+    Let rate be 550.
+    Let payment be (approvedAmt times rate) divided by 100000.
+    Let downPmt be 0.
+    Return LoanDecision(true, approvedAmt, rate, request.termMonths, payment, downPmt, "Approved", "MODERATE", adjustedScore, "APPROVED_STANDARD", "Standard terms").
+  Return LoanDecision(false, 0, 0, 0, 0, request.requestedAmount, "Declined", "HIGH_RISK", adjustedScore, "DECLINED_RISK", "Insufficient score").

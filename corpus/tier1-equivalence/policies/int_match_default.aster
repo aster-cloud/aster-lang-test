@@ -1,0 +1,7 @@
+Module demo.int_match_default.
+
+Rule classifyDefault given n, produce:
+  Match n:
+    When 10, Return "ten".
+    When 20, Return "twenty".
+    When other, Return Text.concat("other:", "case").

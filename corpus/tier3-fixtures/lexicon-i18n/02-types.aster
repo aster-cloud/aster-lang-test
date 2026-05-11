@@ -1,0 +1,10 @@
+// Deutsche Typen - Datentypdefinitionen mit Einschraenkungen
+Dieses Modul ist test.typen.
+
+Definiere Benutzer mit kennung, name, alter.
+
+Definiere Produkt mit sku, preis, aufLager.
+
+Definiere Status als eines von Ausstehend, Aktiv, Abgeschlossen, Storniert.
+
+Definiere Bestellung mit bestellId, kunde, status, notiz.

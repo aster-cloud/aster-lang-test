@@ -1,0 +1,6 @@
+Module test.
+
+Define User has name.
+
+Rule greet, produce:
+  Return 0.

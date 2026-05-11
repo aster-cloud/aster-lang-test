@@ -1,0 +1,35 @@
+{
+  "name": "@aster-cloud/aster-lang-test",
+  "version": "0.0.1",
+  "description": "Shared test corpus for Aster Lang dual-engine equivalence (Java ANTLR + TS PEG).",
+  "license": "Apache-2.0",
+  "type": "module",
+  "main": "./dist/loader.js",
+  "types": "./dist/loader.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/loader.js",
+      "types": "./dist/loader.d.ts"
+    }
+  },
+  "files": [
+    "dist/**/*",
+    "corpus/**/*"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "test": "pnpm run build && node --test 'dist/test/**/*.test.js'",
+    "prepack": "node scripts/sync-corpus.mjs && pnpm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.6.0"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aster-cloud/aster-lang-test.git"
+  }
+}

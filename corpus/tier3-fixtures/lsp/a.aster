@@ -1,0 +1,5 @@
+Module fixture.foo.
+
+Rule greet, produce:
+  Return "hi".
+

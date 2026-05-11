@@ -1,0 +1,11 @@
+Module tests.typecheck.workflow.timeout_short.
+
+Rule quickTimeout, produce. It performs io:
+  
+  workflow:
+    step only:
+      Return ok of "ok".
+  
+    timeout: 1 seconds.
+  
+  .

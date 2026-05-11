@@ -1,0 +1,5 @@
+Module test.eff.violation.sql_calls_files.
+
+Rule db_init, produce. It performs io [Sql]:
+  Let config be Files.read("/etc/config.ini").
+  Return Db.connect(config).

@@ -1,0 +1,4 @@
+Module demo.generic_bug.
+
+Rule id, produce:
+  Return 1.

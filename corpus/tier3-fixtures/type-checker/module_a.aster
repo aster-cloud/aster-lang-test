@@ -1,0 +1,4 @@
+Module tests.effects.module_a.
+
+Rule fetch_data, produce. It performs io:
+  Return Http.get("/external").

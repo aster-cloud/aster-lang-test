@@ -1,0 +1,8 @@
+Module test.effect_var.
+
+Rule identity given x, produce:
+  Return x.
+
+Rule caller, produce. It performs io:
+  Let input be IO.readLine().
+  Return identity(input).

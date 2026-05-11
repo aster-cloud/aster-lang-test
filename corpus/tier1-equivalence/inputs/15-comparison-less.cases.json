@@ -1,0 +1,30 @@
+{
+  "policy": "tier1-equivalence/policies/15-comparison-less.aster",
+  "entry": "is_below_threshold",
+  "cases": [
+    {
+      "name": "5 < 10 → true",
+      "input": [
+        5,
+        10
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "10 < 10 → false (boundary)",
+      "input": [
+        10,
+        10
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "15 < 10 → false",
+      "input": [
+        15,
+        10
+      ],
+      "expectedOutput": false
+    }
+  ]
+}

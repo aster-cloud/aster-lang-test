@@ -1,0 +1,83 @@
+# ========================================
+# Healthcare Demo: E-Prescription Workflow
+# HIPAA Compliant Medication Handling
+# ========================================
+
+Module examples.healthcare.prescription_workflow.
+
+# 处方数据结构
+# 注意：实际生产环境中应使用 @pii 注解标记敏感字段
+Define Prescription has
+  prescription_id,
+  patient_id,
+  patient_name,
+  medication,
+  dosage,
+  frequency,
+  prescriber_id,
+  prescriber_name.
+
+Define DrugInteraction has
+  drug_a,
+  drug_b,
+  severity,
+  description.
+
+Define PharmacyVerification has
+  verified,
+  pharmacist_id,
+  timestamp,
+  notes.
+
+Define VerificationStep has
+  step_name,
+  passed,
+  message.
+
+# 药物相互作用检查（简化版）
+# 返回描述文本而非完整结构，简化类型推断
+Rule check_warfarin_aspirin_interaction given medication, has_aspirin, produce:
+  If medication equals to "warfarin"
+    If has_aspirin
+      Return ok of "Increased bleeding risk".
+  Return err of "No interaction".
+
+# 验证处方医生执照
+Rule validate_prescriber given prescriber_id, produce:
+  If prescriber_id equals to ""
+    Return VerificationStep with step_name set to "validate_prescriber", passed set to false, message set to "Prescriber ID required".
+  Return VerificationStep with step_name set to "validate_prescriber", passed set to true, message set to "Prescriber validated".
+
+# 验证剂量合理性
+Rule verify_dosage given medication, dosage, produce:
+  If dosage equals to ""
+    Return VerificationStep with step_name set to "verify_dosage", passed set to false, message set to "Dosage required".
+  Return VerificationStep with step_name set to "verify_dosage", passed set to true, message set to "Dosage verified".
+
+# 处方验证工作流（简化版）
+Rule verify_prescription given rx, has_aspirin, produce:
+  Let prescriber_check be validate_prescriber(rx.prescriber_id).
+  If prescriber_check.passed equals to false
+    Return err of prescriber_check.message.
+  Let interaction_check be check_warfarin_aspirin_interaction(rx.medication, has_aspirin).
+  If Result.isOk(interaction_check)
+    Return err of "Drug interaction detected".
+  Let dosage_check be verify_dosage(rx.medication, rx.dosage).
+  If dosage_check.passed equals to false
+    Return err of dosage_check.message.
+  Let verification be PharmacyVerification with verified set to true, pharmacist_id set to "PH-001", timestamp set to "2025-11-27T10:00:00Z", notes set to "All checks passed".
+  Return ok of verification.
+
+# 安全传输处方（脱敏患者信息）
+Rule transmit_prescription_safe given rx, produce:
+  Return Text.concat("Rx ", rx.prescription_id, " for ", redact(rx.patient_name), ": ", rx.medication, " ", rx.dosage).
+
+# 示例：无相互作用的处方验证
+Rule demo_safe_prescription, produce:
+  Let rx be Prescription with prescription_id set to "RX-001", patient_id set to "P-001", patient_name set to "John Doe", medication set to "lisinopril", dosage set to "10mg", frequency set to "once daily", prescriber_id set to "DR-001", prescriber_name set to "Dr. Smith".
+  Return verify_prescription(rx, false).
+
+# 示例：有药物相互作用的处方验证
+Rule demo_interaction_prescription, produce:
+  Let rx be Prescription with prescription_id set to "RX-002", patient_id set to "P-002", patient_name set to "Jane Doe", medication set to "warfarin", dosage set to "5mg", frequency set to "once daily", prescriber_id set to "DR-002", prescriber_name set to "Dr. Jones".
+  Return verify_prescription(rx, true).

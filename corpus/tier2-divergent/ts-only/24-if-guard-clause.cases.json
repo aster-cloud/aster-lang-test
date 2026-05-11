@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/24-if-guard-clause.aster",
+  "entry": "absolute_value",
+  "cases": [
+    {
+      "name": "abs(-5) = 5",
+      "input": [
+        -5
+      ],
+      "expectedOutput": 5
+    },
+    {
+      "name": "abs(7) = 7",
+      "input": [
+        7
+      ],
+      "expectedOutput": 7
+    },
+    {
+      "name": "abs(0) = 0",
+      "input": [
+        0
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}

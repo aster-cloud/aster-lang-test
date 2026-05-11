@@ -1,0 +1,10 @@
+Module demo.cli.
+
+Rule greet given name, produce:
+  Return Text.concat("Hello, ", name).
+
+Rule exclaim given s, produce:
+  Return Text.concat(s, "!").
+
+Rule length given s, produce:
+  Return Text.length(s).

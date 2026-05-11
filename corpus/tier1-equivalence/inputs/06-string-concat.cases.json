@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/06-string-concat.aster",
+  "entry": "greet",
+  "cases": [
+    {
+      "name": "Hello, Alice",
+      "input": [
+        "Alice"
+      ],
+      "expectedOutput": "Hello, Alice"
+    },
+    {
+      "name": "empty name",
+      "input": [
+        ""
+      ],
+      "expectedOutput": "Hello, "
+    },
+    {
+      "name": "unicode name",
+      "input": [
+        "世界"
+      ],
+      "expectedOutput": "Hello, 世界"
+    }
+  ]
+}

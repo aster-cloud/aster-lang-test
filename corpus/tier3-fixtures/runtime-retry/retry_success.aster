@@ -1,0 +1,13 @@
+Module tests.runtime.retry.success.
+
+Rule retrySuccess, produce. It performs io:
+
+  workflow:
+    step fetchData:
+      Return ok of "data".
+
+    retry:
+      max attempts: 3.
+      backoff: exponential.
+
+  .

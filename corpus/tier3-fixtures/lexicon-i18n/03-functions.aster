@@ -1,0 +1,27 @@
+// Deutsche Funktionen - Funktionsdefinitionen und Aufrufe
+Dieses Modul ist test.funktionen.
+
+Definiere Ergebnis mit erfolg, nachricht.
+
+// Einfache Funktion mit einem Parameter
+Um verdoppeln mit wert, liefert:
+  gib zurueck wert mal 2.
+
+// Funktion mit mehreren Parametern
+Um addieren mit a, b, liefert:
+  gib zurueck a plus b.
+
+// Funktion die eine andere Funktion aufruft
+Um vierfach mit wert, liefert:
+  sei doppelt gleich verdoppeln(wert).
+  gib zurueck verdoppeln(doppelt).
+
+// Funktion die einen Datensatz zurueckgibt
+Um ergebnisErstellen mit ok, msg, liefert:
+  gib zurueck Ergebnis mit erfolg setze auf ok, nachricht setze auf msg.
+
+// Funktion mit lokalen Variablen
+Um berechnen mit basis, faktor, offset, liefert:
+  sei produkt gleich basis mal faktor.
+  sei resultat gleich produkt plus offset.
+  gib zurueck resultat.

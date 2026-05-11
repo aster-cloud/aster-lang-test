@@ -1,0 +1,9 @@
+Module tests.lambda_effects.
+
+Rule fetch_data given url, produce. It performs io:
+  Return io.get(url).
+
+Rule process_with_lambda, produce. It performs io:
+  Let fetcher be function with endpoint, produce:
+    Return io.get(endpoint).
+  Return fetcher("/api/data").

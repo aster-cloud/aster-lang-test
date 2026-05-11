@@ -1,0 +1,30 @@
+{
+  "policy": "tier1-equivalence/policies/01-arithmetic-add.aster",
+  "entry": "add",
+  "cases": [
+    {
+      "name": "1 + 2 = 3",
+      "input": [
+        1,
+        2
+      ],
+      "expectedOutput": 3
+    },
+    {
+      "name": "0 + 0 = 0",
+      "input": [
+        0,
+        0
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "negative + positive",
+      "input": [
+        -5,
+        8
+      ],
+      "expectedOutput": 3
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+Module aster.healthcare.simpletest.
+
+Rule calculateCoverage given basePrice, coveragePercent, produce:
+  Let coverage be basePrice times coveragePercent.
+  Let result be coverage divided by 100.
+  Return result.

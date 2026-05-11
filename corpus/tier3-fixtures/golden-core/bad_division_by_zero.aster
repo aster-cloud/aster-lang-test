@@ -1,0 +1,4 @@
+Module error.div.zero.
+
+Rule main, produce:
+  Return div(10, 0).

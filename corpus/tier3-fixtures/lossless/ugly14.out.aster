@@ -1,0 +1,6 @@
+Module demo.types.
+
+Define Box has items.
+
+Rule headMap given b, produce:
+  Return 0.

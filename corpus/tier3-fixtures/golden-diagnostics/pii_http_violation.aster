@@ -1,0 +1,4 @@
+Module test.pii.http_violation.
+
+Rule send_user_email given email, produce. It performs io [Http]:
+  Return Http.post("https://api.example.com", email).

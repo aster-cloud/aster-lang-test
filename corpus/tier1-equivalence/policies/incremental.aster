@@ -1,0 +1,8 @@
+Module test.loan.
+
+Define LoanApplication has applicantId, amount, termMonths, purpose.
+
+Define Decision has approved, reason.
+
+Rule check given age, produce:
+  Return Decision with approved set to true, reason set to "OK".

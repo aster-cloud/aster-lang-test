@@ -1,0 +1,4 @@
+Module demo.capcaps.enforce_missing_ai.
+
+Rule bad, produce. It performs io [Http]:
+  Return Ai.predict("hello").

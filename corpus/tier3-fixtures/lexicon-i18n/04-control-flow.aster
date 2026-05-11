@@ -1,0 +1,35 @@
+// Deutsche Kontrollfluss - Wenn/Sonst Bedingungen
+Dieses Modul ist test.kontrollfluss.
+
+Definiere Entscheidung mit genehmigt, grund.
+
+// Einfache Wenn-Bedingung
+Um istErwachsen mit alter, liefert:
+  wenn alter groesser als 17
+    gib zurueck wahr.
+  gib zurueck falsch.
+
+// Wenn mit Sonst
+Um alterPruefen mit alter, liefert:
+  wenn alter kleiner als 18
+    gib zurueck "Minderjaehrig".
+  sonst
+    gib zurueck "Erwachsen".
+
+// Verschachtelte Bedingungen
+Um alterKategorisieren mit alter, liefert:
+  wenn alter kleiner als 13
+    gib zurueck "Kind".
+  wenn alter kleiner als 20
+    gib zurueck "Jugendlicher".
+  wenn alter kleiner als 60
+    gib zurueck "Erwachsener".
+  gib zurueck "Senior".
+
+// Komplexe Entscheidungslogik
+Um antragBewerten mit alter, punktzahl, liefert:
+  wenn alter kleiner als 18
+    gib zurueck Entscheidung mit genehmigt setze auf falsch, grund setze auf "Minderjaehriger Antragsteller".
+  wenn punktzahl kleiner als 600
+    gib zurueck Entscheidung mit genehmigt setze auf falsch, grund setze auf "Punktzahl zu niedrig".
+  gib zurueck Entscheidung mit genehmigt setze auf wahr, grund setze auf "Genehmigt".

@@ -1,0 +1,146 @@
+Module tests.type_inference_cnl.
+
+// ============================================================
+// CNL 自然语言风格类型推断示例
+// Natural Language Style Type Inference Examples
+// ============================================================
+//
+// 本示例展示 Aster CNL 的类型推断功能，使字段定义更接近自然语言。
+// This example demonstrates Aster CNL's type inference, making
+// field definitions closer to natural language.
+//
+// 类型推断规则 (Type Inference Rules):
+// - *Id, *ID, *Identifier, *Code, *Key, *Token → Text
+// - *Amount, *Price, *Cost, *Fee, *Balance, *Rate → Float
+// - *Count, *Number, *Age, *Score, *Level, *Months, *Days → Int
+// - is*, has*, can*, should*, allow* → Bool
+// - *Date, *Time, *At, *Timestamp, *Created → DateTime
+// - 有 Range 约束 → Int 或 Float (depending on bounds)
+// - 有 Pattern 约束 → Text
+// - 默认 → Text
+// ============================================================
+
+// --------------------------------------------------
+// 示例 1: 贷款申请 - 对比传统语法与 CNL 语法
+// Example 1: Loan Application - Traditional vs CNL
+// --------------------------------------------------
+
+// 传统语法 (Traditional syntax with explicit types):
+// Define LoanApplication has applicantId: Text, loanAmount: Float, termMonths: Int, isApproved: Bool.
+
+// CNL 自然语言语法 (CNL natural language syntax):
+// 字段类型根据命名约定自动推断
+Define LoanApplication has
+  applicantId,
+  loanAmount,
+  termMonths,
+  isApproved.
+
+// 推断结果:
+// - applicantId → Text (匹配 *Id 后缀)
+// - loanAmount → Float (匹配 *Amount 后缀)
+// - termMonths → Int (匹配 *Months 后缀)
+// - isApproved → Bool (匹配 is* 前缀)
+
+// --------------------------------------------------
+// 示例 2: 带约束的字段定义
+// Example 2: Fields with Constraints
+// --------------------------------------------------
+
+// 约束驱动类型推断 (Constraint-driven type inference):
+Define ApplicantProfile has
+  age between 18 and 120,
+  creditScore between 300 and 850,
+  annualIncome,
+  monthlyDebt,
+  yearsEmployed between 0 and 50.
+
+// 推断结果:
+// - age → Int (Range 约束使用整数边界)
+// - creditScore → Int (Range 约束使用整数边界)
+// - annualIncome → Float (匹配 *Income 后缀)
+// - monthlyDebt → Float (匹配 *Debt 后缀? 无，默认 Text；实际需要显式声明)
+// - yearsEmployed → Int (Range 约束使用整数边界)
+
+// --------------------------------------------------
+// 示例 3: 审批决定 - 混合使用推断与显式类型
+// Example 3: Approval Decision - Mixed Inference and Explicit
+// --------------------------------------------------
+
+// 推断类型与显式类型可以混合使用
+Define LoanDecision has
+  isApproved,
+  approvalReason required,
+  approvedAmount,
+  interestRate between 0.01 and 0.30,
+  termMonths.
+
+// 推断结果:
+// - isApproved → Bool (匹配 is* 前缀)
+// - approvalReason → Text (显式声明)
+// - approvedAmount → Float (匹配 *Amount 后缀)
+// - interestRate → Float (Range 约束使用小数边界)
+// - termMonths → Int (匹配 *Months 后缀)
+
+// --------------------------------------------------
+// 示例 4: 用户信息 - 各类型推断展示
+// Example 4: User Info - Various Type Inference
+// --------------------------------------------------
+
+Define UserInfo has
+  // Text 类型推断
+  userId,
+  userCode,
+  apiKey,
+  accessToken,
+  firstName,
+  emailAddress,
+
+  // Int 类型推断
+  itemCount,
+  orderNumber,
+  memberLevel,
+  pageSize,
+
+  // Float 类型推断
+  accountBalance,
+  totalPrice,
+  serviceFee,
+  taxPercentage,
+
+  // Bool 类型推断
+  isActive,
+  hasPermission,
+  canEdit,
+  shouldNotify,
+
+  // DateTime 类型推断
+  createdAt,
+  updatedAt,
+  expiryDate,
+  lastModified.
+
+// --------------------------------------------------
+// 示例 5: 评估函数 - 使用推断类型的数据
+// Example 5: Evaluation Function - Using Inferred Types
+// --------------------------------------------------
+
+Rule evaluateLoan given application, applicant, produce:
+  If applicant.age less than 18
+    Return LoanDecision with isApproved set to false, approvalReason set to "Underage", approvedAmount set to 0.0, interestRate set to 0.0, termMonths set to 0.
+
+  If applicant.creditScore less than 650
+    Return LoanDecision with isApproved set to false, approvalReason set to "Low credit", approvedAmount set to 0.0, interestRate set to 0.0, termMonths set to 0.
+
+  Let baseRate be calculateBaseRate(applicant.creditScore).
+
+  Return LoanDecision with isApproved set to true, approvalReason set to "Approved", approvedAmount set to application.loanAmount, interestRate set to baseRate, termMonths set to application.termMonths.
+
+Rule calculateBaseRate given score, produce:
+  If score less than 670
+    Return 0.15.
+  If score less than 740
+    Return 0.10.
+  If score less than 800
+    Return 0.07.
+  Return 0.05.

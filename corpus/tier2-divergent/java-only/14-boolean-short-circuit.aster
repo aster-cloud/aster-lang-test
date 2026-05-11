@@ -1,0 +1,4 @@
+Module dual.engine.boolean.shortcircuit.
+
+Rule guard given enabled, value, produce:
+  Return enabled and value greater than 0.

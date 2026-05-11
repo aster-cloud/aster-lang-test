@@ -1,0 +1,5 @@
+Module dual.engine.let.binding.
+
+Rule discounted_price given price, produce:
+  Let discount be price divided by 10.
+  Return price minus discount.

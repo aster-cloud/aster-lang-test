@@ -1,0 +1,9 @@
+Module test.types.
+
+Define User has id, name, age.
+
+Define Product has sku, price, inStock.
+
+Define Status as one of Pending, Active, Completed, Cancelled.
+
+Define Order has orderId, customer, status, notes.

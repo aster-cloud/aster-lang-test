@@ -1,0 +1,4 @@
+Module test.pii.in_function.
+
+Rule process_email given email, produce:
+  Return "Processed: " plus email.

@@ -1,0 +1,119 @@
+Module aster.finance.enterprise_lending.
+
+Define EnterpriseInfo has companyId, companyName, industry, yearsInBusiness, employeeCount, annualRevenue, revenueGrowthRate, profitMargin.
+
+Define FinancialPosition has totalAssets, currentAssets, totalLiabilities, currentLiabilities, equity, cashFlow, outstandingDebt.
+
+Define BusinessHistory has previousLoans, defaultCount, latePayments, creditUtilization, largestLoanAmount, relationshipYears.
+
+Define LoanApplication has requestedAmount, loanPurpose, termMonths, collateralValue, guarantorCount.
+
+Define LendingDecision has approved, approvedAmount, interestRateBps, termMonths, collateralRequired, specialConditions, riskCategory, confidenceScore, reasonCode, detailedAnalysis.
+
+Define LiquidityAnalysis has currentRatio, quickRatio, isHealthy, recommendation.
+
+Define LeverageAnalysis has debtToEquity, debtToAssets, riskLevel, maxLoanCapacity.
+
+Define ProfitabilityAnalysis has returnOnAssets, returnOnEquity, profitabilityGrade, repaymentCapacity.
+
+Rule assessLiquidity given position, produce:
+  Let currentRatio be (position.currentAssets times 100) divided by position.currentLiabilities.
+  Let quickRatio be (position.currentAssets times 100) divided by position.currentLiabilities.
+  If currentRatio at least 200
+    Return LiquidityAnalysis(currentRatio, quickRatio, true, "Excellent liquidity").
+  If currentRatio at least 150
+    Return LiquidityAnalysis(currentRatio, quickRatio, true, "Good liquidity").
+  If currentRatio at least 100
+    Return LiquidityAnalysis(currentRatio, quickRatio, true, "Adequate liquidity").
+  Return LiquidityAnalysis(currentRatio, quickRatio, false, "Poor liquidity").
+
+Rule assessLeverage given position, produce:
+  If position.equity equals to 0
+    Return LeverageAnalysis(0, 0, "CRITICAL", 0).
+  Let debtToEquity be (position.totalLiabilities times 100) divided by position.equity.
+  Let debtToAssets be (position.totalLiabilities times 100) divided by position.totalAssets.
+  Let baseCapacity be position.equity times 3.
+  If debtToEquity at most 100
+    Return LeverageAnalysis(debtToEquity, debtToAssets, "LOW", baseCapacity).
+  If debtToEquity at most 200
+    Return LeverageAnalysis(debtToEquity, debtToAssets, "MEDIUM", baseCapacity).
+  If debtToEquity at most 300
+    Return LeverageAnalysis(debtToEquity, debtToAssets, "HIGH", baseCapacity).
+  Return LeverageAnalysis(debtToEquity, debtToAssets, "CRITICAL", 0).
+
+Rule assessProfitability given enterprise, position, produce:
+  Let returnOnAssets be enterprise.profitMargin.
+  Let returnOnEquity be enterprise.profitMargin.
+  Let annualCashFlow be position.cashFlow times 12.
+  Let repaymentCapacity be annualCashFlow times 3.
+  If returnOnAssets at least 15
+    Return ProfitabilityAnalysis(returnOnAssets, returnOnEquity, "EXCELLENT", repaymentCapacity).
+  If returnOnAssets at least 10
+    Return ProfitabilityAnalysis(returnOnAssets, returnOnEquity, "GOOD", repaymentCapacity).
+  If returnOnAssets at least 5
+    Return ProfitabilityAnalysis(returnOnAssets, returnOnEquity, "FAIR", repaymentCapacity).
+  Return ProfitabilityAnalysis(returnOnAssets, returnOnEquity, "POOR", repaymentCapacity).
+
+Rule calculateIndustryFactor given industry, produce:
+  If industry equals to "Healthcare"
+    Return 105.
+  If industry equals to "Education"
+    Return 105.
+  If industry equals to "Manufacturing"
+    Return 100.
+  If industry equals to "Retail"
+    Return 95.
+  If industry equals to "Services"
+    Return 100.
+  If industry equals to "Construction"
+    Return 85.
+  If industry equals to "Hospitality"
+    Return 80.
+  If industry equals to "Transportation"
+    Return 90.
+  Return 100.
+
+Rule assessMaturityScore given enterprise, history, produce:
+  Let score be 0.
+  If enterprise.yearsInBusiness at least 10
+    Let score be score plus 30.
+  If enterprise.yearsInBusiness at least 5
+    Let score be score plus 15.
+  If enterprise.employeeCount at least 100
+    Let score be score plus 15.
+  If enterprise.annualRevenue at least 10000000
+    Let score be score plus 10.
+  If history.relationshipYears at least 5
+    Let score be score plus 10.
+  If history.defaultCount equals to 0
+    Let score be score plus 10.
+  Return score.
+
+Rule evaluateEnterpriseLoan given enterprise, position, history, application, produce:
+  If history.defaultCount greater than 0
+    Return LendingDecision(false, 0, 0, 0, 0, "Declined", "HIGH_RISK", 0, "PREVIOUS_DEFAULT", "Previous defaults on record").
+  If position.equity at most 0
+    Return LendingDecision(false, 0, 0, 0, 0, "Declined", "CRITICAL", 0, "NEGATIVE_EQUITY", "Negative equity position").
+  Let liquidityResult be assessLiquidity(position).
+  Let leverageResult be assessLeverage(position).
+  Let profitabilityResult be assessProfitability(enterprise, position).
+  Let maturityScore be assessMaturityScore(enterprise, history).
+  Let industryFactor be calculateIndustryFactor(enterprise.industry).
+  Let baseScore be maturityScore.
+  If liquidityResult.isHealthy
+    Let baseScore be baseScore plus 10.
+  If leverageResult.riskLevel equals to "LOW"
+    Let baseScore be baseScore plus 10.
+  If profitabilityResult.profitabilityGrade equals to "EXCELLENT"
+    Let baseScore be baseScore plus 10.
+  Let adjustedScore be (baseScore times industryFactor) divided by 100.
+  Let maxLoanAmount be leverageResult.maxLoanCapacity.
+  If profitabilityResult.repaymentCapacity less than maxLoanAmount
+    Let maxLoanAmount be profitabilityResult.repaymentCapacity.
+  Let approvedAmt be application.requestedAmount.
+  If approvedAmt greater than maxLoanAmount
+    Let approvedAmt be maxLoanAmount.
+  If adjustedScore at least 70
+    Let requiredCollateral be (approvedAmt times 50) divided by 100.
+    Return LendingDecision(true, approvedAmt, 650, application.termMonths, requiredCollateral, "Standard terms", "MODERATE_RISK", adjustedScore, "APPROVED_STANDARD", "Solid financial profile").
+  Return LendingDecision(false, 0, 0, 0, application.requestedAmount, "Declined", "HIGH_RISK", adjustedScore, "DECLINED_RISK", "Insufficient risk score").

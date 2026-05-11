@@ -1,0 +1,16 @@
+Module demo.text.
+
+Rule join given left, right, produce:
+  Return Text.concat(left, right).
+
+Rule shout given s, produce:
+  Return Text.toUpper(s).
+
+Rule hasPrefix given s, p, produce:
+  Return Text.startsWith(s, p).
+
+Rule find given s, n, produce:
+  Return Text.indexOf(s, n).
+
+Rule words given s, produce:
+  Return Text.split(s, " ").

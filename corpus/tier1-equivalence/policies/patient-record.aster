@@ -1,0 +1,70 @@
+# ========================================
+# Healthcare Demo: Patient Record Management
+# HIPAA Compliant PHI Handling
+# ========================================
+
+Module examples.healthcare.patient_record.
+
+# PHI (Protected Health Information) 数据结构
+# 注意：实际生产环境中应使用 @pii 注解标记敏感字段
+# 此处简化以便演示编译和验证流程
+Define PatientPHI has
+  patient_id,
+  name,
+  ssn,
+  date_of_birth,
+  diagnosis,
+  treatment_plan,
+  insurance_id.
+
+Define AccessRequest has
+  requester_id,
+  requester_role,
+  purpose,
+  patient_id,
+  has_consent.
+
+Define ConsentResult has
+  is_valid,
+  reason.
+
+Define PatientSummary has
+  patient_id,
+  display_info.
+
+# 同意验证函数（HIPAA §164.508）
+Rule verify_consent given request, produce:
+  If request.has_consent equals to false
+    Return ConsentResult with is_valid set to false, reason set to "Patient consent not obtained".
+  If request.purpose equals to ""
+    Return ConsentResult with is_valid set to false, reason set to "Purpose of access not specified".
+  Return ConsentResult with is_valid set to true, reason set to "Consent verified".
+
+# HIPAA 最小必要原则：根据角色返回不同字段
+Rule get_patient_summary given request, patient_phi, produce:
+  Let consent be verify_consent(request).
+  If consent.is_valid equals to false
+    Return err of consent.reason.
+  If request.requester_role equals to "physician"
+    Return ok of PatientSummary with patient_id set to patient_phi.patient_id, display_info set to Text.concat(patient_phi.name, " - ", patient_phi.diagnosis).
+  If request.requester_role equals to "billing"
+    Return ok of PatientSummary with patient_id set to patient_phi.patient_id, display_info set to Text.concat(patient_phi.patient_id, " - ", patient_phi.insurance_id).
+  If request.requester_role equals to "nurse"
+    Return ok of PatientSummary with patient_id set to patient_phi.patient_id, display_info set to Text.concat(patient_phi.name, " - ", patient_phi.treatment_plan).
+  Return err of "Access denied: insufficient role".
+
+# 安全的 PHI 显示：自动脱敏
+Rule display_patient_safe given patient_phi, produce:
+  Return Text.concat("Patient: ", redact(patient_phi.name), ", SSN: ", redact(patient_phi.ssn)).
+
+# 示例：合规访问（医生有同意）
+Rule demo_compliant_access, produce:
+  Let patient_phi be PatientPHI with patient_id set to "P-001", name set to "John Doe", ssn set to "123-45-6789", date_of_birth set to "1990-01-01", diagnosis set to "Hypertension", treatment_plan set to "Medication daily", insurance_id set to "INS-12345".
+  Let request be AccessRequest with requester_id set to "DR-001", requester_role set to "physician", purpose set to "treatment", patient_id set to "P-001", has_consent set to true.
+  Return get_patient_summary(request, patient_phi).
+
+# 示例：不合规访问（无同意）
+Rule demo_non_compliant_access, produce:
+  Let patient_phi be PatientPHI with patient_id set to "P-001", name set to "John Doe", ssn set to "123-45-6789", date_of_birth set to "1990-01-01", diagnosis set to "Hypertension", treatment_plan set to "Medication daily", insurance_id set to "INS-12345".
+  Let request be AccessRequest with requester_id set to "ADMIN-001", requester_role set to "admin", purpose set to "curiosity", patient_id set to "P-001", has_consent set to false.
+  Return get_patient_summary(request, patient_phi).

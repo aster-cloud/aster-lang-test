@@ -1,0 +1,4 @@
+Module dual.engine.string.concat.
+
+Rule greet given name, produce:
+  Return "Hello, " plus name.

@@ -1,0 +1,4 @@
+Module dual.engine.arithmetic.add.
+
+Rule add given x, y, produce:
+  Return x plus y.

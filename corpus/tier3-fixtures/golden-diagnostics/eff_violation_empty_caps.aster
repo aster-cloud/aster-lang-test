@@ -1,0 +1,4 @@
+Module test.eff.violation.empty_caps.
+
+Rule fetch, produce. It performs io:
+  Return Http.get("/data").

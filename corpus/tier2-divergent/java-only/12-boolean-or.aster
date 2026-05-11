@@ -1,0 +1,4 @@
+Module dual.engine.boolean.or.
+
+Rule either given x, y, produce:
+  Return x or y.

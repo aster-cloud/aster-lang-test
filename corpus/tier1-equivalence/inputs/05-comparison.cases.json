@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/05-comparison.aster",
+  "entry": "is_adult",
+  "cases": [
+    {
+      "name": "21 is adult",
+      "input": [
+        21
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "17 is not adult (boundary)",
+      "input": [
+        17
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "18 is adult",
+      "input": [
+        18
+      ],
+      "expectedOutput": true
+    }
+  ]
+}

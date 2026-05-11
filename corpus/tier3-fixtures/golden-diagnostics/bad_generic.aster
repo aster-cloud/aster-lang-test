@@ -1,0 +1,4 @@
+Module demo.badgen.
+
+Rule bad given x, produce:
+  Return "ok".

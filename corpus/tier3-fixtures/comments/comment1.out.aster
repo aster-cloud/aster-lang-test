@@ -1,0 +1,4 @@
+Module demo.comments.  // inline comment after header
+
+Rule greet given name, produce:  // say hi
+  Return Text.concat("Hi, ", name).

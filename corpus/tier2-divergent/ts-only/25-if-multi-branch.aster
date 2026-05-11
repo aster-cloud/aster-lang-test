@@ -1,0 +1,11 @@
+Module dual.engine.control.multibranch.
+
+Rule pricing_tier given monthly_spend produce:
+  If monthly_spend less than 100:
+    Return "free".
+  If monthly_spend less than 1000:
+    Return "pro".
+  If monthly_spend less than 10000:
+    Return "team".
+  Otherwise:
+    Return "enterprise".

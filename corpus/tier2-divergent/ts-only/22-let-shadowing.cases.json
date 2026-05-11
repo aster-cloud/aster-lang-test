@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/22-let-shadowing.aster",
+  "entry": "normalize",
+  "cases": [
+    {
+      "name": "negative clamped to 0",
+      "input": [
+        -5
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "positive untouched",
+      "input": [
+        42
+      ],
+      "expectedOutput": 42
+    },
+    {
+      "name": "zero untouched",
+      "input": [
+        0
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}

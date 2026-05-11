@@ -1,0 +1,8 @@
+Module demo.lambdagte.
+
+Rule isAtLeast given x, threshold, produce:
+  Return x at least threshold.
+
+Rule isLengthAtLeast given s, minLen, produce:
+  Let len be Text.length(s).
+  Return len at least minLen.

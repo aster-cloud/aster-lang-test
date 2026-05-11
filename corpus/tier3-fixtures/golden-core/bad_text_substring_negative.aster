@@ -1,0 +1,4 @@
+Module error.text.substring.
+
+Rule main, produce:
+  Return Text.substring("abc", sub(0, 1)).

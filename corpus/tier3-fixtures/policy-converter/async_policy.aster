@@ -1,0 +1,9 @@
+Module test.async_demo.
+
+Rule processAsync given userId, produce:
+  Start task as async loadUser(userId).
+  Wait for task.
+  Return "Processed: " plus task.
+
+Rule loadUser given id, produce:
+  Return "User-" plus id.

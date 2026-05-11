@@ -1,0 +1,66 @@
+Module test.insurance.auto.
+
+Define Driver has driverId, age, yearsLicensed, accidentCount, violationCount, creditScore.
+
+Define Vehicle has vin, year, make, model, value, safetyRating.
+
+Define PolicyQuote has approved, reason, monthlyPremium, deductible, coverageLimit.
+
+Rule calculateAgeFactor given age, produce:
+  Return 0.
+Rule calculateVehicleFactor given vehicle, produce:
+  Return 0.
+Rule calculateBasePremium given driver, vehicle, produce:
+  Return 0.
+Rule calculateRiskMultiplier given driver, vehicle, produce:
+  Return 0.
+Rule determineDeductible given coverageType, creditScore, produce:
+  Return 0.
+Rule determineCoverageLimit given coverageType, vehicleValue, produce:
+  Return 0.
+Rule generateAutoQuote given driver, vehicle, coverageType, produce:
+  Return 0.
+Rule testDriverUnder18, produce:
+  Return 0.
+Rule testTooManyAccidents, produce:
+  Return 0.
+Rule testTooManyViolations, produce:
+  Return 0.
+Rule testYoungDriverPremiumCoverage, produce:
+  Return 0.
+Rule testMiddleAgedDriverStandardCoverage, produce:
+  Return 0.
+Rule testSeniorDriverBasicCoverage, produce:
+  Return 0.
+Rule testPerfectDriverNewCar, produce:
+  Return 0.
+Rule testHighRiskDriverOldCar, produce:
+  Return 0.
+Rule testLowCreditScore, produce:
+  Return 0.
+Rule testHighValueVehicle, produce:
+  Return 0.
+Rule testOldVehicle, produce:
+  Return 0.
+Rule testCalculateAgeFactorYoung, produce:
+  Return 0.
+Rule testCalculateAgeFactorMiddle, produce:
+  Return 0.
+Rule testCalculateAgeFactorSenior, produce:
+  Return 0.
+Rule testCalculateVehicleFactorNew, produce:
+  Return 0.
+Rule testCalculateVehicleFactorOld, produce:
+  Return 0.
+Rule testCalculateRiskMultiplierClean, produce:
+  Return 0.
+Rule testCalculateRiskMultiplierHighRisk, produce:
+  Return 0.
+Rule testDetermineDeductiblePremiumHigh, produce:
+  Return 0.
+Rule testDetermineDeductibleStandardLow, produce:
+  Return 0.
+Rule testDetermineCoverageLimitPremium, produce:
+  Return 0.
+Rule testDetermineCoverageLimitBasicHighValue, produce:
+  Return 0.

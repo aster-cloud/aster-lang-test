@@ -1,0 +1,4 @@
+Module mock.pkg.analytics.remote.
+
+Rule fetch_remote, produce. It performs io:
+  Return "ok".

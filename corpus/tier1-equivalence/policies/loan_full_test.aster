@@ -1,0 +1,12 @@
+Module aster.finance.loan.
+
+Define LoanApplication has applicantId, amount, termMonths, purpose.
+
+Define ApplicantProfile has age, creditScore, annualIncome, monthlyDebt, yearsEmployed.
+
+Define LoanDecision has approved, reason, approvedAmount, interestRate, termMonths.
+
+Rule evaluateLoanEligibility given application, applicant, produce:
+  Return 0.
+Rule determineInterestRate given creditScore, produce:
+  Return 0.

@@ -1,0 +1,11 @@
+Module tests.typecheck.workflow.timeout_long.
+
+Rule longTimeout, produce. It performs io:
+  
+  workflow:
+    step only:
+      Return ok of "ok".
+  
+    timeout: 7200 seconds.
+  
+  .

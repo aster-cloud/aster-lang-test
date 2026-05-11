@@ -1,0 +1,7 @@
+Module tests.typecheck.mismatch.assign.
+
+Define Entry has id, name.
+
+Rule makeBadEntry, produce:
+  Let entry be Entry(1, 2).
+  Return Text.concat(entry.name, "x").

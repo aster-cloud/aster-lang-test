@@ -1,0 +1,11 @@
+Module dual.engine.business.tax.
+
+Rule tax given income produce:
+  If income less than 10000:
+    Return 0.
+  If income less than 50000:
+    Return income times 10 divided by 100.
+  If income less than 200000:
+    Return income times 20 divided by 100.
+  Otherwise:
+    Return income times 30 divided by 100.

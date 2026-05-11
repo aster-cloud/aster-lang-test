@@ -1,0 +1,19 @@
+Module demo.workflow.core.diamond.
+
+Rule runDiamond, produce. It performs io:
+  
+  workflow:
+    step prepare:
+      Let baseline be Time.now().
+      Return ok of baseline.
+  
+    step branchA:
+      Return ok of Ai.summarize("payload").
+  
+    step branchB:
+      Return ok of Files.read("/tmp/data").
+  
+    step finalize:
+      Return ok of 42.
+  
+  .

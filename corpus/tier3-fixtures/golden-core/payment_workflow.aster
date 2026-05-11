@@ -1,0 +1,16 @@
+Module test.golden.payment.
+
+// Payment capability workflow test
+// Tests Payment.charge and Payment.refund with compensation
+
+Rule processPayment given orderId, amount, produce with IO. It performs io [Payment]:
+
+  workflow:
+    step charge_payment:
+      Return ok of Payment.charge(orderId, amount).
+
+    compensate:
+      Payment.refund("payment-id").
+      Return ok of "payment refunded".
+
+  .

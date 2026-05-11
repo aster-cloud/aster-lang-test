@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/29-business-tax-bracket.aster",
+  "entry": "tax",
+  "cases": [
+    {
+      "name": "5k → 0 tax (below threshold)",
+      "input": [
+        5000
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "30k @ 10%",
+      "input": [
+        30000
+      ],
+      "expectedOutput": 3000
+    },
+    {
+      "name": "100k @ 20%",
+      "input": [
+        100000
+      ],
+      "expectedOutput": 20000
+    }
+  ]
+}

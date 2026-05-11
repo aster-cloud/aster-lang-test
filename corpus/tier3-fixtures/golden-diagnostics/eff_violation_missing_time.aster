@@ -1,0 +1,5 @@
+Module test.eff.violation.missing_time.
+
+Rule log_event, produce. It performs io [Files]:
+  Let timestamp be Time.now().
+  Return File.write("/var/log/app.log", timestamp).

@@ -1,0 +1,6 @@
+Module test.operators.
+
+Rule checkRange given x, produce:
+  Let atLeast10 be x at least 10.
+  Let atMost100 be x at most 100.
+  Return atLeast10.

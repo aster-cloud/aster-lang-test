@@ -1,0 +1,4 @@
+Module simple.
+
+Rule main, produce:
+  Return 42.

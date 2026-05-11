@@ -1,0 +1,18 @@
+Module test.exact.eligibility.
+
+Define Patient has patientId, age, hasInsurance, insuranceType, chronicConditions.
+
+Define Service has serviceCode, serviceName, basePrice, requiresPreAuth.
+
+Define EligibilityCheck has eligible, reason, coveragePercent, estimatedCost, requiresPreAuth.
+
+Rule determineMinorCoverage given insuranceType, service, produce:
+  Return 0.
+Rule determineSeniorCoverage given insuranceType, service, produce:
+  Return 0.
+Rule determineStandardCoverage given insuranceType, service, chronicConditions, produce:
+  Return 0.
+Rule calculatePatientCost given basePrice, coveragePercent, produce:
+  Return 0.
+Rule checkServiceEligibility given patient, service, produce:
+  Return 0.

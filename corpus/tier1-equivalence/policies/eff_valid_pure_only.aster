@@ -1,0 +1,7 @@
+Module test.eff.valid.pure_only.
+
+Rule add, produce:
+  Return 1 plus 2.
+
+Rule multiply, produce:
+  Return add() times 3.

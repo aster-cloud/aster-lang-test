@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/21-let-conditional.aster",
+  "entry": "shipping",
+  "cases": [
+    {
+      "name": "50kg → base 10",
+      "input": [
+        50
+      ],
+      "expectedOutput": 10
+    },
+    {
+      "name": "200kg → 10 + 20 = 30",
+      "input": [
+        200
+      ],
+      "expectedOutput": 30
+    },
+    {
+      "name": "100kg boundary → base 10",
+      "input": [
+        100
+      ],
+      "expectedOutput": 10
+    }
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "tier": 2,
+  "engines": [
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "aster-lang-ts/test/cnl/programs/lambda/lambda_cnl_match_result.aster",
+  "knownGaps": [
+    "java-cannot-parse"
+  ],
+  "divergenceType": "grammar-gap"
+}

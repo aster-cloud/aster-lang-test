@@ -1,0 +1,7 @@
+Module test.typechecker.inventory_missing_io.
+
+// Invalid Inventory capability usage - missing IO effect declaration
+// Should produce error: Inventory capability requires IO effect
+
+Rule reserveInventoryInvalid given orderId, produce:
+  Return ok of Inventory.reserve(orderId, List.empty()).

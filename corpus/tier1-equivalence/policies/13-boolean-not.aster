@@ -1,0 +1,4 @@
+Module dual.engine.boolean.notop.
+
+Rule invert given flag produce:
+  Return not flag.

@@ -1,0 +1,19 @@
+Module std.maybe_result.
+
+Rule inc given x, produce:
+  Return x.
+
+Rule maybeWithDefault given x, d, produce:
+  Return Maybe.withDefault(x, d).
+
+Rule mapMaybe given x, produce:
+  Return Maybe.map(x, inc).
+
+Rule logErr given e, produce:
+  Return e.
+
+Rule mapOk given r, produce:
+  Return Result.mapOk(r, inc).
+
+Rule tapError given r, produce:
+  Return Result.tapError(r, logErr).

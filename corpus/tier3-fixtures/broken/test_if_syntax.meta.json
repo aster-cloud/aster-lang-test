@@ -1,0 +1,7 @@
+{
+  "tier": 3,
+  "bucket": "broken",
+  "engines": [],
+  "source": "aster-lang-ts/test/cnl/programs/basics/test_if_syntax.aster",
+  "notes": "Neither parser accepts; preserved for triage."
+}

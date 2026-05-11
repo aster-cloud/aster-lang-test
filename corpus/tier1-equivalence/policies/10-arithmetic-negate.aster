@@ -1,0 +1,4 @@
+Module dual.engine.arithmetic.negate.
+
+Rule negate given x produce:
+  Return 0 minus x.

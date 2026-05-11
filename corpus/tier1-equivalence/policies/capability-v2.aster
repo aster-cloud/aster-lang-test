@@ -1,0 +1,12 @@
+Module test.capability.v2.
+
+Rule legacy_io, produce. It performs io:
+  Return Http.get("https://legacy.example.com/ping").
+
+Rule fine_grained, produce. It performs io [Http]:
+  Return Http.get("https://api.example.com/ping").
+
+Rule mixed, produce. It performs io [Files, Secrets]:
+  Let token be Secrets.get("capability-demo").
+  Let content be Files.read("/tmp/demo.txt").
+  Return Text.concat(token, content).

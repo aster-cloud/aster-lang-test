@@ -1,0 +1,7 @@
+Module test.eff.custom_prefix.
+
+Rule fetch_with_custom_client, produce:
+  Return MyHttpClient.get("/api/data").
+
+Rule fetch_with_declared_io, produce. It performs io:
+  Return MyHttpClient.get("/api/data").

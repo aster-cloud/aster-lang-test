@@ -1,0 +1,10 @@
+Module demo.neq.
+
+Rule isDifferent given x, y, produce:
+  Return not (x equals to y).
+
+Rule isNotZero given n, produce:
+  Return not (n equals to 0).
+
+Rule checkNotEqual given a, b, produce:
+  Return not (a equals to b).

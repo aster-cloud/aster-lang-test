@@ -1,0 +1,4 @@
+Module test.arithmetic.
+
+Rule testAdd given x, y, produce:
+  Return x plus y.

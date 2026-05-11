@@ -1,0 +1,15 @@
+Module test.eligibility.struct.
+
+Define Patient has patientId, age, hasInsurance, insuranceType, chronicConditions.
+
+Define Service has serviceCode, serviceName, basePrice, requiresPreAuth.
+
+Define EligibilityCheck has eligible, reason, coveragePercent, estimatedCost, requiresPreAuth.
+
+Rule calculatePatientCost given basePrice, coveragePercent, produce:
+  Let patientPercent be 100 minus coveragePercent.
+  Let patientCost be basePrice times patientPercent.
+  Return patientCost.
+
+Rule checkServiceEligibility given patient, service, produce:
+  Return EligibilityCheck with eligible set to true, reason set to "Has insurance", coveragePercent set to 80, estimatedCost set to calculatePatientCost(service.basePrice, 80), requiresPreAuth set to service.requiresPreAuth.

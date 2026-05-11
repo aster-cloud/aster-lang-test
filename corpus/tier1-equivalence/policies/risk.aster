@@ -1,0 +1,8 @@
+Module aster.finance.risk.
+
+Define FinancialProfile has totalAssets, totalLiabilities, monthlyIncome, monthlyExpenses, creditScore.
+
+Define RiskAssessment has riskLevel, riskScore, recommendation.
+
+Rule assessRisk given profile, produce:
+  Return 0.

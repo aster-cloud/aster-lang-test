@@ -1,0 +1,27 @@
+// Deutsche Muster - Musterabgleich mit pruefe/bei
+Dieses Modul ist test.muster.
+
+Definiere Benutzer mit id, name, rolle.
+
+Definiere Status als eines von Ausstehend, Aktiv, Gesperrt, Geloescht.
+
+// Abgleich auf optionalen Wert
+Um benutzerBegruessen mit benutzer, liefert:
+  pruefe benutzer:
+    bei null, gib zurueck "Hallo, Gast".
+    bei Benutzer(id, name, rolle), gib zurueck "Willkommen, " plus name.
+
+// Abgleich auf Aufzaehlung
+Um statusBeschreiben mit status, liefert:
+  pruefe status:
+    bei Ausstehend, gib zurueck "Wartet auf Freigabe".
+    bei Aktiv, gib zurueck "Derzeit aktiv".
+    bei Gesperrt, gib zurueck "Voruebergehend gesperrt".
+    bei Geloescht, gib zurueck "Dauerhaft entfernt".
+
+// Abgleich mit Ganzzahl-Literal
+Um punktzahlKlassifizieren mit punktzahl, liefert:
+  pruefe punktzahl:
+    bei 0, gib zurueck "Null".
+    bei 100, gib zurueck "Perfekt".
+    bei andere, gib zurueck "In Bearbeitung".

@@ -1,0 +1,4 @@
+Module boundary.list.empty.length.
+
+Rule main, produce:
+  Return List.length(List.empty()).

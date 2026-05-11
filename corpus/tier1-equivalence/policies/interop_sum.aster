@@ -1,0 +1,16 @@
+Module demo.interop.sumdemo.
+
+Rule sumInt, produce:
+  Return Interop.sum(1, 2).
+
+Rule sumLong, produce:
+  Return Interop.sum(1L, 2L).
+
+Rule sumDouble, produce:
+  Return Interop.sum(1.0, 2.0).
+
+Rule sumIntLong, produce:
+  Return Interop.sum(1, 2L).
+
+Rule sumIntDouble, produce:
+  Return Interop.sum(1, 2.0).

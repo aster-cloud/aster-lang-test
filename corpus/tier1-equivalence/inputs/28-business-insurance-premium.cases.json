@@ -1,0 +1,30 @@
+{
+  "policy": "tier1-equivalence/policies/28-business-insurance-premium.aster",
+  "entry": "premium",
+  "cases": [
+    {
+      "name": "young + clean = 100 + 3 + 0 = 103",
+      "input": [
+        30,
+        0
+      ],
+      "expectedOutput": 103
+    },
+    {
+      "name": "older + 2 claims = 100 + 5 + 100 = 205",
+      "input": [
+        50,
+        2
+      ],
+      "expectedOutput": 205
+    },
+    {
+      "name": "max risk = 100 + 7 + 250 = 357",
+      "input": [
+        70,
+        5
+      ],
+      "expectedOutput": 357
+    }
+  ]
+}

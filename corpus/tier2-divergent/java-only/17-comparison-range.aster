@@ -1,0 +1,4 @@
+Module dual.engine.comparison.range.
+
+Rule in_range given value, lo, hi, produce:
+  Return value greater than lo and value less than hi.

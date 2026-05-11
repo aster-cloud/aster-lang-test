@@ -1,0 +1,4 @@
+Module test.effects.generic_func.
+
+Rule persist given data, produce. It performs io [Files]:
+  Return data.

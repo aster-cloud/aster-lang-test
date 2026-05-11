@@ -1,0 +1,12 @@
+{
+  "tier": 2,
+  "engines": [
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "aster-lang-core/src/test/resources/dual-engine/policies/23-if-nested.aster",
+  "knownGaps": [
+    "java-rejects: L4:28 extraneous input ':' expecting {',', NEWLINE}"
+  ],
+  "divergenceType": "grammar-gap"
+}

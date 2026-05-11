@@ -1,0 +1,27 @@
+// English Functions - Function definitions and calls
+Module test.functions.
+
+Define Result has success, message.
+
+// Simple function with one parameter
+Rule double given x, produce:
+  Return x times 2.
+
+// Function with multiple parameters
+Rule add given a, b, produce:
+  Return a plus b.
+
+// Function calling another function
+Rule quadruple given x, produce:
+  Let doubled be double(x).
+  Return double(doubled).
+
+// Function returning a record
+Rule createResult given ok, msg, produce:
+  Return Result with success set to ok, message set to msg.
+
+// Function with local variables
+Rule calculate given base, multiplier, offset, produce:
+  Let product be base times multiplier.
+  Let result be product plus offset.
+  Return result.

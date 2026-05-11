@@ -1,0 +1,4 @@
+Module test.pii.param_return.
+
+Rule validate_email given email, produce:
+  Return email.

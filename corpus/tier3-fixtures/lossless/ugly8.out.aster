@@ -1,0 +1,4 @@
+Module demo.paren.
+
+Rule join given a, b, produce:
+  Return 0.

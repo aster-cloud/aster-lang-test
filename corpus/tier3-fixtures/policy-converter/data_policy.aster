@@ -1,0 +1,9 @@
+Module test.data.
+
+Define Person has name, age, email.
+
+Rule createPerson given name, age, email, produce:
+  Return Person with name set to name, age set to age, email set to email.
+
+Rule getPersonName given person, produce:
+  Return person.name.

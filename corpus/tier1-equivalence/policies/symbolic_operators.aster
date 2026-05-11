@@ -1,0 +1,21 @@
+Module test.symbolicops.
+
+Rule testSymbolicComparison given x, y, produce:
+  Let lt be x < y.
+  Let gt be x > y.
+  Let lte be x <= y.
+  Let gte be x >= y.
+  Let neq be x != y.
+  Let eq be x = y.
+  Return eq.
+
+Rule testSymbolicArithmetic given x, y, produce:
+  Let sum be x + y.
+  Let diff be x - y.
+  Let prod be x * y.
+  Let quot be x / y.
+  Return sum.
+
+Rule testMixedOperators given x, y, produce:
+  Let result be x + y > 10.
+  Return result.

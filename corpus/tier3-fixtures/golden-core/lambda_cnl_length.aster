@@ -1,0 +1,4 @@
+Module demo.lambdalength.
+
+Rule lengthOf given s, produce:
+  Return f(s).

@@ -1,0 +1,4 @@
+Module smoke.test.
+
+Rule main, produce:
+  Return 42.

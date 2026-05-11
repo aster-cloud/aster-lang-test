@@ -1,0 +1,7 @@
+Module demo.ifp.
+
+Rule choose given flag, produce:
+  If flag
+    Return "Y".
+  Otherwise
+    Return "N".

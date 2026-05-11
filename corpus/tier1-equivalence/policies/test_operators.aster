@@ -1,0 +1,5 @@
+Module test.operators.
+
+Rule checkRange given x as Int, produce Int:
+  Let doubled be x.
+  Return doubled.

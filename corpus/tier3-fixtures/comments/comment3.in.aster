@@ -1,0 +1,8 @@
+Module demo.standalone.
+
+// top comment
+Rule id, produce:
+  // inside block
+  Return 1.
+// bottom comment
+

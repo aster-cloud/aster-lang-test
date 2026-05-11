@@ -1,0 +1,14 @@
+Module demo.workflow.linear.
+
+Rule testWorkflow, produce. It performs io:
+  
+  workflow:
+    step validate:
+      return ok of "validated".
+    
+    step execute:
+      return ok of "executed".
+    
+    timeout: 30 seconds.
+  
+  .

@@ -1,0 +1,10 @@
+Module demo.list.
+
+Rule length given xs, produce:
+  Return List.length(xs).
+
+Rule third given xs, produce:
+  Return List.get(xs, 2).
+
+Rule isEmpty given xs, produce:
+  Return List.isEmpty(xs).

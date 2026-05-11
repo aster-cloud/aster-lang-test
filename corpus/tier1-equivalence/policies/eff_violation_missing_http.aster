@@ -1,0 +1,4 @@
+Module test.eff.violation.missing_http.
+
+Rule api_call, produce. It performs io [Sql]:
+  Return Http.get("/health").

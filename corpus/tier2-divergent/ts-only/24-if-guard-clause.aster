@@ -1,0 +1,6 @@
+Module dual.engine.control.guard.
+
+Rule absolute_value given x produce:
+  If x less than 0:
+    Return 0 minus x.
+  Return x.

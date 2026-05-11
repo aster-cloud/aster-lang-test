@@ -1,0 +1,4 @@
+Module dual.engine.business.gdpr.
+
+Rule allow_access given consent_active, days_since_consent, produce:
+  Return consent_active and days_since_consent less than 730.

@@ -1,0 +1,4 @@
+Module test.cnl.programs.syntax_tests.test_bad_syntax.
+
+Rule main, produce:
+  Return 0.

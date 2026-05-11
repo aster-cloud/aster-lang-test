@@ -1,0 +1,12 @@
+{
+  "tier": 2,
+  "engines": [
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "aster-lang-core/src/test/resources/dual-engine/policies/29-business-tax-bracket.aster",
+  "knownGaps": [
+    "java-rejects: L4:27 extraneous input ':' expecting {',', NEWLINE}"
+  ],
+  "divergenceType": "grammar-gap"
+}

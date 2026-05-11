@@ -1,0 +1,15 @@
+Module tests.typecheck.workflow.retry_timeout.
+
+Rule retryTimeoutConflict, produce. It performs io:
+  
+  workflow:
+    step only:
+      Return ok of "ok".
+  
+    retry:
+      max attempts: 5.
+      backoff: linear.
+  
+    timeout: 3 seconds.
+  
+  .

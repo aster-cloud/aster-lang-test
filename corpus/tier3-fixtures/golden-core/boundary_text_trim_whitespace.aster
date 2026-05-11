@@ -1,0 +1,4 @@
+Module boundary.text.trim.whitespace.
+
+Rule main, produce:
+  Return Text.trim("   ").

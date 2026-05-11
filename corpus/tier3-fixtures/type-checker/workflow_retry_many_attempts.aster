@@ -1,0 +1,13 @@
+Module tests.typecheck.workflow.retry_many.
+
+Rule retryManyTimes, produce. It performs io:
+  
+  workflow:
+    step only:
+      Return ok of "ok".
+  
+    retry:
+      max attempts: 20.
+      backoff: linear.
+  
+  .

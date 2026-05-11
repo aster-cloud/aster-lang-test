@@ -1,0 +1,7 @@
+Module test.hello.
+
+Rule sayHello given name, produce:
+  Return "Hello, " plus name.
+
+Rule helloWorld, produce:
+  Return "Hello, World!".

@@ -1,0 +1,4 @@
+Module demo.capcaps.enforce_unused.
+
+Rule onlyHttp, produce. It performs io [Http, Sql]:
+  Return Http.get("/ping").

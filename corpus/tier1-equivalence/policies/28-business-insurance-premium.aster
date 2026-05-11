@@ -1,0 +1,7 @@
+Module dual.engine.business.insurance.
+
+Rule premium given age, claims, produce:
+  Let base be 100.
+  Let age_factor be age divided by 10.
+  Let claim_factor be claims times 50.
+  Return base plus age_factor plus claim_factor.

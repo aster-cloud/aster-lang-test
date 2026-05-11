@@ -1,0 +1,10 @@
+Module demo.comparison.
+
+Rule testGreaterThanOrEqual given a, b, produce:
+  Return 0.
+Rule testLessThanOrEqual given a, b, produce:
+  Return 0.
+Rule testNotEqual given a, b, produce:
+  Return 0.
+Rule testInRange given value, min, max, produce:
+  Return 0.

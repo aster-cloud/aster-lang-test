@@ -1,0 +1,14 @@
+Module test.complex.return.
+
+Define Patient has insuranceType, age.
+
+Define Service has basePrice, requiresPreAuth.
+
+Define EligibilityCheck has eligible, reason, coveragePercent, estimatedCost, requiresPreAuth.
+
+Rule determineMinorCoverage given insuranceType, service, produce:
+  Return 0.
+Rule calculatePatientCost given basePrice, coveragePercent, produce:
+  Return 0.
+Rule checkServiceEligibility given patient, service, produce:
+  Return 0.

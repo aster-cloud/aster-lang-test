@@ -1,0 +1,6 @@
+Module dual.engine.let.dependent.
+
+Rule final_amount given base produce:
+  Let doubled be base times 2.
+  Let with_bonus be doubled plus 100.
+  Return with_bonus.

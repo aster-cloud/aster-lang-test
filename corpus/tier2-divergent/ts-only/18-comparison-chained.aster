@@ -1,0 +1,9 @@
+Module dual.engine.comparison.chained.
+
+Rule classify given score produce:
+  If score less than 60:
+    Return "fail".
+  If score less than 80:
+    Return "pass".
+  Otherwise:
+    Return "excellent".

@@ -1,0 +1,7 @@
+Module test.eff.violation.multiple_errors.
+
+Rule bad_func, produce. It performs io [Http]:
+  Let secret be Secrets.get("KEY").
+  Let data be Db.query("SELECT 1").
+  Let ts be Time.now().
+  Return Http.post("/api", data).

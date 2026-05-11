@@ -1,0 +1,30 @@
+{
+  "policy": "tier1-equivalence/policies/07-arithmetic-subtract.aster",
+  "entry": "subtract",
+  "cases": [
+    {
+      "name": "10 - 3 = 7",
+      "input": [
+        10,
+        3
+      ],
+      "expectedOutput": 7
+    },
+    {
+      "name": "5 - 5 = 0",
+      "input": [
+        5,
+        5
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "3 - 10 = -7",
+      "input": [
+        3,
+        10
+      ],
+      "expectedOutput": -7
+    }
+  ]
+}

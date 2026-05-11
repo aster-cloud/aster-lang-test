@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/10-arithmetic-negate.aster",
+  "entry": "negate",
+  "cases": [
+    {
+      "name": "negate 5 → -5",
+      "input": [
+        5
+      ],
+      "expectedOutput": -5
+    },
+    {
+      "name": "negate 0 → 0",
+      "input": [
+        0
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "negate -7 → 7",
+      "input": [
+        -7
+      ],
+      "expectedOutput": 7
+    }
+  ]
+}

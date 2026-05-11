@@ -1,0 +1,7 @@
+Module fixture.bar.
+
+Define Item has id.
+
+Rule idOf given i, produce:
+  Return i.id.
+

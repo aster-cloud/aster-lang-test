@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/03-if-else.aster",
+  "entry": "grade",
+  "cases": [
+    {
+      "name": "score 95 → A",
+      "input": [
+        95
+      ],
+      "expectedOutput": "A"
+    },
+    {
+      "name": "score 85 → B",
+      "input": [
+        85
+      ],
+      "expectedOutput": "B"
+    },
+    {
+      "name": "score 70 → C",
+      "input": [
+        70
+      ],
+      "expectedOutput": "C"
+    }
+  ]
+}

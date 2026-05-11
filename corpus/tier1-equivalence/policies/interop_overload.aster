@@ -1,0 +1,19 @@
+Module demo.interop.
+
+Rule pickInt, produce:
+  Return Interop.pick(1).
+
+Rule pickObj, produce:
+  Return Interop.pick(null).
+
+Rule pickBool, produce:
+  Return Interop.pick(true).
+
+Rule pickStr, produce:
+  Return Interop.pick("hello").
+
+Rule pickLong, produce:
+  Return Interop.pick(1L).
+
+Rule pickDouble, produce:
+  Return Interop.pick(1.0).

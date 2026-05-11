@@ -1,0 +1,8 @@
+Module dual.engine.let.conditional.
+
+Rule shipping given weight produce:
+  Let base_rate be 10.
+  If weight greater than 100:
+    Return base_rate plus weight divided by 10.
+  Otherwise:
+    Return base_rate.

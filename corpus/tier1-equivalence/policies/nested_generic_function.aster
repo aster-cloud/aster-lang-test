@@ -1,0 +1,5 @@
+Module demo.nested_generic.
+
+Rule wrap given value, produce:
+  Let result be helper(value).
+  Return some of result.

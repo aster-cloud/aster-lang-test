@@ -1,0 +1,9 @@
+Module dual.engine.control.ifelse.
+
+Rule grade given score, produce:
+  If score greater than 90:
+    Return "A".
+  If score greater than 80:
+    Return "B".
+  Otherwise:
+    Return "C".

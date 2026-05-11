@@ -1,0 +1,4 @@
+Module test.
+
+Rule compare given x as Int, produce Int:
+  Return 100.

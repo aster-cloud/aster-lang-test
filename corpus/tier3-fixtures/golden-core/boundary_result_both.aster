@@ -1,0 +1,7 @@
+Module test.boundary.result_both.
+
+Rule ok_case given x, produce:
+  Return Ok(x).
+
+Rule err_case given msg, produce:
+  Return Err(msg).

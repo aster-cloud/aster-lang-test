@@ -1,0 +1,8 @@
+Module finance.loan.constraints.
+
+Define LoanApplicationConstrained has applicantId, amount, termMonths, purpose.
+
+Rule checkLoanEligibilityConstrained given app, produce:
+  Return 0.
+Rule normalizeLoanAmount given amount, produce:
+  Return 0.

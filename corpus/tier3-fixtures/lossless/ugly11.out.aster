@@ -1,0 +1,4 @@
+Module test.lossless.golden.ugly11.out.
+
+Rule main, produce:
+  Return 0.

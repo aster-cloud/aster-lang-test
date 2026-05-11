@@ -1,0 +1,4 @@
+Module tests.typecheck.effects.cpu.
+
+Rule hashText given value, produce:
+  Return Cpu.hash(value).

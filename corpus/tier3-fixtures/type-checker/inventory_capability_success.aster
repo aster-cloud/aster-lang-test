@@ -1,0 +1,9 @@
+Module test.typechecker.inventory_success.
+
+// Valid Inventory capability usage - should produce no errors
+
+Rule reserveInventoryValid given orderId, produce. It performs io [Inventory]:
+  Return ok of Inventory.reserve(orderId, List.empty()).
+
+Rule releaseInventoryValid given reservationId, produce. It performs io [Inventory]:
+  Return ok of Inventory.release(reservationId).

@@ -1,0 +1,9 @@
+Module test.typechecker.payment_success.
+
+// Valid Payment capability usage - should produce no errors
+
+Rule processPaymentValid given orderId, amount, produce. It performs io [Payment]:
+  Return ok of Payment.charge(orderId, amount).
+
+Rule refundPaymentValid given paymentId, produce. It performs io [Payment]:
+  Return ok of Payment.refund(paymentId).

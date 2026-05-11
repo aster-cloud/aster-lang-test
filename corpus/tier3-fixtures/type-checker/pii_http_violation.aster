@@ -1,0 +1,4 @@
+Module tests.typecheck.pii.
+
+Rule sendSensitiveEmail given email, produce. It performs io [Http]:
+  Return Http.post("http://api.example.com/send", email).

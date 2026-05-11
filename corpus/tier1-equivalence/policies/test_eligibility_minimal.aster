@@ -1,0 +1,10 @@
+Module test.eligibility.minimal.
+
+Define Patient has insuranceType, age, hasInsurance.
+
+Define Service has basePrice.
+
+Rule determineMinorCoverage given insuranceType, service, produce:
+  Return 0.
+Rule checkServiceEligibility given patient, service, produce:
+  Return 0.

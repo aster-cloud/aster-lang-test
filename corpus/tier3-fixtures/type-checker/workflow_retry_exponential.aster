@@ -1,0 +1,13 @@
+Module tests.typecheck.workflow.retry_exponential.
+
+Rule retryExponential, produce. It performs io:
+  
+  workflow:
+    step only:
+      Return ok of "ok".
+  
+    retry:
+      max attempts: 3.
+      backoff: exponential.
+  
+  .

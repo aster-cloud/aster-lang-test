@@ -1,0 +1,11 @@
+Module tests.workflow.compensate_capability.
+
+Rule compensateAddsCapability, produce. It performs io [Http, Secrets]:
+  
+  workflow:
+    step fetch:
+      Return ok of Http.get("/orders").
+    compensate:
+      Return ok of Secrets.rotate("orders-key").
+  
+  .

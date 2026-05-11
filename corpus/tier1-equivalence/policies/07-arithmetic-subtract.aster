@@ -1,0 +1,4 @@
+Module dual.engine.arithmetic.subtract.
+
+Rule subtract given x, y, produce:
+  Return x minus y.

@@ -1,0 +1,28 @@
+Module demo.policy.
+
+Define Action as one of Read, Write, Delete, Admin.
+
+Define Resource as one of Document, User, System.
+
+Define PolicyContext has userId, userRole, resourceOwner, resourceType, timeOfDay, location.
+
+Rule canAccess given role, action, ownerId, userId, produce:
+  If Action.equals(action, Read)
+    Return Text.equals(ownerId, userId).
+  If Action.equals(action, Write)
+    Return Text.equals(ownerId, userId).
+  If Action.equals(action, Delete)
+    Return false.
+  If Action.equals(action, Admin)
+    Return Text.equals(role, "admin").
+  Return false.
+
+Rule evaluateOwnerBasedRule given role, action, resource, context, produce:
+  If not Action.equals(action, Read)
+    Return false.
+  If not Resource.equals(resource, context.resourceType)
+    Return false.
+  Return Text.equals(context.userId, context.resourceOwner).
+
+Rule evaluateUserReadRule given context, produce:
+  Return Text.equals(context.userId, context.resourceOwner).

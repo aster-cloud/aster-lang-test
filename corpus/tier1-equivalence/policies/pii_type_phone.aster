@@ -1,0 +1,4 @@
+Module test.pii.phone.
+
+Rule get_phone, produce:
+  Return "+1-555-0100".

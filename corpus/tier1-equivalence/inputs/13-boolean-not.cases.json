@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/13-boolean-not.aster",
+  "entry": "invert",
+  "cases": [
+    {
+      "name": "not true → false",
+      "input": [
+        true
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "not false → true",
+      "input": [
+        false
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "double negation true",
+      "input": [
+        true
+      ],
+      "expectedOutput": false
+    }
+  ]
+}

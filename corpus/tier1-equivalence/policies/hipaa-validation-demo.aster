@@ -1,0 +1,126 @@
+# ========================================
+# HIPAA Compliance Demo: PHI Validation & Access Control
+# §164.312 - Access Control & Audit Controls
+# ========================================
+
+Module examples.compliance.hipaa_validation_demo.
+
+# HIPAA 访问控制级别（服务端定义，不可客户端伪造）
+Define AccessLevel has
+  level_name,
+  can_view_demographics,
+  can_view_medical,
+  can_view_financial,
+  can_modify.
+
+# PHI 数据分类
+Define PHICategory has
+  category,
+  sensitivity,
+  requires_consent,
+  retention_years.
+
+# 访问请求
+Define PHIAccessRequest has
+  user_id,
+  user_role,
+  phi_category_name,
+  purpose,
+  has_consent.
+
+# HIPAA 验证结果
+Define HIPAAValidation has
+  is_compliant,
+  passed_count,
+  failed_count,
+  message.
+
+# 定义访问级别（服务端权威函数）
+Rule get_access_level given role, produce:
+  If role equals to "physician"
+    Return AccessLevel with level_name set to "FULL", can_view_demographics set to true, can_view_medical set to true, can_view_financial set to false, can_modify set to true.
+  If role equals to "nurse"
+    Return AccessLevel with level_name set to "CLINICAL", can_view_demographics set to true, can_view_medical set to true, can_view_financial set to false, can_modify set to false.
+  If role equals to "billing"
+    Return AccessLevel with level_name set to "BILLING", can_view_demographics set to true, can_view_medical set to false, can_view_financial set to true, can_modify set to false.
+  If role equals to "admin"
+    Return AccessLevel with level_name set to "ADMIN", can_view_demographics set to true, can_view_medical set to false, can_view_financial set to false, can_modify set to false.
+  Return AccessLevel with level_name set to "NONE", can_view_demographics set to false, can_view_medical set to false, can_view_financial set to false, can_modify set to false.
+
+# 定义 PHI 类别
+Rule get_phi_category given category_name, produce:
+  If category_name equals to "demographics"
+    Return PHICategory with category set to "DEMOGRAPHICS", sensitivity set to "L2", requires_consent set to false, retention_years set to 6.
+  If category_name equals to "medical"
+    Return PHICategory with category set to "MEDICAL", sensitivity set to "L3", requires_consent set to true, retention_years set to 10.
+  If category_name equals to "financial"
+    Return PHICategory with category set to "FINANCIAL", sensitivity set to "L2", requires_consent set to false, retention_years set to 7.
+  If category_name equals to "psychotherapy"
+    Return PHICategory with category set to "PSYCHOTHERAPY", sensitivity set to "L3", requires_consent set to true, retention_years set to 10.
+  Return PHICategory with category set to "UNKNOWN", sensitivity set to "L3", requires_consent set to true, retention_years set to 10.
+
+# HIPAA §164.312(a) - 访问控制验证
+Rule validate_access_control given request, produce:
+  Let level be get_access_level(request.user_role).
+  Let category be get_phi_category(request.phi_category_name).
+  If category.category equals to "MEDICAL"
+    If level.can_view_medical equals to false
+      Return err of Text.concat("HIPAA: Role ", request.user_role, " cannot access medical records").
+  If category.category equals to "FINANCIAL"
+    If level.can_view_financial equals to false
+      Return err of Text.concat("HIPAA: Role ", request.user_role, " cannot access financial records").
+  If category.category equals to "PSYCHOTHERAPY"
+    If level.can_view_medical equals to false
+      Return err of Text.concat("HIPAA: Role ", request.user_role, " cannot access psychotherapy notes").
+  Return ok of Text.concat("Access validated for role: ", request.user_role).
+
+# HIPAA §164.508 - 同意验证
+Rule validate_consent given request, produce:
+  Let category be get_phi_category(request.phi_category_name).
+  If category.requires_consent
+    If request.has_consent equals to false
+      Return err of Text.concat("HIPAA: Consent required for ", category.category).
+  Return ok of "Consent validated".
+
+# HIPAA §164.512 - 使用目的验证
+Rule validate_purpose given request, produce:
+  If request.purpose equals to "treatment"
+    Return ok of "Purpose validated".
+  If request.purpose equals to "payment"
+    Return ok of "Purpose validated".
+  If request.purpose equals to "healthcare_operations"
+    Return ok of "Purpose validated".
+  Return err of Text.concat("HIPAA: Purpose ", request.purpose, " is not permitted").
+
+# 完整 HIPAA 合规验证（简化版 - 仅检查访问控制）
+Rule validate_hipaa_compliance given request, produce:
+  Let access_result be validate_access_control(request).
+  Let consent_result be validate_consent(request).
+  Let purpose_result be validate_purpose(request).
+  If Result.isOk(access_result)
+    If Result.isOk(consent_result)
+      If Result.isOk(purpose_result)
+        Return HIPAAValidation with is_compliant set to true, passed_count set to 3, failed_count set to 0, message set to "All HIPAA checks passed".
+  Return HIPAAValidation with is_compliant set to false, passed_count set to 0, failed_count set to 1, message set to "HIPAA compliance failed".
+
+# 生成 HIPAA 合规报告
+Rule generate_hipaa_report given user_id, validation, produce:
+  If validation.is_compliant
+    Return Text.concat("HIPAA COMPLIANCE: PASSED for ", user_id).
+  Otherwise
+    Return Text.concat("HIPAA COMPLIANCE: FAILED for ", user_id, ". Failed checks: ", Int.toString(validation.failed_count)).
+
+# 示例：医生访问医疗记录（合规）
+Rule demo_compliant_access, produce:
+  Let request be PHIAccessRequest with user_id set to "DR-001", user_role set to "physician", phi_category_name set to "medical", purpose set to "treatment", has_consent set to true.
+  Return validate_hipaa_compliance(request).
+
+# 示例：账单人员访问医疗记录（不合规）
+Rule demo_non_compliant_access, produce:
+  Let request be PHIAccessRequest with user_id set to "BILL-001", user_role set to "billing", phi_category_name set to "medical", purpose set to "payment", has_consent set to false.
+  Return validate_hipaa_compliance(request).
+
+# 示例：攻击者尝试伪造权限
+Rule demo_spoofed_access_blocked, produce:
+  Let request be PHIAccessRequest with user_id set to "ATTACKER-001", user_role set to "admin", phi_category_name set to "medical", purpose set to "curiosity", has_consent set to false.
+  Return validate_hipaa_compliance(request).

@@ -1,0 +1,7 @@
+Module demo.map.
+
+Rule val given m, k, produce:
+  Return Map.get(m, k).
+
+Rule valStrict given m, k, produce:
+  Return Map.get(m, k).

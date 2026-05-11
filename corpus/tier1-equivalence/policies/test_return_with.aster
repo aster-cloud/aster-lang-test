@@ -1,0 +1,6 @@
+Module test.loan.
+
+Define Decision has approved as Bool, reason as Text.
+
+Rule check given age as Int, produce Text:
+  Return "approved".

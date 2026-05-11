@@ -1,0 +1,9 @@
+Module dual.engine.control.boolcondition.
+
+Rule discount given is_member, has_coupon, base, produce:
+  If is_member and has_coupon:
+    Return base divided by 2.
+  If is_member or has_coupon:
+    Return base minus base divided by 5.
+  Otherwise:
+    Return base.

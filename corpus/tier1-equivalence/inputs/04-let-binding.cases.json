@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/04-let-binding.aster",
+  "entry": "discounted_price",
+  "cases": [
+    {
+      "name": "100 → 90 (10% off)",
+      "input": [
+        100
+      ],
+      "expectedOutput": 90
+    },
+    {
+      "name": "1000 → 900",
+      "input": [
+        1000
+      ],
+      "expectedOutput": 900
+    },
+    {
+      "name": "0 → 0",
+      "input": [
+        0
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}

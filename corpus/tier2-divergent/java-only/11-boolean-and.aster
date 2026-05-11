@@ -1,0 +1,4 @@
+Module dual.engine.boolean.and.
+
+Rule both given x, y, produce:
+  Return x and y.

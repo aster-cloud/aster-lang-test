@@ -1,0 +1,14 @@
+Module aster.healthcare.claims.
+
+Define Claim has claimId, patientId, providerId, serviceDate, amount, diagnosisCode.
+
+Define Provider has providerId, inNetwork, specialtyType, qualityScore.
+
+Define ClaimDecision has approved, reason, approvedAmount, denialCode, requiresReview.
+
+Rule processClaim given claim, provider, patientCoverage, produce:
+  Return 0.
+Rule calculateClaimApproval given claimAmount, coverage, specialty, produce:
+  Return 0.
+Rule validateClaimDocumentation given claim, hasPreAuth, hasReferral, produce:
+  Return 0.

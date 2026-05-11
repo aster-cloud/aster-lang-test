@@ -1,0 +1,8 @@
+Module test.pii.function_return.
+
+Rule get_email, produce:
+  Return "user@example.com".
+
+Rule send_email, produce. It performs io [Http]:
+  Let email be get_email().
+  Return Http.post("/send", email).

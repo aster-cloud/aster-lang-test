@@ -1,0 +1,9 @@
+Module test.allcomparisons.
+
+Rule testAllOperators given x, y, produce:
+  Let lt be x less than y.
+  Let gt be x greater than y.
+  Let lte be x at most y.
+  Let gte be x at least y.
+  Let neq be not (x equals to y).
+  Return neq.

@@ -1,0 +1,4 @@
+Module demo.punct.
+
+Rule cmp given x,  y,  produce:
+  Return 0.

@@ -1,0 +1,4 @@
+Module dual.engine.arithmetic.precedence.
+
+Rule compute given x, y, z, produce:
+  Return x plus y times z.

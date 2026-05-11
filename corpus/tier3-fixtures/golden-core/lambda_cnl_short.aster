@@ -1,0 +1,4 @@
+Module demo.lambdashort.
+
+Rule greet given pfx, produce:
+  Return f("short").

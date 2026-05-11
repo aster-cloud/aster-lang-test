@@ -1,0 +1,80 @@
+Module test.insurance.life.
+
+Define Applicant has applicantId, age, gender, smoker, bmi, occupation, healthScore.
+
+Define PolicyRequest has coverageAmount, termYears, policyType.
+
+Define LifeQuote has approved, reason, monthlyPremium, coverageAmount, termYears.
+
+Rule calculateBaseRate given age, termYears, produce:
+  Return 0.
+Rule calculateHealthMultiplier given applicant, produce:
+  Return 0.
+Rule calculateOccupationMultiplier given occupation, produce:
+  Return 0.
+Rule calculateRiskScore given applicant, produce:
+  Return 0.
+Rule generateLifeQuote given applicant, request, produce:
+  Return 0.
+Rule testApplicantTooYoung, produce:
+  Return 0.
+Rule testApplicantTooOld, produce:
+  Return 0.
+Rule testHealthScoreTooLow, produce:
+  Return 0.
+Rule testCoverageExceedsMaximum, produce:
+  Return 0.
+Rule testYoungHealthyNonSmokerShortTerm, produce:
+  Return 0.
+Rule testYoungHealthyNonSmokerLongTerm, produce:
+  Return 0.
+Rule testMiddleAgedSmokerHighBMI, produce:
+  Return 0.
+Rule testMiddleAgedNonSmokerLowBMI, produce:
+  Return 0.
+Rule testOlderApplicantHealthy, produce:
+  Return 0.
+Rule testHighRiskOccupation, produce:
+  Return 0.
+Rule testModerateRiskOccupation, produce:
+  Return 0.
+Rule testOfficeWorkerLowRisk, produce:
+  Return 0.
+Rule testSmokerVeryHighBMI, produce:
+  Return 0.
+Rule testExcellentHealthHighScore, produce:
+  Return 0.
+Rule testCalculateBaseRateYoungShort, produce:
+  Return 0.
+Rule testCalculateBaseRateYoungLong, produce:
+  Return 0.
+Rule testCalculateBaseRateMiddleShort, produce:
+  Return 0.
+Rule testCalculateBaseRateMiddleLong, produce:
+  Return 0.
+Rule testCalculateBaseRateOlderShort, produce:
+  Return 0.
+Rule testCalculateBaseRateOlderLong, produce:
+  Return 0.
+Rule testCalculateBaseRateSeniorShort, produce:
+  Return 0.
+Rule testCalculateHealthMultiplierClean, produce:
+  Return 0.
+Rule testCalculateHealthMultiplierSmoker, produce:
+  Return 0.
+Rule testCalculateHealthMultiplierHighBMI, produce:
+  Return 0.
+Rule testCalculateHealthMultiplierExcellent, produce:
+  Return 0.
+Rule testCalculateOccupationMultiplierHighRisk, produce:
+  Return 0.
+Rule testCalculateOccupationMultiplierModerate, produce:
+  Return 0.
+Rule testCalculateOccupationMultiplierOffice, produce:
+  Return 0.
+Rule testCalculateOccupationMultiplierUnknown, produce:
+  Return 0.
+Rule testCalculateRiskScoreLowRisk, produce:
+  Return 0.
+Rule testCalculateRiskScoreHighRisk, produce:
+  Return 0.

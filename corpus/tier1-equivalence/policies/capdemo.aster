@@ -1,0 +1,7 @@
+Module demo.capdemo.
+
+Rule hello given name, produce. It performs io:
+  Return Text.concat("Hello, ", name).
+
+Rule badIO, produce. It performs io:
+  Return Text.toUpper("x").

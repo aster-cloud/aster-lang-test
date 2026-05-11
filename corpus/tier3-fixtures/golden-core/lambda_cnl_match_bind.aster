@@ -1,0 +1,18 @@
+Module demo.lambdamatchbind.
+
+Define User has id, name.
+
+Rule greetUser given user, prefix, produce:
+  Let f be function with value, produce:
+    Match value:
+      When User(id, name), Return Text.concat(prefix, name).
+      When other, Return prefix.
+  Return f(user).
+
+Rule posOrZero given count, produce:
+  Let sel be function with value, produce:
+    If value greater than 0
+      Return value.
+    Otherwise
+      Return 0.
+  Return sel(count).

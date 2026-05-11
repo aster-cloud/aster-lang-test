@@ -1,0 +1,4 @@
+Module test.eff.violation.transitive.
+
+Rule top_http, produce. It performs io [Http]:
+  Return Secrets.get("DB_PASSWORD").

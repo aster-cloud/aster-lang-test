@@ -1,0 +1,6 @@
+Module dual.engine.let.multiple.
+
+Rule total_price given quantity, unit_price, produce:
+  Let subtotal be quantity times unit_price.
+  Let tax be subtotal divided by 10.
+  Return subtotal plus tax.

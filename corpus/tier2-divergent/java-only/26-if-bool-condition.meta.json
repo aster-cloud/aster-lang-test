@@ -1,0 +1,12 @@
+{
+  "tier": 2,
+  "engines": [
+    "java"
+  ],
+  "lexicon": "en-US",
+  "source": "aster-lang-core/src/test/resources/dual-engine/policies/26-if-bool-condition.aster",
+  "knownGaps": [
+    "ts-peg-missing-and-or-binary-ops"
+  ],
+  "divergenceType": "grammar-gap"
+}

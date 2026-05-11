@@ -1,0 +1,15 @@
+Module demo.workflow.compensate.
+
+Rule processOrder, produce. It performs io:
+  
+  workflow:
+    step reserve:
+      return ok of "reserved".
+
+    compensate:
+      return ok of "released".
+    
+    step execute:
+      return ok of "executed".
+  
+  .

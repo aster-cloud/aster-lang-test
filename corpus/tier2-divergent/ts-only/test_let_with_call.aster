@@ -1,0 +1,6 @@
+Module test.let.with.call.
+
+Rule helper given x, produce:
+  Return 0.
+Rule testLetWithCall given x, produce:
+  Return 0.

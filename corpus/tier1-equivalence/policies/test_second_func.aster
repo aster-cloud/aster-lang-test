@@ -1,0 +1,4 @@
+Module aster.finance.loan.
+
+Rule determineInterestRate given creditScore, produce:
+  Return 0.

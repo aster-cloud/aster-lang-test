@@ -1,0 +1,7 @@
+Module demo.nested_generic_lambda.
+
+Rule double given value, produce:
+  Let identity be function with x, produce:
+    Return x.
+  Let result be identity(value).
+  Return some of result.

@@ -1,0 +1,4 @@
+Module tests.typecheck.basic.
+
+Rule add given x, y, produce:
+  Return x plus y.

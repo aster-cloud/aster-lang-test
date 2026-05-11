@@ -1,0 +1,5 @@
+Module boundary.list.slice.zero.
+
+Rule main, produce:
+  Let xs be List.empty().
+  Return List.slice(xs, 0, 0).

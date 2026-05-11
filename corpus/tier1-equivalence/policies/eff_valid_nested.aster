@@ -1,0 +1,13 @@
+Module test.eff.valid.nested.
+
+Rule leaf_http, produce. It performs io [Http]:
+  Return Http.get("/health").
+
+Rule mid_io, produce. It performs io [Http, Sql]:
+  Let resp be leaf_http().
+  Return Db.insert("logs", resp).
+
+Rule root_io, produce. It performs io [Http, Sql, Time]:
+  Let data be mid_io().
+  Let ts be Time.now().
+  Return (ts plus ": ") plus data.

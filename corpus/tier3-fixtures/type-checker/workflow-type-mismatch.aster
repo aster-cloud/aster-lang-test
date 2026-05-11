@@ -1,0 +1,11 @@
+Module tests.workflow.type_error.
+
+Rule brokenWorkflow, produce. It performs io:
+  
+  workflow:
+    step danger:
+      Return err of "boom".
+    compensate:
+      Return ok of "still wrong".
+  
+  .

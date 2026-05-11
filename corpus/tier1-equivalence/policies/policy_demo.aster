@@ -1,0 +1,19 @@
+Module demo.policy_demo.
+
+Rule demonstratePolicyEngine, produce:
+  Return "Policy engine demonstration: Access granted".
+
+Rule runPolicyTest1, produce:
+  Return "Test 1: Admin access granted".
+
+Rule runPolicyTest2, produce:
+  Return "Test 2: User read own resource granted".
+
+Rule runPolicyTest3, produce:
+  Return "Test 3: User read other resource denied".
+
+Rule runPolicyTest4, produce:
+  Return "Test 4: User read own resource granted".
+
+Rule runPolicyTest5, produce:
+  Return "Test 5: User read own resource granted".

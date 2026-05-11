@@ -1,0 +1,4 @@
+Module dual.engine.comparison.
+
+Rule is_adult given age, produce:
+  Return age greater than 17.

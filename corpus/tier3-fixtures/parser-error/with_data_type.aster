@@ -1,0 +1,4 @@
+Module test.cnl.programs.parser_tests.with_data_type.
+
+Rule main, produce:
+  Return 0.

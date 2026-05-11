@@ -1,0 +1,9 @@
+Module dual.engine.let.shadowing.
+
+Rule normalize given raw_value produce:
+  Let value be raw_value.
+  If value less than 0:
+    Let value be 0.
+    Return value.
+  Otherwise:
+    Return value.

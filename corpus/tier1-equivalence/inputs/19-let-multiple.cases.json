@@ -1,0 +1,30 @@
+{
+  "policy": "tier1-equivalence/policies/19-let-multiple.aster",
+  "entry": "total_price",
+  "cases": [
+    {
+      "name": "5 × 100 = 500 + 50 tax = 550",
+      "input": [
+        5,
+        100
+      ],
+      "expectedOutput": 550
+    },
+    {
+      "name": "1 × 1000 = 1000 + 100 tax = 1100",
+      "input": [
+        1,
+        1000
+      ],
+      "expectedOutput": 1100
+    },
+    {
+      "name": "0 quantity = 0",
+      "input": [
+        0,
+        50
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}

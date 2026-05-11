@@ -1,0 +1,15 @@
+Module tests.cross.capability_violations.
+
+Rule missingCapability, produce. It performs io [Http]:
+  Let token be Secrets.get("api-key").
+  Let status be Http.get("/status").
+  Return status.
+
+Rule redundantCapability, produce. It performs io [Sql]:
+  Return "ok".
+
+Rule workflowMissingCapability, produce. It performs io [Sql]:
+  workflow:
+    step fetch:
+      Return ok of Secrets.rotate("session").
+  .

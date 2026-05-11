@@ -1,0 +1,5 @@
+Module test.eff.valid.exact_match.
+
+Rule exact, produce. It performs io [Http, Sql]:
+  Let resp be Http.get("/users").
+  Return Db.insert("cache", resp).

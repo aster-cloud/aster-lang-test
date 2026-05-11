@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/09-arithmetic-modulo.aster",
+  "entry": "is_even",
+  "cases": [
+    {
+      "name": "4 is even",
+      "input": [
+        4
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "7 is not even",
+      "input": [
+        7
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "0 is even",
+      "input": [
+        0
+      ],
+      "expectedOutput": true
+    }
+  ]
+}

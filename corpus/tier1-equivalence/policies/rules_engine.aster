@@ -1,0 +1,4 @@
+Module test.cnl.programs.business.rules_engine.
+
+Rule main, produce:
+  Return 0.

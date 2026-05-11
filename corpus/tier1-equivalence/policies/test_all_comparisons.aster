@@ -1,0 +1,5 @@
+Module test.allcomparisons.
+
+Rule testFirst given x as Text, y as Text, produce Text:
+  Let result be x.
+  Return result.

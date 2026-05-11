@@ -1,0 +1,7 @@
+Module std.text.
+
+Rule concat given left, right, produce:
+  Return Text.concat(left, right).
+
+Rule hasSubstring given haystack, needle, produce:
+  Return Text.contains(haystack, needle).

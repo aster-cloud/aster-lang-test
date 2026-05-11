@@ -1,0 +1,9 @@
+Module tests.workflow.missing_io_effect.
+
+Rule orchestrate, produce:
+  
+  workflow:
+    step fetch:
+      Return ok of "done".
+  
+  .

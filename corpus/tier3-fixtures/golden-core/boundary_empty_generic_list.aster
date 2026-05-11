@@ -1,0 +1,4 @@
+Module test.boundary.empty_list.
+
+Rule make_list given dummy, produce:
+  Return List.empty().

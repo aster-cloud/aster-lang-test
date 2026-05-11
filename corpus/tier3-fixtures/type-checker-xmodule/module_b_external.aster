@@ -1,0 +1,6 @@
+Module tests.effects.module_b_external.
+
+Use mock.pkg.analytics.remote as Remote.
+
+Rule load_remote, produce. It performs io:
+  Return Remote.fetch_remote().

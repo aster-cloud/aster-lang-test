@@ -1,0 +1,4 @@
+Module tests.runtime.retry.timeout.
+
+Rule retryWithTimeout, produce. It performs io:
+  Return 0.

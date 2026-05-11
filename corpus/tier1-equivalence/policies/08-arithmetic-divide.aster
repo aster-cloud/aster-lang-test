@@ -1,0 +1,4 @@
+Module dual.engine.arithmetic.divide.
+
+Rule divide given x, y, produce:
+  Return x divided by y.

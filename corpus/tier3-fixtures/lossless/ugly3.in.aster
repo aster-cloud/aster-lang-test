@@ -1,0 +1,6 @@
+Module demo.    
+
+Rule print given msg, produce  :   
+  Return IO.print(msg)   .     
+
+

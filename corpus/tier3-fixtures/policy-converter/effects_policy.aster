@@ -1,0 +1,7 @@
+Module test.effects.
+
+Rule pureFunction given x, produce:
+  Return x times 2.
+
+Rule ioFunction given message, produce IO. It performs io:
+  Return "Processed: " plus message.

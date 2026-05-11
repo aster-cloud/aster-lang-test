@@ -1,0 +1,4 @@
+Module demo.space.
+
+Rule id, produce:
+  Return 0.

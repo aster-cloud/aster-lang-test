@@ -1,0 +1,5 @@
+Module tests.typecheck.capabilities.
+
+Rule readSecret, produce. It performs io [Http]:
+  Let secret be Secrets.get("API_KEY").
+  Return Http.get("/status").

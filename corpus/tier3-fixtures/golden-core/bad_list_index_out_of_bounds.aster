@@ -1,0 +1,4 @@
+Module error.list.index.
+
+Rule main, produce:
+  Return List.get(List.empty(), 0).

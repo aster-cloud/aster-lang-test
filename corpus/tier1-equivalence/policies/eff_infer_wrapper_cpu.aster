@@ -1,0 +1,7 @@
+Module demo.eff_infer_wrapper_cpu.
+
+Rule helperWithCPU given text, produce. It performs cpu:
+  Return Cpu.hash(text).
+
+Rule wrapperWithCPU given input, produce. It performs cpu:
+  Return helperWithCPU(input).

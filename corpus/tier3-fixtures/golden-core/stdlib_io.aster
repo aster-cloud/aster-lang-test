@@ -1,0 +1,13 @@
+Module std.io.
+
+Rule print given msg, produce. It performs io:
+  Return IO.print(msg).
+
+Rule readLine, produce. It performs io:
+  Return IO.readLine().
+
+Rule readFile given path, produce. It performs io:
+  Return IO.readFile(path).
+
+Rule writeFile given path, contents, produce. It performs io:
+  Return IO.writeFile(path, contents).

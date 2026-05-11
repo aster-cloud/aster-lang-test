@@ -1,0 +1,7 @@
+Module fixture.foo.
+
+Define User has id, name.
+
+Rule greet given u, produce:
+  Return Text.concat("Hi, ", u.name).
+

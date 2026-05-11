@@ -1,0 +1,30 @@
+{
+  "policy": "tier1-equivalence/policies/16-comparison-equals.aster",
+  "entry": "same",
+  "cases": [
+    {
+      "name": "5 == 5",
+      "input": [
+        5,
+        5
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "5 == 6",
+      "input": [
+        5,
+        6
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "0 == -0",
+      "input": [
+        0,
+        0
+      ],
+      "expectedOutput": true
+    }
+  ]
+}

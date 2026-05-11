@@ -1,0 +1,23 @@
+Module tests.workflow.linear.
+
+Rule runWorkflow, produce. It performs io:
+  
+  workflow:
+    step fetch:
+      Return ok of Http.get("/orders").
+    compensate:
+      Return ok of Secrets.rotate("orders-key").
+
+    step persist:
+      Let record be Sql.insert("orders", "payload").
+      Return ok of record.
+    compensate:
+      Return ok of Secrets.rotate("orders-key").
+
+    retry:
+      max attempts: 3.
+      backoff: exponential.
+
+    timeout: 30 seconds.
+  
+  .

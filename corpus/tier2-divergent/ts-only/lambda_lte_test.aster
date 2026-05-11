@@ -1,0 +1,8 @@
+Module demo.lambdalte.
+
+Rule isAtMost given x, limit, produce:
+  Return x at most limit.
+
+Rule isShortEnough given s, maxLen, produce:
+  Let len be Text.length(s).
+  Return len at most maxLen.

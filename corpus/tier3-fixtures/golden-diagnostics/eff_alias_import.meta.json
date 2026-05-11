@@ -1,0 +1,9 @@
+{
+  "tier": 3,
+  "bucket": "golden-diagnostics",
+  "engines": [
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "aster-lang-ts/test/e2e/golden/diagnostics/eff_alias_import.aster"
+}

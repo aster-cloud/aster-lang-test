@@ -1,0 +1,10 @@
+Module dual.engine.control.nested.
+
+Rule loan_decision given credit, income, produce:
+  If credit greater than 700:
+    If income greater than 50000:
+      Return "approved".
+    Otherwise:
+      Return "review".
+  Otherwise:
+    Return "denied".

@@ -1,0 +1,4 @@
+Module demo.cm.
+
+Rule val given m, k, produce:
+  Return 0.

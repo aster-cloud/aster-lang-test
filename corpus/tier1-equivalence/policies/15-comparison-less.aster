@@ -1,0 +1,4 @@
+Module dual.engine.comparison.less.
+
+Rule is_below_threshold given value, threshold, produce:
+  Return value less than threshold.

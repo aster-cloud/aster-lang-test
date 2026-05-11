@@ -1,0 +1,4 @@
+Module test.effects.multiple.
+
+Rule query_data, produce. It performs io [Http, Sql, Files]:
+  Return "multi".

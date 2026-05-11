@@ -1,0 +1,4 @@
+Module demo.bom.
+
+Rule greet given name, produce:
+  Return 0.

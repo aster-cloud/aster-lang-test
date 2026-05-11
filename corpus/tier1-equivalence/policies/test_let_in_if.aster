@@ -1,0 +1,4 @@
+Module test.let.in.if.
+
+Rule testLetInIf given x, produce:
+  Return 0.

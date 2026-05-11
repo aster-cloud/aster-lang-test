@@ -1,0 +1,4 @@
+Module test.fixtures.parallel_workflow.
+
+Rule main, produce:
+  Return 0.
