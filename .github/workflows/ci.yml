@@ -42,19 +42,11 @@ jobs:
       - uses: gradle/actions/setup-gradle@v3
       - run: ./gradlew test
 
-  inventory:
-    name: Cross-engine inventory gate
-    runs-on: ubuntu-latest
-    needs: [build-js, build-jvm]
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-        with: { version: 9 }
-      - uses: actions/setup-node@v4
-        with: { node-version: '22' }
-      - uses: actions/setup-java@v4
-        with: { distribution: 'temurin', java-version: '25' }
-      - name: Run TS-side inventory
-        run: node scripts/inventory.mjs --parser=ts --gate=tier1
-      - name: Run Java-side inventory
-        run: node scripts/inventory.mjs --parser=java --gate=tier1
+  # Cross-engine inventory gate is enforced on the consumer side:
+  #   - aster-lang-ts CI runs `node scripts/java-corpus-parse-inventory.mjs`
+  #   - aster-lang-core CI runs `./gradlew test --tests TsSampleParseInventoryTest`
+  #
+  # Running it here would require sibling checkouts of aster-lang-ts and
+  # aster-lang-core plus a full Java + TS build, which would couple this repo's
+  # PR latency to both engines. Defer to the per-consumer CI; this repo just
+  # validates corpus loader self-consistency (build-js + build-jvm).
