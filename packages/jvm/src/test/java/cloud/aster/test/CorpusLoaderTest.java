@@ -48,7 +48,10 @@ class CorpusLoaderTest {
     void readCases() {
         List<CorpusLoader.Sample> tier1 = CorpusLoader.listTier(CorpusLoader.Tier.TIER1);
         long withCases = tier1.stream().filter(s -> s.readCases() != null).count();
-        assertThat(withCases).isGreaterThanOrEqualTo(20);
+        // Post-reclassify baseline: 15 of the original 23 cases.json files
+        // survived as tier1 (the other 8 had If:-block syntax that Java
+        // actually rejects and were moved to tier2/ts-only).
+        assertThat(withCases).isGreaterThanOrEqualTo(15);
 
         CorpusLoader.Sample s = tier1.stream()
             .filter(x -> x.readCases() != null)
