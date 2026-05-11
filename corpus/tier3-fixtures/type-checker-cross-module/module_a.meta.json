@@ -1,9 +1,7 @@
 {
   "tier": 3,
-  "bucket": "type-checker-xmodule",
-  "engines": [
-    "ts"
-  ],
+  "bucket": "type-checker-cross-module",
+  "engines": ["ts"],
   "lexicon": "en-US",
   "source": "aster-lang-ts/test/type-checker/cross-module/module_a.aster"
 }
