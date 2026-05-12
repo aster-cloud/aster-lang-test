@@ -50,3 +50,39 @@ jobs:
   # aster-lang-core plus a full Java + TS build, which would couple this repo's
   # PR latency to both engines. Defer to the per-consumer CI; this repo just
   # validates corpus loader self-consistency (build-js + build-jvm).
+
+  # P0-5: corpus 改动 → 主动触发两个 consumer 的 corpus-regression workflow。
+  # CROSS_REPO_TOKEN: GH PAT with repo scope (创建于 github.com/settings/tokens).
+  notify-consumers:
+    name: Trigger consumer regression
+    needs: [build-js, build-jvm]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check if corpus changed
+        id: changed
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            corpus:
+              - 'corpus/**'
+              - 'packages/js/src/loader.ts'
+              - 'packages/jvm/src/main/java/cloud/aster/test/CorpusLoader.java'
+
+      - name: Dispatch to aster-lang-ts
+        if: steps.changed.outputs.corpus == 'true'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.CROSS_REPO_TOKEN }}
+          repository: aster-cloud/aster-lang-ts
+          event-type: corpus-changed
+          client-payload: '{"sha":"${{ github.sha }}","ref":"${{ github.ref }}"}'
+
+      - name: Dispatch to aster-lang-core
+        if: steps.changed.outputs.corpus == 'true'
+        uses: peter-evans/repository-dispatch@v3
+        with:
+          token: ${{ secrets.CROSS_REPO_TOKEN }}
+          repository: aster-cloud/aster-lang-core
+          event-type: corpus-changed
+          client-payload: '{"sha":"${{ github.sha }}","ref":"${{ github.ref }}"}'
