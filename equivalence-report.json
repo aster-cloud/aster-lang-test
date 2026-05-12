@@ -1,10 +1,10 @@
 {
   "summary": {
     "total": 197,
-    "equivalent": 162,
-    "divergent": 35,
+    "equivalent": 183,
+    "divergent": 14,
     "bothFail": 0,
-    "rate": 0.8223350253807107
+    "rate": 0.9289340101522843
   },
   "rows": [
     {
@@ -1144,57 +1144,57 @@
     {
       "path": "tier2-divergent/ts-only/03-if-else.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
       "path": "tier2-divergent/ts-only/18-comparison-chained.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
       "path": "tier2-divergent/ts-only/21-let-conditional.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
       "path": "tier2-divergent/ts-only/22-let-shadowing.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
       "path": "tier2-divergent/ts-only/23-if-nested.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
       "path": "tier2-divergent/ts-only/24-if-guard-clause.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
       "path": "tier2-divergent/ts-only/25-if-multi-branch.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
       "path": "tier2-divergent/ts-only/29-business-tax-bracket.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
@@ -1214,8 +1214,8 @@
     {
       "path": "tier2-divergent/ts-only/enterprise.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
@@ -1270,15 +1270,15 @@
     {
       "path": "tier2-divergent/ts-only/lambda_gte_test.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
       "path": "tier2-divergent/ts-only/lambda_lte_test.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
@@ -1298,15 +1298,15 @@
     {
       "path": "tier2-divergent/ts-only/personal.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
       "path": "tier2-divergent/ts-only/test_all_comparisons__ts-only.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
@@ -1326,58 +1326,58 @@
     {
       "path": "tier2-divergent/ts-only/test_operators__ts-only.aster",
       "ts": true,
-      "java": false,
-      "verdict": "divergent",
+      "java": true,
+      "verdict": "equivalent",
       "tsErr": null
     },
     {
       "path": "tier2-divergent/java-only/11-boolean-and.aster",
-      "ts": false,
+      "ts": true,
       "java": true,
-      "verdict": "divergent",
-      "tsErr": "Expected '.' at end of statement"
+      "verdict": "equivalent",
+      "tsErr": null
     },
     {
       "path": "tier2-divergent/java-only/12-boolean-or.aster",
-      "ts": false,
+      "ts": true,
       "java": true,
-      "verdict": "divergent",
-      "tsErr": "Expected '.' at end of statement"
+      "verdict": "equivalent",
+      "tsErr": null
     },
     {
       "path": "tier2-divergent/java-only/14-boolean-short-circuit.aster",
-      "ts": false,
+      "ts": true,
       "java": true,
-      "verdict": "divergent",
-      "tsErr": "Expected '.' at end of statement"
+      "verdict": "equivalent",
+      "tsErr": null
     },
     {
       "path": "tier2-divergent/java-only/17-comparison-range.aster",
-      "ts": false,
+      "ts": true,
       "java": true,
-      "verdict": "divergent",
-      "tsErr": "Expected '.' at end of statement"
+      "verdict": "equivalent",
+      "tsErr": null
     },
     {
       "path": "tier2-divergent/java-only/26-if-bool-condition.aster",
-      "ts": false,
+      "ts": true,
       "java": true,
-      "verdict": "divergent",
-      "tsErr": "Expected newline"
+      "verdict": "equivalent",
+      "tsErr": null
     },
     {
       "path": "tier2-divergent/java-only/27-business-loan-eligibility.aster",
-      "ts": false,
+      "ts": true,
       "java": true,
-      "verdict": "divergent",
-      "tsErr": "Expected '.' at end of statement"
+      "verdict": "equivalent",
+      "tsErr": null
     },
     {
       "path": "tier2-divergent/java-only/30-business-gdpr-retention.aster",
-      "ts": false,
+      "ts": true,
       "java": true,
-      "verdict": "divergent",
-      "tsErr": "Expected '.' at end of statement"
+      "verdict": "equivalent",
+      "tsErr": null
     },
     {
       "path": "tier2-divergent/java-only/neq_test.aster",
