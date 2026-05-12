@@ -1,0 +1,102 @@
+name: Nightly dual-engine equivalence
+
+# P1-9: 每日跑 tier1 + tier2 parse-equivalence over both TS and Java engines.
+# Detects regressions (rate dropping) and tracks trend over time.
+
+on:
+  schedule:
+    - cron: '0 2 * * *'   # UTC 02:00 daily
+  workflow_dispatch:
+
+permissions:
+  contents: write   # 用于把 equivalence-history.csv push 回仓库
+
+jobs:
+  equivalence:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: aster-lang-test
+          token: ${{ secrets.CROSS_REPO_TOKEN }}   # 允许后续 push history
+
+      - uses: actions/checkout@v4
+        with:
+          repository: aster-cloud/aster-lang-ts
+          path: aster-lang-ts
+          token: ${{ secrets.CROSS_REPO_TOKEN }}
+
+      - uses: actions/checkout@v4
+        with:
+          repository: aster-cloud/aster-lang-core
+          path: aster-lang-core
+          token: ${{ secrets.CROSS_REPO_TOKEN }}
+
+      # aster-lang-core 需要 sibling lexicon 仓库
+      - uses: actions/checkout@v4
+        with: { repository: aster-cloud/aster-lang-en, path: aster-lang-en, token: '${{ secrets.CROSS_REPO_TOKEN }}' }
+      - uses: actions/checkout@v4
+        with: { repository: aster-cloud/aster-lang-zh, path: aster-lang-zh, token: '${{ secrets.CROSS_REPO_TOKEN }}' }
+      - uses: actions/checkout@v4
+        with: { repository: aster-cloud/aster-lang-de, path: aster-lang-de, token: '${{ secrets.CROSS_REPO_TOKEN }}' }
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: aster-lang-ts/pnpm-lock.yaml
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Build aster-lang-ts
+        working-directory: aster-lang-ts
+        run: pnpm install --frozen-lockfile && pnpm build
+
+      - name: Run equivalence harness
+        working-directory: aster-lang-test
+        run: node scripts/equivalence-nightly.mjs | tee equivalence-report.md
+
+      - name: Upload artefacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: equivalence-${{ github.run_id }}
+          path: |
+            aster-lang-test/equivalence-report.json
+            aster-lang-test/equivalence-report.md
+            aster-lang-test/equivalence-history.csv
+
+      - name: Append history to main
+        if: github.event_name == 'schedule' && success()
+        working-directory: aster-lang-test
+        env:
+          GIT_AUTHOR_NAME: aster-bot
+          GIT_AUTHOR_EMAIL: bot@aster-lang.cloud
+          GIT_COMMITTER_NAME: aster-bot
+          GIT_COMMITTER_EMAIL: bot@aster-lang.cloud
+        run: |
+          if git diff --quiet equivalence-history.csv; then
+            echo "history unchanged, nothing to commit"
+            exit 0
+          fi
+          git add equivalence-history.csv
+          git commit -m "chore: append nightly equivalence rate $(tail -1 equivalence-history.csv | cut -d, -f5)"
+          git push
+
+      - name: Notify Slack on failure
+        if: failure()
+        run: |
+          if [ -z "$SLACK_WEBHOOK" ]; then exit 0; fi
+          curl -X POST -H 'Content-Type: application/json' \
+            -d "{\"text\":\":warning: nightly equivalence regressed (run ${{ github.run_id }}). See artefacts.\"}" \
+            "$SLACK_WEBHOOK"
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_PERF_WEBHOOK }}
