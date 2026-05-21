@@ -2,20 +2,30 @@
 
 Generated against `equivalence-report.json` (baseline 2026-05-21: 184/198 = 92.93%).
 
+⚠️ **Scope**: The current runner (`scripts/equivalence-nightly.mjs`) is a
+**parse-equivalence** check only — it compares whether each engine ACCEPTS
+the source, not whether they lower to identical IR or produce identical
+runtime output. Categories below reflect that scope.
+
 Maps each of the 14 divergent corpus cases to a **root-cause category** so future
-fixes can be sequenced and tracked. The four categories below correspond to
-where the cross-engine divergence happens in the pipeline.
+fixes can be sequenced and tracked.
 
 ## Summary
 
-| Category | Count | Direction |
-|---|---:|---|
-| **TS-only (Java parser doesn't accept)** | 13 | TS pass, Java fail |
-| **Java-only (TS parser doesn't accept)** | 1 | TS fail, Java pass |
-| **Lowering / IR divergence** | 0 | both parse, lowered IR differs |
-| **Runtime / output normalization** | 0 | both lower, evaluator yields different value |
+| Category | Count | Direction | Status |
+|---|---:|---|---|
+| **TS-only (Java parser doesn't accept)** | 13 | TS pass, Java fail | Assessed |
+| **Java-only (TS parser doesn't accept)** | 1 | TS fail, Java pass | Assessed |
+| **Lowering / IR divergence** | — | both parse, lowered IR differs | **Not assessed in this report** |
+| **Runtime / output normalization** | — | both lower, evaluator yields different value | **Not assessed in this report** |
 
 Total: **14 divergent / 197 corpus = 7.1%** (matches CSV history baseline).
+
+Lowering and runtime divergences are NOT zero by exclusion — they are simply
+out of scope for the parse-equivalence runner. A separate pipeline gate
+(comparing lowered Core IR JSON, then evaluator outputs) is required before
+this manifest can claim full-pipeline parity. The categories are listed here
+so future work can fill them in.
 
 ## Cases
 
