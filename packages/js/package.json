@@ -1,6 +1,6 @@
 {
   "name": "@aster-cloud/aster-lang-test",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "description": "Shared test corpus for Aster Lang dual-engine equivalence (Java ANTLR + TS PEG).",
   "license": "Apache-2.0",
   "type": "module",
