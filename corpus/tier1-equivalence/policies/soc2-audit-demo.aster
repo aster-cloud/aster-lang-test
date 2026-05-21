@@ -31,12 +31,14 @@ Define ChainState has
   last_hash.
 
 # 计算审计记录哈希
-Rule compute_hash given record, produce:
+# @cpu 因为调用 Crypto.hash 属于 CPU 类能力（本地哈希计算）
+Rule compute_hash given record, produce. It performs cpu:
   Let content be Text.concat(record.prev_hash, record.event_type, record.timestamp, record.tenant_id, record.policy_module, record.policy_function, Bool.toString(record.success)).
   Return Crypto.hash(content, "SHA-256").
 
 # 验证单条记录完整性
-Rule verify_record_integrity given record, produce:
+# @cpu 通过 compute_hash 间接传播
+Rule verify_record_integrity given record, produce. It performs cpu:
   Let expected be compute_hash(record).
   Return expected equals to record.current_hash.
 
@@ -47,7 +49,7 @@ Rule verify_chain_link given record, expected_prev_hash, produce:
   Return record.prev_hash equals to expected_prev_hash.
 
 # 验证单条记录并更新链状态
-Rule verify_one_record given state, record, produce:
+Rule verify_one_record given state, record, produce. It performs cpu:
   If state.is_valid equals to false
     Return state.
   If verify_record_integrity(record) equals to false
@@ -59,7 +61,7 @@ Rule verify_one_record given state, record, produce:
   Return ChainState with is_valid set to true, records_count set to state.records_count plus 1, broken_index set to 0, reason set to "", last_hash set to record.current_hash.
 
 # 验证三条记录的链（简化版，避免使用 List.reduce）
-Rule verify_three_records given r1, r2, r3, produce:
+Rule verify_three_records given r1, r2, r3, produce. It performs cpu:
   Let s0 be ChainState with is_valid set to true, records_count set to 0, broken_index set to 0, reason set to "", last_hash set to "".
   Let s1 be verify_one_record(s0, r1).
   Let s2 be verify_one_record(s1, r2).
@@ -67,14 +69,14 @@ Rule verify_three_records given r1, r2, r3, produce:
   Return ChainVerificationResult with is_valid set to s3.is_valid, records_count set to s3.records_count, broken_index set to s3.broken_index, reason set to s3.reason.
 
 # 验证两条记录的链（简化版，避免使用 List.reduce）
-Rule verify_two_records given r1, r2, produce:
+Rule verify_two_records given r1, r2, produce. It performs cpu:
   Let s0 be ChainState with is_valid set to true, records_count set to 0, broken_index set to 0, reason set to "", last_hash set to "".
   Let s1 be verify_one_record(s0, r1).
   Let s2 be verify_one_record(s1, r2).
   Return ChainVerificationResult with is_valid set to s2.is_valid, records_count set to s2.records_count, broken_index set to s2.broken_index, reason set to s2.reason.
 
 # 验证审计链完整性（SOC2 CC7.2）- 简化版验证单条
-Rule verify_audit_chain given record, produce:
+Rule verify_audit_chain given record, produce. It performs cpu:
   Let s0 be ChainState with is_valid set to true, records_count set to 0, broken_index set to 0, reason set to "", last_hash set to "".
   Let s1 be verify_one_record(s0, record).
   Return ChainVerificationResult with is_valid set to s1.is_valid, records_count set to s1.records_count, broken_index set to s1.broken_index, reason set to s1.reason.
@@ -87,26 +89,28 @@ Rule generate_soc2_report given tenant_id, verification, produce:
     Return Text.concat("SOC2 CC7.2 FAILED: Audit chain broken at record ", Int.toString(verification.broken_index), ". Reason: ", verification.reason).
 
 # 创建 Genesis 记录
-Rule create_genesis_record given tenant_id, produce:
+# @cpu 通过 compute_hash 间接传播
+Rule create_genesis_record given tenant_id, produce. It performs cpu:
   Let record be AuditRecord with record_number set to 1, tenant_id set to tenant_id, event_type set to "POLICY_EXECUTED", timestamp set to "2025-11-27T10:00:00Z", policy_module set to "examples.compliance", policy_function set to "verify_audit_chain", success set to true, prev_hash set to "", current_hash set to "".
   Let hash be compute_hash(record).
   Return AuditRecord with record_number set to record.record_number, tenant_id set to record.tenant_id, event_type set to record.event_type, timestamp set to record.timestamp, policy_module set to record.policy_module, policy_function set to record.policy_function, success set to record.success, prev_hash set to "", current_hash set to hash.
 
 # 追加审计记录
-Rule append_audit_record given prev, event_type, policy_func, success, produce:
+# @cpu 通过 compute_hash 间接传播
+Rule append_audit_record given prev, event_type, policy_func, success, produce. It performs cpu:
   Let record be AuditRecord with record_number set to prev.record_number plus 1, tenant_id set to prev.tenant_id, event_type set to event_type, timestamp set to "2025-11-27T10:01:00Z", policy_module set to "examples.compliance", policy_function set to policy_func, success set to success, prev_hash set to prev.current_hash, current_hash set to "".
   Let hash be compute_hash(record).
   Return AuditRecord with record_number set to record.record_number, tenant_id set to record.tenant_id, event_type set to record.event_type, timestamp set to record.timestamp, policy_module set to record.policy_module, policy_function set to record.policy_function, success set to record.success, prev_hash set to record.prev_hash, current_hash set to hash.
 
 # 示例：验证有效链
-Rule demo_valid_chain, produce:
+Rule demo_valid_chain, produce. It performs cpu:
   Let genesis be create_genesis_record("tenant-001").
   Let record2 be append_audit_record(genesis, "DATA_ACCESS", "get_patient", true).
   Let record3 be append_audit_record(record2, "DATA_MODIFY", "update_record", true).
   Return verify_three_records(genesis, record2, record3).
 
 # 示例：检测篡改链
-Rule demo_tampered_chain, produce:
+Rule demo_tampered_chain, produce. It performs cpu:
   Let genesis be create_genesis_record("tenant-001").
   Let record2 be append_audit_record(genesis, "DATA_ACCESS", "get_patient", true).
   Let tampered_record2 be AuditRecord with record_number set to record2.record_number, tenant_id set to record2.tenant_id, event_type set to record2.event_type, timestamp set to record2.timestamp, policy_module set to record2.policy_module, policy_function set to record2.policy_function, success set to record2.success, prev_hash set to "tampered_hash_value", current_hash set to record2.current_hash.
