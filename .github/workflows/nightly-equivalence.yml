@@ -15,42 +15,42 @@ jobs:
   equivalence:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           path: aster-lang-test
           token: ${{ secrets.CROSS_REPO_TOKEN }}   # 允许后续 push history
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: aster-cloud/aster-lang-ts
           path: aster-lang-ts
           token: ${{ secrets.CROSS_REPO_TOKEN }}
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           repository: aster-cloud/aster-lang-core
           path: aster-lang-core
           token: ${{ secrets.CROSS_REPO_TOKEN }}
 
       # aster-lang-core 需要 sibling lexicon 仓库
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with: { repository: aster-cloud/aster-lang-en, path: aster-lang-en, token: '${{ secrets.CROSS_REPO_TOKEN }}' }
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with: { repository: aster-cloud/aster-lang-zh, path: aster-lang-zh, token: '${{ secrets.CROSS_REPO_TOKEN }}' }
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with: { repository: aster-cloud/aster-lang-de, path: aster-lang-de, token: '${{ secrets.CROSS_REPO_TOKEN }}' }
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@v6
         with:
           version: 9
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v6
         with:
           node-version: '24'
           cache: pnpm
           cache-dependency-path: aster-lang-ts/pnpm-lock.yaml
 
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with:
           java-version: '25'
           distribution: 'temurin'
@@ -66,7 +66,7 @@ jobs:
 
       - name: Upload artefacts
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: equivalence-${{ github.run_id }}
           path: |
