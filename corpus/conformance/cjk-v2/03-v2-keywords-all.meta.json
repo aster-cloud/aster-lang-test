@@ -1,0 +1,8 @@
+{
+  "tier": 4,
+  "engines": ["ts", "java"],
+  "lexicon": "zh-CN",
+  "bucket": "cjk-v2-conformance",
+  "source": "aster-lang-test/corpus/conformance/cjk-v2/03-v2-keywords-all.aster",
+  "capabilities": ["normalize-cjk-conformance"]
+}

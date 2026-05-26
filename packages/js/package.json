@@ -1,6 +1,6 @@
 {
   "name": "@aster-cloud/aster-lang-test",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Shared test corpus for Aster Lang dual-engine equivalence (Java ANTLR + TS PEG).",
   "license": "Apache-2.0",
   "type": "module",
@@ -31,5 +31,6 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/aster-cloud/aster-lang-test.git"
-  }
+  },
+  "packageManager": "pnpm@10.31.0+sha512.e3927388bfaa8078ceb79b748ffc1e8274e84d75163e67bc22e06c0d3aed43dd153151cbf11d7f8301ff4acb98c68bdc5cadf6989532801ffafe3b3e4a63c268"
 }
