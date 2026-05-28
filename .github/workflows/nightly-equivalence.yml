@@ -15,30 +15,36 @@ jobs:
   equivalence:
     runs-on: ubuntu-latest
     steps:
+      # R21 (audit): CROSS_REPO_TOKEN was never set in repo secrets, causing
+      # `Input required and not supplied: token` and a 6s failure every
+      # night since 2026-05-13. Self-checkout uses ${{ github.token }}
+      # (always available); sibling checkouts use CROSS_REPO_TOKEN when
+      # present, falling back to GITHUB_TOKEN (works because all sibling
+      # repos are in the same `aster-cloud` org).
       - uses: actions/checkout@v6
         with:
           path: aster-lang-test
-          token: ${{ secrets.CROSS_REPO_TOKEN }}   # 允许后续 push history
+          # default token is fine for self-repo
 
       - uses: actions/checkout@v6
         with:
           repository: aster-cloud/aster-lang-ts
           path: aster-lang-ts
-          token: ${{ secrets.CROSS_REPO_TOKEN }}
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
 
       - uses: actions/checkout@v6
         with:
           repository: aster-cloud/aster-lang-core
           path: aster-lang-core
-          token: ${{ secrets.CROSS_REPO_TOKEN }}
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
 
       # aster-lang-core 需要 sibling lexicon 仓库
       - uses: actions/checkout@v6
-        with: { repository: aster-cloud/aster-lang-en, path: aster-lang-en, token: '${{ secrets.CROSS_REPO_TOKEN }}' }
+        with: { repository: aster-cloud/aster-lang-en, path: aster-lang-en, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
       - uses: actions/checkout@v6
-        with: { repository: aster-cloud/aster-lang-zh, path: aster-lang-zh, token: '${{ secrets.CROSS_REPO_TOKEN }}' }
+        with: { repository: aster-cloud/aster-lang-zh, path: aster-lang-zh, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
       - uses: actions/checkout@v6
-        with: { repository: aster-cloud/aster-lang-de, path: aster-lang-de, token: '${{ secrets.CROSS_REPO_TOKEN }}' }
+        with: { repository: aster-cloud/aster-lang-de, path: aster-lang-de, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
 
       - uses: pnpm/action-setup@v6
         with:
