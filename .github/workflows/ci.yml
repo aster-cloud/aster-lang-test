@@ -123,6 +123,25 @@ jobs:
           path: aster-lang-de
           token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
 
+      # aster-lang-runtime + aster-lang-truffle are only needed by the
+      # Phase C evaluator step (CoreIrEvalCli lives in truffle). They
+      # depend on aster-lang-core via Maven Local — see the publish
+      # chain further down.
+      - name: Checkout aster-lang-runtime
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: actions/checkout@v6
+        with:
+          repository: aster-cloud/aster-lang-runtime
+          path: aster-lang-runtime
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - name: Checkout aster-lang-truffle
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: actions/checkout@v6
+        with:
+          repository: aster-cloud/aster-lang-truffle
+          path: aster-lang-truffle
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+
       - name: Setup pnpm
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         uses: pnpm/action-setup@v6
@@ -172,6 +191,11 @@ jobs:
           cd ../aster-lang-zh && ./gradlew publishToMavenLocal -x test
           cd ../aster-lang-de && ./gradlew publishToMavenLocal -x test
 
+      - name: Publish aster-lang-runtime to Maven Local
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-runtime
+        run: ./gradlew publishToMavenLocal -x test
+
       - name: Publish corpus to Maven Local
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test/packages/jvm
@@ -208,6 +232,21 @@ jobs:
           set -o pipefail
           node scripts/parity-tier1.mjs --mode=ir --report-only | tee parity-tier1-ir-report.md
 
+      # Phase C: evaluator output parity for samples with .cases.json.
+      # Operates on a smaller subset (15 samples / ~45 cases as of this
+      # landing) and exercises Truffle Context.eval → Value.execute().
+      # Report-only because the initial run surfaces a systemic NPE on
+      # multi-argument Truffle invocations that has to be fixed
+      # upstream before this can be PR-blocking.
+      - name: Run tier1-parity (eval, report-only)
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/parity-tier1.mjs --mode=eval --report-only | tee parity-tier1-eval-report.md
+
       - name: Upload parity reports
         if: always() && (steps.changed.outputs.parity == 'true' || github.event_name == 'push')
         uses: actions/upload-artifact@v7
@@ -217,6 +256,7 @@ jobs:
             aster-lang-test/parity-tier1-report.json
             aster-lang-test/parity-tier1-parse-report.md
             aster-lang-test/parity-tier1-ir-report.md
+            aster-lang-test/parity-tier1-eval-report.md
           if-no-files-found: warn
 
   # P0-5: corpus 改动 → 主动触发两个 consumer 的 corpus-regression workflow。

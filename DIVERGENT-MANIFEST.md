@@ -34,7 +34,7 @@ Mode | Status | Promotion trigger
 ---|---|---
 `--mode=parse` | **PR-blocking** | Was promoted in the Phase A landing PR.
 `--mode=ir` (fingerprint) | **report-only** — initial Phase B cycle | Promote to PR-blocking once two conditions hold: (1) baseline divergence reaches zero or a stable known set; (2) ADR resolves the field-name divergence (e.g. `Import.path` vs `Import.name`) and the runner is upgraded from fingerprint comparison to full normalized JSON parity.
-`--mode=eval` (evaluator output) | not implemented | Phase C work; depends on Java Truffle CLI exposing `{source, entry, input}` → `value` over stdin.
+`--mode=eval` (evaluator output) | **report-only** — initial Phase C cycle | Promote to PR-blocking once the Truffle-side multi-argument NPE is fixed (see below). Phase C compares each side's evaluator output against the other engine's output AND the golden `expectedOutput`.
 
 The Phase B fingerprint is structural — it compares `moduleName`, `declCount`,
 the `kind → count` histogram, and the sorted list of declared symbol names —
@@ -42,6 +42,15 @@ not the full lowered Core IR. Field-level alignment is deferred until field-
 name parity is settled. The initial run as of the Phase B landing shows
 ~55/162 tier1 samples where Java fails to lower (NPE in AstBuilder for `eff_caps_*`
 files); those are the first targets for the follow-up.
+
+The Phase C eval scope is the subset of tier1-parity samples that have a
+sibling `corpus/tier1-equivalence/inputs/<name>.cases.json` (15 samples /
+~45 cases as of the Phase C landing). Initial baseline:
+3 identical / 42 Java-side `NullPointerException` ("arg2Value is null") in
+multi-argument `Value.execute(args)` calls. The TS evaluator runs every
+case to completion. The Java-side NPE is a Truffle codegen regression
+that has to be fixed in `aster-lang-truffle/src/main/java/aster/truffle/nodes/`
+before Phase C can be promoted to PR-blocking.
 
 ## Summary
 

@@ -19,7 +19,10 @@
  *                   { moduleName, declCount, declKinds: {kind→count}, declNames }
  *                 Raw JSON parity is deferred until field-name divergence
  *                 (e.g. Import.path vs Import.name) is resolved by ADR.
- *   --mode=eval   (Phase C, NOT IMPLEMENTED) — compare evaluator output
+ *   --mode=eval   (Phase C, report-only initially) — for every sample
+ *                 with a sibling .cases.json, evaluate each case on both
+ *                 engines and compare the result against expectedOutput
+ *                 AND against the other engine's result.
  *
  * Flags:
  *   --report-only  — write the report and exit 0 even on divergence.
@@ -473,6 +476,291 @@ function printMarkdownIr(rows, mode) {
   }
 }
 
+// ============================================================================
+// Phase C: evaluator output parity
+// ============================================================================
+
+const TRUFFLE_REPO = resolve(ROOT, '..', 'aster-lang-truffle');
+const TS_DUAL_ENGINE_RUNNER = join(TS_REPO, 'scripts', 'dual-engine-runner.mjs');
+
+/**
+ * For every manifest sample, look for a sibling .cases.json under
+ * `corpus/tier1-equivalence/inputs/<basename>.cases.json`. Returns the
+ * flat list of evaluation requests. Samples without a cases file are
+ * dropped — Phase C only checks samples with golden inputs.
+ */
+function collectEvalRequests(samples) {
+  const requests = [];
+  for (const { rel, abs } of samples) {
+    const base = abs.split('/').pop().replace(/\.aster$/, '');
+    const casesPath = join(CORPUS, 'tier1-equivalence', 'inputs', `${base}.cases.json`);
+    if (!existsSync(casesPath)) continue;
+    let cases;
+    try {
+      cases = JSON.parse(readFileSync(casesPath, 'utf8'));
+    } catch {
+      continue;
+    }
+    const entry = cases.entry;
+    if (!entry || !Array.isArray(cases.cases)) continue;
+    for (let i = 0; i < cases.cases.length; i++) {
+      const c = cases.cases[i];
+      requests.push({
+        rel,
+        samplePath: abs,
+        entry,
+        input: Array.isArray(c.input) ? c.input : [],
+        caseIndex: i,
+        caseName: c.name || `case ${i}`,
+        expected: c.expectedOutput,
+      });
+    }
+  }
+  return requests;
+}
+
+/**
+ * Invoke the TS dual-engine-runner once per request. It reads
+ * {source, entry, input} from stdin and emits {success, value, error}.
+ * Each spawn is fresh per request because the runner is designed for
+ * one-shot use.
+ */
+function runTsEval(requests) {
+  if (!existsSync(TS_DUAL_ENGINE_RUNNER)) {
+    fail(`TS dual-engine runner not found at ${TS_DUAL_ENGINE_RUNNER}. ` +
+      `Run: cd ${TS_REPO} && pnpm build`);
+  }
+  const results = [];
+  for (const req of requests) {
+    const source = readFileSync(req.samplePath, 'utf8');
+    const stdin = JSON.stringify({ source, entry: req.entry, input: req.input });
+    const proc = spawnSync('node', [TS_DUAL_ENGINE_RUNNER], {
+      input: stdin,
+      encoding: 'utf8',
+      timeout: 30_000,
+    });
+    let out;
+    try {
+      out = JSON.parse((proc.stdout || '').trim());
+    } catch {
+      out = { success: false, error: (proc.stderr || 'invalid TS runner output').slice(0, 240) };
+    }
+    results.push({
+      rel: req.rel,
+      caseIndex: req.caseIndex,
+      ok: out.success === true,
+      value: out.success ? out.value : undefined,
+      error: out.success ? null : out.error || null,
+    });
+  }
+  return results;
+}
+
+/**
+ * Invoke aster-lang-truffle's CoreIrEvalCli with a JSONL request file
+ * and read back the per-case results. Like Phase B, this depends on
+ * the gradle test task forwarding `parity.eval.*` system properties
+ * (see aster-lang-truffle/build.gradle.kts).
+ */
+function runJavaEval(requests) {
+  const tmpRoot = mkdtempSync(join(tmpdir(), 'parity-eval-'));
+  const inputFile = join(tmpRoot, 'requests.jsonl');
+  const outputFile = join(tmpRoot, 'java-eval.jsonl');
+  const lines = requests.map((req) =>
+    JSON.stringify({
+      samplePath: req.samplePath,
+      entry: req.entry,
+      input: req.input,
+      caseIndex: req.caseIndex,
+    }),
+  );
+  writeFileSync(inputFile, lines.join('\n') + '\n');
+
+  const result = spawnSync(
+    './gradlew',
+    [
+      'test',
+      '--tests',
+      'CoreIrEvalCli',
+      '--rerun-tasks',
+      '-i',
+      `-Dparity.eval.input=${inputFile}`,
+      `-Dparity.eval.output=${outputFile}`,
+    ],
+    { cwd: TRUFFLE_REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+  );
+  const tail = ((result.stdout || '') + (result.stderr || '')).slice(-2000);
+  if (!existsSync(outputFile)) {
+    fail(`aster-lang-truffle CoreIrEvalCli produced no output. Gradle log tail:\n${tail}`);
+  }
+
+  // Parse JSONL back. The Java side may emit one row per input line
+  // OR — if a request line was malformed — a synthetic "ok=false"
+  // row without samplePath. The runner uses (samplePath, caseIndex)
+  // as the join key.
+  const byKey = new Map();
+  for (const line of readFileSync(outputFile, 'utf8').split('\n').filter(Boolean)) {
+    try {
+      const rec = JSON.parse(line);
+      if (rec.samplePath !== undefined && rec.caseIndex !== undefined) {
+        byKey.set(`${rec.samplePath}${rec.caseIndex}`, rec);
+      }
+    } catch {}
+  }
+
+  const results = [];
+  for (const req of requests) {
+    const rec = byKey.get(`${req.samplePath}${req.caseIndex}`);
+    if (!rec) {
+      results.push({
+        rel: req.rel,
+        caseIndex: req.caseIndex,
+        ok: false,
+        error: 'no Java result row for this case',
+      });
+    } else if (!rec.ok) {
+      results.push({
+        rel: req.rel,
+        caseIndex: req.caseIndex,
+        ok: false,
+        error: rec.error || 'unknown Java error',
+      });
+    } else {
+      results.push({
+        rel: req.rel,
+        caseIndex: req.caseIndex,
+        ok: true,
+        value: rec.value,
+        error: null,
+      });
+    }
+  }
+
+  try { rmSync(tmpRoot, { recursive: true, force: true }); } catch {}
+  return results;
+}
+
+/**
+ * Compare TS and Java eval results case-by-case. Each row also
+ * surfaces the expected golden value so the report distinguishes
+ * "both engines agree but differ from golden" (real bug somewhere)
+ * from "engines disagree" (parity gap).
+ */
+function classifyEval(tsResults, javaResults, requests) {
+  // Index by (rel, caseIndex) for safe lookup.
+  const tsByKey = new Map(tsResults.map((r) => [`${r.rel}${r.caseIndex}`, r]));
+  const javaByKey = new Map(javaResults.map((r) => [`${r.rel}${r.caseIndex}`, r]));
+
+  const rows = [];
+  for (const req of requests) {
+    const key = `${req.rel}${req.caseIndex}`;
+    const t = tsByKey.get(key) || { ok: false, error: 'no ts result' };
+    const j = javaByKey.get(key) || { ok: false, error: 'no java result' };
+    const expectedJson = JSON.stringify(req.expected);
+    const tsMatchesExpected = t.ok && JSON.stringify(t.value) === expectedJson;
+    const javaMatchesExpected = j.ok && JSON.stringify(j.value) === expectedJson;
+
+    let verdict;
+    if (!t.ok && !j.ok) {
+      verdict = 'both-failed';
+    } else if (!t.ok) {
+      verdict = 'ts-only-failed';
+    } else if (!j.ok) {
+      verdict = 'java-only-failed';
+    } else if (JSON.stringify(t.value) !== JSON.stringify(j.value)) {
+      verdict = 'divergent';
+    } else if (!tsMatchesExpected) {
+      // Engines agree but both differ from golden. Usually a stale
+      // .cases.json (policy changed without updating expectedOutput),
+      // or both engines share a real bug. Either way it isn't parity,
+      // so it can't be marked `identical`. (Codex review R-Phase-C-C2.)
+      verdict = 'both-wrong';
+    } else {
+      verdict = 'identical';
+    }
+
+    rows.push({
+      path: req.rel,
+      caseIndex: req.caseIndex,
+      caseName: req.caseName,
+      expected: req.expected,
+      tsMatchesExpected,
+      javaMatchesExpected,
+      ts: t.ok,
+      tsValue: t.ok ? t.value : undefined,
+      tsErr: t.error || null,
+      java: j.ok,
+      javaValue: j.ok ? j.value : undefined,
+      javaErr: j.error || null,
+      verdict,
+    });
+  }
+  return rows;
+}
+
+function printMarkdownEval(rows, mode) {
+  const total = rows.length;
+  const identical = rows.filter((r) => r.verdict === 'identical').length;
+  const divergent = rows.filter((r) => r.verdict === 'divergent');
+  const bothWrong = rows.filter((r) => r.verdict === 'both-wrong');
+  const tsOnly = rows.filter((r) => r.verdict === 'ts-only-failed');
+  const javaOnly = rows.filter((r) => r.verdict === 'java-only-failed');
+  const bothFailed = rows.filter((r) => r.verdict === 'both-failed');
+
+  console.log(`# tier1-parity evaluator report (mode=${mode})\n`);
+  console.log(`- total cases: ${total}`);
+  console.log(`- identical (engines agree AND match golden): ${identical}`);
+  console.log(`- divergent (engines disagree): ${divergent.length}`);
+  console.log(`- both-wrong (engines agree but neither matches golden): ${bothWrong.length}`);
+  console.log(`- ts-only failed: ${tsOnly.length}`);
+  console.log(`- java-only failed: ${javaOnly.length}`);
+  console.log(`- both failed: ${bothFailed.length}\n`);
+
+  if (divergent.length > 0) {
+    console.log('## Divergent results (both engines produced a value but they disagree)\n');
+    console.log('| path | case | ts | java | expected |');
+    console.log('|------|------|----|------|----------|');
+    for (const r of divergent.slice(0, 30)) {
+      console.log(
+        `| ${r.path} | ${r.caseName} | ${JSON.stringify(r.tsValue)} | ` +
+        `${JSON.stringify(r.javaValue)} | ${JSON.stringify(r.expected)} |`,
+      );
+    }
+    console.log('');
+  }
+
+  if (bothWrong.length > 0) {
+    console.log('## Both-wrong (engines agree but neither matches the golden)\n');
+    console.log('Either the `.cases.json` expectedOutput is stale, or both engines share a real bug.\n');
+    console.log('| path | case | engine value | expected |');
+    console.log('|------|------|--------------|----------|');
+    for (const r of bothWrong.slice(0, 30)) {
+      console.log(
+        `| ${r.path} | ${r.caseName} | ${JSON.stringify(r.tsValue)} | ` +
+        `${JSON.stringify(r.expected)} |`,
+      );
+    }
+    console.log('');
+  }
+
+  if (javaOnly.length > 0) {
+    console.log('## Java-only failures (TS evaluated, Java did not)\n');
+    for (const r of javaOnly.slice(0, 30)) {
+      console.log(`- ${r.path} / ${r.caseName} → ${(r.javaErr || '').slice(0, 120)}`);
+    }
+    if (javaOnly.length > 30) console.log(`_…and ${javaOnly.length - 30} more (truncated)_`);
+    console.log('');
+  }
+
+  if (tsOnly.length > 0) {
+    console.log('## TS-only failures (Java evaluated, TS did not)\n');
+    for (const r of tsOnly.slice(0, 30)) {
+      console.log(`- ${r.path} / ${r.caseName} → ${(r.tsErr || '').slice(0, 120)}`);
+    }
+    console.log('');
+  }
+}
+
 function printMarkdown(rows, mode) {
   const total = rows.length;
   const pass = rows.filter((r) => r.verdict === 'pass').length;
@@ -507,8 +795,8 @@ function printMarkdown(rows, mode) {
 }
 
 async function main() {
-  if (MODE !== 'parse' && MODE !== 'ir') {
-    fail(`mode=${MODE} not implemented. Supported: parse (Phase A), ir (Phase B).`);
+  if (MODE !== 'parse' && MODE !== 'ir' && MODE !== 'eval') {
+    fail(`mode=${MODE} not implemented. Supported: parse (Phase A), ir (Phase B), eval (Phase C).`);
   }
 
   const manifest = loadManifest();
@@ -543,20 +831,55 @@ async function main() {
     return;
   }
 
-  // mode === 'ir'
-  console.error('[parity-tier1] running TS engine (canonicalize→lex→parse→lower) ...');
-  const tsRes = await runTsIr(samples);
+  if (MODE === 'ir') {
+    console.error('[parity-tier1] running TS engine (canonicalize→lex→parse→lower) ...');
+    const tsRes = await runTsIr(samples);
 
-  console.error('[parity-tier1] running Java engine (gradle CoreIrFingerprintCli, may take ~30s) ...');
-  const javaRes = runJavaIr(samples);
+    console.error('[parity-tier1] running Java engine (gradle CoreIrFingerprintCli, may take ~30s) ...');
+    const javaRes = runJavaIr(samples);
 
-  const rows = classifyIr(tsRes, javaRes, samples);
+    const rows = classifyIr(tsRes, javaRes, samples);
+    writeFileSync(REPORT_FILE, JSON.stringify({ mode: MODE, total: rows.length, rows }, null, 2));
+    printMarkdownIr(rows, MODE);
+
+    const bad = rows.filter((r) => r.verdict !== 'identical');
+    if (bad.length > 0) {
+      const msg = `tier1-parity (ir-fingerprint) divergence: ${bad.length}/${rows.length} sample(s) not identical`;
+      if (REPORT_ONLY) {
+        console.error(`::warning::${msg}`);
+        process.exit(0);
+      }
+      console.error(`::error::${msg}`);
+      process.exit(1);
+    }
+    console.error('[parity-tier1] OK');
+    return;
+  }
+
+  // mode === 'eval'
+  const requests = collectEvalRequests(samples);
+  console.error(`[parity-tier1] eval scope: ${requests.length} cases ` +
+    `(samples with .cases.json: ${new Set(requests.map((r) => r.rel)).size})`);
+  if (requests.length === 0) {
+    console.log('# tier1-parity evaluator report (mode=eval)\n');
+    console.log('No samples with .cases.json found — nothing to compare. ' +
+      'Add golden inputs under corpus/tier1-equivalence/inputs/<name>.cases.json.');
+    process.exit(0);
+  }
+
+  console.error('[parity-tier1] running TS evaluator (one subprocess per case)...');
+  const tsRes = runTsEval(requests);
+
+  console.error('[parity-tier1] running Java evaluator (gradle CoreIrEvalCli, may take ~1min)...');
+  const javaRes = runJavaEval(requests);
+
+  const rows = classifyEval(tsRes, javaRes, requests);
   writeFileSync(REPORT_FILE, JSON.stringify({ mode: MODE, total: rows.length, rows }, null, 2));
-  printMarkdownIr(rows, MODE);
+  printMarkdownEval(rows, MODE);
 
   const bad = rows.filter((r) => r.verdict !== 'identical');
   if (bad.length > 0) {
-    const msg = `tier1-parity (ir-fingerprint) divergence: ${bad.length}/${rows.length} sample(s) not identical`;
+    const msg = `tier1-parity (eval) divergence: ${bad.length}/${rows.length} case(s) not identical`;
     if (REPORT_ONLY) {
       console.error(`::warning::${msg}`);
       process.exit(0);
