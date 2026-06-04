@@ -150,13 +150,28 @@ jobs:
         working-directory: aster-lang-ts
         run: pnpm install --frozen-lockfile && pnpm build
 
-      # Publish THIS PR's corpus to Maven Local so aster-lang-core's
-      # TsSampleParseInventoryTest reads the local checkout, not a
-      # stale `cloud.aster-lang:aster-lang-test` artifact from a
-      # remote repository. Without this step the inventory test
-      # silently ignores any newly-added manifest sample (codex R1).
-      # The script asserts `Discovered N >= manifest.size` as a
-      # defense in depth, but publishing first is the right fix.
+      # The Java side of the gate runs aster-lang-core's gradle test,
+      # which resolves these from Maven Local:
+      #   - cloud.aster-lang:aster-lang-core (core itself)
+      #   - cloud.aster-lang:aster-lang-{en,zh,de} (SPI locale packs)
+      #   - cloud.aster-lang:aster-lang-test (the corpus this PR is testing)
+      # If we don't publish them locally first, gradle falls back to
+      # GitHub Packages and fails with 401 in PR forks / when the runner
+      # token lacks read scope on private repos.
+      #
+      # Order matters: locale packs depend on core, so core goes first.
+      - name: Publish aster-lang-core to Maven Local
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-core
+        run: ./gradlew compileJava publishToMavenLocal -x test
+
+      - name: Publish locale packs to Maven Local
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        run: |
+          cd aster-lang-en && ./gradlew publishToMavenLocal -x test
+          cd ../aster-lang-zh && ./gradlew publishToMavenLocal -x test
+          cd ../aster-lang-de && ./gradlew publishToMavenLocal -x test
+
       - name: Publish corpus to Maven Local
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test/packages/jvm
@@ -165,7 +180,13 @@ jobs:
       - name: Run tier1-parity strict gate
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
-        run: node scripts/parity-tier1.mjs --mode=parse | tee parity-tier1-report.md
+        # `set -o pipefail` so a runner exit != 0 propagates through `tee`.
+        # Without it, tee's success masks runner failures and the gate
+        # silently passes when gradle blows up.
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/parity-tier1.mjs --mode=parse | tee parity-tier1-report.md
 
       - name: Upload parity report
         if: always() && (steps.changed.outputs.parity == 'true' || github.event_name == 'push')
@@ -184,6 +205,11 @@ jobs:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     steps:
+      # R-CI-1 fix: paths-filter requires a checkout to diff against.
+      - uses: actions/checkout@v6
+        with:
+          fetch-depth: 0
+
       - name: Check if corpus changed
         id: changed
         uses: dorny/paths-filter@v3
