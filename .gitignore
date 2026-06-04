@@ -11,3 +11,9 @@ build/
 target/
 out/
 .pnpm-store/
+
+# Reports produced by parity-tier1.mjs runs (local + CI artifacts;
+# uploaded as workflow artifacts by the parity-tier1 CI job).
+parity-tier1-report.json
+parity-tier1-parse-report.md
+parity-tier1-ir-report.md

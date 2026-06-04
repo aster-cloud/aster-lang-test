@@ -177,7 +177,7 @@ jobs:
         working-directory: aster-lang-test/packages/jvm
         run: ./gradlew publishToMavenLocal -x test
 
-      - name: Run tier1-parity strict gate
+      - name: Run tier1-parity strict gate (parse, PR-blocking)
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         # `set -o pipefail` so a runner exit != 0 propagates through `tee`.
@@ -186,16 +186,38 @@ jobs:
         shell: bash
         run: |
           set -o pipefail
-          node scripts/parity-tier1.mjs --mode=parse | tee parity-tier1-report.md
+          node scripts/parity-tier1.mjs --mode=parse | tee parity-tier1-parse-report.md
 
-      - name: Upload parity report
+      # Phase B (codex architect plan): structural Core IR fingerprint
+      # parity. Runs after the parse gate using the same Maven Local
+      # state the parse gate already built. Report-only for the first
+      # cycle so we can observe the divergence surface — the plan calls
+      # for promoting to PR-blocking only after the steady-state diff
+      # report is reviewed.
+      #
+      # `continue-on-error: true` here so any non-zero exit from the
+      # runner (it returns 0 in --report-only, but defense in depth) or
+      # the gradle test itself doesn't fail the job; the report is the
+      # signal.
+      - name: Run tier1-parity (IR fingerprint, report-only)
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        continue-on-error: true
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/parity-tier1.mjs --mode=ir --report-only | tee parity-tier1-ir-report.md
+
+      - name: Upload parity reports
         if: always() && (steps.changed.outputs.parity == 'true' || github.event_name == 'push')
         uses: actions/upload-artifact@v7
         with:
           name: parity-tier1-${{ github.run_id }}
           path: |
             aster-lang-test/parity-tier1-report.json
-            aster-lang-test/parity-tier1-report.md
+            aster-lang-test/parity-tier1-parse-report.md
+            aster-lang-test/parity-tier1-ir-report.md
+          if-no-files-found: warn
 
   # P0-5: corpus 改动 → 主动触发两个 consumer 的 corpus-regression workflow。
   # CROSS_REPO_TOKEN: GH PAT with repo scope (创建于 github.com/settings/tokens).

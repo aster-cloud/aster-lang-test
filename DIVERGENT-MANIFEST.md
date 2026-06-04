@@ -14,7 +14,7 @@ fixes can be sequenced and tracked.
 
 | Tier | What it asserts | CI gate |
 |---|---|---|
-| **tier1-parity** | Curated subset of tier1 where both engines must accept. Source of truth: `corpus/tier1-parity/manifest.json`. | **PR-blocking** in `aster-lang-test`, `aster-lang-core`, `aster-lang-ts` via `scripts/parity-tier1.mjs --mode=parse`. |
+| **tier1-parity** | Curated subset of tier1 where both engines must accept. Source of truth: `corpus/tier1-parity/manifest.json`. | **PR-blocking (parse)** in `aster-lang-test`, `aster-lang-core`, `aster-lang-ts` via `scripts/parity-tier1.mjs --mode=parse`. **Report-only (IR fingerprint)** alongside via `--mode=ir --report-only`. |
 | tier1-equivalence | Full set of samples that *should* be bidirectionally accepted; tier1-parity is a subset of this. | Nightly (`equivalence-nightly.mjs`), regression on rate vs. last-recorded baseline. |
 | tier2-divergent | Known one-engine-only samples; drives the divergence backlog. | Nightly only; cases catalogued in this file. |
 | tier3-fixtures | Single-engine specialty fixtures (golden AST/Core, lossless, lsp, runtime-retry, type-checker). | Each consumer runs its own subset. |
@@ -28,9 +28,20 @@ PR that updates `corpus/tier1-parity/manifest.json` with a note explaining the
 syntax surface it locks in. Demotion follows the inverse rule and is tracked
 below.
 
-The Phase B/C runners (Core IR JSON parity, evaluator output parity) will
-reuse the same manifest. When they land, `parity-tier1.mjs --mode=ir|eval`
-will gate on the same sample list.
+### Mode escalation policy
+
+Mode | Status | Promotion trigger
+---|---|---
+`--mode=parse` | **PR-blocking** | Was promoted in the Phase A landing PR.
+`--mode=ir` (fingerprint) | **report-only** — initial Phase B cycle | Promote to PR-blocking once two conditions hold: (1) baseline divergence reaches zero or a stable known set; (2) ADR resolves the field-name divergence (e.g. `Import.path` vs `Import.name`) and the runner is upgraded from fingerprint comparison to full normalized JSON parity.
+`--mode=eval` (evaluator output) | not implemented | Phase C work; depends on Java Truffle CLI exposing `{source, entry, input}` → `value` over stdin.
+
+The Phase B fingerprint is structural — it compares `moduleName`, `declCount`,
+the `kind → count` histogram, and the sorted list of declared symbol names —
+not the full lowered Core IR. Field-level alignment is deferred until field-
+name parity is settled. The initial run as of the Phase B landing shows
+~55/162 tier1 samples where Java fails to lower (NPE in AstBuilder for `eff_caps_*`
+files); those are the first targets for the follow-up.
 
 ## Summary
 

@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 /**
- * tier1-parity PR-blocking gate.
+ * tier1-parity gate.
  *
  * Reads `corpus/tier1-parity/manifest.json` — the explicit, reviewed list
  * of samples both engines must accept — and runs each through TS + Java.
- * Any divergence (or any sample missing from disk) is a hard failure.
  *
  * Intentional contrast with `equivalence-nightly.mjs`:
  *   - that script walks ALL tier1 + tier2 and tracks a *rate*, regressing
@@ -13,22 +12,33 @@
  *     sample must pass both engines, no exceptions.
  *
  * Modes (mirrors the planned phase progression):
- *   --mode=parse  (default, Phase A) — parse both engines, compare ok/fail
- *   --mode=ir     (Phase B, NOT IMPLEMENTED) — compare normalized Core IR JSON
+ *   --mode=parse  (Phase A, default, PR-blocking) — parse both engines,
+ *                 compare ok/fail
+ *   --mode=ir     (Phase B, report-only initially) — compare a structural
+ *                 fingerprint of each side's lowered Core IR:
+ *                   { moduleName, declCount, declKinds: {kind→count}, declNames }
+ *                 Raw JSON parity is deferred until field-name divergence
+ *                 (e.g. Import.path vs Import.name) is resolved by ADR.
  *   --mode=eval   (Phase C, NOT IMPLEMENTED) — compare evaluator output
  *
+ * Flags:
+ *   --report-only  — write the report and exit 0 even on divergence.
+ *                    Used during Phase B's initial cycle so we can observe
+ *                    the drift surface before promoting to PR-blocking.
+ *
  * Exit codes:
- *   0  — every manifest entry passed parse on both engines
- *   1  — at least one parse divergence (this is the PR-blocking signal)
- *   2  — infra failure (build missing, manifest invalid, etc.)
+ *   0  — clean (or --report-only)
+ *   1  — divergence detected (in strict mode)
+ *   2  — infra failure
  *
  * Output:
  *   stdout — human markdown summary
  *   parity-tier1-report.json — machine-readable detail (per-sample verdict)
  */
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { dirname, resolve, join, relative } from 'node:path';
+import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { dirname, resolve, join } from 'node:path';
+import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -42,6 +52,7 @@ const CORE_REPO = resolve(ROOT, '..', 'aster-lang-core');
 const args = process.argv.slice(2);
 const modeArg = args.find((a) => a.startsWith('--mode='));
 const MODE = modeArg ? modeArg.slice('--mode='.length) : 'parse';
+const REPORT_ONLY = args.includes('--report-only');
 
 function fail(msg, code = 2) {
   console.error(`::error::${msg}`);
@@ -196,6 +207,272 @@ function classify(tsRes, javaRes, samples) {
   return rows;
 }
 
+// ============================================================================
+// Phase B: IR fingerprint mode
+// ============================================================================
+
+/**
+ * Build the same structural fingerprint shape the Java side emits.
+ * Operates directly on the lowered Core IR JSON object — no field-by-field
+ * comparison, just the structural shape (decl count + kinds + names).
+ */
+function buildFingerprint(coreModule) {
+  const fp = {
+    moduleName: coreModule?.name || '',
+    declCount: 0,
+    declKinds: {},
+    declNames: [],
+  };
+  const decls = Array.isArray(coreModule?.decls) ? coreModule.decls : [];
+  fp.declCount = decls.length;
+  for (const decl of decls) {
+    const kind = (decl && decl.kind) || 'Unknown';
+    fp.declKinds[kind] = (fp.declKinds[kind] || 0) + 1;
+    if (decl && typeof decl.name === 'string') fp.declNames.push(decl.name);
+  }
+  fp.declNames.sort();
+  // Sort kinds for stable comparison.
+  fp.declKinds = Object.fromEntries(
+    Object.entries(fp.declKinds).sort(([a], [b]) => a.localeCompare(b)),
+  );
+  return fp;
+}
+
+/**
+ * Run the TS pipeline through to lowering for every manifest sample,
+ * and return a map { relPath → { ok, fingerprint?, error? } }.
+ */
+async function runTsIr(samples) {
+  const distIndex = join(TS_REPO, 'dist', 'src', 'index.js');
+  if (!existsSync(distIndex)) {
+    fail(`aster-lang-ts not built. Run: cd ${TS_REPO} && pnpm build`);
+  }
+  const mod = await import(distIndex);
+  const { canonicalize, lex, parse, lowerModule } = mod;
+  if (!canonicalize || !lex || !parse || !lowerModule) {
+    fail('aster-lang-ts missing exports (canonicalize/lex/parse/lowerModule)');
+  }
+
+  const results = {};
+  for (const { rel, abs } of samples) {
+    try {
+      const src = readFileSync(abs, 'utf8');
+      const canonical = canonicalize(src);
+      const tokens = lex(canonical);
+      const { ast, diagnostics } = parse(tokens);
+      if (diagnostics && diagnostics.some((d) => d.severity === 'error')) {
+        results[rel] = {
+          ok: false,
+          error: diagnostics.find((d) => d.severity === 'error').message,
+        };
+        continue;
+      }
+      if (!ast) {
+        results[rel] = { ok: false, error: 'parse returned no AST' };
+        continue;
+      }
+      const core = lowerModule(ast);
+      results[rel] = { ok: true, fingerprint: buildFingerprint(core) };
+    } catch (e) {
+      results[rel] = { ok: false, error: e && e.message ? e.message : String(e) };
+    }
+  }
+  return results;
+}
+
+/**
+ * Invoke aster-lang-core's CoreIrFingerprintCli test with -Dparity.ir.input
+ * pointing at a temp file of absolute sample paths, and read back the
+ * JSONL fingerprint output. The CLI is a JUnit test whose body short-
+ * circuits to a no-op when the system properties aren't set, so it
+ * coexists with normal `./gradlew test` runs without side effects.
+ */
+function runJavaIr(samples) {
+  // Build the temp input/output paths. We use sample ABSOLUTE paths so
+  // the Java side can read them without any corpus-resolution dance.
+  const tmpRoot = mkdtempSync(join(tmpdir(), 'parity-ir-'));
+  const inputFile = join(tmpRoot, 'samples.txt');
+  const outputFile = join(tmpRoot, 'java-fp.jsonl');
+  // CRITICAL: the manifest sample list maps to corpus/<rel> paths in
+  // the local checkout. Use those absolute paths so Java reads exactly
+  // the bytes the manifest declares, with no stale-Maven dependency
+  // (the same blind spot the parse mode's coverage check defends).
+  writeFileSync(inputFile, samples.map((s) => s.abs).join('\n') + '\n');
+
+  const result = spawnSync(
+    './gradlew',
+    [
+      'test',
+      '--tests',
+      'CoreIrFingerprintCli',
+      '--rerun-tasks',
+      '-i',
+      `-Dparity.ir.input=${inputFile}`,
+      `-Dparity.ir.output=${outputFile}`,
+    ],
+    { cwd: CORE_REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
+  );
+  const output = (result.stdout || '') + (result.stderr || '');
+
+  // Gradle returns non-zero on test failure even when our test itself
+  // succeeded but another test in the suite blew up. Trust the output
+  // file as the source of truth — if it exists and is non-empty, the
+  // CLI did its job. If gradle failed AND no output file, that's infra.
+  if (!existsSync(outputFile)) {
+    fail(
+      'aster-lang-core CoreIrFingerprintCli produced no output. ' +
+        'Gradle log tail:\n' +
+        output.slice(-2000),
+    );
+  }
+
+  const lines = readFileSync(outputFile, 'utf8').split('\n').filter(Boolean);
+  const byAbs = new Map();
+  for (const line of lines) {
+    try {
+      const rec = JSON.parse(line);
+      if (rec && rec.path) byAbs.set(rec.path, rec);
+    } catch {
+      // Skip malformed lines; Gradle test runner output sometimes
+      // interleaves stdout from other tasks. The CLI writes the
+      // dedicated output file directly so this should not happen,
+      // but defend anyway.
+    }
+  }
+
+  const results = {};
+  for (const { rel, abs } of samples) {
+    const rec = byAbs.get(abs);
+    if (!rec) {
+      results[rel] = { ok: false, error: 'no fingerprint record for sample' };
+    } else if (!rec.ok) {
+      results[rel] = { ok: false, error: rec.error || 'unknown Java error' };
+    } else {
+      results[rel] = { ok: true, fingerprint: rec.fingerprint };
+    }
+  }
+
+  // Clean up the temp dir + its contents; ignore failures (CI tmpfs
+  // gets wiped anyway, but local runs leak otherwise).
+  try { rmSync(tmpRoot, { recursive: true, force: true }); } catch {}
+  return results;
+}
+
+/**
+ * Compare two fingerprint records and return a structured diff. Returns
+ * empty array when identical.
+ */
+function diffFingerprints(tsFp, javaFp) {
+  const diffs = [];
+  if (!tsFp || !javaFp) {
+    diffs.push({ field: 'fingerprint', reason: 'one side missing' });
+    return diffs;
+  }
+  if (tsFp.moduleName !== javaFp.moduleName) {
+    diffs.push({
+      field: 'moduleName',
+      ts: tsFp.moduleName,
+      java: javaFp.moduleName,
+    });
+  }
+  if (tsFp.declCount !== javaFp.declCount) {
+    diffs.push({
+      field: 'declCount',
+      ts: tsFp.declCount,
+      java: javaFp.declCount,
+    });
+  }
+  // Kind histogram diff — list kinds present on one side but not the
+  // other, plus any kinds where the counts disagree.
+  const allKinds = new Set([
+    ...Object.keys(tsFp.declKinds || {}),
+    ...Object.keys(javaFp.declKinds || {}),
+  ]);
+  for (const k of allKinds) {
+    const t = tsFp.declKinds?.[k] || 0;
+    const j = javaFp.declKinds?.[k] || 0;
+    if (t !== j) diffs.push({ field: `declKinds.${k}`, ts: t, java: j });
+  }
+  // Names — symmetric difference.
+  const tsNames = new Set(tsFp.declNames || []);
+  const javaNames = new Set(javaFp.declNames || []);
+  const tsOnly = [...tsNames].filter((n) => !javaNames.has(n)).sort();
+  const javaOnly = [...javaNames].filter((n) => !tsNames.has(n)).sort();
+  if (tsOnly.length > 0) diffs.push({ field: 'declNames.tsOnly', value: tsOnly });
+  if (javaOnly.length > 0) diffs.push({ field: 'declNames.javaOnly', value: javaOnly });
+  return diffs;
+}
+
+function classifyIr(tsRes, javaRes, samples) {
+  const rows = [];
+  for (const { rel } of samples) {
+    const t = tsRes[rel] || { ok: false, error: 'missing ts' };
+    const j = javaRes[rel] || { ok: false, error: 'missing java' };
+    let verdict;
+    let diffs = [];
+    if (!t.ok && !j.ok) {
+      verdict = 'both-fail';
+    } else if (t.ok !== j.ok) {
+      verdict = 'one-side-failed';
+    } else {
+      diffs = diffFingerprints(t.fingerprint, j.fingerprint);
+      verdict = diffs.length === 0 ? 'identical' : 'divergent';
+    }
+    rows.push({
+      path: rel,
+      ts: t.ok,
+      java: j.ok,
+      verdict,
+      diffs,
+      tsErr: t.error || null,
+      javaErr: j.error || null,
+    });
+  }
+  return rows;
+}
+
+function printMarkdownIr(rows, mode) {
+  const total = rows.length;
+  const identical = rows.filter((r) => r.verdict === 'identical').length;
+  const divergent = rows.filter((r) => r.verdict === 'divergent');
+  const oneSideFailed = rows.filter((r) => r.verdict === 'one-side-failed');
+  const bothFail = rows.filter((r) => r.verdict === 'both-fail');
+
+  console.log(`# tier1-parity IR-fingerprint report (mode=${mode})\n`);
+  console.log(`- total: ${total}`);
+  console.log(`- identical fingerprints: ${identical}`);
+  console.log(`- divergent fingerprints: ${divergent.length}`);
+  console.log(`- one side failed to lower: ${oneSideFailed.length}`);
+  console.log(`- both failed: ${bothFail.length}\n`);
+
+  if (divergent.length > 0) {
+    console.log('## Divergent fingerprints\n');
+    console.log('Each row lists structural diffs only (decl count, kind histogram, names). ' +
+      'Field-level Core IR alignment is deferred to Phase B v2.\n');
+    for (const r of divergent.slice(0, 50)) {
+      console.log(`### ${r.path}\n`);
+      for (const d of r.diffs) {
+        if (d.value) console.log(`- ${d.field}: ${JSON.stringify(d.value)}`);
+        else console.log(`- ${d.field}: ts=${JSON.stringify(d.ts)} java=${JSON.stringify(d.java)}`);
+      }
+      console.log('');
+    }
+    if (divergent.length > 50) {
+      console.log(`_…and ${divergent.length - 50} more (truncated)_\n`);
+    }
+  }
+
+  if (oneSideFailed.length > 0) {
+    console.log('## One-side lowering failures\n');
+    for (const r of oneSideFailed.slice(0, 30)) {
+      const failedSide = r.ts ? 'java' : 'ts';
+      const err = r.ts ? r.javaErr : r.tsErr;
+      console.log(`- ${r.path} (${failedSide} failed: ${(err || '').slice(0, 100)})`);
+    }
+    console.log('');
+  }
+}
+
 function printMarkdown(rows, mode) {
   const total = rows.length;
   const pass = rows.filter((r) => r.verdict === 'pass').length;
@@ -230,27 +507,61 @@ function printMarkdown(rows, mode) {
 }
 
 async function main() {
-  if (MODE !== 'parse') {
-    fail(`mode=${MODE} not implemented yet. Phase A only supports --mode=parse (default).`);
+  if (MODE !== 'parse' && MODE !== 'ir') {
+    fail(`mode=${MODE} not implemented. Supported: parse (Phase A), ir (Phase B).`);
   }
 
   const manifest = loadManifest();
   const samples = resolveSamples(manifest);
-  console.error(`[parity-tier1] manifest declares ${samples.length} samples (mode=${MODE})`);
+  console.error(
+    `[parity-tier1] manifest declares ${samples.length} samples (mode=${MODE}` +
+      (REPORT_ONLY ? ', report-only' : '') + ')',
+  );
 
-  console.error('[parity-tier1] running TS engine ...');
-  const tsRes = await runTsParse(samples);
+  if (MODE === 'parse') {
+    console.error('[parity-tier1] running TS engine ...');
+    const tsRes = await runTsParse(samples);
 
-  console.error('[parity-tier1] running Java engine (gradle, may take ~30s) ...');
-  const javaRes = runJavaParse(samples);
+    console.error('[parity-tier1] running Java engine (gradle, may take ~30s) ...');
+    const javaRes = runJavaParse(samples);
 
-  const rows = classify(tsRes, javaRes, samples);
+    const rows = classify(tsRes, javaRes, samples);
+    writeFileSync(REPORT_FILE, JSON.stringify({ mode: MODE, total: rows.length, rows }, null, 2));
+    printMarkdown(rows, MODE);
+
+    const bad = rows.filter((r) => r.verdict !== 'pass');
+    if (bad.length > 0) {
+      const msg = `tier1-parity (parse) broken: ${bad.length}/${rows.length} sample(s) did not pass both engines`;
+      if (REPORT_ONLY) {
+        console.error(`::warning::${msg}`);
+        process.exit(0);
+      }
+      console.error(`::error::${msg}`);
+      process.exit(1);
+    }
+    console.error('[parity-tier1] OK');
+    return;
+  }
+
+  // mode === 'ir'
+  console.error('[parity-tier1] running TS engine (canonicalize→lex→parse→lower) ...');
+  const tsRes = await runTsIr(samples);
+
+  console.error('[parity-tier1] running Java engine (gradle CoreIrFingerprintCli, may take ~30s) ...');
+  const javaRes = runJavaIr(samples);
+
+  const rows = classifyIr(tsRes, javaRes, samples);
   writeFileSync(REPORT_FILE, JSON.stringify({ mode: MODE, total: rows.length, rows }, null, 2));
-  printMarkdown(rows, MODE);
+  printMarkdownIr(rows, MODE);
 
-  const bad = rows.filter((r) => r.verdict !== 'pass');
+  const bad = rows.filter((r) => r.verdict !== 'identical');
   if (bad.length > 0) {
-    console.error(`::error::tier1-parity broken: ${bad.length}/${rows.length} sample(s) did not pass both engines`);
+    const msg = `tier1-parity (ir-fingerprint) divergence: ${bad.length}/${rows.length} sample(s) not identical`;
+    if (REPORT_ONLY) {
+      console.error(`::warning::${msg}`);
+      process.exit(0);
+    }
+    console.error(`::error::${msg}`);
     process.exit(1);
   }
   console.error('[parity-tier1] OK');
