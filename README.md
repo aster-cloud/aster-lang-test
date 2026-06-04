@@ -16,6 +16,9 @@
 
 ```
 corpus/
+├── tier1-parity/              # 严格双引擎契约（PR-blocking）
+│   ├── README.md              # 政策说明
+│   └── manifest.json          # 显式允许列表 → samples 引用 tier1-equivalence 路径
 ├── tier1-equivalence/         # 双引擎都能解析且语义等价
 │   ├── policies/*.aster
 │   └── inputs/*.cases.json    # 黄金期望（input → expectedOutput）
@@ -27,6 +30,17 @@ corpus/
     ├── type-checker/
     └── ...
 ```
+
+### Tier 与 CI 强度
+
+| Tier | 作用 | 强度 |
+|---|---|---|
+| **tier1-parity** | 显式、评审过的双引擎契约 — 每个样本两端都必须接受 | **PR-blocking** （`scripts/parity-tier1.mjs --mode=parse`） |
+| tier1-equivalence | 两端"应该"等价的全集 | Nightly trend（`equivalence-nightly.mjs`） |
+| tier2-divergent | 已知一边拒绝的样本 — 驱动改进 | Nightly only |
+| tier3-fixtures | 单端专属 | 各 consumer 自跑 |
+
+详见 `corpus/tier1-parity/README.md` 与 `DIVERGENT-MANIFEST.md` 的 "Tier policy"。
 
 每个 `.aster` 配同名 `.meta.json`：
 

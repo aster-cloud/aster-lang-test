@@ -10,6 +10,28 @@ runtime output. Categories below reflect that scope.
 Maps each of the 14 divergent corpus cases to a **root-cause category** so future
 fixes can be sequenced and tracked.
 
+## Tier policy (read this before editing the corpus)
+
+| Tier | What it asserts | CI gate |
+|---|---|---|
+| **tier1-parity** | Curated subset of tier1 where both engines must accept. Source of truth: `corpus/tier1-parity/manifest.json`. | **PR-blocking** in `aster-lang-test`, `aster-lang-core`, `aster-lang-ts` via `scripts/parity-tier1.mjs --mode=parse`. |
+| tier1-equivalence | Full set of samples that *should* be bidirectionally accepted; tier1-parity is a subset of this. | Nightly (`equivalence-nightly.mjs`), regression on rate vs. last-recorded baseline. |
+| tier2-divergent | Known one-engine-only samples; drives the divergence backlog. | Nightly only; cases catalogued in this file. |
+| tier3-fixtures | Single-engine specialty fixtures (golden AST/Core, lossless, lsp, runtime-retry, type-checker). | Each consumer runs its own subset. |
+
+**Why two tier1 levels.** tier1-parity is the explicit, reviewed contract: every
+sample on the list is the language's load-bearing core syntax and must never
+regress. tier1-equivalence is a broader scope that includes samples we *want*
+both engines to accept but where regressions are caught by trend, not by hard
+block. Promoting a sample from tier1-equivalence into tier1-parity requires a
+PR that updates `corpus/tier1-parity/manifest.json` with a note explaining the
+syntax surface it locks in. Demotion follows the inverse rule and is tracked
+below.
+
+The Phase B/C runners (Core IR JSON parity, evaluator output parity) will
+reuse the same manifest. When they land, `parity-tier1.mjs --mode=ir|eval`
+will gate on the same sample list.
+
 ## Summary
 
 | Category | Count | Direction | Status |

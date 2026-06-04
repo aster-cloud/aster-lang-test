@@ -46,10 +46,129 @@ jobs:
   #   - aster-lang-ts CI runs `node scripts/java-corpus-parse-inventory.mjs`
   #   - aster-lang-core CI runs `./gradlew test --tests TsSampleParseInventoryTest`
   #
-  # Running it here would require sibling checkouts of aster-lang-ts and
-  # aster-lang-core plus a full Java + TS build, which would couple this repo's
-  # PR latency to both engines. Defer to the per-consumer CI; this repo just
-  # validates corpus loader self-consistency (build-js + build-jvm).
+  # Running the full inventory here would require sibling checkouts plus a
+  # full Java + TS build, coupling this repo's PR latency to both engines.
+  # The tier1-parity job below is the targeted exception — it only runs the
+  # strict bidirectional contract over the curated subset in
+  # `corpus/tier1-parity/manifest.json`. It is the SOURCE OF TRUTH for "what
+  # both engines must accept" and is PR-blocking when anything in
+  # corpus/tier1-* or the manifest itself changes. tier2-divergent and the
+  # broader equivalence rate remain on the nightly job.
+  parity-tier1:
+    name: Strict tier1 parity — parse (TS ↔ Java)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Decide whether to run
+        id: changed
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            parity:
+              - 'corpus/tier1-equivalence/**'
+              - 'corpus/tier1-parity/**'
+              - 'scripts/parity-tier1.mjs'
+              - 'scripts/equivalence-nightly.mjs'
+              - '.github/workflows/ci.yml'
+
+      - name: Self checkout
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: actions/checkout@v6
+        with:
+          path: aster-lang-test
+
+      - name: Checkout aster-lang-ts
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: actions/checkout@v6
+        with:
+          repository: aster-cloud/aster-lang-ts
+          path: aster-lang-ts
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+
+      - name: Checkout aster-lang-core
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: actions/checkout@v6
+        with:
+          repository: aster-cloud/aster-lang-core
+          path: aster-lang-core
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+
+      # Lang packs are required for aster-lang-core's SPI-driven tests.
+      - name: Checkout aster-lang-en
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: actions/checkout@v6
+        with:
+          repository: aster-cloud/aster-lang-en
+          path: aster-lang-en
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - name: Checkout aster-lang-zh
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: actions/checkout@v6
+        with:
+          repository: aster-cloud/aster-lang-zh
+          path: aster-lang-zh
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - name: Checkout aster-lang-de
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: actions/checkout@v6
+        with:
+          repository: aster-cloud/aster-lang-de
+          path: aster-lang-de
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+
+      - name: Setup pnpm
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: pnpm/action-setup@v6
+        with:
+          version: 9
+
+      - name: Setup Node
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: aster-lang-ts/pnpm-lock.yaml
+
+      - name: Setup Java
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: actions/setup-java@v5
+        with:
+          java-version: '25'
+          distribution: 'temurin'
+          cache: 'gradle'
+
+      - name: Build aster-lang-ts
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-ts
+        run: pnpm install --frozen-lockfile && pnpm build
+
+      # Publish THIS PR's corpus to Maven Local so aster-lang-core's
+      # TsSampleParseInventoryTest reads the local checkout, not a
+      # stale `cloud.aster-lang:aster-lang-test` artifact from a
+      # remote repository. Without this step the inventory test
+      # silently ignores any newly-added manifest sample (codex R1).
+      # The script asserts `Discovered N >= manifest.size` as a
+      # defense in depth, but publishing first is the right fix.
+      - name: Publish corpus to Maven Local
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test/packages/jvm
+        run: ./gradlew publishToMavenLocal -x test
+
+      - name: Run tier1-parity strict gate
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/parity-tier1.mjs --mode=parse | tee parity-tier1-report.md
+
+      - name: Upload parity report
+        if: always() && (steps.changed.outputs.parity == 'true' || github.event_name == 'push')
+        uses: actions/upload-artifact@v7
+        with:
+          name: parity-tier1-${{ github.run_id }}
+          path: |
+            aster-lang-test/parity-tier1-report.json
+            aster-lang-test/parity-tier1-report.md
 
   # P0-5: corpus 改动 → 主动触发两个 consumer 的 corpus-regression workflow。
   # CROSS_REPO_TOKEN: GH PAT with repo scope (创建于 github.com/settings/tokens).
