@@ -60,10 +60,22 @@ jobs:
     permissions:
       contents: read
     steps:
+      # R-CI-1 fix: dorny/paths-filter@v3 requires a git checkout in the
+      # working directory; we previously ran it as the first step and it
+      # failed with `not a git repository`. Self-checkout into a sub-path
+      # FIRST, then run paths-filter pointing at that working directory
+      # so it can diff the PR base against HEAD.
+      - name: Self checkout
+        uses: actions/checkout@v6
+        with:
+          path: aster-lang-test
+          fetch-depth: 0
+
       - name: Decide whether to run
         id: changed
         uses: dorny/paths-filter@v3
         with:
+          working-directory: aster-lang-test
           filters: |
             parity:
               - 'corpus/tier1-equivalence/**'
@@ -71,12 +83,6 @@ jobs:
               - 'scripts/parity-tier1.mjs'
               - 'scripts/equivalence-nightly.mjs'
               - '.github/workflows/ci.yml'
-
-      - name: Self checkout
-        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: actions/checkout@v6
-        with:
-          path: aster-lang-test
 
       - name: Checkout aster-lang-ts
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
