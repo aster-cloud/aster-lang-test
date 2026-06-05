@@ -1,0 +1,4 @@
+Module dual.engine.comparison.isnotequal.
+
+Rule different given x, y, produce:
+  Return x is not equal to y.

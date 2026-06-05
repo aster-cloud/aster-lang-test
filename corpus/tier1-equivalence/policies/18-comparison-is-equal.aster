@@ -1,0 +1,4 @@
+Module dual.engine.comparison.isequal.
+
+Rule same given x, y, produce:
+  Return x is equal to y.

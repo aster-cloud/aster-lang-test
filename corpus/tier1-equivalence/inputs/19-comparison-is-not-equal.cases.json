@@ -1,0 +1,22 @@
+{
+  "policy": "tier1-equivalence/policies/19-comparison-is-not-equal.aster",
+  "entry": "different",
+  "cases": [
+    {
+      "name": "5 is not equal to 6 → true",
+      "input": [
+        5,
+        6
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "5 is not equal to 5 → false",
+      "input": [
+        5,
+        5
+      ],
+      "expectedOutput": false
+    }
+  ]
+}
