@@ -123,3 +123,23 @@ To prevent silent regression on the 183 passing cases, set up a CI gate:
 This file is checked into the repo so the failure manifest itself is reviewable.
 Update it whenever a category-A case is fixed (delete the row) or a new case
 appears (add row + root-cause line).
+
+## Runtime (eval) divergences revealed after Phase B/C fixes (2026-06-05)
+
+The IR + eval parity gates are now clean of the two large fix families:
+- **Phase B** (Core IR lowering): eff_caps `It performs` lexicon-casing fix
+  (aster-lang-core 69e40c7) — IR java-fail 55 → 0.
+- **Phase C** (evaluator): operator-spelled builtin resolution
+  (aster-lang-truffle 6952b77) — eval java-fail 42 → 3.
+
+Peeling those layers revealed 3 **smaller, pre-existing runtime semantic
+divergences** (eval mode, Java vs TS), now the next targets:
+
+| sample / case | TS | Java | category |
+|---|---|---|---|
+| `06-string-concat` (×3 cases) | `"Hello, …"` | NumberFormatException | **string `+` overload**: Java's `add` builtin is integer-only; TS's `+` concatenates strings. Java needs type-dispatched `+` (string concat vs numeric add). |
+| `08-arithmetic-divide` `7 / 2` | `3.5` | `3` | **division semantics**: TS `/` is float division; Java `div` is integer truncation. Decide canonical semantics (likely float, with a separate int-div op) and align. |
+| `09-arithmetic-modulo` `7 is not even` | `true` | `false` | **modulo/comparison**: `7 mod 2 == 0` evaluates differently across engines; check `mod` + `eq` builtin semantics. |
+
+These are tracked here, not yet fixed. None block parse (PR-blocking) or the
+IR/eval report-only gates' promotion criteria beyond their own resolution.
