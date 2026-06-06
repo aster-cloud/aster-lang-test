@@ -19,6 +19,7 @@
     "tier1-equivalence/policies/17-comparison-not-equals.aster",
     "tier1-equivalence/policies/18-comparison-is-equal.aster",
     "tier1-equivalence/policies/19-comparison-is-not-equal.aster",
+    "tier1-equivalence/policies/21-comparison-is-prefix.aster",
     "tier1-equivalence/policies/19-let-multiple.aster",
     "tier1-equivalence/policies/20-let-dependent.aster",
     "tier1-equivalence/policies/28-business-insurance-premium.aster",

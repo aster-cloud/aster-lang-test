@@ -1,0 +1,22 @@
+Module dual.engine.comparison.isprefix.
+
+Rule at_least_check given score, produce:
+  Return score is at least 700.
+
+Rule at_most_check given score, produce:
+  Return score is at most 700.
+
+Rule greater_check given score, produce:
+  Return score is greater than 700.
+
+Rule less_check given score, produce:
+  Return score is less than 700.
+
+Rule more_check given score, produce:
+  Return score is more than 700.
+
+Rule under_check given score, produce:
+  Return score is under 700.
+
+Rule over_check given score, produce:
+  Return score is over 700.
