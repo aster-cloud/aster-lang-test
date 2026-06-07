@@ -84,6 +84,17 @@ jobs:
               - 'scripts/equivalence-nightly.mjs'
               - '.github/workflows/ci.yml'
 
+      # Shared version catalog (aster-lang-platform, ADR 0012). aster-lang-core
+      # 的 settings.gradle 通过 asterLibs.* 引用它，故 publish core 前必须先把
+      # 它发到 Maven Local，否则解析 cloud.aster-lang:aster-lang-platform 失败。
+      - name: Checkout aster-lang-platform
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: actions/checkout@v6
+        with:
+          repository: aster-cloud/aster-lang-platform
+          path: aster-lang-platform
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+
       - name: Checkout aster-lang-ts
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         uses: actions/checkout@v6
@@ -179,6 +190,13 @@ jobs:
       # token lacks read scope on private repos.
       #
       # Order matters: locale packs depend on core, so core goes first.
+      # 但 core 自身经 asterLibs.* 依赖共享版本目录（aster-lang-platform，
+      # ADR 0012），core 的任何 gradle 调用前必须先把版本目录发到 Maven Local。
+      - name: Publish version catalog to Maven Local
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-platform
+        run: ./gradlew publishToMavenLocal
+
       - name: Publish aster-lang-core to Maven Local
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-core
