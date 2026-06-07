@@ -60,7 +60,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      # R-CI-1 fix: dorny/paths-filter@v3 requires a git checkout in the
+      # R-CI-1 fix: dorny/paths-filter@v4 requires a git checkout in the
       # working directory; we previously ran it as the first step and it
       # failed with `not a git repository`. Self-checkout into a sub-path
       # FIRST, then run paths-filter pointing at that working directory
@@ -73,7 +73,7 @@ jobs:
 
       - name: Decide whether to run
         id: changed
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           working-directory: aster-lang-test
           filters: |
@@ -292,7 +292,7 @@ jobs:
 
       - name: Check if corpus changed
         id: changed
-        uses: dorny/paths-filter@v3
+        uses: dorny/paths-filter@v4
         with:
           filters: |
             corpus:
@@ -302,7 +302,7 @@ jobs:
 
       - name: Dispatch to aster-lang-ts
         if: steps.changed.outputs.corpus == 'true'
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.CROSS_REPO_TOKEN }}
           repository: aster-cloud/aster-lang-ts
@@ -311,7 +311,7 @@ jobs:
 
       - name: Dispatch to aster-lang-core
         if: steps.changed.outputs.corpus == 'true'
-        uses: peter-evans/repository-dispatch@v3
+        uses: peter-evans/repository-dispatch@v4
         with:
           token: ${{ secrets.CROSS_REPO_TOKEN }}
           repository: aster-cloud/aster-lang-core
