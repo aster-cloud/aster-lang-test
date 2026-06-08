@@ -1,0 +1,4 @@
+Module dual.engine.arithmetic.moduloop.
+
+Rule remainder given x, y, produce:
+  Return x modulo y.

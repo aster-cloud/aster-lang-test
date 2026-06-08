@@ -1,5 +1,4 @@
-Module dual.engine.arithmetic.modulo.
+Module dual.engine.arithmetic.evencheck.
 
 Rule is_even given n produce:
-  Let remainder be n minus n divided by 2 times 2.
-  Return remainder equals to 0.
+  Return n modulo 2 equals to 0.

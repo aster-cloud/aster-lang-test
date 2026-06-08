@@ -1,0 +1,39 @@
+{
+  "policy": "tier1-equivalence/policies/31-arithmetic-intdiv.aster",
+  "entry": "intdiv",
+  "_note": "Integer division truncates toward zero (Java/JS/Go semantics): -7 // 2 = -3, not -4. Negative cases lock the truncation contract across both engines.",
+  "cases": [
+    {
+      "name": "7 // 2 = 3",
+      "input": [
+        7,
+        2
+      ],
+      "expectedOutput": 3
+    },
+    {
+      "name": "20 // 4 = 5 (exact)",
+      "input": [
+        20,
+        4
+      ],
+      "expectedOutput": 5
+    },
+    {
+      "name": "-7 // 2 = -3 (truncate toward zero)",
+      "input": [
+        -7,
+        2
+      ],
+      "expectedOutput": -3
+    },
+    {
+      "name": "7 // -2 = -3 (truncate toward zero)",
+      "input": [
+        7,
+        -2
+      ],
+      "expectedOutput": -3
+    }
+  ]
+}

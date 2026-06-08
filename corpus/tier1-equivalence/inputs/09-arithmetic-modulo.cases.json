@@ -1,24 +1,24 @@
 {
   "policy": "tier1-equivalence/policies/09-arithmetic-modulo.aster",
   "entry": "is_even",
-  "_note": "The `n - (n/2)*2` idiom is an integer-modulo trick. With `/` now float division (dual-engine canonical), n/2*2 == n for all n, so remainder is always 0 and is_even returns true for every input. The language has no integer-division or modulo operator, so this is the correct float-arithmetic result; both engines agree. A true even-check needs a future `mod` builtin.",
+  "_note": "Restored to a genuine even-check using the real `modulo` operator (n modulo 2 equals to 0). The previous `n - (n/2)*2` idiom relied on integer division and broke under float `/`; the `modulo` operator now makes this a correct, meaningful test.",
   "cases": [
     {
-      "name": "4 → true (float arithmetic: 4 - 4 = 0)",
+      "name": "4 is even",
       "input": [
         4
       ],
       "expectedOutput": true
     },
     {
-      "name": "7 → true (float div: 7 - (3.5*2) = 0)",
+      "name": "7 is not even",
       "input": [
         7
       ],
-      "expectedOutput": true
+      "expectedOutput": false
     },
     {
-      "name": "0 → true (0 - 0 = 0)",
+      "name": "0 is even",
       "input": [
         0
       ],
