@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "aster-lang-test/corpus/tier1-equivalence/policies/29-business-tax-bracket.aster",
+  "capabilities": [
+    "cases-golden"
+  ]
+}
