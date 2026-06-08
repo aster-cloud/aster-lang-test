@@ -1,0 +1,4 @@
+Module dual.engine.logical.disjunction.
+
+Rule either given tier, produce:
+  Return tier equals to "gold" or tier equals to "platinum".
