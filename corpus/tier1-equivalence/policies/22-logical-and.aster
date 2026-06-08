@@ -1,0 +1,4 @@
+Module dual.engine.logical.conjunction.
+
+Rule both given x, y, produce:
+  Return x at least 18 and y at least 30000.
