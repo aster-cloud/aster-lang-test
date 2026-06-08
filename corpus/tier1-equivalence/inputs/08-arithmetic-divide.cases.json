@@ -11,12 +11,12 @@
       "expectedOutput": 5
     },
     {
-      "name": "7 / 2 = 3 (integer truncation)",
+      "name": "7 / 2 = 3.5 (float division)",
       "input": [
         7,
         2
       ],
-      "expectedOutput": 3
+      "expectedOutput": 3.5
     },
     {
       "name": "100 / 10 = 10",

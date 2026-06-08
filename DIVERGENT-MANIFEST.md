@@ -132,14 +132,23 @@ The IR + eval parity gates are now clean of the two large fix families:
 - **Phase C** (evaluator): operator-spelled builtin resolution
   (aster-lang-truffle 6952b77) — eval java-fail 42 → 3.
 
-Peeling those layers revealed 3 **smaller, pre-existing runtime semantic
-divergences** (eval mode, Java vs TS), now the next targets:
+Peeling those layers revealed several **smaller, pre-existing runtime semantic
+divergences** (eval mode, Java vs TS). Status after the 2026-06-09 eval-parity
+baseline (`parity-tier1.mjs --mode=eval`): **44/52 identical, 8 divergent**.
+
+### ✅ RESOLVED
+
+| sample / case | decision | fix |
+|---|---|---|
+| `08-arithmetic-divide` `7 / 2` | **`/` is float division** (canonical = TS). Both engines IEEE-754 double; `7/2 → 3.5`, `1/3 → 0.3333333333333333` byte-identical. Integer-valued results (`20/4 → 5`) collapse via `CoreIrEvalCli.valueToJson` `fitsInInt`, so no `5.0`-vs-`5` mismatch. | aster-lang-truffle: `Builtins.div` returns `toDouble(a)/toDouble(b)`; removed the `doDivInt` int fast-path in `BuiltinCallNode` (div always flows through generic → double). Golden `08-arithmetic-divide.cases.json` updated `7/2 → 3.5`. |
+
+### ⏳ STILL OPEN (8 cases, Java-side eval bugs — beyond the division decision)
 
 | sample / case | TS | Java | category |
 |---|---|---|---|
-| `06-string-concat` (×3 cases) | `"Hello, …"` | NumberFormatException | **string `+` overload**: Java's `add` builtin is integer-only; TS's `+` concatenates strings. Java needs type-dispatched `+` (string concat vs numeric add). |
-| `08-arithmetic-divide` `7 / 2` | `3.5` | `3` | **division semantics**: TS `/` is float division; Java `div` is integer truncation. Decide canonical semantics (likely float, with a separate int-div op) and align. |
-| `09-arithmetic-modulo` `7 is not even` | `true` | `false` | **modulo/comparison**: `7 mod 2 == 0` evaluates differently across engines; check `mod` + `eq` builtin semantics. |
+| `06-string-concat` (×2) | `"Hello, Alice"` | `"Hello, "` (drops `name`) | **string `+` second-operand loss**: the earlier `add` fix stopped the NumberFormatException but the concat now returns only the literal — Java loses the `name` argument in `"Hello, " plus name`. |
+| `09-arithmetic-modulo` (`is_even`) | `4→true, 7→true` | `4→true, 7→false` | **float-div side-effect + Java disagreement**: the `n - (n/2)*2` even-check idiom RELIED on integer division; under float `/` it is now always-0 → always-`true` in TS. Java still yields `false` for 7 (nested-expr precedence/int-div remnant). Two actions: (a) golden is stale, (b) Java disagrees with TS → real bug. The policy itself is a broken even-check under float `/` and should be rewritten to a real `mod`. |
+| `19-let-multiple` (×2), `28-business-insurance-premium` (×3) | sum (e.g. `550`) | last `let` value (e.g. `50`) | **let-accumulation / final-Return bug**: `Return subtotal plus tax` evaluates to just `tax` on the Java side — Java returns the last `Let` binding instead of the `+` of two bindings. NOT division-related; pre-existing, newly surfaced by eval-parity. |
 
 These are tracked here, not yet fixed. None block parse (PR-blocking) or the
 IR/eval report-only gates' promotion criteria beyond their own resolution.
