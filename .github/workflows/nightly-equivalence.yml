@@ -107,8 +107,11 @@ jobs:
             aster-lang-test/equivalence-report.md
             aster-lang-test/equivalence-history.csv
 
+      # cron（每日）和手动 dispatch 都提交：dispatch 让运维能即时刷新
+      # aster-lang.cloud/*/equivalence 页面（等价率变化后无需等到次日 02:00）。
+      # git diff --quiet 去重，等价率未变则不产生空提交。
       - name: Append history to main
-        if: github.event_name == 'schedule' && success()
+        if: (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') && success()
         working-directory: aster-lang-test
         env:
           GIT_AUTHOR_NAME: aster-bot
@@ -121,7 +124,7 @@ jobs:
             exit 0
           fi
           git add equivalence-history.csv
-          git commit -m "chore: append nightly equivalence rate $(tail -1 equivalence-history.csv | cut -d, -f5)"
+          git commit -m "chore: append equivalence rate $(tail -1 equivalence-history.csv | cut -d, -f5) (${{ github.event_name }})"
           git push
 
       - name: Notify Slack on failure
