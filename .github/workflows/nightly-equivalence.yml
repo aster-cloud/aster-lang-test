@@ -38,6 +38,12 @@ jobs:
           path: aster-lang-core
           token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
 
+      # 共享版本目录（aster-lang-platform，ADR 0012）。aster-lang-core 的
+      # settings.gradle 经 asterLibs.* 引用它，core 的任何 gradle 调用前必须
+      # 先把它发到 Maven Local，否则解析 cloud.aster-lang:aster-lang-platform 失败。
+      - uses: actions/checkout@v6
+        with: { repository: aster-cloud/aster-lang-platform, path: aster-lang-platform, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
+
       # aster-lang-core 需要 sibling lexicon 仓库
       - uses: actions/checkout@v6
         with: { repository: aster-cloud/aster-lang-en, path: aster-lang-en, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
@@ -65,6 +71,27 @@ jobs:
       - name: Build aster-lang-ts
         working-directory: aster-lang-ts
         run: pnpm install --frozen-lockfile && pnpm build
+
+      # harness 的 runJavaParse 跑 aster-lang-core 的 TsSampleParseInventoryTest，
+      # 该测试经 asterLibs.* 依赖共享版本目录 + locale 包，并经 CorpusLoader 依赖
+      # corpus。core 的任何 gradle 调用前，这些都必须先发到 Maven Local（顺序：
+      # platform → core → en/zh/de → corpus），与 ci.yml 的 publish 链一致。
+      # 缺失会导致 "Could not find cloud.aster-lang:aster-lang-platform" 而整个
+      # nightly 失败（等价率 CSV 因此长期停更）。
+      - name: Publish version catalog to Maven Local
+        working-directory: aster-lang-platform
+        run: ./gradlew publishToMavenLocal
+      - name: Publish aster-lang-core to Maven Local
+        working-directory: aster-lang-core
+        run: ./gradlew compileJava publishToMavenLocal -x test
+      - name: Publish locale packs to Maven Local
+        run: |
+          cd aster-lang-en && ./gradlew publishToMavenLocal -x test
+          cd ../aster-lang-zh && ./gradlew publishToMavenLocal -x test
+          cd ../aster-lang-de && ./gradlew publishToMavenLocal -x test
+      - name: Publish corpus to Maven Local
+        working-directory: aster-lang-test/packages/jvm
+        run: ./gradlew publishToMavenLocal -x test
 
       - name: Run equivalence harness
         working-directory: aster-lang-test
