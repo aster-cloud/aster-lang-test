@@ -1,0 +1,62 @@
+name: Checkout sibling repo (branch-matched)
+description: >
+  Checks out a sibling aster-lang repo, preferring a branch whose name matches
+  the current PR's head branch. Falls back to the given default ref (usually
+  main) when no matching branch exists. This lets a cross-repo change be
+  validated against its companion PR branches before any of them merge,
+  instead of always testing against each sibling's main.
+
+inputs:
+  repository:
+    description: owner/name of the sibling repo (e.g. aster-cloud/aster-lang-core)
+    required: true
+  path:
+    description: Local checkout path
+    required: true
+  token:
+    description: Token with read access to the sibling repo
+    required: true
+  fallback-ref:
+    description: Ref to use when no matching branch exists
+    required: false
+    default: main
+
+runs:
+  using: composite
+  steps:
+    - name: Resolve matching ref
+      id: resolve
+      shell: bash
+      env:
+        # github.head_ref is only set on pull_request events (the PR's source
+        # branch). On push (e.g. to main) it is empty and we use the fallback.
+        HEAD_REF: ${{ github.head_ref }}
+        REPO: ${{ inputs.repository }}
+        FALLBACK: ${{ inputs.fallback-ref }}
+        GH_TOKEN: ${{ inputs.token }}
+      run: |
+        set -euo pipefail
+        ref="$FALLBACK"
+        if [ -n "${HEAD_REF:-}" ]; then
+          # Probe the sibling for a same-named branch without exposing the
+          # token on the command line (it goes through an askpass-style env).
+          if git ls-remote --exit-code --heads \
+               "https://x-access-token:${GH_TOKEN}@github.com/${REPO}.git" \
+               "refs/heads/${HEAD_REF}" >/dev/null 2>&1; then
+            ref="$HEAD_REF"
+            echo "Matched sibling branch '${HEAD_REF}' in ${REPO}"
+          else
+            echo "No '${HEAD_REF}' branch in ${REPO}; using '${FALLBACK}'"
+          fi
+        else
+          echo "No head_ref (not a PR); using '${FALLBACK}'"
+        fi
+        echo "ref=${ref}" >> "$GITHUB_OUTPUT"
+
+    - name: Checkout
+      uses: actions/checkout@v6
+      with:
+        repository: ${{ inputs.repository }}
+        path: ${{ inputs.path }}
+        ref: ${{ steps.resolve.outputs.ref }}
+        token: ${{ inputs.token }}

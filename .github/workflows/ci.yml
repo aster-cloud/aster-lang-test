@@ -87,9 +87,12 @@ jobs:
       # Shared version catalog (aster-lang-platform, ADR 0012). aster-lang-core
       # 的 settings.gradle 通过 asterLibs.* 引用它，故 publish core 前必须先把
       # 它发到 Maven Local，否则解析 cloud.aster-lang:aster-lang-platform 失败。
+      # 兄弟仓 checkout 走分支匹配（self checkout 进了 aster-lang-test/ 子目录，
+      # 故复合 action 路径带前缀 ./aster-lang-test/...）。匹配同名 PR 分支，
+      # 否则回退 main —— 让跨仓 PR 合并前即可联合验证。
       - name: Checkout aster-lang-platform
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: actions/checkout@v6
+        uses: ./aster-lang-test/.github/actions/checkout-sibling
         with:
           repository: aster-cloud/aster-lang-platform
           path: aster-lang-platform
@@ -97,7 +100,7 @@ jobs:
 
       - name: Checkout aster-lang-ts
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: actions/checkout@v6
+        uses: ./aster-lang-test/.github/actions/checkout-sibling
         with:
           repository: aster-cloud/aster-lang-ts
           path: aster-lang-ts
@@ -105,7 +108,7 @@ jobs:
 
       - name: Checkout aster-lang-core
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: actions/checkout@v6
+        uses: ./aster-lang-test/.github/actions/checkout-sibling
         with:
           repository: aster-cloud/aster-lang-core
           path: aster-lang-core
@@ -114,21 +117,21 @@ jobs:
       # Lang packs are required for aster-lang-core's SPI-driven tests.
       - name: Checkout aster-lang-en
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: actions/checkout@v6
+        uses: ./aster-lang-test/.github/actions/checkout-sibling
         with:
           repository: aster-cloud/aster-lang-en
           path: aster-lang-en
           token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
       - name: Checkout aster-lang-zh
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: actions/checkout@v6
+        uses: ./aster-lang-test/.github/actions/checkout-sibling
         with:
           repository: aster-cloud/aster-lang-zh
           path: aster-lang-zh
           token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
       - name: Checkout aster-lang-de
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: actions/checkout@v6
+        uses: ./aster-lang-test/.github/actions/checkout-sibling
         with:
           repository: aster-cloud/aster-lang-de
           path: aster-lang-de
@@ -140,14 +143,14 @@ jobs:
       # chain further down.
       - name: Checkout aster-lang-runtime
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: actions/checkout@v6
+        uses: ./aster-lang-test/.github/actions/checkout-sibling
         with:
           repository: aster-cloud/aster-lang-runtime
           path: aster-lang-runtime
           token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
       - name: Checkout aster-lang-truffle
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: actions/checkout@v6
+        uses: ./aster-lang-test/.github/actions/checkout-sibling
         with:
           repository: aster-cloud/aster-lang-truffle
           path: aster-lang-truffle
