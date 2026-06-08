@@ -133,22 +133,23 @@ The IR + eval parity gates are now clean of the two large fix families:
   (aster-lang-truffle 6952b77) — eval java-fail 42 → 3.
 
 Peeling those layers revealed several **smaller, pre-existing runtime semantic
-divergences** (eval mode, Java vs TS). Status after the 2026-06-09 eval-parity
-baseline (`parity-tier1.mjs --mode=eval`): **44/52 identical, 8 divergent**.
+divergences** (eval mode, Java vs TS). All are now **RESOLVED**: as of the
+2026-06-09 work the eval-parity gate is **60/60 identical, 0 divergent**
+(was 44/52 mid-fix), and parse-parity is **206/206**.
 
 ### ✅ RESOLVED
 
 | sample / case | decision | fix |
 |---|---|---|
 | `08-arithmetic-divide` `7 / 2` | **`/` is float division** (canonical = TS). Both engines IEEE-754 double; `7/2 → 3.5`, `1/3 → 0.3333333333333333` byte-identical. Integer-valued results (`20/4 → 5`) collapse via `CoreIrEvalCli.valueToJson` `fitsInInt`, so no `5.0`-vs-`5` mismatch. | aster-lang-truffle: `Builtins.div` returns `toDouble(a)/toDouble(b)`; removed the `doDivInt` int fast-path in `BuiltinCallNode` (div always flows through generic → double). Golden `08-arithmetic-divide.cases.json` updated `7/2 → 3.5`. |
+| `06-string-concat` (×2), `19-let-multiple` (×2), `28-business-insurance-premium` (×3) | **int/double numeric promotion** | Once `/` produced doubles, the int-specialized `BuiltinCallNode` fast-paths returned only one operand for int+double (`100 - 10.0 → 10`) and string-concat dropped its 2nd operand. Removed the arithmetic int fast-paths; `add/sub/mul/div/mod` route through `doGeneric → Builtins.*` with int/double promotion; comparisons compare numerically as double (`0.0 == 0`). All 8 cases became identical. |
+| `09-arithmetic-modulo` (`is_even`) | **restored with the real `modulo` operator** | The `n - (n/2)*2` even-check idiom relied on integer division and broke under float `/`. The language now has a real `modulo` operator, so `09` was rewritten to `n modulo 2 equals to 0` — a genuine even-check, golden back to `4→true, 7→false`. (Module renamed `…arithmetic.modulo` → `…arithmetic.evencheck` because a bare `.modulo` trailing segment now tokenizes as the `modulo` keyword.) |
 
-### ⏳ STILL OPEN (8 cases, Java-side eval bugs — beyond the division decision)
+### New operator coverage (2026-06-09)
 
-| sample / case | TS | Java | category |
-|---|---|---|---|
-| `06-string-concat` (×2) | `"Hello, Alice"` | `"Hello, "` (drops `name`) | **string `+` second-operand loss**: the earlier `add` fix stopped the NumberFormatException but the concat now returns only the literal — Java loses the `name` argument in `"Hello, " plus name`. |
-| `09-arithmetic-modulo` (`is_even`) | `4→true, 7→true` | `4→true, 7→false` | **float-div side-effect + Java disagreement**: the `n - (n/2)*2` even-check idiom RELIED on integer division; under float `/` it is now always-0 → always-`true` in TS. Java still yields `false` for 7 (nested-expr precedence/int-div remnant). Two actions: (a) golden is stale, (b) Java disagrees with TS → real bug. The policy itself is a broken even-check under float `/` and should be rewritten to a real `mod`. |
-| `19-let-multiple` (×2), `28-business-insurance-premium` (×3) | sum (e.g. `550`) | last `let` value (e.g. `50`) | **let-accumulation / final-Return bug**: `Return subtotal plus tax` evaluates to just `tax` on the Java side — Java returns the last `Let` binding instead of the `+` of two bindings. NOT division-related; pre-existing, newly surfaced by eval-parity. |
+`modulo` and `integer divided by` operators added (7-repo change). New parity
+samples lock the truncate-toward-zero contract with negative cases:
+- `31-arithmetic-intdiv`: `7 // 2 = 3`, `-7 // 2 = -3`, `7 // -2 = -3`
+- `32-arithmetic-modulo-op`: `7 % 2 = 1`, `-7 % 2 = -1`, `7 % -2 = 1`
 
-These are tracked here, not yet fixed. None block parse (PR-blocking) or the
-IR/eval report-only gates' promotion criteria beyond their own resolution.
+Both in `tier1-parity/manifest.json`. The manifest is clean; no open divergences.
