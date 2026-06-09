@@ -105,6 +105,7 @@
     "tier1-equivalence/policies/effect_enforcement.aster",
     "tier1-equivalence/policies/eligibility.aster",
     "tier1-equivalence/policies/enterprise.aster",
+    "tier1-equivalence/policies/entry_annotation.aster",
     "tier1-equivalence/policies/enum_exhaustiveness.aster",
     "tier1-equivalence/policies/enum_wildcard.aster",
     "tier1-equivalence/policies/fetch_dashboard.aster",

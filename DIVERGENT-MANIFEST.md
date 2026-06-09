@@ -207,3 +207,9 @@ these (cases NOT written; tracked here):
 | sample / case | TS | Java | note |
 |---|---|---|---|
 | `lambda_cnl_match_maybe` `fromMaybe(null, "fb")` | `"fb"` ✓ | `null` | **same root cause as `match_null`**: a host `null` argument passed via `Value.execute(args)` does not reach a `When null` (PatNull) arm as guest null. Here the null flows into a lambda parameter; `PatNullNode`/`bindParameters` are individually correct (`frame.setObject(i, null)`), so the gap is Polyglot host-`null` marshaling at the entry boundary. `fromMaybe` is covered via its non-null case; the null case is excluded pending a host-null fix. |
+
+### ⏳ STILL OPEN (parse-parity gap — surfaced by feature-coverage instrument, 2026-06-09)
+
+| feature | TS | Java | note |
+|---|---|---|---|
+| **Type alias** (`Type Score as Int.`) | `Compile failed` (parser rejects the `Type … as` declaration) | parses + evaluates fine | The `Type X as T` alias declaration is **Java-only**. It's a shipped grammar feature in aster-lang-core but the aster-lang-ts front-end does not parse it, so a `type_alias` corpus sample would fail the parse-parity gate. NOT added to the corpus; tracked here. The `feature-coverage.mjs` instrument reports `Type alias` as `— absent` (no corpus sample exercises it on both engines). Needs TS parser support before it can be eval-covered. |
