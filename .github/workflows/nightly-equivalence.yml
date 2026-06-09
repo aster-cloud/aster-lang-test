@@ -116,17 +116,23 @@ jobs:
         working-directory: aster-lang-test
         run: node scripts/parity-tier1.mjs --mode=eval --report-only --history=eval-history.csv | tee eval-parity-report.md
 
+      # eval 覆盖率趋势（covered / eval-able），供 equivalence 走势图。
+      - name: Record eval-coverage history
+        working-directory: aster-lang-test
+        run: node scripts/tag-eval-exempt.mjs --history=eval-coverage-history.csv >/dev/null
+
       # Feature-coverage map：哪些语言特性被语料实际执行（dual-engine），
       # 哪些只解析不执行（盲点）。纯文本扫描，无需引擎，report-only。
       - name: Run feature-coverage instrument
         working-directory: aster-lang-test
-        run: node scripts/feature-coverage.mjs | tee feature-coverage-report.md
+        run: node scripts/feature-coverage.mjs --history=feature-coverage-history.csv | tee feature-coverage-report.md
 
       # ADR 0016：字段级 Core IR parity（归一化后逐字段比对两引擎 IR）。
       # report-only，盲点记入 IR-DIVERGENCE-LEDGER.md。复用上面已发布的 core。
+      # --history 记 IR 字段级一致率趋势（供走势图）。
       - name: Run field-level IR parity
         working-directory: aster-lang-test
-        run: node scripts/parity-tier1.mjs --mode=ir --full --report-only | tee ir-field-parity-report.md
+        run: node scripts/parity-tier1.mjs --mode=ir --full --report-only --history=ir-history.csv | tee ir-field-parity-report.md
 
       - name: Upload artefacts
         if: always()
@@ -141,6 +147,9 @@ jobs:
             aster-lang-test/eval-history.csv
             aster-lang-test/feature-coverage-report.md
             aster-lang-test/ir-field-parity-report.md
+            aster-lang-test/ir-history.csv
+            aster-lang-test/eval-coverage-history.csv
+            aster-lang-test/feature-coverage-history.csv
 
       # cron（每日）和手动 dispatch 都提交：dispatch 让运维能即时刷新
       # aster-lang.cloud/*/equivalence 页面（等价率变化后无需等到次日 02:00）。
@@ -154,14 +163,16 @@ jobs:
           GIT_COMMITTER_NAME: aster-bot
           GIT_COMMITTER_EMAIL: bot@aster-lang.cloud
         run: |
-          if git diff --quiet equivalence-history.csv eval-history.csv; then
+          HIST_FILES="equivalence-history.csv eval-history.csv ir-history.csv eval-coverage-history.csv feature-coverage-history.csv"
+          if git diff --quiet $HIST_FILES; then
             echo "history unchanged, nothing to commit"
             exit 0
           fi
-          git add equivalence-history.csv eval-history.csv
+          git add $HIST_FILES
           parse_rate=$(tail -1 equivalence-history.csv | cut -d, -f5)
           eval_rate=$(tail -1 eval-history.csv | cut -d, -f5)
-          git commit -m "chore: append parity rates parse=$parse_rate eval=$eval_rate (${{ github.event_name }})"
+          ir_rate=$(tail -1 ir-history.csv | cut -d, -f5)
+          git commit -m "chore: append parity rates parse=$parse_rate eval=$eval_rate ir=$ir_rate (${{ github.event_name }})"
           git push
 
       - name: Notify Slack on failure

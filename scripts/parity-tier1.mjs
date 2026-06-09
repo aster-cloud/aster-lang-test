@@ -1095,6 +1095,16 @@ async function main() {
     writeFileSync(REPORT_FILE, JSON.stringify({ mode: MODE, total: rows.length, rows }, null, 2));
     printMarkdownIr(rows, MODE);
 
+    // Trend history (field-level mode only). `divergent-exempt` samples are out
+    // of scope for structural parity (ADR 0016) so they leave the denominator:
+    // rate = identical / (total - exempt). Matches the dashboard's other rates.
+    if (IR_FULL) {
+      const identical = rows.filter((r) => r.verdict === 'identical').length;
+      const exempt = rows.filter((r) => r.verdict === 'divergent-exempt').length;
+      const denom = rows.length - exempt;
+      appendHistory('ir', denom, identical, denom - identical);
+    }
+
     // `divergent-exempt` (effect/workflow/interop derived-analysis differences)
     // is informational only — never a structural-parity failure (ADR 0016).
     const bad = rows.filter((r) => r.verdict !== 'identical' && r.verdict !== 'divergent-exempt');
