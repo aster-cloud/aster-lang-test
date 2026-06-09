@@ -56,6 +56,10 @@ const args = process.argv.slice(2);
 const modeArg = args.find((a) => a.startsWith('--mode='));
 const MODE = modeArg ? modeArg.slice('--mode='.length) : 'parse';
 const REPORT_ONLY = args.includes('--report-only');
+// --full (ADR 0016, mode=ir only): field-level normalized IR diff instead of the
+// shallow structural fingerprint. Captures each engine's complete lowered Core IR
+// and compares it through normalizeIr()/diffIr() (alias table + ignore set).
+const IR_FULL = args.includes('--full');
 // --history=<file>: 追加一行趋势 CSV（供 nightly 写 eval-history.csv / parse-history.csv）。
 const historyArg = args.find((a) => a.startsWith('--history='));
 const HISTORY_FILE = historyArg ? resolve(historyArg.slice('--history='.length)) : null;
@@ -293,7 +297,9 @@ async function runTsIr(samples) {
         continue;
       }
       const core = lowerModule(ast);
-      results[rel] = { ok: true, fingerprint: buildFingerprint(core) };
+      results[rel] = IR_FULL
+        ? { ok: true, ir: core }
+        : { ok: true, fingerprint: buildFingerprint(core) };
     } catch (e) {
       results[rel] = { ok: false, error: e && e.message ? e.message : String(e) };
     }
@@ -330,6 +336,7 @@ function runJavaIr(samples) {
       '-i',
       `-Dparity.ir.input=${inputFile}`,
       `-Dparity.ir.output=${outputFile}`,
+      ...(IR_FULL ? ['-Dparity.ir.full=true'] : []),
     ],
     { cwd: CORE_REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
   );
@@ -369,7 +376,9 @@ function runJavaIr(samples) {
     } else if (!rec.ok) {
       results[rel] = { ok: false, error: rec.error || 'unknown Java error' };
     } else {
-      results[rel] = { ok: true, fingerprint: rec.fingerprint };
+      results[rel] = IR_FULL
+        ? { ok: true, ir: rec.ir }
+        : { ok: true, fingerprint: rec.fingerprint };
     }
   }
 
@@ -424,6 +433,154 @@ function diffFingerprints(tsFp, javaFp) {
   return diffs;
 }
 
+// ============================================================================
+// ADR 0016 — field-level (normalized) Core IR parity (--mode=ir --full)
+// ============================================================================
+
+// Fields ignored on every node: pure position/diagnostic data that carries no
+// evaluation semantics and legitimately differs between engines (e.g. line/col
+// numbering conventions). Stripped recursively before comparison.
+const IR_IGNORE_FIELDS = new Set(['origin']);
+
+// Type-inference + per-engine metadata layer. The two engines run DIFFERENT type
+// inference (TS leaves unannotated params/returns as TypeVar 'Unknown'/omitted;
+// Java eagerly infers a concrete TypeName), and each emits its own metadata
+// (piiCategories/piiLevel, typeParams seeding, retTypeInferred). None of this is
+// source-level structure — it's derived analysis state that legitimately differs
+// — so it is out of scope for STRUCTURAL IR parity (ADR 0016 §B/§C). Stripped on
+// both sides so the comparison focuses on the executable tree (decls, params by
+// name, statements, expressions). Declared (non-inferred) types survive because
+// they live on nodes the parser emits directly, not via these inference fields.
+const IR_INFERENCE_FIELDS = new Set([
+  'type', 'ret', 'retType', 'typeParams', 'typeInferred', 'retTypeInferred',
+  'constraints', 'piiCategories', 'piiLevel',
+  // Effect capabilities: the two engines run different capability *inference*
+  // (TS seeds effectCaps from the stdlib namespace of each call; Java derives
+  // them later/elsewhere), so effectCaps is derived analysis state like the
+  // type layer — out of scope for structural IR parity. The DECLARED effects
+  // (`It performs …`) are compared separately (see effects normalization).
+  'effectCaps', 'effectCapsExplicit',
+  // Lambda closure captures: derived analysis (TS captures the whole enclosing
+  // env, Java only the referenced subset) — a closure-implementation detail, not
+  // source structure. Both engines execute closures identically (eval-parity);
+  // the capture LIST is not a source-level artifact, so it's out of scope.
+  'captures',
+]);
+
+// Known, accepted leaf-field renamings: same `kind`, semantically identical
+// payload, different field name on each side. Normalize the TS name → Java name.
+// Every entry here is an auditable "this divergence is acceptable" decision.
+// key: `<kind>.<tsField>`  value: `<javaField>`
+const IR_FIELD_ALIASES = {
+  'Import.name': 'path',
+  'Import.asName': 'alias',
+};
+
+/**
+ * Recursively normalize a Core IR node so the two engines' trees become
+ * field-comparable: drop ignored fields, apply the alias table, treat a missing
+ * field as an empty array/false default, and sort order-insensitive collections.
+ */
+function normalizeIr(node, kind) {
+  if (Array.isArray(node)) return node.map((n) => normalizeIr(n, kind));
+  if (node === null || typeof node !== 'object') return node;
+
+  const k = typeof node.kind === 'string' ? node.kind : kind;
+  const out = {};
+  for (const [key, val] of Object.entries(node)) {
+    if (IR_IGNORE_FIELDS.has(key)) continue;
+    if (IR_INFERENCE_FIELDS.has(key)) continue; // derived analysis state — out of scope
+    const aliased = IR_FIELD_ALIASES[`${k}.${key}`] || key;
+    out[aliased] = normalizeIr(val, k);
+  }
+  // Declared effects: TS calls the field `declaredEffects` and preserves the
+  // source casing (`IO`); Java calls it `effects` and lowercases (`io`). Same
+  // source-level data (`It performs …`) — fold both to a sorted lowercase set
+  // under `effects` so the declared-effect surface IS compared (unlike the
+  // inferred effectCaps, which are dropped above).
+  if (out.declaredEffects !== undefined) { out.effects = out.declaredEffects; delete out.declaredEffects; }
+  if (Array.isArray(out.effects)) {
+    out.effects = [...out.effects].map((e) => String(e).toLowerCase()).sort();
+  }
+  // "missing == empty" for optional annotation arrays the two engines disagree
+  // on emitting (TS omits empty arrays to preserve golden baselines; Java emits
+  // []). Only injected on node kinds known to carry the field.
+  for (const f of ['annotations', 'retAnnotations', 'effects']) {
+    if (out[f] === undefined && nodeMayHave(k, out, f)) out[f] = [];
+  }
+  // Import version: TS omits an unset version; Java emits `null`. Same "no
+  // version pin" meaning — fold both to null.
+  if (k === 'Import' && out.version === undefined) out.version = null;
+  // Ctor-pattern bind names: TS `PatCtor` lists them as `names: ["id","name"]`;
+  // Java lists them as `args: [{kind:PatName, name:"id"}, …]`. Same ordered bind
+  // names, different shape — canonicalize both to `binds: ["id","name"]`.
+  if (k === 'PatCtor') {
+    const binds = out.names
+      ? out.names
+      : Array.isArray(out.args)
+        ? out.args.map((a) => (a && a.name !== undefined ? a.name : a))
+        : [];
+    delete out.names;
+    delete out.args;
+    out.binds = binds;
+  }
+  return out;
+}
+
+// Conservative: only inject an empty default for a list field on nodes known to
+// carry it, so we don't invent fields on unrelated nodes. Field/param nodes have
+// no `kind` discriminator (they're `{name, type}` records), so detect them by
+// shape: a named record that isn't a top-level decl can carry `annotations`.
+function nodeMayHave(kind, out, field) {
+  if (kind === 'Func') return ['annotations', 'retAnnotations', 'effects'].includes(field);
+  if (field === 'annotations' && out.name !== undefined && out.kind === undefined) return true;
+  return false;
+}
+
+/**
+ * Field-level diff of two normalized IR trees. Returns a list of
+ * { path, ts, java } leaf disagreements (capped per sample for readability).
+ */
+function diffIr(tsIr, javaIr) {
+  const diffs = [];
+  walkDiff(normalizeIr(tsIr), normalizeIr(javaIr), '$', diffs);
+  return diffs;
+}
+
+function walkDiff(a, b, path, diffs) {
+  if (diffs.length >= 40) return; // cap noise per sample
+  if (a === b) return;
+  const ta = a === null ? 'null' : Array.isArray(a) ? 'array' : typeof a;
+  const tb = b === null ? 'null' : Array.isArray(b) ? 'array' : typeof b;
+  if (ta !== tb) {
+    diffs.push({ path, ts: summarize(a), java: summarize(b) });
+    return;
+  }
+  if (ta === 'array') {
+    if (a.length !== b.length) {
+      diffs.push({ path: `${path}.length`, ts: a.length, java: b.length });
+      return;
+    }
+    for (let i = 0; i < a.length; i++) walkDiff(a[i], b[i], `${path}[${i}]`, diffs);
+    return;
+  }
+  if (ta === 'object') {
+    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
+    for (const key of [...keys].sort()) {
+      if (!(key in a)) { diffs.push({ path: `${path}.${key}`, ts: undefined, java: summarize(b[key]) }); continue; }
+      if (!(key in b)) { diffs.push({ path: `${path}.${key}`, ts: summarize(a[key]), java: undefined }); continue; }
+      walkDiff(a[key], b[key], `${path}.${key}`, diffs);
+    }
+    return;
+  }
+  diffs.push({ path, ts: a, java: b });
+}
+
+function summarize(v) {
+  const s = JSON.stringify(v);
+  return s && s.length > 80 ? s.slice(0, 77) + '…' : s;
+}
+
 function classifyIr(tsRes, javaRes, samples) {
   const rows = [];
   for (const { rel } of samples) {
@@ -435,6 +592,9 @@ function classifyIr(tsRes, javaRes, samples) {
       verdict = 'both-fail';
     } else if (t.ok !== j.ok) {
       verdict = 'one-side-failed';
+    } else if (IR_FULL) {
+      diffs = diffIr(t.ir, j.ir);
+      verdict = diffs.length === 0 ? 'identical' : 'divergent';
     } else {
       diffs = diffFingerprints(t.fingerprint, j.fingerprint);
       verdict = diffs.length === 0 ? 'identical' : 'divergent';
@@ -459,22 +619,30 @@ function printMarkdownIr(rows, mode) {
   const oneSideFailed = rows.filter((r) => r.verdict === 'one-side-failed');
   const bothFail = rows.filter((r) => r.verdict === 'both-fail');
 
-  console.log(`# tier1-parity IR-fingerprint report (mode=${mode})\n`);
+  const kind = IR_FULL ? 'field-level' : 'fingerprint';
+  console.log(`# tier1-parity IR ${kind} report (mode=${mode})\n`);
   console.log(`- total: ${total}`);
-  console.log(`- identical fingerprints: ${identical}`);
-  console.log(`- divergent fingerprints: ${divergent.length}`);
+  console.log(`- identical: ${identical}`);
+  console.log(`- divergent: ${divergent.length}`);
   console.log(`- one side failed to lower: ${oneSideFailed.length}`);
   console.log(`- both failed: ${bothFail.length}\n`);
 
   if (divergent.length > 0) {
-    console.log('## Divergent fingerprints\n');
-    console.log('Each row lists structural diffs only (decl count, kind histogram, names). ' +
-      'Field-level Core IR alignment is deferred to Phase B v2.\n');
+    console.log(`## Divergent (${kind})\n`);
+    if (IR_FULL) {
+      console.log('Normalized field-level diffs (origins stripped, known aliases applied, ' +
+        'inferred-type noise removed — see ADR 0016). Each unresolved path is a real ' +
+        'cross-engine IR divergence to triage.\n');
+    } else {
+      console.log('Structural diffs only (decl count, kind histogram, names). ' +
+        'Field-level alignment runs under `--mode=ir --full` (ADR 0016).\n');
+    }
     for (const r of divergent.slice(0, 50)) {
       console.log(`### ${r.path}\n`);
       for (const d of r.diffs) {
-        if (d.value) console.log(`- ${d.field}: ${JSON.stringify(d.value)}`);
-        else console.log(`- ${d.field}: ts=${JSON.stringify(d.ts)} java=${JSON.stringify(d.java)}`);
+        const label = d.path || d.field;
+        if (d.value !== undefined) console.log(`- ${label}: ${JSON.stringify(d.value)}`);
+        else console.log(`- ${label}: ts=${JSON.stringify(d.ts)} java=${JSON.stringify(d.java)}`);
       }
       console.log('');
     }
