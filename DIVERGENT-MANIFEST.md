@@ -169,6 +169,17 @@ divergences** that were previously untested. These are NOT written as goldens
 | `match_enum` `Invalid` | `"missing"` | `"invalid"` ✓ | **TS enum-match bug**: the second enum arm (`When Invalid`) is not reached — TS returns the first arm's value. |
 | `enum_wildcard` `Locked` | `"bad"` | `NullPointerException (arg2Value null)` | **enum wildcard broken both sides**: TS returns the first arm; Java NPEs on the `When x` catch-all over an enum. |
 
-These need fixes in aster-lang-ts (Text.concat builtin; enum-arm dispatch) and
-aster-lang-truffle (null-pattern match; enum wildcard). Tracked here; once fixed,
-the corresponding cases can be added via `gen-cases.mjs` and will lock in.
+### ✅ RESOLVED (3 of 4)
+
+| sample | fix |
+|---|---|
+| `int_match_default` | aster-lang-ts: added the `Text.*` stdlib namespace to the interpreter (`evalStdlibCall`), mirroring aster-lang-truffle `Builtins` — covers Text.concat/toUpper/length/startsWith/contains/indexOf/equals/split/trim. |
+| `match_enum` / `enum_wildcard` | **PatName two-meaning fix in BOTH engines**: a Capitalized name (enum variant / type, e.g. `NotFound`) matches by name-equality and does NOT bind; a lowercase name (`x`/`value`) is a catch-all binding over non-null. Previously the first `PatName` arm swallowed every input (TS) and a lowercase catch-all over an enum-string NPE'd / didn't match (Java). aster-lang-ts `interpreter.ts matchPattern`; aster-lang-truffle `MatchNode.PatNameNode`. |
+
+Now dual-engine identical (verified via `gen-cases.mjs`); cases written.
+
+### ⏳ STILL OPEN (1)
+
+| sample / case | TS | Java | note |
+|---|---|---|---|
+| `match_null` `null` | `"none"` ✓ | `"some"` | **Java host-null marshaling**: a JSON `null` input passed through `CoreIrEvalCli` `Value.execute(args)` does not reach the `When null` (PatNull) arm as guest null, so the lowercase catch-all matches instead. `PatNullNode` itself is correct (`s == null`); the gap is in how Polyglot marshals a host `null` arg into the guest. Likely a CLI-harness artifact (real Aster code produces null via `None`/match, not host injection), not a core interpreter bug — needs Polyglot host-access investigation. `match_null(non-null)` is fine. |

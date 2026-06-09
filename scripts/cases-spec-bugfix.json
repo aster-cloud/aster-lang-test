@@ -1,0 +1,17 @@
+{
+  "_comment": "Cases unlocked by the 3 fixed bugs (Text.concat, enum-arm dispatch, lowercase catch-all). match_null(null) excluded — Java null-via-CLI still open.",
+  "samples": [
+    { "name": "int_match_default", "entry": "classifyDefault", "cases": [
+      { "name": "10 → ten", "input": [10], "expectedOutput": "ten" },
+      { "name": "20 → twenty", "input": [20], "expectedOutput": "twenty" },
+      { "name": "99 → other:case", "input": [99], "expectedOutput": "other:case" } ] },
+    { "name": "match_enum", "entry": "explain", "cases": [
+      { "name": "NotFound → missing", "input": ["NotFound"], "expectedOutput": "missing" },
+      { "name": "Invalid → invalid", "input": ["Invalid"], "expectedOutput": "invalid" } ] },
+    { "name": "enum_wildcard", "entry": "show2", "cases": [
+      { "name": "InvalidCreds → bad", "input": ["InvalidCreds"], "expectedOutput": "bad" },
+      { "name": "Locked → other", "input": ["Locked"], "expectedOutput": "other" } ] },
+    { "name": "match_null", "entry": "classify", "cases": [
+      { "name": "5 → some", "input": [5], "expectedOutput": "some" } ] }
+  ]
+}
