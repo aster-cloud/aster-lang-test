@@ -1,0 +1,24 @@
+{
+  "policy": "tier1-equivalence/policies/list_ops.aster",
+  "entry": "length",
+  "cases": [
+    {
+      "name": "length of 3",
+      "input": [
+        [
+          10,
+          20,
+          30
+        ]
+      ],
+      "expectedOutput": 3
+    },
+    {
+      "name": "length of empty",
+      "input": [
+        []
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}

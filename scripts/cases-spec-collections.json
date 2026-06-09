@@ -1,0 +1,11 @@
+{
+  "_comment": "Non-lambda List/Map stdlib batch. The .cases.json schema is single-entry per policy file; multi-rule fixtures register their primary entry (other rules verified manually in dev). Unlocked by: grammar fix (Map.get qualifier no longer dropped), Builtins.asList/asMap recognizing guest AsterListValue/AsterMapValue, BuiltinCallNode List.length/append fast-paths routed through asList, and CoreIrEvalCli entry-function selection.",
+  "samples": [
+    { "name": "list_ops", "entry": "length", "cases": [
+      { "name": "length of 3", "input": [[10, 20, 30]], "expectedOutput": 3 },
+      { "name": "length of empty", "input": [[]], "expectedOutput": 0 } ] },
+    { "name": "map_ops", "entry": "val", "cases": [
+      { "name": "get existing key", "input": [{"a": 1, "b": 2}, "b"], "expectedOutput": 2 },
+      { "name": "get a key", "input": [{"a": 1, "b": 2}, "a"], "expectedOutput": 1 } ] }
+  ]
+}
