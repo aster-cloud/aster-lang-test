@@ -1,0 +1,22 @@
+{
+  "policy": "tier1-equivalence/policies/cross_compiler_ops.aster",
+  "entry": "kwLessThan",
+  "cases": [
+    {
+      "name": "3 < 5",
+      "input": [
+        3,
+        5
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "5 < 3",
+      "input": [
+        5,
+        3
+      ],
+      "expectedOutput": false
+    }
+  ]
+}

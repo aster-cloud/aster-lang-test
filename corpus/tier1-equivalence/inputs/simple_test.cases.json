@@ -1,0 +1,22 @@
+{
+  "policy": "tier1-equivalence/policies/simple_test.aster",
+  "entry": "calculateCoverage",
+  "cases": [
+    {
+      "name": "100 * 80 / 100 = 80",
+      "input": [
+        100,
+        80
+      ],
+      "expectedOutput": 80
+    },
+    {
+      "name": "200 * 50 / 100 = 100",
+      "input": [
+        200,
+        50
+      ],
+      "expectedOutput": 100
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_text.aster",
+  "entry": "concat",
+  "cases": [
+    {
+      "name": "ab",
+      "input": [
+        "a",
+        "b"
+      ],
+      "expectedOutput": "ab"
+    }
+  ]
+}

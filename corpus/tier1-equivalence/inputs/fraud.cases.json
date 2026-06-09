@@ -1,0 +1,25 @@
+{
+  "policy": "tier1-equivalence/policies/fraud.aster",
+  "entry": "detectFraud",
+  "cases": [
+    {
+      "name": "stub returns 0",
+      "input": [
+        {
+          "transactionId": "t1",
+          "accountId": "a1",
+          "amount": 500,
+          "timestamp": 1
+        },
+        {
+          "accountId": "a1",
+          "averageAmount": 100,
+          "suspiciousCount": 0,
+          "accountAge": 365,
+          "lastTimestamp": 0
+        }
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}

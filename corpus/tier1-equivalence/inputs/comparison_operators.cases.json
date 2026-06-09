@@ -1,0 +1,14 @@
+{
+  "policy": "tier1-equivalence/policies/comparison_operators.aster",
+  "entry": "testGreaterThanOrEqual",
+  "cases": [
+    {
+      "name": "stub returns 0",
+      "input": [
+        5,
+        3
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}

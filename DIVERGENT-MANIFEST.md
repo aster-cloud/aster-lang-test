@@ -183,3 +183,14 @@ Now dual-engine identical (verified via `gen-cases.mjs`); cases written.
 | sample / case | TS | Java | note |
 |---|---|---|---|
 | `match_null` `null` | `"none"` ✓ | `"some"` | **Java host-null marshaling**: a JSON `null` input passed through `CoreIrEvalCli` `Value.execute(args)` does not reach the `When null` (PatNull) arm as guest null, so the lowercase catch-all matches instead. `PatNullNode` itself is correct (`s == null`); the gap is in how Polyglot marshals a host `null` arg into the guest. Likely a CLI-harness artifact (real Aster code produces null via `None`/match, not host injection), not a core interpreter bug — needs Polyglot host-access investigation. `match_null(non-null)` is fine. |
+
+### ⏳ More divergences surfaced by the cases backfill (batches 4–6, 2026-06-09)
+
+eval coverage 47 → 72 of 141 eval-able samples (51%). The generator surfaced
+these (cases NOT written; tracked here):
+
+| sample / case | TS | Java | category |
+|---|---|---|---|
+| `greet` `User(id,name)` | `"Welcome, {name}"` (literal — no interpolation) | NPE on the struct match | **TS string interpolation**: `"…{name}"` in a Return is not substituted; **Java** NPEs matching a `User(...)` ctor pattern over a `{__type:"User",…}` map input. Both broken. |
+| `incremental` `check` (returns a struct) | `{"__type":"Decision","approved":true,"reason":"OK"}` ✓ | `{"__type":"?","__display":"Decision{…}"}` | **struct serialization parity**: `CoreIrEvalCli.valueToJson` lossy-fallbacks host `AsterDataValue` to a `__display` string instead of a structured object — construct-returning samples can't be golden'd until the CLI serializes data values structurally. |
+| `list_ops` `List.length` | `Undefined function 'List.length'` | `List.length: expected List, got HostObject` | **List/Map stdlib**: TS interpreter lacks the `List.*`/`Map.*` namespace (only `Text.*` added so far); Java's List builtins don't accept a Polyglot HostObject array. Both need work for collection samples. |

@@ -1,0 +1,13 @@
+{
+  "policy": "tier1-equivalence/policies/cli_tool.aster",
+  "entry": "greet",
+  "cases": [
+    {
+      "name": "Hello, Alice",
+      "input": [
+        "Alice"
+      ],
+      "expectedOutput": "Hello, Alice"
+    }
+  ]
+}

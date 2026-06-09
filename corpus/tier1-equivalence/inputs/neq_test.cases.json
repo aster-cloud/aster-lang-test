@@ -1,0 +1,22 @@
+{
+  "policy": "tier1-equivalence/policies/neq_test.aster",
+  "entry": "isDifferent",
+  "cases": [
+    {
+      "name": "1 != 2 → true",
+      "input": [
+        1,
+        2
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "1 != 1 → false",
+      "input": [
+        1,
+        1
+      ],
+      "expectedOutput": false
+    }
+  ]
+}

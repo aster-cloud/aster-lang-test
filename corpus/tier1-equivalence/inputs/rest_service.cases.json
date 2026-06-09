@@ -1,0 +1,13 @@
+{
+  "policy": "tier1-equivalence/policies/rest_service.aster",
+  "entry": "greet",
+  "cases": [
+    {
+      "name": "Hello, Bob",
+      "input": [
+        "Bob"
+      ],
+      "expectedOutput": "Hello, Bob"
+    }
+  ]
+}
