@@ -39,7 +39,7 @@
  *   parity-tier1-report.json — machine-readable detail (per-sample verdict)
  */
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync, appendFileSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -56,6 +56,24 @@ const args = process.argv.slice(2);
 const modeArg = args.find((a) => a.startsWith('--mode='));
 const MODE = modeArg ? modeArg.slice('--mode='.length) : 'parse';
 const REPORT_ONLY = args.includes('--report-only');
+// --history=<file>: 追加一行趋势 CSV（供 nightly 写 eval-history.csv / parse-history.csv）。
+const historyArg = args.find((a) => a.startsWith('--history='));
+const HISTORY_FILE = historyArg ? resolve(historyArg.slice('--history='.length)) : null;
+
+/**
+ * 追加趋势历史行。表头与 equivalence-history.csv 对齐（identical 列名取代 equivalent，
+ * 因为 eval 的"一致"含义是 identical），首次写入时带表头。
+ */
+function appendHistory(mode, total, identical, divergent) {
+  if (!HISTORY_FILE) return;
+  const rate = total === 0 ? 0 : identical / total;
+  const ts = new Date().toISOString();
+  if (!existsSync(HISTORY_FILE)) {
+    writeFileSync(HISTORY_FILE, 'timestamp,total,identical,divergent,rate\n');
+  }
+  appendFileSync(HISTORY_FILE, `${ts},${total},${identical},${divergent},${rate.toFixed(4)}\n`);
+  console.error(`[parity-tier1] appended ${mode} history → ${HISTORY_FILE} (${identical}/${total})`);
+}
 
 function fail(msg, code = 2) {
   console.error(`::error::${msg}`);
@@ -876,6 +894,9 @@ async function main() {
   const rows = classifyEval(tsRes, javaRes, requests);
   writeFileSync(REPORT_FILE, JSON.stringify({ mode: MODE, total: rows.length, rows }, null, 2));
   printMarkdownEval(rows, MODE);
+
+  const identicalCount = rows.filter((r) => r.verdict === 'identical').length;
+  appendHistory('eval', rows.length, identicalCount, rows.length - identicalCount);
 
   const bad = rows.filter((r) => r.verdict !== 'identical');
   if (bad.length > 0) {
