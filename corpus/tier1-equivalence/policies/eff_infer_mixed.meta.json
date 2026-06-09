@@ -5,5 +5,8 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "aster-lang-ts/test/cnl/programs/effects/eff_infer_mixed.aster"
+  "source": "aster-lang-ts/test/cnl/programs/effects/eff_infer_mixed.aster",
+  "evalExempt": true,
+  "evalExemptReason": "effects",
+  "evalExemptDetail": "tests effect inference/enforcement (a compile-time concern), not runtime output"
 }
