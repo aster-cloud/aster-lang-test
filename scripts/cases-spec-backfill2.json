@@ -1,0 +1,12 @@
+{
+  "_comment": "Backfill batch 2: healthcare samples covered via a non-redact rule (partially evaluable), policy_engine (enum static methods), and pii_type_* constant-returning rules. gen-cases filters to dual-engine agreement.",
+  "samples": [
+    { "name": "patient-record", "entry": "verify_consent", "cases": [
+      { "name": "no consent", "input": [{"__type": "AccessRequest", "has_consent": false, "purpose": "billing", "requester_role": "billing"}], "expectedOutput": {"__type": "ConsentResult", "is_valid": false, "reason": "Patient consent not obtained"} } ] },
+    { "name": "prescription-workflow", "entry": "verify_dosage", "cases": [
+      { "name": "empty dosage fails", "input": ["warfarin", ""], "expectedOutput": {"__type": "VerificationStep", "step_name": "verify_dosage", "passed": false, "message": "Dosage required"} },
+      { "name": "valid dosage passes", "input": ["warfarin", "5mg"], "expectedOutput": {"__type": "VerificationStep", "step_name": "verify_dosage", "passed": true, "message": "Dosage verified"} } ] },
+    { "name": "policy_engine", "entry": "canAccess", "cases": [
+      { "name": "delete denied", "input": ["user", "Delete", "owner1", "user1"], "expectedOutput": false } ] }
+  ]
+}

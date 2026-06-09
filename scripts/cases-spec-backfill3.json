@@ -1,0 +1,25 @@
+{
+  "_comment": "Backfill batch 3: final tail. policy_engine via Text.equals-only rule, personal/enterprise via a struct-constructing rule (positional fields), pii_type_* constants, test-operators struct, ts-only operator samples. gen-cases filters to dual-engine agreement.",
+  "samples": [
+    { "name": "policy_engine", "entry": "evaluateUserReadRule", "cases": [
+      { "name": "owner matches user", "input": [{"__type": "PolicyContext", "userId": "u1", "userRole": "user", "resourceOwner": "u1", "resourceType": "Document", "timeOfDay": 12, "location": "office"}], "expectedOutput": true },
+      { "name": "owner differs", "input": [{"__type": "PolicyContext", "userId": "u1", "userRole": "user", "resourceOwner": "u2", "resourceType": "Document", "timeOfDay": 12, "location": "office"}], "expectedOutput": false } ] },
+    { "name": "personal", "entry": "assessCredit", "cases": [
+      { "name": "excellent score", "input": [{"__type": "Profile", "creditScore": 800, "creditUtilization": 10, "latePayments": 0, "defaults": 0, "bankruptcies": 0}], "expectedOutput": {"__type": "CreditAssessment", "scoreGrade": "EXCELLENT", "historyGrade": "STRONG", "utilizationRatio": 10, "negativeMarks": 0, "riskIndicator": "LOW", "maxLoanAmount": 50000} } ] },
+    { "name": "enterprise", "entry": "assessLiquidity", "cases": [
+      { "name": "excellent liquidity", "input": [{"__type": "Position", "currentAssets": 100, "currentLiabilities": 20}], "expectedOutput": {"__type": "LiquidityAnalysis", "currentRatio": 500, "quickRatio": 500, "isHealthy": true, "recommendation": "Excellent liquidity"} } ] },
+    { "name": "test-operators", "entry": "testLessOrEqual", "cases": [
+      { "name": "constructs TestResult", "input": [5], "expectedOutput": {"__type": "TestResult", "value": 5, "message": "greater than 10"} } ] },
+    { "name": "test_operators__ts-only", "entry": "checkRange", "cases": [
+      { "name": "at least 10 true", "input": [50], "expectedOutput": true },
+      { "name": "at least 10 false", "input": [5], "expectedOutput": false } ] },
+    { "name": "test_all_comparisons__ts-only", "entry": "testAllOperators", "cases": [
+      { "name": "lt true", "input": [3, 7], "expectedOutput": true } ] },
+    { "name": "pii_type_basic", "entry": "get_email", "cases": [
+      { "name": "returns email", "input": [], "expectedOutput": "user@example.com" } ] },
+    { "name": "pii_type_phone", "entry": "get_phone", "cases": [
+      { "name": "returns phone", "input": [], "expectedOutput": "+1-555-0100" } ] },
+    { "name": "pii_type_ssn", "entry": "get_ssn", "cases": [
+      { "name": "returns ssn", "input": [], "expectedOutput": "123-45-6789" } ] }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "policy": "tier1-equivalence/policies/text_ops.aster",
+  "entry": "join",
+  "cases": [
+    {
+      "name": "concat",
+      "input": [
+        "foo",
+        "bar"
+      ],
+      "expectedOutput": "foobar"
+    }
+  ]
+}

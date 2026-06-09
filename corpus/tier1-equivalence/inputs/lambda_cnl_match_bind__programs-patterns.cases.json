@@ -1,0 +1,18 @@
+{
+  "policy": "tier1-equivalence/policies/lambda_cnl_match_bind__programs-patterns.aster",
+  "entry": "greetUser",
+  "cases": [
+    {
+      "name": "match User binds name",
+      "input": [
+        {
+          "__type": "User",
+          "id": "u1",
+          "name": "Bob"
+        },
+        "Hi "
+      ],
+      "expectedOutput": "Hi Bob"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "policy": "tier1-equivalence/policies/test_operators__ts-only.aster",
+  "entry": "checkRange",
+  "cases": [
+    {
+      "name": "at least 10 true",
+      "input": [
+        50
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "at least 10 false",
+      "input": [
+        5
+      ],
+      "expectedOutput": false
+    }
+  ]
+}

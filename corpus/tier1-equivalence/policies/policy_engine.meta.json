@@ -5,5 +5,8 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "aster-lang-ts/test/cnl/programs/business/policy/policy_engine.aster"
+  "source": "aster-lang-ts/test/cnl/programs/business/policy/policy_engine.aster",
+  "evalExempt": true,
+  "evalExemptReason": "unsupported-syntax",
+  "evalExemptDetail": "enum/type static method `Action.equals(…)` unsupported in both engines"
 }

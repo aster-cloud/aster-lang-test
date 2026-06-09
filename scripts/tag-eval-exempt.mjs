@@ -46,7 +46,64 @@ function exemptReason(name, src) {
   if (/^pii_(propagation|http|nested|function_return)/.test(name)) {
     return { reason: 'pii', detail: 'tests PII propagation/sink flow (a type-system concern), not runtime output' };
   }
+  // Parser-only fixtures that call a function never defined in the module (and
+  // not a stdlib namespace call): they fail in BOTH engines with "Undefined
+  // function", so there is no runtime output to assert. Detect statically — a
+  // call to a bare lowercase identifier that is neither `Rule <name>` nor a
+  // `Let <name> be function …` binding anywhere in the source.
+  if (callsUndefinedFunction(src)) {
+    return { reason: 'undefined-call', detail: 'calls a function never defined in the module; fails in both engines (parser-only fixture)' };
+  }
+  // Two construction/dispatch forms that are unsupported in BOTH pure evaluators
+  // (each fails at runtime in TS and Java alike, verified via gen-cases):
+  //   • positional struct construction `TypeName(a, b, …)` — only the
+  //     `TypeName with f set to …` form is implemented;
+  //   • enum static methods `EnumType.equals(a, b)` — not a stdlib namespace.
+  const unsup = usesUnsupportedConstruction(src);
+  if (unsup) {
+    return { reason: 'unsupported-syntax', detail: unsup };
+  }
   return null;
+}
+
+const STDLIB_NAMESPACES = new Set(['Text', 'List', 'Map', 'Maybe', 'Option', 'Result']);
+
+/** Returns a reason string if the source uses a construction/dispatch form that
+ *  fails in both pure evaluators, else null. */
+function usesUnsupportedConstruction(src) {
+  // Collect Define'd type names, then look for a positional call to one.
+  const definedTypes = new Set();
+  for (const m of src.matchAll(/\bDefine\s+([A-Z]\w*)\b/g)) definedTypes.add(m[1]);
+  for (const m of src.matchAll(/(?<![A-Za-z0-9_.])([A-Z]\w*)\s*\(/g)) {
+    if (definedTypes.has(m[1])) return `positional struct construction \`${m[1]}(…)\` (only the \`with … set to\` form is supported in both engines)`;
+  }
+  // Qualified static call on a non-stdlib type, e.g. `Action.equals(...)`.
+  for (const m of src.matchAll(/\b([A-Z]\w*)\.([a-z]\w*)\s*\(/g)) {
+    if (!STDLIB_NAMESPACES.has(m[1])) return `enum/type static method \`${m[1]}.${m[2]}(…)\` unsupported in both engines`;
+  }
+  return null;
+}
+
+// 语言关键字/运算符词形：它们后面跟 `(` 不是函数调用（如 `not (...)`、`Let x be (...)`）。
+const RESERVED_WORDS = new Set([
+  'be', 'not', 'and', 'or', 'of', 'if', 'set', 'to', 'is', 'as', 'given', 'produce',
+  'return', 'let', 'match', 'when', 'otherwise', 'some', 'none', 'with', 'has',
+  'greater', 'less', 'than', 'least', 'most', 'equal', 'equals', 'at', 'the', 'a', 'an',
+  // 算术/逻辑运算符词形：后跟括号是括号子表达式，不是函数调用
+  'plus', 'minus', 'times', 'divided', 'modulo', 'by', 'integer',
+]);
+
+/** 源码是否调用了从未定义的裸小写函数名（无 `Rule name`、无 `Let name be function`），
+ *  且不是 stdlib 的 `X.y(` 命名空间调用、也不是关键字/运算符词形。 */
+function callsUndefinedFunction(src) {
+  const defined = new Set();
+  for (const m of src.matchAll(/\bRule\s+([a-z]\w*)/g)) defined.add(m[1]);
+  for (const m of src.matchAll(/\bLet\s+([a-z]\w*)\s+be\s+function\b/g)) defined.add(m[1]);
+  for (const m of src.matchAll(/(?<![A-Za-z0-9_.])([a-z]\w*)\s*\(/g)) {
+    const fn = m[1];
+    if (!defined.has(fn) && !RESERVED_WORDS.has(fn)) return true;
+  }
+  return false;
 }
 
 const all = readdirSync(POLICIES).filter((f) => f.endsWith('.aster')).map((f) => f.replace('.aster', ''));
@@ -63,7 +120,9 @@ for (const name of all) {
   const metaPath = join(POLICIES, `${name}.meta.json`);
   if (!existsSync(metaPath)) continue;
   const src = readFileSync(join(POLICIES, `${name}.aster`), 'utf8');
-  const ex = exemptReason(name, src);
+  // A sample with golden cases is, by definition, eval-able — never exempt it
+  // (some samples have one undefined-call rule but a separately-covered entry).
+  const ex = hasCases.has(name) ? null : exemptReason(name, src);
 
   if (ex) {
     exemptCount++;

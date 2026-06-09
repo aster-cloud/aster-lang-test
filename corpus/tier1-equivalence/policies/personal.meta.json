@@ -8,5 +8,8 @@
   "source": "aster-lang-test/corpus/tier1-equivalence/policies/personal.aster",
   "capabilities": [
     "cases-golden"
-  ]
+  ],
+  "evalExempt": true,
+  "evalExemptReason": "unsupported-syntax",
+  "evalExemptDetail": "positional struct construction `CreditAssessment(…)` (only the `with … set to` form is supported in both engines)"
 }

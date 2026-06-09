@@ -1,0 +1,16 @@
+{
+  "policy": "tier1-equivalence/policies/match_multi.aster",
+  "entry": "pick",
+  "cases": [
+    {
+      "name": "Color match",
+      "input": [
+        {
+          "__type": "Color",
+          "name": "red"
+        }
+      ],
+      "expectedOutput": "has color"
+    }
+  ]
+}

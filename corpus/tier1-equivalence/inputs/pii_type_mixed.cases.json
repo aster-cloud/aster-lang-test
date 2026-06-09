@@ -1,0 +1,14 @@
+{
+  "policy": "tier1-equivalence/policies/pii_type_mixed.aster",
+  "entry": "get_user_info",
+  "cases": [
+    {
+      "name": "Ok email",
+      "input": [],
+      "expectedOutput": {
+        "__type": "Ok",
+        "value": "user@example.com"
+      }
+    }
+  ]
+}

@@ -1,0 +1,40 @@
+{
+  "_comment": "Backfill batch toward 100% eval coverage. Mix of: __programs-patterns duplicates of already-covered lambda samples, at-least/at-most operator samples, Text.* ops, struct-constructing rules, enum static methods, and 0-returning stub rules. gen-cases filters to dual-engine-agreeing cases.",
+  "samples": [
+    { "name": "lambda_cnl_match_bind__programs-patterns", "entry": "greetUser", "cases": [
+      { "name": "match User binds name", "input": [{"__type": "User", "id": "u1", "name": "Bob"}, "Hi "], "expectedOutput": "Hi Bob" } ] },
+    { "name": "lambda_cnl_match_maybe__programs-patterns", "entry": "fromMaybe", "cases": [
+      { "name": "non-null value", "input": [7, "fb"], "expectedOutput": 7 } ] },
+    { "name": "lambda_cnl_match_result__programs-patterns", "entry": "fromResult", "cases": [
+      { "name": "Ok binds value", "input": [{"__type": "Ok", "value": "ok"}], "expectedOutput": "ok" },
+      { "name": "Err binds err", "input": [{"__type": "Err", "value": "x"}], "expectedOutput": "E:x" } ] },
+    { "name": "lambda_gte_test", "entry": "isAtLeast", "cases": [
+      { "name": "5 >= 3", "input": [5, 3], "expectedOutput": true },
+      { "name": "2 >= 3", "input": [2, 3], "expectedOutput": false } ] },
+    { "name": "lambda_lte_test", "entry": "isAtMost", "cases": [
+      { "name": "3 <= 5", "input": [3, 5], "expectedOutput": true },
+      { "name": "7 <= 5", "input": [7, 5], "expectedOutput": false } ] },
+    { "name": "text_ops", "entry": "join", "cases": [
+      { "name": "concat", "input": ["foo", "bar"], "expectedOutput": "foobar" } ] },
+    { "name": "match_multi", "entry": "pick", "cases": [
+      { "name": "Color match", "input": [{"__type": "Color", "name": "red"}], "expectedOutput": "has color" } ] },
+    { "name": "test_operators", "entry": "checkRange", "cases": [
+      { "name": "doubled is x", "input": [21], "expectedOutput": 21 } ] },
+    { "name": "test_invalid", "entry": "greet", "cases": [
+      { "name": "stub 0", "input": [], "expectedOutput": 0 } ] },
+    { "name": "test_two_statements", "entry": "determineMinorCoverage", "cases": [
+      { "name": "stub 0", "input": ["medicaid", {"__type": "Service", "basePrice": 100}], "expectedOutput": 0 } ] },
+    { "name": "test_let_with_call", "entry": "helper", "cases": [
+      { "name": "stub 0", "input": [5], "expectedOutput": 0 } ] },
+    { "name": "test_let_member_call", "entry": "helper", "cases": [
+      { "name": "stub 0", "input": ["medicaid", {"__type": "Service", "serviceCode": "S1"}], "expectedOutput": 0 } ] },
+    { "name": "test_complex_return", "entry": "determineMinorCoverage", "cases": [
+      { "name": "stub 0", "input": ["medicaid", {"__type": "Service", "basePrice": 100, "requiresPreAuth": false}], "expectedOutput": 0 } ] },
+    { "name": "test_eligibility_with_ifs", "entry": "determineMinorCoverage", "cases": [
+      { "name": "stub 0", "input": ["medicaid", {"__type": "Service", "serviceCode": "S1", "serviceName": "X", "basePrice": 100, "requiresPreAuth": false}], "expectedOutput": 0 } ] },
+    { "name": "test_exact_eligibility", "entry": "determineMinorCoverage", "cases": [
+      { "name": "stub 0", "input": ["medicaid", {"__type": "Service", "serviceCode": "S1", "serviceName": "X", "basePrice": 100, "requiresPreAuth": false}], "expectedOutput": 0 } ] },
+    { "name": "test_life", "entry": "calculateBaseRate", "cases": [
+      { "name": "stub 0", "input": [40, 20], "expectedOutput": 0 } ] }
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "policy": "tier1-equivalence/policies/hipaa-validation-demo.aster",
+  "entry": "get_access_level",
+  "cases": [
+    {
+      "name": "physician -> FULL",
+      "input": [
+        "physician"
+      ],
+      "expectedOutput": {
+        "__type": "AccessLevel",
+        "level_name": "FULL",
+        "can_view_demographics": true,
+        "can_view_medical": true,
+        "can_view_financial": false,
+        "can_modify": true
+      }
+    },
+    {
+      "name": "unknown -> NONE",
+      "input": [
+        "guest"
+      ],
+      "expectedOutput": {
+        "__type": "AccessLevel",
+        "level_name": "NONE",
+        "can_view_demographics": false,
+        "can_view_medical": false,
+        "can_view_financial": false,
+        "can_modify": false
+      }
+    }
+  ]
+}
