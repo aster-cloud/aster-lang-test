@@ -1,0 +1,18 @@
+{
+  "policy": "tier1-equivalence/policies/life.aster",
+  "entry": "generateLifeQuote",
+  "cases": [
+    {
+      "name": "stub 0",
+      "input": [
+        {
+          "age": 40
+        },
+        {
+          "coverage": 100000
+        }
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}

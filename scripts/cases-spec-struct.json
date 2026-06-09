@@ -1,0 +1,20 @@
+{
+  "_comment": "Struct in/out batch — unlocked by the CoreIrEvalCli struct serialization + struct-input marshaling fix. Construct-returning rules emit {__type,...}; struct inputs are plain JSON objects.",
+  "samples": [
+    { "name": "incremental", "entry": "check", "cases": [
+      { "name": "constructs Decision", "input": [30], "expectedOutput": {"__type":"Decision","approved":true,"reason":"OK"} } ] },
+    { "name": "fraud-simple-test", "entry": "detectSimple", "cases": [
+      { "name": "riskScore = amount", "input": [{"transactionId":"t1","amount":500}], "expectedOutput": {"__type":"FraudResult","riskScore":500} },
+      { "name": "riskScore = 0", "input": [{"transactionId":"t2","amount":0}], "expectedOutput": {"__type":"FraudResult","riskScore":0} } ] },
+    { "name": "incremental_test", "entry": "evaluateLoanEligibility", "cases": [
+      { "name": "constructs LoanDecision", "input": [{"applicantId":"a1","amount":10000,"termMonths":12,"purpose":"car"}, {"age":30,"creditScore":700,"annualIncome":50000,"monthlyDebt":500,"yearsEmployed":5}], "expectedOutput": {"__type":"LoanDecision","approved":true,"reason":"OK","approvedAmount":0,"interestRate":0,"termMonths":0} } ] },
+    { "name": "incremental_test2", "entry": "evaluateLoanEligibility", "cases": [
+      { "name": "stub returns 0", "input": [{"applicantId":"a1","amount":10000,"termMonths":12,"purpose":"car"}, {"age":30,"creditScore":700,"annualIncome":50000,"monthlyDebt":500,"yearsEmployed":5}], "expectedOutput": 0 } ] },
+    { "name": "incremental_test3", "entry": "evaluateLoanEligibility", "cases": [
+      { "name": "stub returns 0", "input": [{"applicantId":"a1","amount":10000,"termMonths":12,"purpose":"car"}, {"age":30,"creditScore":700,"annualIncome":50000,"monthlyDebt":500,"yearsEmployed":5}], "expectedOutput": 0 } ] },
+    { "name": "loan_fixed", "entry": "evaluateLoanEligibility", "cases": [
+      { "name": "stub returns 0", "input": [{"applicantId":"a1","amount":10000,"termMonths":12,"purpose":"car"}, {"age":30,"creditScore":700,"annualIncome":50000,"monthlyDebt":500,"yearsEmployed":5}], "expectedOutput": 0 } ] },
+    { "name": "test_return_with", "entry": "check", "cases": [
+      { "name": "returns approved string", "input": [30], "expectedOutput": "approved" } ] }
+  ]
+}

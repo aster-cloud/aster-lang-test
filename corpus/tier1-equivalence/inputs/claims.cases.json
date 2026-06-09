@@ -1,0 +1,15 @@
+{
+  "policy": "tier1-equivalence/policies/claims.aster",
+  "entry": "calculateClaimApproval",
+  "cases": [
+    {
+      "name": "stub 0",
+      "input": [
+        1000,
+        80,
+        "general"
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}

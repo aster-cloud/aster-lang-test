@@ -1,0 +1,20 @@
+{
+  "_comment": "Stub-rule struct samples — primary rule returns a constant (0/false) over struct or primitive inputs. The generator confirms both engines agree.",
+  "samples": [
+    { "name": "auto", "entry": "calculateAgeFactor", "cases": [ { "name": "stub 0", "input": [30], "expectedOutput": 0 } ] },
+    { "name": "claims", "entry": "calculateClaimApproval", "cases": [ { "name": "stub 0", "input": [1000, 80, "general"], "expectedOutput": 0 } ] },
+    { "name": "creditcard", "entry": "evaluateCreditCardApplication", "cases": [ { "name": "stub 0", "input": [{"income":50000}, {"score":700}, {"limit":5000}], "expectedOutput": 0 } ] },
+    { "name": "eligibility", "entry": "checkServiceEligibility", "cases": [ { "name": "stub 0", "input": [{"age":40}, {"basePrice":100}], "expectedOutput": 0 } ] },
+    { "name": "loan", "entry": "evaluateLoanEligibility", "cases": [ { "name": "stub 0", "input": [{"amount":10000}, {"creditScore":700}], "expectedOutput": 0 } ] },
+    { "name": "loan_full_test", "entry": "evaluateLoanEligibility", "cases": [ { "name": "stub 0", "input": [{"amount":10000}, {"creditScore":700}], "expectedOutput": 0 } ] },
+    { "name": "loan_with_constraints", "entry": "checkLoanEligibilityConstrained", "cases": [ { "name": "stub 0", "input": [{"amount":10000}, {"creditScore":700}], "expectedOutput": 0 } ] },
+    { "name": "test_auto", "entry": "calculateAgeFactor", "cases": [ { "name": "stub 0", "input": [30], "expectedOutput": 0 } ] },
+    { "name": "test_claims", "entry": "calculateClaimApproval", "cases": [ { "name": "stub 0", "input": [1000, 80, "general"], "expectedOutput": 0 } ] },
+    { "name": "test_eligibility", "entry": "determineMinorCoverage", "cases": [ { "name": "stub 0", "input": ["basic", {"basePrice":100}], "expectedOutput": 0 } ] },
+    { "name": "test_eligibility_full", "entry": "determineMinorCoverage", "cases": [ { "name": "stub 0", "input": ["basic", {"basePrice":100}], "expectedOutput": 0 } ] },
+    { "name": "test_helper1", "entry": "determineMinorCoverage", "cases": [ { "name": "stub 0", "input": ["basic", {"basePrice":100}], "expectedOutput": 0 } ] },
+    { "name": "test_loan", "entry": "test", "cases": [ { "name": "stub false", "input": [], "expectedOutput": false } ] },
+    { "name": "life", "entry": "generateLifeQuote", "cases": [ { "name": "stub 0", "input": [{"age":40}], "expectedOutput": 0 } ] },
+    { "name": "test_eligibility_minimal", "entry": "determineMinorCoverage", "cases": [ { "name": "stub 0", "input": ["basic", {"basePrice":100}], "expectedOutput": 0 } ] }
+  ]
+}

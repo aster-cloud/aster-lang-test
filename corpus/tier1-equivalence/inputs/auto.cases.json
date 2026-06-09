@@ -1,0 +1,19 @@
+{
+  "policy": "tier1-equivalence/policies/auto.aster",
+  "entry": "generateAutoQuote",
+  "cases": [
+    {
+      "name": "stub 0",
+      "input": [
+        {
+          "age": 30
+        },
+        {
+          "value": 20000
+        },
+        "full"
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}
