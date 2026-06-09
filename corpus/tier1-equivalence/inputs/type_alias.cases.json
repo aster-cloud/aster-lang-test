@@ -1,0 +1,13 @@
+{
+  "policy": "tier1-equivalence/policies/type_alias.aster",
+  "entry": "rate",
+  "cases": [
+    {
+      "name": "value + 10",
+      "input": [
+        40
+      ],
+      "expectedOutput": 50
+    }
+  ]
+}
