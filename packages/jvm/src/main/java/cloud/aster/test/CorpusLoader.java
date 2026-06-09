@@ -35,7 +35,10 @@ import java.util.stream.Stream;
  */
 public final class CorpusLoader {
 
-    private static final ObjectMapper MAPPER = new ObjectMapper();
+    // Ignore unknown meta.json fields so adding new metadata (e.g. evalExempt)
+    // never breaks the loader. SampleMeta only models the fields it needs.
+    private static final ObjectMapper MAPPER = new ObjectMapper()
+        .configure(com.fasterxml.jackson.databind.DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
     private static final String CORPUS_ROOT = "corpus";
 
     private CorpusLoader() {}

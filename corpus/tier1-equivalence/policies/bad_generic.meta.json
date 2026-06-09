@@ -5,5 +5,8 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "aster-lang-ts/test/cnl/programs/generics/bad_generic.aster"
+  "source": "aster-lang-ts/test/cnl/programs/generics/bad_generic.aster",
+  "evalExempt": true,
+  "evalExemptReason": "type-check-fail",
+  "evalExemptDetail": "designed to fail type-checking; no runtime output to assert"
 }

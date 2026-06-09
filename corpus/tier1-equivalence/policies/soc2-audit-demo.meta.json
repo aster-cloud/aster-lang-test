@@ -5,5 +5,8 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "aster-lang-ts/examples/compliance/soc2-audit-demo.aster"
+  "source": "aster-lang-ts/examples/compliance/soc2-audit-demo.aster",
+  "evalExempt": true,
+  "evalExemptReason": "effects",
+  "evalExemptDetail": "tests effect inference/enforcement (a compile-time concern), not runtime output"
 }

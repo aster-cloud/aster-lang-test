@@ -88,16 +88,21 @@ for (Sample s : CorpusLoader.listTier("tier1-equivalence")) {
 }
 ```
 
-## 等价度
+## 一致率（分层）
 
-| 维度 | 通过 / 总数 | 比率 |
+公开仪表盘：[aster-lang.cloud/equivalence](https://aster-lang.cloud/equivalence)。
+
+| 层级 | 含义 | 当前 |
 |---|---|---|
-| Tier 1（双引擎等价） | 308 / 308 | 100% |
-| TS → Java 全量 | 285 / 360 | 79.2% |
-| Java → TS 全量 | 23 / 30 | 76.7% |
-| **整体等价度** | **308 / 390** | **79.0%** |
+| **Parse parity** | 两引擎都*接受*同一份源码（PR-blocking, `parity-tier1.mjs --mode=parse`） | 206 / 206 |
+| **Eval parity** | 两引擎对相同输入产生*相同输出*（黄金用例, `--mode=eval`） | 131 / 131 identical |
+| **Eval 覆盖率** | 有黄金用例的样本 / 可 eval 样本（排除 IO/effect/PII/bad，见 meta 的 `evalExempt`） | 见 `node scripts/tag-eval-exempt.mjs` |
 
-差距细分与排期见 [`aster-deploy/docs/rfc/dual-engine-syntax-baseline.md`](https://github.com/aster-cloud/aster-deploy/blob/main/docs/rfc/dual-engine-syntax-baseline.md) §9。
+- **Parse parity ≠ Eval parity**：前者只验证「能解析」，后者验证「运行时输出一致」（更强）。
+- `evalExempt` 样本（调 IO/Http/Db、声明 effect、PII 流、`bad_*` 类型检查失败）不计入 eval 覆盖率分母——它们的存在是为测试编译期语义，不是运行时输出。
+- 补黄金用例用 `scripts/gen-cases.mjs`（双引擎交叉验证，仅当两端一致才写入）。
+
+历史与方法见 [DIVERGENT-MANIFEST.md](DIVERGENT-MANIFEST.md) 与 dual-engine syntax baseline RFC。
 
 ## 贡献
 
