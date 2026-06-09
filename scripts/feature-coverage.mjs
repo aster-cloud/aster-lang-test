@@ -27,7 +27,7 @@
  *   node scripts/feature-coverage.mjs --json     # machine-readable JSON (stdout)
  *   node scripts/feature-coverage.mjs --gaps     # only list eval blind spots
  */
-import { readFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, appendFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -39,6 +39,12 @@ const MANIFEST = join(ROOT, 'corpus', 'tier1-parity', 'manifest.json');
 
 const JSON_OUT = process.argv.includes('--json');
 const GAPS_ONLY = process.argv.includes('--gaps');
+// --history=<file>: append a trend row `timestamp,total,value,rate` (value =
+// eval-covered features, total = features present in corpus).
+const HISTORY_FILE = (() => {
+  const a = process.argv.find((x) => x.startsWith('--history='));
+  return a ? resolve(a.slice('--history='.length)) : null;
+})();
 
 // ---------------------------------------------------------------------------
 // Feature taxonomy. Each feature has a `group`, a human label, and a `test`
@@ -164,6 +170,18 @@ const rows = FEATURES.map(([group, label, test]) => {
 const used = rows.filter((r) => r.declared > 0);
 const unused = rows.filter((r) => r.declared === 0); // declared-but-absent = a gap in the corpus itself
 const evalGaps = used.filter((r) => r.eval === 0);    // exercised but never executed dual-engine
+
+if (HISTORY_FILE) {
+  const total = used.length;                          // features present in corpus
+  const value = used.filter((r) => r.eval > 0).length; // of those, eval-covered
+  const ts = new Date().toISOString();
+  const rate = total > 0 ? value / total : 0;
+  if (!existsSync(HISTORY_FILE)) {
+    writeFileSync(HISTORY_FILE, 'timestamp,total,value,rate\n');
+  }
+  appendFileSync(HISTORY_FILE, `${ts},${total},${value},${rate.toFixed(4)}\n`);
+  process.stderr.write(`[feature-coverage] appended history → ${HISTORY_FILE} (${value}/${total})\n`);
+}
 
 // ---------------------------------------------------------------------------
 // Output.

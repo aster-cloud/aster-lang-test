@@ -16,7 +16,7 @@
  *   node scripts/tag-eval-exempt.mjs            # report coverage only (dry)
  *   node scripts/tag-eval-exempt.mjs --write    # write evalExempt into meta.json
  */
-import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, appendFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -25,6 +25,12 @@ const ROOT = resolve(__dirname, '..');
 const POLICIES = join(ROOT, 'corpus', 'tier1-equivalence', 'policies');
 const INPUTS = join(ROOT, 'corpus', 'tier1-equivalence', 'inputs');
 const WRITE = process.argv.includes('--write');
+// --history=<file>: append a trend row `timestamp,total,value,rate` (value =
+// covered, total = eval-able) so the dashboard can chart eval coverage over time.
+const HISTORY_FILE = (() => {
+  const a = process.argv.find((x) => x.startsWith('--history='));
+  return a ? resolve(a.slice('--history='.length)) : null;
+})();
 
 /** Decide exemption + reason for a sample, or null if it is eval-able. */
 function exemptReason(name, src) {
@@ -157,3 +163,13 @@ console.log(`\neval-able WITHOUT cases (${evalableNoCases.length} remaining to b
 console.log('  ' + evalableNoCases.join(', '));
 if (WRITE) console.log(`\n✅ tagged ${taggedCount} meta.json with evalExempt.`);
 else console.log('\n(dry run — pass --write to tag meta.json)');
+
+if (HISTORY_FILE) {
+  const ts = new Date().toISOString();
+  const rate = evalable > 0 ? covered / evalable : 0;
+  if (!existsSync(HISTORY_FILE)) {
+    writeFileSync(HISTORY_FILE, 'timestamp,total,value,rate\n');
+  }
+  appendFileSync(HISTORY_FILE, `${ts},${evalable},${covered},${rate.toFixed(4)}\n`);
+  console.error(`[tag-eval-exempt] appended coverage history → ${HISTORY_FILE} (${covered}/${evalable})`);
+}
