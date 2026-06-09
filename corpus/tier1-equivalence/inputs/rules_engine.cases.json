@@ -1,0 +1,11 @@
+{
+  "policy": "tier1-equivalence/policies/rules_engine.aster",
+  "entry": "main",
+  "cases": [
+    {
+      "name": "returns 0",
+      "input": [],
+      "expectedOutput": 0
+    }
+  ]
+}

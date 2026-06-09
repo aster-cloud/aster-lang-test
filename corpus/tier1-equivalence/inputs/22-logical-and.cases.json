@@ -1,0 +1,30 @@
+{
+  "policy": "tier1-equivalence/policies/22-logical-and.aster",
+  "entry": "both",
+  "cases": [
+    {
+      "name": "adult + high income",
+      "input": [
+        25,
+        40000
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "minor",
+      "input": [
+        16,
+        40000
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "low income",
+      "input": [
+        25,
+        20000
+      ],
+      "expectedOutput": false
+    }
+  ]
+}

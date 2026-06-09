@@ -1,0 +1,22 @@
+{
+  "policy": "tier1-equivalence/policies/symbolic_operators.aster",
+  "entry": "testSymbolicComparison",
+  "cases": [
+    {
+      "name": "5 == 5 → true",
+      "input": [
+        5,
+        5
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "5 == 3 → false",
+      "input": [
+        5,
+        3
+      ],
+      "expectedOutput": false
+    }
+  ]
+}

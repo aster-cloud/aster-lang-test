@@ -1,0 +1,11 @@
+{
+  "policy": "tier1-equivalence/policies/policy_demo.aster",
+  "entry": "demonstratePolicyEngine",
+  "cases": [
+    {
+      "name": "constant",
+      "input": [],
+      "expectedOutput": "Policy engine demonstration: Access granted"
+    }
+  ]
+}

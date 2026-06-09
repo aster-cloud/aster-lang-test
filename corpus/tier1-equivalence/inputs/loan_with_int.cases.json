@@ -1,0 +1,25 @@
+{
+  "policy": "tier1-equivalence/policies/loan_with_int.aster",
+  "entry": "evaluateLoanEligibility",
+  "cases": [
+    {
+      "name": "stub returns 0",
+      "input": [
+        {
+          "applicantId": "a1",
+          "amount": 10000,
+          "termMonths": 12,
+          "purpose": "car"
+        },
+        {
+          "age": 30,
+          "creditScore": 700,
+          "annualIncome": 50000,
+          "monthlyDebt": 500,
+          "yearsEmployed": 5
+        }
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}

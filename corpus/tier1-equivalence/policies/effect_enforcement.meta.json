@@ -5,5 +5,8 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "aster-lang-ts/test/cnl/programs/effects/effect_enforcement.aster"
+  "source": "aster-lang-ts/test/cnl/programs/effects/effect_enforcement.aster",
+  "evalExempt": true,
+  "evalExemptReason": "io",
+  "evalExemptDetail": "calls a side-effecting IO builtin; runtime needs real effects, not a deterministic golden"
 }

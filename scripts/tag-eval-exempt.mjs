@@ -34,7 +34,7 @@ function exemptReason(name, src) {
   if (name.startsWith('eff_') || /\bIt performs\b|\brequires\b/.test(src)) {
     return { reason: 'effects', detail: 'tests effect inference/enforcement (a compile-time concern), not runtime output' };
   }
-  if (/\b(Http|Db|Files|Sql|Secrets|Ai)\.\w+\(/.test(src)) {
+  if (/\b(Http|Db|Files|Sql|Secrets|Ai|IO|Repo)\.\w+\(/.test(src)) {
     return { reason: 'io', detail: 'calls a side-effecting IO builtin; runtime needs real effects, not a deterministic golden' };
   }
   if (/\bInterop\.\w+\(/.test(src)) {

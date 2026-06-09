@@ -1,0 +1,27 @@
+{
+  "_comment": "Batch 5: primitives + Text/List/Map stdlib. The generator will skip any sample where TS lacks a stdlib builtin (surfacing gaps to fix later).",
+  "samples": [
+    { "name": "test_all_comparisons", "entry": "testFirst", "cases": [
+      { "name": "returns x", "input": ["a", "b"], "expectedOutput": "a" } ] },
+    { "name": "test_all_comparisons__ts-only", "entry": "testFirst", "cases": [
+      { "name": "returns x", "input": ["a", "b"], "expectedOutput": "a" } ] },
+    { "name": "comparison_operators", "entry": "testGreaterThanOrEqual", "cases": [
+      { "name": "stub returns 0", "input": [5, 3], "expectedOutput": 0 } ] },
+    { "name": "cli_tool", "entry": "greet", "cases": [
+      { "name": "Hello, Alice", "input": ["Alice"], "expectedOutput": "Hello, Alice" } ] },
+    { "name": "rest_service", "entry": "greet", "cases": [
+      { "name": "Hello, Bob", "input": ["Bob"], "expectedOutput": "Hello, Bob" } ] },
+    { "name": "stdlib_text", "entry": "concat", "cases": [
+      { "name": "ab", "input": ["a", "b"], "expectedOutput": "ab" } ] },
+    { "name": "test_eligibility_simple", "entry": "calculatePatientCost", "cases": [
+      { "name": "100 * (100-80) = 2000", "input": [100, 80], "expectedOutput": 2000 } ] },
+    { "name": "test_let_in_if", "entry": "testLetInIf", "cases": [
+      { "name": "stub returns 0", "input": [5], "expectedOutput": 0 } ] },
+    { "name": "cross_compiler_ops", "entry": "kwLessThan", "cases": [
+      { "name": "3 < 5", "input": [3, 5], "expectedOutput": true },
+      { "name": "5 < 3", "input": [5, 3], "expectedOutput": false } ] },
+    { "name": "list_ops", "entry": "length", "cases": [
+      { "name": "length [1,2,3]", "input": [[1, 2, 3]], "expectedOutput": 3 },
+      { "name": "length []", "input": [[]], "expectedOutput": 0 } ] }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "_comment": "Batch 6: struct-input samples. Stub rules return 0; greet matches a User struct; construct-returning rules emit {__type,...}. Generator cross-checks the struct shape across engines.",
+  "samples": [
+    { "name": "fraud", "entry": "detectFraud", "cases": [
+      { "name": "stub returns 0", "input": [{"transactionId":"t1","accountId":"a1","amount":500,"timestamp":1}, {"accountId":"a1","averageAmount":100,"suspiciousCount":0,"accountAge":365,"lastTimestamp":0}], "expectedOutput": 0 } ] },
+    { "name": "risk", "entry": "assessRisk", "cases": [
+      { "name": "stub returns 0", "input": [{"totalAssets":1000,"totalLiabilities":500,"monthlyIncome":5000,"monthlyExpenses":3000,"creditScore":700}], "expectedOutput": 0 } ] },
+    { "name": "loan_with_int", "entry": "evaluateLoanEligibility", "cases": [
+      { "name": "stub returns 0", "input": [{"applicantId":"a1","amount":10000,"termMonths":12,"purpose":"car"}, {"age":30,"creditScore":700,"annualIncome":50000,"monthlyDebt":500,"yearsEmployed":5}], "expectedOutput": 0 } ] },
+    { "name": "greet", "entry": "greet", "cases": [
+      { "name": "User → Welcome", "input": [{"__type":"User","id":1,"name":"Alice"}], "expectedOutput": "Welcome, Alice" },
+      { "name": "null → guest", "input": [null], "expectedOutput": "Hi, guest" } ] },
+    { "name": "incremental", "entry": "check", "cases": [
+      { "name": "constructs Decision", "input": [30], "expectedOutput": {"__type":"Decision","approved":true,"reason":"OK"} } ] },
+    { "name": "test_eligibility_struct", "entry": "calculatePatientCost", "cases": [
+      { "name": "100 * (100-80) = 2000", "input": [100, 80], "expectedOutput": 2000 } ] }
+  ]
+}
