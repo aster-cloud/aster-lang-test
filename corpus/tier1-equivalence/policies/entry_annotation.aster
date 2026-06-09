@@ -1,0 +1,7 @@
+Module demo.entry.
+
+@entry Rule main given x, produce:
+  Return x plus 1.
+
+Rule helper given y, produce:
+  Return y times 2.

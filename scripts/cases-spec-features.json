@@ -1,0 +1,8 @@
+{
+  "_comment": "Corpus sample for the previously-uncovered @entry annotation (a shipped grammar feature with zero eval coverage). Type alias was attempted but is Java-only (TS engine rejects `Type X as T`), so it is NOT added — tracked as a parse-parity gap in DIVERGENT-MANIFEST.",
+  "samples": [
+    { "name": "entry_annotation", "entry": "main", "cases": [
+      { "name": "x + 1", "input": [5], "expectedOutput": 6 },
+      { "name": "x + 1 (zero)", "input": [0], "expectedOutput": 1 } ] }
+  ]
+}

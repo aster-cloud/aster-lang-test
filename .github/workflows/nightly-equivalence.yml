@@ -116,6 +116,12 @@ jobs:
         working-directory: aster-lang-test
         run: node scripts/parity-tier1.mjs --mode=eval --report-only --history=eval-history.csv | tee eval-parity-report.md
 
+      # Feature-coverage map：哪些语言特性被语料实际执行（dual-engine），
+      # 哪些只解析不执行（盲点）。纯文本扫描，无需引擎，report-only。
+      - name: Run feature-coverage instrument
+        working-directory: aster-lang-test
+        run: node scripts/feature-coverage.mjs | tee feature-coverage-report.md
+
       - name: Upload artefacts
         if: always()
         uses: actions/upload-artifact@v7
@@ -127,6 +133,7 @@ jobs:
             aster-lang-test/equivalence-history.csv
             aster-lang-test/eval-parity-report.md
             aster-lang-test/eval-history.csv
+            aster-lang-test/feature-coverage-report.md
 
       # cron（每日）和手动 dispatch 都提交：dispatch 让运维能即时刷新
       # aster-lang.cloud/*/equivalence 页面（等价率变化后无需等到次日 02:00）。
