@@ -1,0 +1,33 @@
+{
+  "policy": "tier1-equivalence/policies/17-comparison-range.aster",
+  "entry": "in_range",
+  "cases": [
+    {
+      "name": "5 in (1,10)",
+      "input": [
+        5,
+        1,
+        10
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "10 not in (1,10)",
+      "input": [
+        10,
+        1,
+        10
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "0 not in (1,10)",
+      "input": [
+        0,
+        1,
+        10
+      ],
+      "expectedOutput": false
+    }
+  ]
+}

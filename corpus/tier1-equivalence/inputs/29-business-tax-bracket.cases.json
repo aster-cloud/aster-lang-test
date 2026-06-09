@@ -1,0 +1,34 @@
+{
+  "policy": "tier1-equivalence/policies/29-business-tax-bracket.aster",
+  "entry": "tax",
+  "cases": [
+    {
+      "name": "5000 → 0",
+      "input": [
+        5000
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "30000 → 3000",
+      "input": [
+        30000
+      ],
+      "expectedOutput": 3000
+    },
+    {
+      "name": "100000 → 20000",
+      "input": [
+        100000
+      ],
+      "expectedOutput": 20000
+    },
+    {
+      "name": "300000 → 90000",
+      "input": [
+        300000
+      ],
+      "expectedOutput": 90000
+    }
+  ]
+}

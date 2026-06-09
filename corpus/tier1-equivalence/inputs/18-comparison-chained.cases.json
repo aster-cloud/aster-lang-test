@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/18-comparison-chained.aster",
+  "entry": "classify",
+  "cases": [
+    {
+      "name": "50 → fail",
+      "input": [
+        50
+      ],
+      "expectedOutput": "fail"
+    },
+    {
+      "name": "70 → pass",
+      "input": [
+        70
+      ],
+      "expectedOutput": "pass"
+    },
+    {
+      "name": "90 → excellent",
+      "input": [
+        90
+      ],
+      "expectedOutput": "excellent"
+    }
+  ]
+}

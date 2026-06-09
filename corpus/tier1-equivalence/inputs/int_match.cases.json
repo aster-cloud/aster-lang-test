@@ -1,0 +1,34 @@
+{
+  "policy": "tier1-equivalence/policies/int_match.aster",
+  "entry": "classify",
+  "cases": [
+    {
+      "name": "0 → zero",
+      "input": [
+        0
+      ],
+      "expectedOutput": "zero"
+    },
+    {
+      "name": "1 → one",
+      "input": [
+        1
+      ],
+      "expectedOutput": "one"
+    },
+    {
+      "name": "2 → two",
+      "input": [
+        2
+      ],
+      "expectedOutput": "two"
+    },
+    {
+      "name": "42 → answer",
+      "input": [
+        42
+      ],
+      "expectedOutput": "answer"
+    }
+  ]
+}

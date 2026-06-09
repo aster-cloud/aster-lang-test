@@ -1,0 +1,34 @@
+{
+  "policy": "tier1-equivalence/policies/25-if-multi-branch.aster",
+  "entry": "pricing_tier",
+  "cases": [
+    {
+      "name": "50 → free",
+      "input": [
+        50
+      ],
+      "expectedOutput": "free"
+    },
+    {
+      "name": "500 → pro",
+      "input": [
+        500
+      ],
+      "expectedOutput": "pro"
+    },
+    {
+      "name": "5000 → team",
+      "input": [
+        5000
+      ],
+      "expectedOutput": "team"
+    },
+    {
+      "name": "50000 → enterprise",
+      "input": [
+        50000
+      ],
+      "expectedOutput": "enterprise"
+    }
+  ]
+}

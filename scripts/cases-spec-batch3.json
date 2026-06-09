@@ -1,0 +1,63 @@
+{
+  "_comment": "Batch 3: match / enum / int-match / identity. Enum variants passed as bare strings; the generator confirms Java accepts the same shape.",
+  "samples": [
+    {
+      "name": "int_match",
+      "entry": "classify",
+      "cases": [
+        { "name": "0 → zero", "input": [0], "expectedOutput": "zero" },
+        { "name": "1 → one", "input": [1], "expectedOutput": "one" },
+        { "name": "2 → two", "input": [2], "expectedOutput": "two" },
+        { "name": "42 → answer", "input": [42], "expectedOutput": "answer" }
+      ]
+    },
+    {
+      "name": "int_match_default",
+      "entry": "classifyDefault",
+      "cases": [
+        { "name": "10 → ten", "input": [10], "expectedOutput": "ten" },
+        { "name": "20 → twenty", "input": [20], "expectedOutput": "twenty" },
+        { "name": "99 → other:case", "input": [99], "expectedOutput": "other:case" }
+      ]
+    },
+    {
+      "name": "match_null",
+      "entry": "classify",
+      "cases": [
+        { "name": "null → none", "input": [null], "expectedOutput": "none" },
+        { "name": "5 → some", "input": [5], "expectedOutput": "some" }
+      ]
+    },
+    {
+      "name": "match_enum",
+      "entry": "explain",
+      "cases": [
+        { "name": "NotFound → missing", "input": ["NotFound"], "expectedOutput": "missing" },
+        { "name": "Invalid → invalid", "input": ["Invalid"], "expectedOutput": "invalid" }
+      ]
+    },
+    {
+      "name": "enum_exhaustiveness",
+      "entry": "show",
+      "cases": [
+        { "name": "InvalidCreds → bad", "input": ["InvalidCreds"], "expectedOutput": "bad" }
+      ]
+    },
+    {
+      "name": "enum_wildcard",
+      "entry": "show2",
+      "cases": [
+        { "name": "InvalidCreds → bad", "input": ["InvalidCreds"], "expectedOutput": "bad" },
+        { "name": "Locked → other (wildcard)", "input": ["Locked"], "expectedOutput": "other" }
+      ]
+    },
+    {
+      "name": "id_generic",
+      "entry": "identity",
+      "cases": [
+        { "name": "int passthrough", "input": [42], "expectedOutput": 42 },
+        { "name": "string passthrough", "input": ["hello"], "expectedOutput": "hello" }
+      ]
+    }
+  ]
+}

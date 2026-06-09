@@ -153,3 +153,22 @@ samples lock the truncate-toward-zero contract with negative cases:
 - `32-arithmetic-modulo-op`: `7 % 2 = 1`, `-7 % 2 = -1`, `7 % -2 = 1`
 
 Both in `tier1-parity/manifest.json`. The manifest is clean; no open divergences.
+
+## Eval-coverage backfill — newly surfaced divergences (2026-06-09)
+
+The `.cases.json` backfill effort (`scripts/gen-cases.mjs`, which only writes a
+golden when BOTH engines agree with the authored expected value) doubled eval
+coverage (52 → 123 cases) and, by design, surfaced **4 real dual-engine eval
+divergences** that were previously untested. These are NOT written as goldens
+(the generator skips them); they are open bugs to fix:
+
+| sample / case | TS | Java | category |
+|---|---|---|---|
+| `int_match_default` `99` (default arm) | `Undefined function 'Text.concat'` | `"other:case"` | **TS missing builtin**: `Text.concat` not registered in the TS interpreter; Java has it. |
+| `match_null` `null` | `"none"` ✓ | `"some"` | **Java null-match bug**: a `When null` arm is not matched on the Java side for a null scrutinee. |
+| `match_enum` `Invalid` | `"missing"` | `"invalid"` ✓ | **TS enum-match bug**: the second enum arm (`When Invalid`) is not reached — TS returns the first arm's value. |
+| `enum_wildcard` `Locked` | `"bad"` | `NullPointerException (arg2Value null)` | **enum wildcard broken both sides**: TS returns the first arm; Java NPEs on the `When x` catch-all over an enum. |
+
+These need fixes in aster-lang-ts (Text.concat builtin; enum-arm dispatch) and
+aster-lang-truffle (null-pattern match; enum wildcard). Tracked here; once fixed,
+the corresponding cases can be added via `gen-cases.mjs` and will lock in.

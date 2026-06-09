@@ -1,0 +1,30 @@
+{
+  "policy": "tier1-equivalence/policies/14-boolean-short-circuit.aster",
+  "entry": "guard",
+  "cases": [
+    {
+      "name": "enabled + positive",
+      "input": [
+        true,
+        5
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "enabled + zero",
+      "input": [
+        true,
+        0
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "disabled short-circuits",
+      "input": [
+        false,
+        5
+      ],
+      "expectedOutput": false
+    }
+  ]
+}
