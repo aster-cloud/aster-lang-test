@@ -1,0 +1,26 @@
+{
+  "policy": "tier1-equivalence/policies/lambda_cnl_match_result.aster",
+  "entry": "fromResult",
+  "cases": [
+    {
+      "name": "Ok binds value",
+      "input": [
+        {
+          "__type": "Ok",
+          "value": "yes"
+        }
+      ],
+      "expectedOutput": "yes"
+    },
+    {
+      "name": "Err binds err",
+      "input": [
+        {
+          "__type": "Err",
+          "value": "bad"
+        }
+      ],
+      "expectedOutput": "E:bad"
+    }
+  ]
+}

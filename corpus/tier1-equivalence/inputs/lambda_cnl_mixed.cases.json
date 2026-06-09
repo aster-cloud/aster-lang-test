@@ -1,0 +1,13 @@
+{
+  "policy": "tier1-equivalence/policies/lambda_cnl_mixed.aster",
+  "entry": "demo",
+  "cases": [
+    {
+      "name": "closure captures pfx",
+      "input": [
+        "P-"
+      ],
+      "expectedOutput": "P-2b"
+    }
+  ]
+}

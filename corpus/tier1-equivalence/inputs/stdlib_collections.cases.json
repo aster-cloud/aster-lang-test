@@ -1,0 +1,21 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_collections.aster",
+  "entry": "mapId",
+  "cases": [
+    {
+      "name": "map identity over list",
+      "input": [
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "expectedOutput": [
+        1,
+        2,
+        3
+      ]
+    }
+  ]
+}
