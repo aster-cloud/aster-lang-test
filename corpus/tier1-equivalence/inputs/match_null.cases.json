@@ -3,9 +3,16 @@
   "entry": "classify",
   "cases": [
     {
-      "name": "5 → some",
+      "name": "null -> none",
       "input": [
-        5
+        null
+      ],
+      "expectedOutput": "none"
+    },
+    {
+      "name": "value -> some",
+      "input": [
+        "x"
       ],
       "expectedOutput": "some"
     }

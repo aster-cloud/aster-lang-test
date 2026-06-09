@@ -210,6 +210,7 @@
     "tier1-equivalence/policies/test_second_func.aster",
     "tier1-equivalence/policies/test_two_ifs.aster",
     "tier1-equivalence/policies/test_two_statements.aster",
-    "tier1-equivalence/policies/text_ops.aster"
+    "tier1-equivalence/policies/text_ops.aster",
+    "tier1-equivalence/policies/type_alias.aster"
   ]
 }

@@ -3,6 +3,14 @@
   "entry": "fromMaybe",
   "cases": [
     {
+      "name": "null -> fallback",
+      "input": [
+        null,
+        "fb"
+      ],
+      "expectedOutput": "fb"
+    },
+    {
       "name": "value -> value",
       "input": [
         42,

@@ -202,14 +202,9 @@ these (cases NOT written; tracked here):
 | `list_ops`, `map_ops` (List.length/get/isEmpty, Map.get) | aster-lang-ts: added the non-lambda `List.*`/`Map.*` stdlib to `evalStdlibCall`. aster-lang-truffle: `Builtins.asList`/`asMap` accept guest `AsterListValue`/`AsterMapValue`; `Map.get` qualified-call no longer dropped (aster-lang-core `AstBuilder` treats `MapIdentExpr` as a type qualifier); CLI injects collection inputs as guest interop values + selects the requested entry function. |
 | `stdlib_collections` (List.map), `stdlib_maybe_result` (Maybe.map/Result.mapOk/tapError), `lambda_cnl_mixed`, `lambda_cnl_match_bind`/`_maybe`/`_result`, `nested_generic_lambda` | aster-lang-ts: full **lambda/closure support** (lexical capture + higher-order `List.map/filter/reduce`, `Maybe.map`, `Result.mapOk/mapErr/tapError`) + **positional `PatCtor` binding** (`Ok(value)`/`Err(err)`/`Some(x)`). aster-lang-truffle: `LambdaRootNode` now adapts its return so entry-as-callable returns of List/Map/Some/Ok cross the host boundary (was `ClassCastException` in `ToHostValueNode`); `AsterMapValue implements Map` so the matcher + every Maybe/Result builtin accept it unchanged. All verified dual-engine identical via `gen-cases.mjs`. |
 
-### ⏳ STILL OPEN (host-null into match)
+### ✅ RESOLVED — host-null match + Type alias (2026-06-09)
 
-| sample / case | TS | Java | note |
-|---|---|---|---|
-| `lambda_cnl_match_maybe` `fromMaybe(null, "fb")` | `"fb"` ✓ | `null` | **same root cause as `match_null`**: a host `null` argument passed via `Value.execute(args)` does not reach a `When null` (PatNull) arm as guest null. Here the null flows into a lambda parameter; `PatNullNode`/`bindParameters` are individually correct (`frame.setObject(i, null)`), so the gap is Polyglot host-`null` marshaling at the entry boundary. `fromMaybe` is covered via its non-null case; the null case is excluded pending a host-null fix. |
-
-### ⏳ STILL OPEN (parse-parity gap — surfaced by feature-coverage instrument, 2026-06-09)
-
-| feature | TS | Java | note |
-|---|---|---|---|
-| **Type alias** (`Type Score as Int.`) | `Compile failed` (parser rejects the `Type … as` declaration) | parses + evaluates fine | The `Type X as T` alias declaration is **Java-only**. It's a shipped grammar feature in aster-lang-core but the aster-lang-ts front-end does not parse it, so a `type_alias` corpus sample would fail the parse-parity gate. NOT added to the corpus; tracked here. The `feature-coverage.mjs` instrument reports `Type alias` as `— absent` (no corpus sample exercises it on both engines). Needs TS parser support before it can be eval-covered. |
+| sample / feature | fix |
+|---|---|
+| `match_null` `classify(null)`, `lambda_cnl_match_maybe` `fromMaybe(null, "fb")` | **host-null into a `When null` match**: a host `null` passed via `Value.execute(args)` arrives in the guest as a `HostObject` with `interopIsNull()==true` — **not** a Java `null` — so `PatNullNode`'s `s == null` failed and the lowercase catch-all matched instead. Fix (aster-lang-truffle `MatchNode`): add `isGuestNull(s)` = Java null OR `InteropLibrary.getUncached().isNull(s)`; `PatNullNode` matches it, the `PatName` catch-all rejects it. Both null cases now covered + dual-engine identical. |
+| **Type alias** (`type Score as Int.`) | Was thought TS-only-broken; root cause was a **casing mistake in the sample** (`Type` vs `type`). The Java lexer token is `TYPE: 'type'` (lowercase), so `Type` lexed as a TYPE_IDENT and mis-parsed as a `Data` decl. With the canonical lowercase `type`, both engines agree: aster-lang-ts now parses `type X as T.` (added `KW.TYPE` + a decl-parser branch that consumes it and registers the alias name but emits **no** Core IR decl — matching aster-lang-core's `CoreLowering` which drops `TypeAlias`). Sample `type_alias.aster` added to the parse manifest + golden cases; IR field-identical; `feature-coverage` now reports Type alias as ✅ eval. |

@@ -1,0 +1,6 @@
+Module demo.typealias.
+
+type Score as Int.
+
+Rule rate given value, produce:
+  Return value plus 10.
