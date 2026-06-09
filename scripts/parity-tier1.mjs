@@ -511,6 +511,27 @@ function normalizeIr(node, kind) {
   // Import version: TS omits an unset version; Java emits `null`. Same "no
   // version pin" meaning — fold both to null.
   if (k === 'Import' && out.version === undefined) out.version = null;
+  // Annotation params: an argument-less annotation (`@entry`) carries no params
+  // in TS; Java attaches an all-empty params container
+  // `{annotations:[],retAnnotations:[],effects:[]}`. Treat such an empty
+  // container as "no params" so both sides match.
+  if (out.params && typeof out.params === 'object' && !Array.isArray(out.params)
+      && Object.values(out.params).every((v) => Array.isArray(v) && v.length === 0)) {
+    delete out.params;
+  }
+  // Ok/Err/Some/None constructor call-form: TS lowers `Ok(x)` to
+  // `Call{target:Name "Ok", args:[x]}` (the call form is not given a dedicated
+  // node by the TS front-end — only the `ok of x` keyword form is); Java lowers
+  // both forms to a dedicated `{kind:"Ok", expr:x}`. Canonicalize the TS Call
+  // shape to the dedicated-node shape so they compare equal.
+  if (k === 'Call' && out.target && out.target.kind === 'Name'
+      && ['Ok', 'Err', 'Some', 'None'].includes(out.target.name)) {
+    const ctor = out.target.name;
+    if (ctor === 'None') return { kind: 'None' };
+    if (Array.isArray(out.args) && out.args.length === 1) {
+      return { kind: ctor, expr: out.args[0] };
+    }
+  }
   // Ctor-pattern bind names: TS `PatCtor` lists them as `names: ["id","name"]`;
   // Java lists them as `args: [{kind:PatName, name:"id"}, …]`. Same ordered bind
   // names, different shape — canonicalize both to `binds: ["id","name"]`.
@@ -523,6 +544,17 @@ function normalizeIr(node, kind) {
     delete out.names;
     delete out.args;
     out.binds = binds;
+  }
+  // 0-arg enum-variant pattern: `When InvalidCreds` → TS lowers to
+  // `PatName{name:"InvalidCreds"}` (a Capitalized name-pattern = variant match),
+  // Java to `PatCtor{typeName:"InvalidCreds", binds:[]}`. Same "match this enum
+  // variant by name, bind nothing" meaning — canonicalize a Capitalized PatName
+  // and a no-bind PatCtor to a single `PatVariant{variant}` form.
+  if (k === 'PatName' && typeof out.name === 'string' && /^[A-Z]/.test(out.name)) {
+    return { kind: 'PatVariant', variant: out.name };
+  }
+  if (k === 'PatCtor' && Array.isArray(out.binds) && out.binds.length === 0 && out.typeName) {
+    return { kind: 'PatVariant', variant: out.typeName };
   }
   return out;
 }
@@ -581,11 +613,29 @@ function summarize(v) {
   return s && s.length > 80 ? s.slice(0, 77) + '…' : s;
 }
 
+// Read a sample's evalExempt reason (or null) from its sibling .meta.json. An
+// eval-exempt sample (effects/io/interop/workflow) exercises a derived-analysis
+// surface (effect lowering, async workflow, host-interop) whose IR shape the two
+// engines legitimately represent differently — the same boundary eval-parity
+// uses. Such divergences are reported but do NOT count as structural-parity
+// failures, matching ADR 0016's "structural parity = the executable tree".
+function exemptReasonOf(abs) {
+  const metaPath = abs.replace(/\.aster$/, '.meta.json');
+  if (!existsSync(metaPath)) return null;
+  try {
+    const meta = JSON.parse(readFileSync(metaPath, 'utf8'));
+    return meta.evalExempt === true ? (meta.evalExemptReason || 'exempt') : null;
+  } catch {
+    return null;
+  }
+}
+
 function classifyIr(tsRes, javaRes, samples) {
   const rows = [];
-  for (const { rel } of samples) {
+  for (const { rel, abs } of samples) {
     const t = tsRes[rel] || { ok: false, error: 'missing ts' };
     const j = javaRes[rel] || { ok: false, error: 'missing java' };
+    const exempt = IR_FULL ? exemptReasonOf(abs) : null;
     let verdict;
     let diffs = [];
     if (!t.ok && !j.ok) {
@@ -594,7 +644,7 @@ function classifyIr(tsRes, javaRes, samples) {
       verdict = 'one-side-failed';
     } else if (IR_FULL) {
       diffs = diffIr(t.ir, j.ir);
-      verdict = diffs.length === 0 ? 'identical' : 'divergent';
+      verdict = diffs.length === 0 ? 'identical' : (exempt ? 'divergent-exempt' : 'divergent');
     } else {
       diffs = diffFingerprints(t.fingerprint, j.fingerprint);
       verdict = diffs.length === 0 ? 'identical' : 'divergent';
@@ -605,6 +655,7 @@ function classifyIr(tsRes, javaRes, samples) {
       java: j.ok,
       verdict,
       diffs,
+      exempt,
       tsErr: t.error || null,
       javaErr: j.error || null,
     });
@@ -616,6 +667,7 @@ function printMarkdownIr(rows, mode) {
   const total = rows.length;
   const identical = rows.filter((r) => r.verdict === 'identical').length;
   const divergent = rows.filter((r) => r.verdict === 'divergent');
+  const divergentExempt = rows.filter((r) => r.verdict === 'divergent-exempt');
   const oneSideFailed = rows.filter((r) => r.verdict === 'one-side-failed');
   const bothFail = rows.filter((r) => r.verdict === 'both-fail');
 
@@ -624,6 +676,9 @@ function printMarkdownIr(rows, mode) {
   console.log(`- total: ${total}`);
   console.log(`- identical: ${identical}`);
   console.log(`- divergent: ${divergent.length}`);
+  if (IR_FULL) {
+    console.log(`- divergent (eval-exempt, not a structural-parity failure): ${divergentExempt.length}`);
+  }
   console.log(`- one side failed to lower: ${oneSideFailed.length}`);
   console.log(`- both failed: ${bothFail.length}\n`);
 
@@ -649,6 +704,18 @@ function printMarkdownIr(rows, mode) {
     if (divergent.length > 50) {
       console.log(`_…and ${divergent.length - 50} more (truncated)_\n`);
     }
+  }
+
+  if (IR_FULL && divergentExempt.length > 0) {
+    console.log('## Divergent — eval-exempt (informational)\n');
+    console.log('These samples exercise effect/workflow/interop surfaces that are ' +
+      'eval-exempt; the two engines lower their derived-analysis structure ' +
+      'differently and this is out of scope for structural IR parity (ADR 0016). ' +
+      'Listed for visibility, not counted as failures.\n');
+    for (const r of divergentExempt) {
+      console.log(`- ${r.path} (${r.exempt}): ${r.diffs.length} field diff${r.diffs.length === 1 ? '' : 's'}`);
+    }
+    console.log('');
   }
 
   if (oneSideFailed.length > 0) {
@@ -1028,9 +1095,11 @@ async function main() {
     writeFileSync(REPORT_FILE, JSON.stringify({ mode: MODE, total: rows.length, rows }, null, 2));
     printMarkdownIr(rows, MODE);
 
-    const bad = rows.filter((r) => r.verdict !== 'identical');
+    // `divergent-exempt` (effect/workflow/interop derived-analysis differences)
+    // is informational only — never a structural-parity failure (ADR 0016).
+    const bad = rows.filter((r) => r.verdict !== 'identical' && r.verdict !== 'divergent-exempt');
     if (bad.length > 0) {
-      const msg = `tier1-parity (ir-fingerprint) divergence: ${bad.length}/${rows.length} sample(s) not identical`;
+      const msg = `tier1-parity (ir ${IR_FULL ? 'field-level' : 'fingerprint'}) divergence: ${bad.length}/${rows.length} sample(s) not identical`;
       if (REPORT_ONLY) {
         console.error(`::warning::${msg}`);
         process.exit(0);

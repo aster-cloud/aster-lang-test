@@ -235,23 +235,21 @@ jobs:
 
       # Phase B (codex architect plan): structural Core IR fingerprint
       # parity. Runs after the parse gate using the same Maven Local
-      # state the parse gate already built. Report-only for the first
-      # cycle so we can observe the divergence surface — the plan calls
-      # for promoting to PR-blocking only after the steady-state diff
-      # report is reviewed.
+      # state the parse gate already built.
       #
-      # `continue-on-error: true` here so any non-zero exit from the
-      # runner (it returns 0 in --report-only, but defense in depth) or
-      # the gradle test itself doesn't fail the job; the report is the
-      # signal.
-      - name: Run tier1-parity (IR fingerprint, report-only)
+      # ADR 0016 phase 3: now PR-blocking at the FIELD level. After the
+      # normalizing comparator (normalizeIr/diffIr) and the eval-exempt
+      # boundary, the non-exempt corpus is field-identical (202/207; the 5
+      # remaining are effect/workflow/interop derived-analysis differences,
+      # reported as `divergent-exempt`, not failures). A new structural
+      # divergence in an executable-tree node now fails the gate.
+      - name: Run tier1-parity strict gate (IR field-level, PR-blocking)
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
-        continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
-          node scripts/parity-tier1.mjs --mode=ir --report-only | tee parity-tier1-ir-report.md
+          node scripts/parity-tier1.mjs --mode=ir --full | tee parity-tier1-ir-report.md
 
       # Phase C: evaluator output parity for samples with .cases.json.
       # Operates on a smaller subset (15 samples / ~45 cases as of this
