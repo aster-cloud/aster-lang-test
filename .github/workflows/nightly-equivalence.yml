@@ -52,6 +52,13 @@ jobs:
       - uses: actions/checkout@v6
         with: { repository: aster-cloud/aster-lang-de, path: aster-lang-de, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
 
+      # Phase C eval-parity 需要 Truffle 求值器（CoreIrEvalCli 在 truffle 仓），
+      # truffle 经 Maven Local 依赖 core + runtime。
+      - uses: actions/checkout@v6
+        with: { repository: aster-cloud/aster-lang-runtime, path: aster-lang-runtime, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
+      - uses: actions/checkout@v6
+        with: { repository: aster-cloud/aster-lang-truffle, path: aster-lang-truffle, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
+
       - uses: pnpm/action-setup@v6
         with:
           version: 9
@@ -92,10 +99,22 @@ jobs:
       - name: Publish corpus to Maven Local
         working-directory: aster-lang-test/packages/jvm
         run: ./gradlew publishToMavenLocal -x test
+      # runtime 供 truffle 依赖（eval-parity 的 CoreIrEvalCli）
+      - name: Publish aster-lang-runtime to Maven Local
+        working-directory: aster-lang-runtime
+        run: ./gradlew publishToMavenLocal -x test
 
-      - name: Run equivalence harness
+      # Phase A：parse-equivalence 趋势（equivalence-history.csv）
+      - name: Run parse-equivalence harness
         working-directory: aster-lang-test
         run: node scripts/equivalence-nightly.mjs | tee equivalence-report.md
+
+      # Phase C：eval-parity 趋势（eval-history.csv）。--history 追加一行
+      # timestamp,total,identical,divergent,rate。report-only 不让分歧让 nightly 失败
+      # （趋势记录优先），真实 PR-blocking 在 aster-lang-test/aster-lang-core CI。
+      - name: Run eval-parity harness
+        working-directory: aster-lang-test
+        run: node scripts/parity-tier1.mjs --mode=eval --report-only --history=eval-history.csv | tee eval-parity-report.md
 
       - name: Upload artefacts
         if: always()
@@ -106,6 +125,8 @@ jobs:
             aster-lang-test/equivalence-report.json
             aster-lang-test/equivalence-report.md
             aster-lang-test/equivalence-history.csv
+            aster-lang-test/eval-parity-report.md
+            aster-lang-test/eval-history.csv
 
       # cron（每日）和手动 dispatch 都提交：dispatch 让运维能即时刷新
       # aster-lang.cloud/*/equivalence 页面（等价率变化后无需等到次日 02:00）。
@@ -119,12 +140,14 @@ jobs:
           GIT_COMMITTER_NAME: aster-bot
           GIT_COMMITTER_EMAIL: bot@aster-lang.cloud
         run: |
-          if git diff --quiet equivalence-history.csv; then
+          if git diff --quiet equivalence-history.csv eval-history.csv; then
             echo "history unchanged, nothing to commit"
             exit 0
           fi
-          git add equivalence-history.csv
-          git commit -m "chore: append equivalence rate $(tail -1 equivalence-history.csv | cut -d, -f5) (${{ github.event_name }})"
+          git add equivalence-history.csv eval-history.csv
+          parse_rate=$(tail -1 equivalence-history.csv | cut -d, -f5)
+          eval_rate=$(tail -1 eval-history.csv | cut -d, -f5)
+          git commit -m "chore: append parity rates parse=$parse_rate eval=$eval_rate (${{ github.event_name }})"
           git push
 
       - name: Notify Slack on failure
