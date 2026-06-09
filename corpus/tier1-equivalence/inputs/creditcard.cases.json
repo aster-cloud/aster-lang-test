@@ -1,0 +1,21 @@
+{
+  "policy": "tier1-equivalence/policies/creditcard.aster",
+  "entry": "evaluateCreditCardApplication",
+  "cases": [
+    {
+      "name": "stub 0",
+      "input": [
+        {
+          "income": 50000
+        },
+        {
+          "score": 700
+        },
+        {
+          "limit": 5000
+        }
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}

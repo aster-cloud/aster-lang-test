@@ -1,0 +1,8 @@
+{
+  "_comment": "Arity-corrected stubs missed in cases-spec-stubs.json.",
+  "samples": [
+    { "name": "auto", "entry": "generateAutoQuote", "cases": [ { "name": "stub 0", "input": [{"age":30}, {"value":20000}, "full"], "expectedOutput": 0 } ] },
+    { "name": "life", "entry": "generateLifeQuote", "cases": [ { "name": "stub 0", "input": [{"age":40}, {"coverage":100000}], "expectedOutput": 0 } ] },
+    { "name": "test_loan", "entry": "test", "cases": [ { "name": "stub false", "input": ["x"], "expectedOutput": false } ] }
+  ]
+}

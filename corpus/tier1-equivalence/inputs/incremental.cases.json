@@ -1,0 +1,17 @@
+{
+  "policy": "tier1-equivalence/policies/incremental.aster",
+  "entry": "check",
+  "cases": [
+    {
+      "name": "constructs Decision",
+      "input": [
+        30
+      ],
+      "expectedOutput": {
+        "__type": "Decision",
+        "approved": true,
+        "reason": "OK"
+      }
+    }
+  ]
+}
