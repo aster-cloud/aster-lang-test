@@ -41,6 +41,8 @@
     "tier1-equivalence/policies/28-business-insurance-premium.aster",
     "tier1-equivalence/policies/29-business-tax-bracket.aster",
     "tier1-equivalence/policies/30-business-gdpr-retention.aster",
+    "tier1-equivalence/policies/31-arithmetic-intdiv.aster",
+    "tier1-equivalence/policies/32-arithmetic-modulo-op.aster",
     "tier1-equivalence/policies/arith_compare.aster",
     "tier1-equivalence/policies/auto.aster",
     "tier1-equivalence/policies/bad_generic.aster",

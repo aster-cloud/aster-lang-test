@@ -1,0 +1,39 @@
+{
+  "policy": "tier1-equivalence/policies/32-arithmetic-modulo-op.aster",
+  "entry": "remainder",
+  "_note": "Modulo truncates toward zero (sign follows the dividend, matching Java/JS `%`): -7 modulo 2 = -1, 7 modulo -2 = 1. Negative cases lock the sign contract across both engines.",
+  "cases": [
+    {
+      "name": "7 modulo 2 = 1",
+      "input": [
+        7,
+        2
+      ],
+      "expectedOutput": 1
+    },
+    {
+      "name": "8 modulo 4 = 0 (exact)",
+      "input": [
+        8,
+        4
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "-7 modulo 2 = -1 (sign follows dividend)",
+      "input": [
+        -7,
+        2
+      ],
+      "expectedOutput": -1
+    },
+    {
+      "name": "7 modulo -2 = 1 (sign follows dividend)",
+      "input": [
+        7,
+        -2
+      ],
+      "expectedOutput": 1
+    }
+  ]
+}
