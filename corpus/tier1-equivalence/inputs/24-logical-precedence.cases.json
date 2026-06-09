@@ -1,0 +1,33 @@
+{
+  "policy": "tier1-equivalence/policies/24-logical-precedence.aster",
+  "entry": "mixed",
+  "cases": [
+    {
+      "name": "p=1 → true (or wins)",
+      "input": [
+        1,
+        0,
+        0
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "q=2,r=3 → true (and group)",
+      "input": [
+        0,
+        2,
+        3
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "q=2,r=9 → false",
+      "input": [
+        0,
+        2,
+        9
+      ],
+      "expectedOutput": false
+    }
+  ]
+}

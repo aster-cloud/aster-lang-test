@@ -1,0 +1,30 @@
+{
+  "policy": "tier1-equivalence/policies/30-business-gdpr-retention.aster",
+  "entry": "allow_access",
+  "cases": [
+    {
+      "name": "consent + recent → true",
+      "input": [
+        true,
+        100
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "consent + expired → false",
+      "input": [
+        true,
+        800
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "no consent → false",
+      "input": [
+        false,
+        100
+      ],
+      "expectedOutput": false
+    }
+  ]
+}

@@ -1,0 +1,111 @@
+{
+  "_comment": "Batch 2: more control-flow / boolean / let / business. Note float division: 21-let-conditional, 29-tax produce decimals.",
+  "samples": [
+    {
+      "name": "14-boolean-short-circuit",
+      "entry": "guard",
+      "cases": [
+        { "name": "enabled + positive", "input": [true, 5], "expectedOutput": true },
+        { "name": "enabled + zero", "input": [true, 0], "expectedOutput": false },
+        { "name": "disabled short-circuits", "input": [false, 5], "expectedOutput": false }
+      ]
+    },
+    {
+      "name": "18-comparison-chained",
+      "entry": "classify",
+      "cases": [
+        { "name": "50 → fail", "input": [50], "expectedOutput": "fail" },
+        { "name": "70 → pass", "input": [70], "expectedOutput": "pass" },
+        { "name": "90 → excellent", "input": [90], "expectedOutput": "excellent" }
+      ]
+    },
+    {
+      "name": "21-comparison-is-prefix",
+      "entry": "at_least_check",
+      "cases": [
+        { "name": "700 is at least 700", "input": [700], "expectedOutput": true },
+        { "name": "699 not at least 700", "input": [699], "expectedOutput": false }
+      ]
+    },
+    {
+      "name": "21-let-conditional",
+      "entry": "shipping",
+      "cases": [
+        { "name": "light → base 10", "input": [50], "expectedOutput": 10 },
+        { "name": "heavy → 10 + 200/10 = 30", "input": [200], "expectedOutput": 30 }
+      ]
+    },
+    {
+      "name": "22-let-shadowing",
+      "entry": "normalize",
+      "cases": [
+        { "name": "negative → 0", "input": [-5], "expectedOutput": 0 },
+        { "name": "positive unchanged", "input": [42], "expectedOutput": 42 }
+      ]
+    },
+    {
+      "name": "23-logical-or",
+      "entry": "either",
+      "cases": [
+        { "name": "gold → true", "input": ["gold"], "expectedOutput": true },
+        { "name": "platinum → true", "input": ["platinum"], "expectedOutput": true },
+        { "name": "silver → false", "input": ["silver"], "expectedOutput": false }
+      ]
+    },
+    {
+      "name": "24-logical-precedence",
+      "entry": "mixed",
+      "cases": [
+        { "name": "p=1 → true (or wins)", "input": [1, 0, 0], "expectedOutput": true },
+        { "name": "q=2,r=3 → true (and group)", "input": [0, 2, 3], "expectedOutput": true },
+        { "name": "q=2,r=9 → false", "input": [0, 2, 9], "expectedOutput": false }
+      ]
+    },
+    {
+      "name": "24-if-guard-clause",
+      "entry": "absolute_value",
+      "cases": [
+        { "name": "-7 → 7", "input": [-7], "expectedOutput": 7 },
+        { "name": "5 → 5", "input": [5], "expectedOutput": 5 }
+      ]
+    },
+    {
+      "name": "25-if-multi-branch",
+      "entry": "pricing_tier",
+      "cases": [
+        { "name": "50 → free", "input": [50], "expectedOutput": "free" },
+        { "name": "500 → pro", "input": [500], "expectedOutput": "pro" },
+        { "name": "5000 → team", "input": [5000], "expectedOutput": "team" },
+        { "name": "50000 → enterprise", "input": [50000], "expectedOutput": "enterprise" }
+      ]
+    },
+    {
+      "name": "26-if-bool-condition",
+      "entry": "discount",
+      "cases": [
+        { "name": "member+coupon → base/2", "input": [true, true, 100], "expectedOutput": 50 },
+        { "name": "member only → base - base/5", "input": [true, false, 100], "expectedOutput": 80 },
+        { "name": "neither → base", "input": [false, false, 100], "expectedOutput": 100 }
+      ]
+    },
+    {
+      "name": "29-business-tax-bracket",
+      "entry": "tax",
+      "cases": [
+        { "name": "5000 → 0", "input": [5000], "expectedOutput": 0 },
+        { "name": "30000 → 3000", "input": [30000], "expectedOutput": 3000 },
+        { "name": "100000 → 20000", "input": [100000], "expectedOutput": 20000 },
+        { "name": "300000 → 90000", "input": [300000], "expectedOutput": 90000 }
+      ]
+    },
+    {
+      "name": "30-business-gdpr-retention",
+      "entry": "allow_access",
+      "cases": [
+        { "name": "consent + recent → true", "input": [true, 100], "expectedOutput": true },
+        { "name": "consent + expired → false", "input": [true, 800], "expectedOutput": false },
+        { "name": "no consent → false", "input": [false, 100], "expectedOutput": false }
+      ]
+    }
+  ]
+}

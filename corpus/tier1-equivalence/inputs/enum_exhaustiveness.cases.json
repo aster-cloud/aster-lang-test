@@ -1,0 +1,13 @@
+{
+  "policy": "tier1-equivalence/policies/enum_exhaustiveness.aster",
+  "entry": "show",
+  "cases": [
+    {
+      "name": "InvalidCreds → bad",
+      "input": [
+        "InvalidCreds"
+      ],
+      "expectedOutput": "bad"
+    }
+  ]
+}

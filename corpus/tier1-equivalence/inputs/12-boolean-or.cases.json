@@ -1,0 +1,30 @@
+{
+  "policy": "tier1-equivalence/policies/12-boolean-or.aster",
+  "entry": "either",
+  "cases": [
+    {
+      "name": "true or false",
+      "input": [
+        true,
+        false
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "false or false",
+      "input": [
+        false,
+        false
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "false or true",
+      "input": [
+        false,
+        true
+      ],
+      "expectedOutput": true
+    }
+  ]
+}

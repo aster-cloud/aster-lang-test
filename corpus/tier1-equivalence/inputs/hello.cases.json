@@ -1,0 +1,11 @@
+{
+  "policy": "tier1-equivalence/policies/hello.aster",
+  "entry": "helloMessage",
+  "cases": [
+    {
+      "name": "constant greeting",
+      "input": [],
+      "expectedOutput": "Hello, world!"
+    }
+  ]
+}

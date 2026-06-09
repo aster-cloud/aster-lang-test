@@ -1,0 +1,33 @@
+{
+  "policy": "tier1-equivalence/policies/26-if-bool-condition.aster",
+  "entry": "discount",
+  "cases": [
+    {
+      "name": "member+coupon → base/2",
+      "input": [
+        true,
+        true,
+        100
+      ],
+      "expectedOutput": 50
+    },
+    {
+      "name": "member only → base - base/5",
+      "input": [
+        true,
+        false,
+        100
+      ],
+      "expectedOutput": 80
+    },
+    {
+      "name": "neither → base",
+      "input": [
+        false,
+        false,
+        100
+      ],
+      "expectedOutput": 100
+    }
+  ]
+}

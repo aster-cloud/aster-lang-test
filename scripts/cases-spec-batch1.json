@@ -1,0 +1,75 @@
+{
+  "_comment": "Batch 1: control-flow / boolean / comparison / logical samples. Expected outputs are the intended semantics; gen-cases.mjs cross-checks both engines agree before writing.",
+  "samples": [
+    {
+      "name": "03-if-else",
+      "entry": "grade",
+      "cases": [
+        { "name": "95 → A", "input": [95], "expectedOutput": "A" },
+        { "name": "85 → B", "input": [85], "expectedOutput": "B" },
+        { "name": "70 → C", "input": [70], "expectedOutput": "C" }
+      ]
+    },
+    {
+      "name": "11-boolean-and",
+      "entry": "both",
+      "cases": [
+        { "name": "true and true", "input": [true, true], "expectedOutput": true },
+        { "name": "true and false", "input": [true, false], "expectedOutput": false },
+        { "name": "false and true", "input": [false, true], "expectedOutput": false }
+      ]
+    },
+    {
+      "name": "12-boolean-or",
+      "entry": "either",
+      "cases": [
+        { "name": "true or false", "input": [true, false], "expectedOutput": true },
+        { "name": "false or false", "input": [false, false], "expectedOutput": false },
+        { "name": "false or true", "input": [false, true], "expectedOutput": true }
+      ]
+    },
+    {
+      "name": "17-comparison-range",
+      "entry": "in_range",
+      "cases": [
+        { "name": "5 in (1,10)", "input": [5, 1, 10], "expectedOutput": true },
+        { "name": "10 not in (1,10)", "input": [10, 1, 10], "expectedOutput": false },
+        { "name": "0 not in (1,10)", "input": [0, 1, 10], "expectedOutput": false }
+      ]
+    },
+    {
+      "name": "23-if-nested",
+      "entry": "loan_decision",
+      "cases": [
+        { "name": "high credit + high income → approved", "input": [750, 60000], "expectedOutput": "approved" },
+        { "name": "high credit + low income → review", "input": [750, 40000], "expectedOutput": "review" },
+        { "name": "low credit → denied", "input": [600, 60000], "expectedOutput": "denied" }
+      ]
+    },
+    {
+      "name": "27-business-loan-eligibility",
+      "entry": "eligible",
+      "cases": [
+        { "name": "all pass", "input": [30, 700, 50000], "expectedOutput": true },
+        { "name": "too young", "input": [16, 700, 50000], "expectedOutput": false },
+        { "name": "low credit", "input": [30, 500, 50000], "expectedOutput": false },
+        { "name": "low income", "input": [30, 700, 10000], "expectedOutput": false }
+      ]
+    },
+    {
+      "name": "if_param",
+      "entry": "choose",
+      "cases": [
+        { "name": "Y → Y", "input": ["Y"], "expectedOutput": "Y" },
+        { "name": "N → N", "input": ["X"], "expectedOutput": "N" }
+      ]
+    },
+    {
+      "name": "hello",
+      "entry": "helloMessage",
+      "cases": [
+        { "name": "constant greeting", "input": [], "expectedOutput": "Hello, world!" }
+      ]
+    }
+  ]
+}

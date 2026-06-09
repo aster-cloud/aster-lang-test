@@ -1,0 +1,42 @@
+{
+  "policy": "tier1-equivalence/policies/27-business-loan-eligibility.aster",
+  "entry": "eligible",
+  "cases": [
+    {
+      "name": "all pass",
+      "input": [
+        30,
+        700,
+        50000
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "too young",
+      "input": [
+        16,
+        700,
+        50000
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "low credit",
+      "input": [
+        30,
+        500,
+        50000
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "low income",
+      "input": [
+        30,
+        700,
+        10000
+      ],
+      "expectedOutput": false
+    }
+  ]
+}
