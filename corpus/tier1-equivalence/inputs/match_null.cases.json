@@ -1,0 +1,13 @@
+{
+  "policy": "tier1-equivalence/policies/match_null.aster",
+  "entry": "classify",
+  "cases": [
+    {
+      "name": "5 → some",
+      "input": [
+        5
+      ],
+      "expectedOutput": "some"
+    }
+  ]
+}

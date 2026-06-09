@@ -1,0 +1,27 @@
+{
+  "policy": "tier1-equivalence/policies/int_match_default.aster",
+  "entry": "classifyDefault",
+  "cases": [
+    {
+      "name": "10 → ten",
+      "input": [
+        10
+      ],
+      "expectedOutput": "ten"
+    },
+    {
+      "name": "20 → twenty",
+      "input": [
+        20
+      ],
+      "expectedOutput": "twenty"
+    },
+    {
+      "name": "99 → other:case",
+      "input": [
+        99
+      ],
+      "expectedOutput": "other:case"
+    }
+  ]
+}
