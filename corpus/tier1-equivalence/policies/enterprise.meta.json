@@ -8,5 +8,8 @@
   "source": "aster-lang-test/corpus/tier1-equivalence/policies/enterprise.aster",
   "capabilities": [
     "cases-golden"
-  ]
+  ],
+  "evalExempt": true,
+  "evalExemptReason": "unsupported-syntax",
+  "evalExemptDetail": "positional struct construction `LiquidityAnalysis(…)` (only the `with … set to` form is supported in both engines)"
 }

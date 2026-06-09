@@ -1,0 +1,17 @@
+{
+  "policy": "tier1-equivalence/policies/test-operators.aster",
+  "entry": "testLessOrEqual",
+  "cases": [
+    {
+      "name": "constructs TestResult",
+      "input": [
+        5
+      ],
+      "expectedOutput": {
+        "__type": "TestResult",
+        "value": 5,
+        "message": "greater than 10"
+      }
+    }
+  ]
+}

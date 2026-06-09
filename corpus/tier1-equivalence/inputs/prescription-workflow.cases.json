@@ -1,0 +1,32 @@
+{
+  "policy": "tier1-equivalence/policies/prescription-workflow.aster",
+  "entry": "verify_dosage",
+  "cases": [
+    {
+      "name": "empty dosage fails",
+      "input": [
+        "warfarin",
+        ""
+      ],
+      "expectedOutput": {
+        "__type": "VerificationStep",
+        "step_name": "verify_dosage",
+        "passed": false,
+        "message": "Dosage required"
+      }
+    },
+    {
+      "name": "valid dosage passes",
+      "input": [
+        "warfarin",
+        "5mg"
+      ],
+      "expectedOutput": {
+        "__type": "VerificationStep",
+        "step_name": "verify_dosage",
+        "passed": true,
+        "message": "Dosage verified"
+      }
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "policy": "tier1-equivalence/policies/patient-record.aster",
+  "entry": "verify_consent",
+  "cases": [
+    {
+      "name": "no consent",
+      "input": [
+        {
+          "__type": "AccessRequest",
+          "has_consent": false,
+          "purpose": "billing",
+          "requester_role": "billing"
+        }
+      ],
+      "expectedOutput": {
+        "__type": "ConsentResult",
+        "is_valid": false,
+        "reason": "Patient consent not obtained"
+      }
+    }
+  ]
+}

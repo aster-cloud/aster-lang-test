@@ -5,5 +5,8 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "aster-lang-ts/test/cnl/programs/lambda/lambda_cnl.aster"
+  "source": "aster-lang-ts/test/cnl/programs/lambda/lambda_cnl.aster",
+  "evalExempt": true,
+  "evalExemptReason": "undefined-call",
+  "evalExemptDetail": "calls a function never defined in the module; fails in both engines (parser-only fixture)"
 }

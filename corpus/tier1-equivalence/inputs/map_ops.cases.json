@@ -1,0 +1,28 @@
+{
+  "policy": "tier1-equivalence/policies/map_ops.aster",
+  "entry": "val",
+  "cases": [
+    {
+      "name": "get existing key",
+      "input": [
+        {
+          "a": 1,
+          "b": 2
+        },
+        "b"
+      ],
+      "expectedOutput": 2
+    },
+    {
+      "name": "get a key",
+      "input": [
+        {
+          "a": 1,
+          "b": 2
+        },
+        "a"
+      ],
+      "expectedOutput": 1
+    }
+  ]
+}

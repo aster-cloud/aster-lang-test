@@ -1,0 +1,14 @@
+{
+  "policy": "tier1-equivalence/policies/lambda_cnl_match_maybe__programs-patterns.aster",
+  "entry": "fromMaybe",
+  "cases": [
+    {
+      "name": "non-null value",
+      "input": [
+        7,
+        "fb"
+      ],
+      "expectedOutput": 7
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "policy": "tier1-equivalence/policies/pii_type_in_function.aster",
+  "entry": "process_email",
+  "cases": [
+    {
+      "name": "prepends prefix",
+      "input": [
+        "a@b.com"
+      ],
+      "expectedOutput": "Processed: a@b.com"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "_comment": "Gap-4 lambda batch — unlocked by TS interpreter Closure support (Lambda eval + applyClosure/applyCallable + higher-order List/Maybe/Result stdlib) and positional PatCtor binding. Java already supported lambdas; AsterMapValue now implements Map so optional builtins + matcher accept injected struct/optional inputs.",
+  "samples": [
+    { "name": "lambda_cnl_mixed", "entry": "demo", "cases": [
+      { "name": "closure captures pfx", "input": ["P-"], "expectedOutput": "P-2b" } ] },
+    { "name": "stdlib_collections", "entry": "mapId", "cases": [
+      { "name": "map identity over list", "input": [[1, 2, 3]], "expectedOutput": [1, 2, 3] } ] },
+    { "name": "lambda_cnl_match_bind", "entry": "greetUser", "cases": [
+      { "name": "match User binds name", "input": [{"__type": "User", "id": "u1", "name": "Alice"}, "Hi "], "expectedOutput": "Hi Alice" } ] },
+    { "name": "lambda_cnl_match_maybe", "entry": "fromMaybe", "cases": [
+      { "name": "value -> value", "input": [42, "fb"], "expectedOutput": 42 } ] },
+    { "name": "lambda_cnl_match_result", "entry": "fromResult", "cases": [
+      { "name": "Ok binds value", "input": [{"__type": "Ok", "value": "yes"}], "expectedOutput": "yes" },
+      { "name": "Err binds err", "input": [{"__type": "Err", "value": "bad"}], "expectedOutput": "E:bad" } ] },
+    { "name": "nested_generic_lambda", "entry": "double", "cases": [
+      { "name": "identity then some", "input": [9], "expectedOutput": {"__type": "Some", "value": 9} } ] },
+    { "name": "stdlib_maybe_result", "entry": "mapOk", "cases": [
+      { "name": "mapOk over Ok", "input": [{"__type": "Ok", "value": 7}], "expectedOutput": {"__type": "Ok", "value": 7} } ] }
+  ]
+}

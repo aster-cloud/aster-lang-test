@@ -1,0 +1,22 @@
+{
+  "policy": "tier1-equivalence/policies/lambda_gte_test.aster",
+  "entry": "isAtLeast",
+  "cases": [
+    {
+      "name": "5 >= 3",
+      "input": [
+        5,
+        3
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "2 >= 3",
+      "input": [
+        2,
+        3
+      ],
+      "expectedOutput": false
+    }
+  ]
+}

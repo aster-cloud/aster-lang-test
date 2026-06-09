@@ -1,0 +1,19 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_maybe_result.aster",
+  "entry": "mapOk",
+  "cases": [
+    {
+      "name": "mapOk over Ok",
+      "input": [
+        {
+          "__type": "Ok",
+          "value": 7
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Ok",
+        "value": 7
+      }
+    }
+  ]
+}

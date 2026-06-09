@@ -1,0 +1,11 @@
+{
+  "policy": "tier1-equivalence/policies/pii_type_phone.aster",
+  "entry": "get_phone",
+  "cases": [
+    {
+      "name": "returns phone",
+      "input": [],
+      "expectedOutput": "+1-555-0100"
+    }
+  ]
+}

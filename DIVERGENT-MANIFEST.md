@@ -194,3 +194,16 @@ these (cases NOT written; tracked here):
 | `greet` `User(id,name)` | `"Welcome, {name}"` (literal — no interpolation) | NPE on the struct match | **TS string interpolation**: `"…{name}"` in a Return is not substituted; **Java** NPEs matching a `User(...)` ctor pattern over a `{__type:"User",…}` map input. Both broken. |
 | `incremental` `check` (returns a struct) | `{"__type":"Decision","approved":true,"reason":"OK"}` ✓ | `{"__type":"?","__display":"Decision{…}"}` | **struct serialization parity**: `CoreIrEvalCli.valueToJson` lossy-fallbacks host `AsterDataValue` to a `__display` string instead of a structured object — construct-returning samples can't be golden'd until the CLI serializes data values structurally. |
 | `list_ops` `List.length` | `Undefined function 'List.length'` | `List.length: expected List, got HostObject` | **List/Map stdlib**: TS interpreter lacks the `List.*`/`Map.*` namespace (only `Text.*` added so far); Java's List builtins don't accept a Polyglot HostObject array. Both need work for collection samples. |
+
+### ✅ RESOLVED — collections + higher-order (2026-06-09)
+
+| sample(s) | fix |
+|---|---|
+| `list_ops`, `map_ops` (List.length/get/isEmpty, Map.get) | aster-lang-ts: added the non-lambda `List.*`/`Map.*` stdlib to `evalStdlibCall`. aster-lang-truffle: `Builtins.asList`/`asMap` accept guest `AsterListValue`/`AsterMapValue`; `Map.get` qualified-call no longer dropped (aster-lang-core `AstBuilder` treats `MapIdentExpr` as a type qualifier); CLI injects collection inputs as guest interop values + selects the requested entry function. |
+| `stdlib_collections` (List.map), `stdlib_maybe_result` (Maybe.map/Result.mapOk/tapError), `lambda_cnl_mixed`, `lambda_cnl_match_bind`/`_maybe`/`_result`, `nested_generic_lambda` | aster-lang-ts: full **lambda/closure support** (lexical capture + higher-order `List.map/filter/reduce`, `Maybe.map`, `Result.mapOk/mapErr/tapError`) + **positional `PatCtor` binding** (`Ok(value)`/`Err(err)`/`Some(x)`). aster-lang-truffle: `LambdaRootNode` now adapts its return so entry-as-callable returns of List/Map/Some/Ok cross the host boundary (was `ClassCastException` in `ToHostValueNode`); `AsterMapValue implements Map` so the matcher + every Maybe/Result builtin accept it unchanged. All verified dual-engine identical via `gen-cases.mjs`. |
+
+### ⏳ STILL OPEN (host-null into match)
+
+| sample / case | TS | Java | note |
+|---|---|---|---|
+| `lambda_cnl_match_maybe` `fromMaybe(null, "fb")` | `"fb"` ✓ | `null` | **same root cause as `match_null`**: a host `null` argument passed via `Value.execute(args)` does not reach a `When null` (PatNull) arm as guest null. Here the null flows into a lambda parameter; `PatNullNode`/`bindParameters` are individually correct (`frame.setObject(i, null)`), so the gap is Polyglot host-`null` marshaling at the entry boundary. `fromMaybe` is covered via its non-null case; the null case is excluded pending a host-null fix. |

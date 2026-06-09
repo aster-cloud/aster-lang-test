@@ -1,0 +1,16 @@
+{
+  "policy": "tier1-equivalence/policies/nested_generic_lambda.aster",
+  "entry": "double",
+  "cases": [
+    {
+      "name": "identity then some",
+      "input": [
+        9
+      ],
+      "expectedOutput": {
+        "__type": "Some",
+        "value": 9
+      }
+    }
+  ]
+}
