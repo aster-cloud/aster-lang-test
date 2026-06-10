@@ -27,9 +27,10 @@
  *   node scripts/feature-coverage.mjs --json     # machine-readable JSON (stdout)
  *   node scripts/feature-coverage.mjs --gaps     # only list eval blind spots
  */
-import { readFileSync, writeFileSync, appendFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { upsertDailyHistory } from './lib/history.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -176,11 +177,9 @@ if (HISTORY_FILE) {
   const value = used.filter((r) => r.eval > 0).length; // of those, eval-covered
   const ts = new Date().toISOString();
   const rate = total > 0 ? value / total : 0;
-  if (!existsSync(HISTORY_FILE)) {
-    writeFileSync(HISTORY_FILE, 'timestamp,total,value,rate\n');
-  }
-  appendFileSync(HISTORY_FILE, `${ts},${total},${value},${rate.toFixed(4)}\n`);
-  process.stderr.write(`[feature-coverage] appended history → ${HISTORY_FILE} (${value}/${total})\n`);
+  // Per-day upsert: one row per UTC day (last run wins).
+  upsertDailyHistory(HISTORY_FILE, 'timestamp,total,value,rate', `${ts},${total},${value},${rate.toFixed(4)}`);
+  process.stderr.write(`[feature-coverage] recorded history → ${HISTORY_FILE} (${value}/${total})\n`);
 }
 
 // ---------------------------------------------------------------------------

@@ -39,10 +39,11 @@
  *   parity-tier1-report.json — machine-readable detail (per-sample verdict)
  */
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync, appendFileSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { upsertDailyHistory } from './lib/history.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -72,11 +73,13 @@ function appendHistory(mode, total, identical, divergent) {
   if (!HISTORY_FILE) return;
   const rate = total === 0 ? 0 : identical / total;
   const ts = new Date().toISOString();
-  if (!existsSync(HISTORY_FILE)) {
-    writeFileSync(HISTORY_FILE, 'timestamp,total,identical,divergent,rate\n');
-  }
-  appendFileSync(HISTORY_FILE, `${ts},${total},${identical},${divergent},${rate.toFixed(4)}\n`);
-  console.error(`[parity-tier1] appended ${mode} history → ${HISTORY_FILE} (${identical}/${total})`);
+  // Per-day upsert: at most one row per UTC day (last run of the day wins).
+  upsertDailyHistory(
+    HISTORY_FILE,
+    'timestamp,total,identical,divergent,rate',
+    `${ts},${total},${identical},${divergent},${rate.toFixed(4)}`,
+  );
+  console.error(`[parity-tier1] recorded ${mode} history → ${HISTORY_FILE} (${identical}/${total})`);
 }
 
 function fail(msg, code = 2) {
