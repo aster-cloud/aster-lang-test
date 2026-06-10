@@ -60,7 +60,7 @@ const FEATURES = [
   ['decl', 'Data type (Define … has)',  (s) => /\bDefine\s+[A-Z]\w*\s+has\b/.test(s)],
   ['decl', 'Enum (Define … as one of)', (s) => /\bDefine\s+[A-Z]\w*\s+as one of\b/.test(s)],
   ['decl', 'Type alias (type … as)',    (s) => /^\s*type\s+\w+\s+as\b/mi.test(s)],
-  ['decl', 'Cross-module import (Use)', (s) => /^\s*Use\b/m.test(s)],
+  ['decl', 'Cross-module import (Use)', (s) => /^\s*Use\b/m.test(s), 'effect-import'],
   ['decl', 'Parameters (given)',        (s) => /\bgiven\b/.test(s)],
   ['decl', 'Typed parameter (… as T)',  (s) => /\bgiven\b.*\bas\s+[A-Z]\w*/.test(s)],
   ['decl', 'Declared return type',      (s) => /\bproduce\s+[A-Z]\w*\s*:/.test(s)],
@@ -75,8 +75,8 @@ const FEATURES = [
   ['stmt', 'Match When arm',            (s) => /^\s*When\b/m.test(s)],
   ['stmt', 'Match When null',           (s) => /\bWhen\s+null\b/.test(s)],
   ['stmt', 'Match ctor pattern',        (s) => /\bWhen\s+[A-Z]\w*\s*\(/.test(s)],
-  ['stmt', 'Workflow Start',            (s) => /^\s*Start\b/m.test(s)],
-  ['stmt', 'Workflow Wait',             (s) => /^\s*Wait\b/m.test(s)],
+  ['stmt', 'Workflow Start',            (s) => /^\s*Start\b/m.test(s), 'workflow-async'],
+  ['stmt', 'Workflow Wait',             (s) => /^\s*Wait\b/m.test(s), 'workflow-async'],
 
   // --- expressions ---
   ['expr', 'Field access (a.b)',        (s) => /\b[a-z]\w*\.[a-z]\w*\b/.test(s)],
@@ -115,12 +115,12 @@ const FEATURES = [
   ['stdlib', 'higher-order (map/filter/reduce)', (s) => /\b(List\.(map|filter|reduce)|Maybe\.map|Result\.map\w*)\b/.test(s)],
 
   // --- effects / annotations ---
-  ['adv', 'Effect declaration (It performs)', (s) => /\bIt performs\b/.test(s)],
+  ['adv', 'Effect declaration (It performs)', (s) => /\bIt performs\b/.test(s), 'effect-decl'],
   ['adv', 'Capability (requires)',      (s) => /\brequires\b/.test(s)],
   ['adv', '@pii annotation',            (s) => /@pii\b/.test(s)],
   ['adv', '@entry annotation',          (s) => /@entry\b/.test(s)],
   ['adv', '@example annotation',        (s) => /@example\b/.test(s)],
-  ['adv', '@cpu annotation',            (s) => /@cpu\b/.test(s)],
+  ['adv', '@cpu annotation',            (s) => /@cpu\b/.test(s), 'annotation-only'],
 ];
 
 const GROUP_LABELS = {
@@ -155,7 +155,7 @@ for (const name of allSamples) {
 // ---------------------------------------------------------------------------
 // Compute per-feature coverage.
 // ---------------------------------------------------------------------------
-const rows = FEATURES.map(([group, label, test]) => {
+const rows = FEATURES.map(([group, label, test, exempt]) => {
   let declared = 0;
   let parse = 0;
   let evald = 0;
@@ -165,16 +165,24 @@ const rows = FEATURES.map(([group, label, test]) => {
     if (manifestSet.has(name)) parse++;
     if (evalSet.has(name)) evald++;
   }
-  return { group, label, declared, parse, eval: evald };
+  // A feature is eval-exempt when it cannot, by design, have a deterministic
+  // dual-engine eval golden — workflow features are async, `It performs`/Use
+  // are effect declarations needing real IO, annotations carry no runtime
+  // semantics. These are excluded from the eval-coverage denominator (the same
+  // honesty boundary tag-eval-exempt applies at the sample level), so the rate
+  // reflects only features that *can* be executed dual-engine.
+  return { group, label, declared, parse, eval: evald, exempt: exempt ?? null };
 });
 
 const used = rows.filter((r) => r.declared > 0);
 const unused = rows.filter((r) => r.declared === 0); // declared-but-absent = a gap in the corpus itself
-const evalGaps = used.filter((r) => r.eval === 0);    // exercised but never executed dual-engine
+const evalable = used.filter((r) => !r.exempt);      // present AND eval-able (denominator)
+const exemptUsed = used.filter((r) => r.exempt);     // present but eval-exempt by design
+const evalGaps = evalable.filter((r) => r.eval === 0); // eval-able but never executed dual-engine
 
 if (HISTORY_FILE) {
-  const total = used.length;                          // features present in corpus
-  const value = used.filter((r) => r.eval > 0).length; // of those, eval-covered
+  const total = evalable.length;                         // eval-able features present in corpus
+  const value = evalable.filter((r) => r.eval > 0).length; // of those, eval-covered
   const ts = new Date().toISOString();
   const rate = total > 0 ? value / total : 0;
   // Per-day upsert: one row per UTC day (last run wins).
@@ -191,11 +199,14 @@ if (JSON_OUT) {
     totals: {
       features: FEATURES.length,
       declared: used.length,
+      evalable: evalable.length,        // present AND eval-able (the denominator)
+      evalCovered: evalable.filter((r) => r.eval > 0).length,
+      exempt: exemptUsed.length,        // present but eval-exempt by design
       parseCovered: used.filter((r) => r.parse > 0).length,
-      evalCovered: used.filter((r) => r.eval > 0).length,
     },
     features: rows,
     notInCorpus: unused.map((r) => r.label),
+    evalExempt: exemptUsed.map((r) => ({ label: r.label, reason: r.exempt })),
     evalBlindSpots: evalGaps.map((r) => r.label),
   }, null, 2) + '\n');
   process.exit(0);
@@ -220,12 +231,16 @@ if (GAPS_ONLY) {
 
 // Full report.
 const pad = (s, n) => String(s).padEnd(n);
+const evalCovered = evalable.filter((r) => r.eval > 0).length;
+const pct = evalable.length > 0 ? ((evalCovered / evalable.length) * 100).toFixed(1) : '0.0';
 console.log('# tier1 feature-coverage report\n');
 console.log(`- features tracked:   ${FEATURES.length}`);
 console.log(`- present in corpus:  ${used.length}`);
-console.log(`- parse-covered:      ${used.filter((r) => r.parse > 0).length}`);
-console.log(`- eval-covered:       ${used.filter((r) => r.eval > 0).length}`);
+console.log(`- eval-able:          ${evalable.length}  (present − by-design exempt)`);
+console.log(`- eval-covered:       ${evalCovered}/${evalable.length} = ${pct}%`);
+console.log(`- eval-exempt:        ${exemptUsed.length}  (workflow/effect/annotation — no deterministic dual-engine golden)`);
 console.log(`- eval blind spots:   ${evalGaps.length}`);
+console.log(`- parse-covered:      ${used.filter((r) => r.parse > 0).length}`);
 console.log(`- absent from corpus: ${unused.length}\n`);
 
 let lastGroup = null;
@@ -237,6 +252,7 @@ for (const r of rows) {
     lastGroup = r.group;
   }
   const depth = r.declared === 0 ? '— absent'
+    : r.exempt ? `⊘ exempt (${r.exempt})`
     : r.eval > 0 ? '✅ eval'
     : r.parse > 0 ? '⚠️ parse-only'
     : '🟡 declared-only';
