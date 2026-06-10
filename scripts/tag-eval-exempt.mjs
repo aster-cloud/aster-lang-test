@@ -16,8 +16,9 @@
  *   node scripts/tag-eval-exempt.mjs            # report coverage only (dry)
  *   node scripts/tag-eval-exempt.mjs --write    # write evalExempt into meta.json
  */
-import { readFileSync, writeFileSync, appendFileSync, readdirSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
+import { upsertDailyHistory } from './lib/history.mjs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -167,9 +168,7 @@ else console.log('\n(dry run — pass --write to tag meta.json)');
 if (HISTORY_FILE) {
   const ts = new Date().toISOString();
   const rate = evalable > 0 ? covered / evalable : 0;
-  if (!existsSync(HISTORY_FILE)) {
-    writeFileSync(HISTORY_FILE, 'timestamp,total,value,rate\n');
-  }
-  appendFileSync(HISTORY_FILE, `${ts},${evalable},${covered},${rate.toFixed(4)}\n`);
-  console.error(`[tag-eval-exempt] appended coverage history → ${HISTORY_FILE} (${covered}/${evalable})`);
+  // Per-day upsert: one row per UTC day (last run wins).
+  upsertDailyHistory(HISTORY_FILE, 'timestamp,total,value,rate', `${ts},${evalable},${covered},${rate.toFixed(4)}`);
+  console.error(`[tag-eval-exempt] recorded coverage history → ${HISTORY_FILE} (${covered}/${evalable})`);
 }
