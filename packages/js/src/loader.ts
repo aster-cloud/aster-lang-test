@@ -36,7 +36,7 @@ function resolveCorpusRoot(): string {
 
 export const CORPUS_ROOT = resolveCorpusRoot();
 
-export type Tier = 1 | 2 | 3;
+export type Tier = 1 | 2 | 3 | 4;
 
 export interface SampleMeta {
   tier: Tier;

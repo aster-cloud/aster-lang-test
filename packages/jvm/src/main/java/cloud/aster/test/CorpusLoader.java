@@ -43,8 +43,8 @@ public final class CorpusLoader {
 
     private CorpusLoader() {}
 
-    /** Tier 1 / 2 / 3. */
-    public enum Tier { TIER1, TIER2, TIER3 }
+    /** Tier 1 / 2 / 3 / 4. */
+    public enum Tier { TIER1, TIER2, TIER3, TIER4 }
 
     public static final class Sample {
         /** Resource path, e.g. "corpus/tier1-equivalence/policies/01-arithmetic-add.aster". */
@@ -135,6 +135,7 @@ public final class CorpusLoader {
             case TIER1: return 1;
             case TIER2: return 2;
             case TIER3: return 3;
+            case TIER4: return 4;
         }
         throw new IllegalStateException("unreachable");
     }

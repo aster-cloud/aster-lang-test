@@ -1,5 +1,17 @@
 # Equivalence Divergent Manifest
 
+> **Authoritative parity (note added 2026-06-16).** The current source of truth
+> for the live parse-equivalence rate is the **latest row of
+> `equivalence-history.csv`** (2026-06-16: **208 total / 208 equivalent / 0
+> divergent = 1.0000**). The static `equivalence-report.json` snapshot
+> (197 total / 183 equivalent / 14 divergent) and the per-case tables below
+> reflect the **2026-05-21 baseline** and are NOT regenerated on every change —
+> `equivalence-report.json` (and the appended CSV trend row) are produced by the
+> nightly job `.github/workflows/nightly-equivalence.yml`
+> (`scripts/equivalence-nightly.mjs`). Treat the historical counts in this file
+> and in `corpus/tier1-parity/manifest.json`'s `basedOnEquivalenceReport`
+> field as dated baselines, not current numbers.
+
 Generated against `equivalence-report.json` (baseline 2026-05-21: 184/198 = 92.93%).
 
 ⚠️ **Scope**: The current runner (`scripts/equivalence-nightly.mjs`) is a
