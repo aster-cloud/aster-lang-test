@@ -130,7 +130,9 @@ async function main() {
   if (LOCALE === 'en') {
     for (const f of walk(DEV_DOCS, ['.md'])) {
       const rel = relative(DEV_DOCS, f);
-      if (rel.startsWith('zh/') || rel.startsWith('de/')) continue;
+      // 非英文镜像（zh/de/hi）在 en-locale 运行中跳过——它们用各自的 lexicon，
+      // 由 dev 仓自己的 check:examples（按 docs/<locale> 选 lexicon）覆盖。
+      if (rel.startsWith('zh/') || rel.startsWith('de/') || rel.startsWith('hi/')) continue;
       files.push(f);
     }
     for (const f of walk(CLOUD_DOCS, ['.mdx'])) {
