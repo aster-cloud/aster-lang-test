@@ -11,8 +11,17 @@
 > (`scripts/equivalence-nightly.mjs`). Treat the historical counts in this file
 > and in `corpus/tier1-parity/manifest.json`'s `basedOnEquivalenceReport`
 > field as dated baselines, not current numbers.
+>
+> **Freshness guard.** `scripts/check-equivalence-freshness.mjs` (npm:
+> `check:equivalence-freshness`, wired PR-blocking in `ci.yml`) keeps these
+> artifacts honest: it fails CI if `equivalence-report.json` is internally
+> inconsistent, if its totals match no real row in `equivalence-history.csv`
+> (i.e. were hand-edited), or if `corpus/tier1-parity/manifest.json`'s cited
+> baseline disagrees with the report. The nightly job runs it with
+> `--require-fresh` after regenerating the report.
 
-Generated against `equivalence-report.json` (baseline 2026-05-21: 184/198 = 92.93%).
+Generated against `equivalence-report.json` (dated baseline, history row
+2026-05-13: 183/197 = 92.93%).
 
 ⚠️ **Scope**: The current runner (`scripts/equivalence-nightly.mjs`) is a
 **parse-equivalence** check only — it compares whether each engine ACCEPTS

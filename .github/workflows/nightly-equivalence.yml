@@ -109,6 +109,14 @@ jobs:
         working-directory: aster-lang-test
         run: node scripts/equivalence-nightly.mjs | tee equivalence-report.md
 
+      # #30: after regenerating equivalence-report.json + appending the history
+      # row, hold the freshly-written snapshot to exact-match-latest. The nightly
+      # is the one place that can legitimately produce the latest report, so it
+      # gates with --require-fresh (CI PR gate only runs the always-on checks).
+      - name: Verify equivalence-report freshness
+        working-directory: aster-lang-test
+        run: node scripts/check-equivalence-freshness.mjs --require-fresh
+
       # Phase C：eval-parity 趋势（eval-history.csv）。--history 追加一行
       # timestamp,total,identical,divergent,rate。report-only 不让分歧让 nightly 失败
       # （趋势记录优先），真实 PR-blocking 在 aster-lang-test/aster-lang-core CI。
@@ -163,7 +171,11 @@ jobs:
           GIT_COMMITTER_NAME: aster-bot
           GIT_COMMITTER_EMAIL: bot@aster-lang.cloud
         run: |
-          HIST_FILES="equivalence-history.csv eval-history.csv ir-history.csv eval-coverage-history.csv feature-coverage-history.csv"
+          # #30: also commit the regenerated equivalence-report.json so the
+          # committed snapshot tracks the latest nightly (its summary.basedOnHistory
+          # points at the row appended this run). Keeps the report from going stale
+          # relative to the CSV, which is exactly what the freshness guard enforces.
+          HIST_FILES="equivalence-history.csv eval-history.csv ir-history.csv eval-coverage-history.csv feature-coverage-history.csv equivalence-report.json"
           if git diff --quiet $HIST_FILES; then
             echo "history unchanged, nothing to commit"
             exit 0

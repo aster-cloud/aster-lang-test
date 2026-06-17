@@ -159,6 +159,7 @@ function appendHistory(s) {
     writeFileSync(HISTORY_FILE, 'timestamp,total,equivalent,divergent,rate\n');
   }
   appendFileSync(HISTORY_FILE, line);
+  return ts;
 }
 
 function printMarkdown(s, rows) {
@@ -207,8 +208,13 @@ async function main() {
   const rows = classify(tsRes, javaRes, samples);
   const s = summarise(rows);
 
-  writeFileSync(REPORT_FILE, JSON.stringify({ summary: s, rows }, null, 2));
-  appendHistory(s);
+  // Append the history row first so we can stamp the report's summary with the
+  // exact timestamp of the row it corresponds to. This lets
+  // scripts/check-equivalence-freshness.mjs verify (with --require-fresh) that
+  // the committed snapshot is a real, latest nightly result and not hand-edited.
+  const historyTs = appendHistory(s);
+  const summary = { ...s, basedOnHistory: historyTs };
+  writeFileSync(REPORT_FILE, JSON.stringify({ summary, rows }, null, 2));
   printMarkdown(s, rows);
 
   const baseline = readLastBaseline();
