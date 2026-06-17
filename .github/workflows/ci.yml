@@ -26,6 +26,15 @@ jobs:
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
       - run: pnpm test
+      # #30: guard the equivalence parity artifacts against silent staleness.
+      # Blocking (checks 1–4): fails if equivalence-report.json is internally
+      # inconsistent, cites totals that match no real equivalence-history.csv
+      # row (hand-edited), or disagrees with corpus/tier1-parity/manifest.json.
+      # Calendar freshness vs the latest nightly is OFF here by design (the
+      # report is a dated snapshot regenerated only by the nightly job, which
+      # runs this script with --require-fresh).
+      - name: Guard equivalence-report freshness
+        run: pnpm run check:equivalence-freshness
 
   build-jvm:
     name: Build & test (JDK)

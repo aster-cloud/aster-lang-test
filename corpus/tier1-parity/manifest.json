@@ -2,7 +2,13 @@
   "$schema": "https://json-schema.org/draft-07/schema#",
   "version": 1,
   "description": "Strict bidirectional parity subset. PR-blocking.",
-  "basedOnEquivalenceReport": "2026-05-21 (197 samples / 184 equivalent)",
+  "basedOnEquivalence": {
+    "history": "2026-05-13T08:19:05.798Z",
+    "total": 197,
+    "equivalent": 183,
+    "divergent": 14,
+    "_comment": "Dated baseline matching equivalence-report.json (summary.basedOnHistory). Kept consistent by scripts/check-equivalence-freshness.mjs. The live rate is the latest row of equivalence-history.csv."
+  },
   "samples": [
     "tier1-equivalence/policies/01-arithmetic-add.aster",
     "tier1-equivalence/policies/02-arithmetic-precedence.aster",

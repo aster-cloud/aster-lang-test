@@ -4,7 +4,9 @@
     "equivalent": 183,
     "divergent": 14,
     "bothFail": 0,
-    "rate": 0.9289340101522843
+    "rate": 0.9289340101522843,
+    "basedOnHistory": "2026-05-13T08:19:05.798Z",
+    "note": "Dated parse-equivalence snapshot. basedOnHistory points at the equivalence-history.csv row this matches. The LATEST live rate is the last row of equivalence-history.csv (the nightly source of truth). Regenerated only by scripts/equivalence-nightly.mjs; verified by scripts/check-equivalence-freshness.mjs."
   },
   "rows": [
     {
