@@ -1,0 +1,6 @@
+Module dual.engine.inline.if.
+
+Rule classify given amount:
+  if amount is greater than 10000 then return "large"
+  else if amount is greater than 1000 then return "medium"
+  else return "small".
