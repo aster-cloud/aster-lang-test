@@ -1,0 +1,4 @@
+Module dual.engine.implicit.returntype.
+
+Rule add given x, y:
+  Return x plus y.
