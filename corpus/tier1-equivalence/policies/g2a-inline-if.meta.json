@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0019 G2a: 语句级内联 if（if cond then return X else if ... else return Z）。core + ts 双引擎都新增内联 if 解析，降级为与块式 if 相同的 If 节点（单语句 return 包成 Block，else-if 链右递归成嵌套 If）。文档大量使用此写法。双引擎 parse+ir+eval parity 锁定。",
+  "capabilities": [
+    "cases-golden"
+  ]
+}
