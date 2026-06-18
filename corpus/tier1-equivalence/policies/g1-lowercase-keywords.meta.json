@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0019 G1: 结构关键词大小写不敏感（小写 define/rule/let/if/return）。core 经 lexer 逐字母字符集改造后与 TS 引擎对齐；双引擎 parse-parity 锁定。仅用两引擎都接受的构造（if 无 else），避开 TS 暂不支持的 else 块（属 G2）。",
+  "capabilities": [
+    "cases-golden"
+  ]
+}
