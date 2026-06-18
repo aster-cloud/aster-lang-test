@@ -1,0 +1,9 @@
+Module dual.engine.lowercase.keywords.
+
+define Tier as one of Gold, Silver.
+
+rule classify given score:
+  let threshold be 700.
+  if score is greater than threshold:
+    return Gold.
+  return Silver.

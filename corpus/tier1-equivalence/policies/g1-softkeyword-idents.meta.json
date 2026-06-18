@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0019 G1 回归守卫（Codex 审查发现）：结构关键词改大小写不敏感后，其小写形式仍须能作普通标识符（参数名 let/match、let 变量名 when、模块路径段 let）——与改动前小写词是 IDENT 的行为及 TS 上下文关键字模型一致。core 经 structKeywordName 软关键字放行后双引擎 parse-parity 锁定。",
+  "capabilities": [
+    "cases-golden"
+  ]
+}
