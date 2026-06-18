@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0019 G0: produce 子句完全省略（Rule add given x, y: 无 produce），双引擎 parse-parity 锁定。core 本已支持，TS 经 G0 修复后对齐。",
+  "capabilities": [
+    "cases-golden"
+  ]
+}
