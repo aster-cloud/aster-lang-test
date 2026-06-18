@@ -1,0 +1,5 @@
+Module dual.engine.softkeyword.idents.
+
+rule pick given let, match:
+  let when be let.
+  return when.
