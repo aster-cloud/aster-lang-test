@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0019 G2b: 表达式级 if（return if c then a else b、let x be if c then a else b、嵌套 else-if 链、作子表达式）。core + truffle + ts 三引擎新增 Core IR IfExpr 节点（非 IIFE 降糖）；锚在 expr 顶层不进运算符优先级链，else 必需。双引擎 parse+ir+eval parity 锁定。",
+  "capabilities": [
+    "cases-golden"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "policy": "tier1-equivalence/policies/g2b-if-expression.aster",
+  "entry": "classify",
+  "cases": [
+    {
+      "name": "large branch (then)",
+      "input": [50000],
+      "expectedOutput": "large"
+    },
+    {
+      "name": "medium branch (else-if then)",
+      "input": [5000],
+      "expectedOutput": "medium"
+    },
+    {
+      "name": "small branch (final else)",
+      "input": [100],
+      "expectedOutput": "small"
+    },
+    {
+      "name": "boundary at 10000 (not greater → medium)",
+      "input": [10000],
+      "expectedOutput": "medium"
+    },
+    {
+      "name": "boundary at 1000 (not greater → small)",
+      "input": [1000],
+      "expectedOutput": "small"
+    }
+  ]
+}
