@@ -221,6 +221,7 @@
     "tier1-equivalence/policies/g0-omit-produce.aster",
     "tier1-equivalence/policies/g1-lowercase-keywords.aster",
     "tier1-equivalence/policies/g1-softkeyword-idents.aster",
-    "tier1-equivalence/policies/g2a-inline-if.aster"
+    "tier1-equivalence/policies/g2a-inline-if.aster",
+    "tier1-equivalence/policies/g2b-if-expression.aster"
   ]
 }

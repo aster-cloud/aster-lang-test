@@ -1,0 +1,8 @@
+Module dual.engine.if.expression.
+
+Rule classify given amount, produce:
+  Return if amount greater than 10000 then "large" else if amount greater than 1000 then "medium" else "small".
+
+Rule gradeWithLet given score, produce:
+  Let tier be if score greater than 90 then "A" else if score greater than 70 then "B" else "C".
+  Return tier.
