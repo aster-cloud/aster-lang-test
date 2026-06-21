@@ -8,4 +8,4 @@ Rule fetchDashboard given u, produce. It performs io:
   Start profile as async ProfileSvc.load(u.id).
   Start timeline as async FeedSvc.timeline(u.id).
   Wait for profile and timeline.
-  Return ok of Dash(profile, timeline).
+  Return ok of Dash with profile set to profile and timeline set to timeline.

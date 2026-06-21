@@ -22,21 +22,21 @@ Rule assessCredit given profile, produce:
   Let utilizationRatio be profile.creditUtilization.
   Let negativeMarks be (profile.latePayments plus (profile.defaults times 3)) plus (profile.bankruptcies times 5).
   If profile.creditScore at least 750
-    Return CreditAssessment("EXCELLENT", "STRONG", utilizationRatio, negativeMarks, "LOW", 50000).
+    Return CreditAssessment with scoreGrade set to "EXCELLENT" and historyGrade set to "STRONG" and utilizationRatio set to utilizationRatio and negativeMarks set to negativeMarks and riskIndicator set to "LOW" and maxLoanAmount set to 50000.
   If profile.creditScore at least 700
-    Return CreditAssessment("GOOD", "SOLID", utilizationRatio, negativeMarks, "LOW", 30000).
+    Return CreditAssessment with scoreGrade set to "GOOD" and historyGrade set to "SOLID" and utilizationRatio set to utilizationRatio and negativeMarks set to negativeMarks and riskIndicator set to "LOW" and maxLoanAmount set to 30000.
   If profile.creditScore at least 650
-    Return CreditAssessment("FAIR", "ADEQUATE", utilizationRatio, negativeMarks, "MEDIUM", 20000).
-  Return CreditAssessment("POOR", "LIMITED", utilizationRatio, negativeMarks, "HIGH", 10000).
+    Return CreditAssessment with scoreGrade set to "FAIR" and historyGrade set to "ADEQUATE" and utilizationRatio set to utilizationRatio and negativeMarks set to negativeMarks and riskIndicator set to "MEDIUM" and maxLoanAmount set to 20000.
+  Return CreditAssessment with scoreGrade set to "POOR" and historyGrade set to "LIMITED" and utilizationRatio set to utilizationRatio and negativeMarks set to negativeMarks and riskIndicator set to "HIGH" and maxLoanAmount set to 10000.
 
 Rule assessIncome given personal, income, produce:
   Let totalIncome be income.monthlyIncome plus income.additionalIncome plus income.spouseIncome plus income.rentIncome.
   Let loanCapacity be totalIncome times 6.
   If income.incomeStability equals to "PERMANENT"
-    Return IncomeAssessment(totalIncome, "GOOD", "ADEQUATE", loanCapacity).
+    Return IncomeAssessment with totalMonthlyIncome set to totalIncome and stabilityGrade set to "GOOD" and adequacy set to "ADEQUATE" and loanCapacity set to loanCapacity.
   If totalIncome at least 3000
-    Return IncomeAssessment(totalIncome, "FAIR", "LOW", loanCapacity).
-  Return IncomeAssessment(totalIncome, "POOR", "VERY_LOW", 0).
+    Return IncomeAssessment with totalMonthlyIncome set to totalIncome and stabilityGrade set to "FAIR" and adequacy set to "LOW" and loanCapacity set to loanCapacity.
+  Return IncomeAssessment with totalMonthlyIncome set to totalIncome and stabilityGrade set to "POOR" and adequacy set to "VERY_LOW" and loanCapacity set to 0.
 
 Rule assessAffordability given income, debt, request, produce:
   Let totalIncome be income.monthlyIncome plus income.additionalIncome plus income.spouseIncome plus income.rentIncome.
@@ -47,10 +47,10 @@ Rule assessAffordability given income, debt, request, produce:
   Let residual be totalIncome minus totalDebtWithLoan.
   Let maxPayment be (totalIncome times 30) divided by 100.
   If dtiWithLoan at most 36
-    Return AffordabilityAnalysis(dtiWithLoan, residual, "EXCELLENT", maxPayment).
+    Return AffordabilityAnalysis with debtToIncomeRatio set to dtiWithLoan and residualIncome set to residual and affordabilityGrade set to "EXCELLENT" and maxMonthlyPayment set to maxPayment.
   If dtiWithLoan at most 43
-    Return AffordabilityAnalysis(dtiWithLoan, residual, "FAIR", maxPayment).
-  Return AffordabilityAnalysis(dtiWithLoan, residual, "POOR", maxPayment).
+    Return AffordabilityAnalysis with debtToIncomeRatio set to dtiWithLoan and residualIncome set to residual and affordabilityGrade set to "FAIR" and maxMonthlyPayment set to maxPayment.
+  Return AffordabilityAnalysis with debtToIncomeRatio set to dtiWithLoan and residualIncome set to residual and affordabilityGrade set to "POOR" and maxMonthlyPayment set to maxPayment.
 
 Rule calculateStabilityScore given personal, income, produce:
   Let score be 0.
@@ -85,7 +85,7 @@ Rule calculatePurposeAdjustment given purpose, produce:
 
 Rule evaluatePersonalLoan given personal, income, credit, debt, request, produce:
   If credit.bankruptcies greater than 0
-    Return LoanDecision(false, 0, 0, 0, 0, 0, "Declined", "HIGH_RISK", 0, "BANKRUPTCY_HISTORY", "Previous bankruptcy on record").
+    Return LoanDecision with approved set to false and approvedAmount set to 0 and interestRateBps set to 0 and termMonths set to 0 and monthlyPayment set to 0 and downPaymentRequired set to 0 and conditions set to "Declined" and riskLevel set to "HIGH_RISK" and decisionScore set to 0 and reasonCode set to "BANKRUPTCY_HISTORY" and recommendations set to "Previous bankruptcy on record".
   Let creditAssessment be assessCredit(credit).
   Let incomeAssessment be assessIncome(personal, income).
   Let affordabilityAnalysis be assessAffordability(income, debt, request).
@@ -109,5 +109,5 @@ Rule evaluatePersonalLoan given personal, income, credit, debt, request, produce
     Let rate be 550.
     Let payment be (approvedAmt times rate) divided by 100000.
     Let downPmt be 0.
-    Return LoanDecision(true, approvedAmt, rate, request.termMonths, payment, downPmt, "Approved", "MODERATE", adjustedScore, "APPROVED_STANDARD", "Standard terms").
-  Return LoanDecision(false, 0, 0, 0, 0, request.requestedAmount, "Declined", "HIGH_RISK", adjustedScore, "DECLINED_RISK", "Insufficient score").
+    Return LoanDecision with approved set to true and approvedAmount set to approvedAmt and interestRateBps set to rate and termMonths set to request.termMonths and monthlyPayment set to payment and downPaymentRequired set to downPmt and conditions set to "Approved" and riskLevel set to "MODERATE" and decisionScore set to adjustedScore and reasonCode set to "APPROVED_STANDARD" and recommendations set to "Standard terms".
+  Return LoanDecision with approved set to false and approvedAmount set to 0 and interestRateBps set to 0 and termMonths set to 0 and monthlyPayment set to 0 and downPaymentRequired set to request.requestedAmount and conditions set to "Declined" and riskLevel set to "HIGH_RISK" and decisionScore set to adjustedScore and reasonCode set to "DECLINED_RISK" and recommendations set to "Insufficient score".
