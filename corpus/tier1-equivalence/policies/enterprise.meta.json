@@ -10,6 +10,6 @@
     "cases-golden"
   ],
   "evalExempt": true,
-  "evalExemptReason": "unsupported-syntax",
-  "evalExemptDetail": "positional struct construction `LiquidityAnalysis(…)` (only the `with … set to` form is supported in both engines)"
+  "evalExemptReason": "not-yet-eval-verified",
+  "evalExemptDetail": "named-field struct construction now valid in both engines; eval-parity not yet promoted (was: positional construction unsupported)"
 }

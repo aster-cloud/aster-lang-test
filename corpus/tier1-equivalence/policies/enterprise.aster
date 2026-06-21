@@ -20,26 +20,26 @@ Rule assessLiquidity given position, produce:
   Let currentRatio be (position.currentAssets times 100) divided by position.currentLiabilities.
   Let quickRatio be (position.currentAssets times 100) divided by position.currentLiabilities.
   If currentRatio at least 200
-    Return LiquidityAnalysis(currentRatio, quickRatio, true, "Excellent liquidity").
+    Return LiquidityAnalysis with currentRatio set to currentRatio and quickRatio set to quickRatio and isHealthy set to true and recommendation set to "Excellent liquidity".
   If currentRatio at least 150
-    Return LiquidityAnalysis(currentRatio, quickRatio, true, "Good liquidity").
+    Return LiquidityAnalysis with currentRatio set to currentRatio and quickRatio set to quickRatio and isHealthy set to true and recommendation set to "Good liquidity".
   If currentRatio at least 100
-    Return LiquidityAnalysis(currentRatio, quickRatio, true, "Adequate liquidity").
-  Return LiquidityAnalysis(currentRatio, quickRatio, false, "Poor liquidity").
+    Return LiquidityAnalysis with currentRatio set to currentRatio and quickRatio set to quickRatio and isHealthy set to true and recommendation set to "Adequate liquidity".
+  Return LiquidityAnalysis with currentRatio set to currentRatio and quickRatio set to quickRatio and isHealthy set to false and recommendation set to "Poor liquidity".
 
 Rule assessLeverage given position, produce:
   If position.equity equals to 0
-    Return LeverageAnalysis(0, 0, "CRITICAL", 0).
+    Return LeverageAnalysis with debtToEquity set to 0 and debtToAssets set to 0 and riskLevel set to "CRITICAL" and maxLoanCapacity set to 0.
   Let debtToEquity be (position.totalLiabilities times 100) divided by position.equity.
   Let debtToAssets be (position.totalLiabilities times 100) divided by position.totalAssets.
   Let baseCapacity be position.equity times 3.
   If debtToEquity at most 100
-    Return LeverageAnalysis(debtToEquity, debtToAssets, "LOW", baseCapacity).
+    Return LeverageAnalysis with debtToEquity set to debtToEquity and debtToAssets set to debtToAssets and riskLevel set to "LOW" and maxLoanCapacity set to baseCapacity.
   If debtToEquity at most 200
-    Return LeverageAnalysis(debtToEquity, debtToAssets, "MEDIUM", baseCapacity).
+    Return LeverageAnalysis with debtToEquity set to debtToEquity and debtToAssets set to debtToAssets and riskLevel set to "MEDIUM" and maxLoanCapacity set to baseCapacity.
   If debtToEquity at most 300
-    Return LeverageAnalysis(debtToEquity, debtToAssets, "HIGH", baseCapacity).
-  Return LeverageAnalysis(debtToEquity, debtToAssets, "CRITICAL", 0).
+    Return LeverageAnalysis with debtToEquity set to debtToEquity and debtToAssets set to debtToAssets and riskLevel set to "HIGH" and maxLoanCapacity set to baseCapacity.
+  Return LeverageAnalysis with debtToEquity set to debtToEquity and debtToAssets set to debtToAssets and riskLevel set to "CRITICAL" and maxLoanCapacity set to 0.
 
 Rule assessProfitability given enterprise, position, produce:
   Let returnOnAssets be enterprise.profitMargin.
@@ -47,12 +47,12 @@ Rule assessProfitability given enterprise, position, produce:
   Let annualCashFlow be position.cashFlow times 12.
   Let repaymentCapacity be annualCashFlow times 3.
   If returnOnAssets at least 15
-    Return ProfitabilityAnalysis(returnOnAssets, returnOnEquity, "EXCELLENT", repaymentCapacity).
+    Return ProfitabilityAnalysis with returnOnAssets set to returnOnAssets and returnOnEquity set to returnOnEquity and profitabilityGrade set to "EXCELLENT" and repaymentCapacity set to repaymentCapacity.
   If returnOnAssets at least 10
-    Return ProfitabilityAnalysis(returnOnAssets, returnOnEquity, "GOOD", repaymentCapacity).
+    Return ProfitabilityAnalysis with returnOnAssets set to returnOnAssets and returnOnEquity set to returnOnEquity and profitabilityGrade set to "GOOD" and repaymentCapacity set to repaymentCapacity.
   If returnOnAssets at least 5
-    Return ProfitabilityAnalysis(returnOnAssets, returnOnEquity, "FAIR", repaymentCapacity).
-  Return ProfitabilityAnalysis(returnOnAssets, returnOnEquity, "POOR", repaymentCapacity).
+    Return ProfitabilityAnalysis with returnOnAssets set to returnOnAssets and returnOnEquity set to returnOnEquity and profitabilityGrade set to "FAIR" and repaymentCapacity set to repaymentCapacity.
+  Return ProfitabilityAnalysis with returnOnAssets set to returnOnAssets and returnOnEquity set to returnOnEquity and profitabilityGrade set to "POOR" and repaymentCapacity set to repaymentCapacity.
 
 Rule calculateIndustryFactor given industry, produce:
   If industry equals to "Healthcare"
@@ -91,9 +91,9 @@ Rule assessMaturityScore given enterprise, history, produce:
 
 Rule evaluateEnterpriseLoan given enterprise, position, history, application, produce:
   If history.defaultCount greater than 0
-    Return LendingDecision(false, 0, 0, 0, 0, "Declined", "HIGH_RISK", 0, "PREVIOUS_DEFAULT", "Previous defaults on record").
+    Return LendingDecision with approved set to false and approvedAmount set to 0 and interestRateBps set to 0 and termMonths set to 0 and collateralRequired set to 0 and specialConditions set to "Declined" and riskCategory set to "HIGH_RISK" and confidenceScore set to 0 and reasonCode set to "PREVIOUS_DEFAULT" and detailedAnalysis set to "Previous defaults on record".
   If position.equity at most 0
-    Return LendingDecision(false, 0, 0, 0, 0, "Declined", "CRITICAL", 0, "NEGATIVE_EQUITY", "Negative equity position").
+    Return LendingDecision with approved set to false and approvedAmount set to 0 and interestRateBps set to 0 and termMonths set to 0 and collateralRequired set to 0 and specialConditions set to "Declined" and riskCategory set to "CRITICAL" and confidenceScore set to 0 and reasonCode set to "NEGATIVE_EQUITY" and detailedAnalysis set to "Negative equity position".
   Let liquidityResult be assessLiquidity(position).
   Let leverageResult be assessLeverage(position).
   Let profitabilityResult be assessProfitability(enterprise, position).
@@ -115,5 +115,5 @@ Rule evaluateEnterpriseLoan given enterprise, position, history, application, pr
     Let approvedAmt be maxLoanAmount.
   If adjustedScore at least 70
     Let requiredCollateral be (approvedAmt times 50) divided by 100.
-    Return LendingDecision(true, approvedAmt, 650, application.termMonths, requiredCollateral, "Standard terms", "MODERATE_RISK", adjustedScore, "APPROVED_STANDARD", "Solid financial profile").
-  Return LendingDecision(false, 0, 0, 0, application.requestedAmount, "Declined", "HIGH_RISK", adjustedScore, "DECLINED_RISK", "Insufficient risk score").
+    Return LendingDecision with approved set to true and approvedAmount set to approvedAmt and interestRateBps set to 650 and termMonths set to application.termMonths and collateralRequired set to requiredCollateral and specialConditions set to "Standard terms" and riskCategory set to "MODERATE_RISK" and confidenceScore set to adjustedScore and reasonCode set to "APPROVED_STANDARD" and detailedAnalysis set to "Solid financial profile".
+  Return LendingDecision with approved set to false and approvedAmount set to 0 and interestRateBps set to 0 and termMonths set to 0 and collateralRequired set to application.requestedAmount and specialConditions set to "Declined" and riskCategory set to "HIGH_RISK" and confidenceScore set to adjustedScore and reasonCode set to "DECLINED_RISK" and detailedAnalysis set to "Insufficient risk score".
