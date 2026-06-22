@@ -92,7 +92,7 @@ jobs:
       # harness 的 runJavaParse 跑 aster-lang-core 的 TsSampleParseInventoryTest，
       # 该测试经 asterLibs.* 依赖共享版本目录 + locale 包，并经 CorpusLoader 依赖
       # corpus。core 的任何 gradle 调用前，这些都必须先发到 Maven Local（顺序：
-      # platform → core → locales(en/zh/de) → corpus），与 ci.yml 的 publish 链一致。
+      # platform → core → locales(en/zh/de) → hi → corpus），与 ci.yml 的 publish 链一致。
       # 缺失会导致 "Could not find cloud.aster-lang:aster-lang-platform" 而整个
       # nightly 失败（等价率 CSV 因此长期停更）。
       - name: Publish version catalog to Maven Local
