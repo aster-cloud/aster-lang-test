@@ -54,6 +54,14 @@ jobs:
       - uses: actions/checkout@v6
         with: { repository: aster-cloud/aster-lang-locales, path: aster-lang-locales, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
 
+      # Hindi(hi-IN) 是独立的热插拔 SPI 包（aster-lang-hi 仓，非 locales 的一部分）。
+      # platform catalog 的 asterLibs.bundles.locales = en+zh+de+hi，Truffle 经
+      # runtimeOnly(bundles.locales) 依赖 aster-lang-hi:1.0.3。不发布它会让 Phase C
+      # 的 CoreIrEvalCli 解析 aster-lang-hi 失败、eval-parity 的 Java 侧无输出
+      # （此前因该 step 缺 pipefail 被 tee 静默掩盖成 success）。
+      - uses: actions/checkout@v6
+        with: { repository: aster-cloud/aster-lang-hi, path: aster-lang-hi, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
+
       # Phase C eval-parity 需要 Truffle 求值器（CoreIrEvalCli 在 truffle 仓），
       # truffle 经 Maven Local 依赖 core + runtime。
       - uses: actions/checkout@v6
@@ -97,6 +105,11 @@ jobs:
       # 版本跟随 platform catalog asterLang=1.0.3）。与 ci.yml 的 publish 链一致。
       - name: Publish locale packs to Maven Local
         working-directory: aster-lang-locales
+        run: ./gradlew publishToMavenLocal -x test
+      # Hindi(hi-IN) 独立 SPI 包，Truffle 的 bundles.locales 依赖它（见上方 checkout
+      # 注释）。须在 core 之后发（hi 依赖 core 1.0.3）。
+      - name: Publish aster-lang-hi to Maven Local
+        working-directory: aster-lang-hi
         run: ./gradlew publishToMavenLocal -x test
       - name: Publish corpus to Maven Local
         working-directory: aster-lang-test/packages/jvm
