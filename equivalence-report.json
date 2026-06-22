@@ -1,12 +1,11 @@
 {
   "summary": {
-    "total": 197,
-    "equivalent": 183,
-    "divergent": 14,
+    "total": 213,
+    "equivalent": 213,
+    "divergent": 0,
     "bothFail": 0,
-    "rate": 0.9289340101522843,
-    "basedOnHistory": "2026-05-13T08:19:05.798Z",
-    "note": "Dated parse-equivalence snapshot. basedOnHistory points at the equivalence-history.csv row this matches. The LATEST live rate is the last row of equivalence-history.csv (the nightly source of truth). Regenerated only by scripts/equivalence-nightly.mjs; verified by scripts/check-equivalence-freshness.mjs."
+    "rate": 1,
+    "basedOnHistory": "2026-06-22T02:38:58.446Z"
   },
   "rows": [
     {
@@ -18,6 +17,13 @@
     },
     {
       "path": "tier1-equivalence/policies/02-arithmetic-precedence.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/03-if-else.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -73,7 +79,28 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/11-boolean-and.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/12-boolean-or.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/13-boolean-not.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/14-boolean-short-circuit.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -94,6 +121,41 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/17-comparison-not-equals.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/17-comparison-range.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/18-comparison-chained.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/18-comparison-is-equal.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/19-comparison-is-not-equal.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/19-let-multiple.aster",
       "ts": true,
       "java": true,
@@ -108,7 +170,112 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/21-comparison-is-prefix.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/21-let-conditional.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/22-let-shadowing.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/22-logical-and.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/23-if-nested.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/23-logical-or.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/24-if-guard-clause.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/24-logical-precedence.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/25-if-multi-branch.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/26-if-bool-condition.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/27-business-loan-eligibility.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/28-business-insurance-premium.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/29-business-tax-bracket.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/30-business-gdpr-retention.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/31-arithmetic-intdiv.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/32-arithmetic-modulo-op.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -178,7 +345,21 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/comparison_operators.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/creditcard.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/cross_compiler_ops.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -528,6 +709,20 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/enterprise.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/entry_annotation.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/enum_exhaustiveness.aster",
       "ts": true,
       "java": true,
@@ -557,6 +752,41 @@
     },
     {
       "path": "tier1-equivalence/policies/fraud.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/g0-omit-produce.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/g1-lowercase-keywords.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/g1-softkeyword-idents.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/g2a-inline-if.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/g2b-if-expression.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -675,6 +905,48 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/lambda_cnl_match_bind.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/lambda_cnl_match_bind__programs-patterns.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/lambda_cnl_match_maybe.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/lambda_cnl_match_maybe__programs-patterns.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/lambda_cnl_match_result.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/lambda_cnl_match_result__programs-patterns.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/lambda_cnl_math_bool.aster",
       "ts": true,
       "java": true,
@@ -682,7 +954,28 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/lambda_cnl_mixed.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/lambda_cnl_short.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/lambda_gte_test.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/lambda_lte_test.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -697,6 +990,13 @@
     },
     {
       "path": "tier1-equivalence/policies/list_ops.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/loan.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -766,6 +1066,13 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/neq_test.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/nested_generic_function.aster",
       "ts": true,
       "java": true,
@@ -773,7 +1080,21 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/nested_generic_lambda.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/patient-record.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/personal.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -969,6 +1290,13 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/test_all_comparisons__ts-only.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/test_arithmetic.aster",
       "ts": true,
       "java": true,
@@ -1046,6 +1374,13 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/test_eligibility_with_ifs.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/test_exact_eligibility.aster",
       "ts": true,
       "java": true,
@@ -1088,6 +1423,13 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/test_let_with_call.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/test_life.aster",
       "ts": true,
       "java": true,
@@ -1103,6 +1445,13 @@
     },
     {
       "path": "tier1-equivalence/policies/test_operators.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/test_operators__ts-only.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -1144,249 +1493,11 @@
       "tsErr": null
     },
     {
-      "path": "tier2-divergent/ts-only/03-if-else.aster",
+      "path": "tier1-equivalence/policies/type_alias.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
       "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/18-comparison-chained.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/21-let-conditional.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/22-let-shadowing.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/23-if-nested.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/24-if-guard-clause.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/25-if-multi-branch.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/29-business-tax-bracket.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/comparison_operators.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/cross_compiler_ops.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/enterprise.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/lambda_cnl_match_bind.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/lambda_cnl_match_bind__programs-patterns.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/lambda_cnl_match_maybe.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/lambda_cnl_match_maybe__programs-patterns.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/lambda_cnl_match_result.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/lambda_cnl_match_result__programs-patterns.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/lambda_cnl_mixed.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/lambda_gte_test.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/lambda_lte_test.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/loan.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/nested_generic_lambda.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/personal.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/test_all_comparisons__ts-only.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/test_eligibility_with_ifs.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/test_let_with_call.aster",
-      "ts": true,
-      "java": false,
-      "verdict": "divergent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/ts-only/test_operators__ts-only.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/java-only/11-boolean-and.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/java-only/12-boolean-or.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/java-only/14-boolean-short-circuit.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/java-only/17-comparison-range.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/java-only/26-if-bool-condition.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/java-only/27-business-loan-eligibility.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/java-only/30-business-gdpr-retention.aster",
-      "ts": true,
-      "java": true,
-      "verdict": "equivalent",
-      "tsErr": null
-    },
-    {
-      "path": "tier2-divergent/java-only/neq_test.aster",
-      "ts": false,
-      "java": true,
-      "verdict": "divergent",
-      "tsErr": "Expected ')' after expression"
     }
   ]
 }
