@@ -33,6 +33,7 @@ const TS_REPO = resolve(ROOT, '..', 'aster-lang-ts');
 const CORE_REPO = resolve(ROOT, '..', 'aster-lang-core');
 const HISTORY_FILE = join(ROOT, 'equivalence-history.csv');
 const REPORT_FILE = join(ROOT, 'equivalence-report.json');
+const MANIFEST_FILE = join(ROOT, 'corpus', 'tier1-parity', 'manifest.json');
 
 function walkAster(dir, out = []) {
   for (const e of readdirSync(dir)) {
@@ -162,6 +163,30 @@ function appendHistory(s) {
   return ts;
 }
 
+// 把 tier1-parity manifest 的 basedOnEquivalence 块同步到本次重生的 report.summary。
+// 该块是「引用 report」的派生快照（见 check-equivalence-freshness.mjs Check 4：要求
+// manifest.basedOnEquivalence 的 total/equivalent/divergent + history 与 report.summary
+// 一致——rate/bothFail 不参与比对）。Phase A 重生 report 后若不同步它，
+// 语料计数一变（如新增 parity 样本、分歧清零）就会触发 Check 4 失配——这正是 nightly
+// 06-17 起连挂的根因之一。此处只【拷贝本次真实跑出的数字】（total/equivalent/divergent +
+// report 自带的 basedOnHistory 时间戳），不发明任何计数，保持 fabrication-proof。
+function refreshManifest(summary) {
+  if (!existsSync(MANIFEST_FILE)) return;
+  const manifest = JSON.parse(readFileSync(MANIFEST_FILE, 'utf8'));
+  const prev = manifest.basedOnEquivalence || {};
+  manifest.basedOnEquivalence = {
+    history: summary.basedOnHistory,
+    total: summary.total,
+    equivalent: summary.equivalent,
+    divergent: summary.divergent,
+    _comment: prev._comment ||
+      'Dated baseline matching equivalence-report.json (summary.basedOnHistory). ' +
+      'Kept consistent by scripts/check-equivalence-freshness.mjs. ' +
+      'The live rate is the latest row of equivalence-history.csv.',
+  };
+  writeFileSync(MANIFEST_FILE, JSON.stringify(manifest, null, 2) + '\n');
+}
+
 function printMarkdown(s, rows) {
   console.log('# Dual-engine parse-equivalence report\n');
   console.log(`- total: ${s.total}`);
@@ -215,6 +240,9 @@ async function main() {
   const historyTs = appendHistory(s);
   const summary = { ...s, basedOnHistory: historyTs };
   writeFileSync(REPORT_FILE, JSON.stringify({ summary, rows }, null, 2));
+  // 让 tier1-parity manifest 的 basedOnEquivalence 跟随本次 report，避免
+  // check-equivalence-freshness.mjs --require-fresh 的 Check 4 失配。
+  refreshManifest(summary);
   printMarkdown(s, rows);
 
   const baseline = readLastBaseline();
