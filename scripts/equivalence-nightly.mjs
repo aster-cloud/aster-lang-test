@@ -233,6 +233,12 @@ async function main() {
   const rows = classify(tsRes, javaRes, samples);
   const s = summarise(rows);
 
+  // 回归基线必须在 append 之前读取：appendHistory 会把本轮的 rate 写进
+  // equivalence-history.csv 的最后一行，若 append 后再读 readLastBaseline 会读回
+  // 刚写的本轮值（baseline === s.rate），回归判定永远不成立、检测失效。先快照
+  // 上一轮基线，再 append / 写 report / 刷 manifest，最后用快照比对。
+  const baseline = readLastBaseline();
+
   // Append the history row first so we can stamp the report's summary with the
   // exact timestamp of the row it corresponds to. This lets
   // scripts/check-equivalence-freshness.mjs verify (with --require-fresh) that
@@ -245,7 +251,6 @@ async function main() {
   refreshManifest(summary);
   printMarkdown(s, rows);
 
-  const baseline = readLastBaseline();
   if (baseline !== null && s.rate + 1e-6 < baseline) {
     console.error(`\n::error::equivalence rate regressed: ${s.rate.toFixed(4)} < baseline ${baseline.toFixed(4)}`);
     process.exit(1);

@@ -106,10 +106,17 @@ jobs:
         working-directory: aster-lang-runtime
         run: ./gradlew publishToMavenLocal -x test
 
-      # Phase A：parse-equivalence 趋势（equivalence-history.csv）
+      # Phase A：parse-equivalence 趋势（equivalence-history.csv）。
+      # 必须 `set -o pipefail`，否则等价率回归时 equivalence-nightly.mjs 的
+      # process.exit(1) 会被管道末端的 tee（退出码 0）吞掉 → 本 step 误判 success
+      # → 后续 "Append history to main"（if: success()）把下跌后的 CSV/report/
+      # manifest 提交进 main，污染下一轮的回归基线。与 ci.yml 的 parity step 一致。
       - name: Run parse-equivalence harness
         working-directory: aster-lang-test
-        run: node scripts/equivalence-nightly.mjs | tee equivalence-report.md
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/equivalence-nightly.mjs | tee equivalence-report.md
 
       # #30: after regenerating equivalence-report.json + appending the history
       # row, hold the freshly-written snapshot to exact-match-latest. The nightly
@@ -122,9 +129,14 @@ jobs:
       # Phase C：eval-parity 趋势（eval-history.csv）。--history 追加一行
       # timestamp,total,identical,divergent,rate。report-only 不让分歧让 nightly 失败
       # （趋势记录优先），真实 PR-blocking 在 aster-lang-test/aster-lang-core CI。
+      # report-only 不让 parity 分歧让 nightly 失败，但仍须 pipefail：node 进程
+      # 崩溃（非分歧）的非零退出不应被管道末端的 tee 掩盖成 success。
       - name: Run eval-parity harness
         working-directory: aster-lang-test
-        run: node scripts/parity-tier1.mjs --mode=eval --report-only --history=eval-history.csv | tee eval-parity-report.md
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/parity-tier1.mjs --mode=eval --report-only --history=eval-history.csv | tee eval-parity-report.md
 
       # eval 覆盖率趋势（covered / eval-able），供 equivalence 走势图。
       - name: Record eval-coverage history
@@ -135,14 +147,20 @@ jobs:
       # 哪些只解析不执行（盲点）。纯文本扫描，无需引擎，report-only。
       - name: Run feature-coverage instrument
         working-directory: aster-lang-test
-        run: node scripts/feature-coverage.mjs --history=feature-coverage-history.csv | tee feature-coverage-report.md
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/feature-coverage.mjs --history=feature-coverage-history.csv | tee feature-coverage-report.md
 
       # ADR 0016：字段级 Core IR parity（归一化后逐字段比对两引擎 IR）。
       # report-only，盲点记入 IR-DIVERGENCE-LEDGER.md。复用上面已发布的 core。
       # --history 记 IR 字段级一致率趋势（供走势图）。
       - name: Run field-level IR parity
         working-directory: aster-lang-test
-        run: node scripts/parity-tier1.mjs --mode=ir --full --report-only --history=ir-history.csv | tee ir-field-parity-report.md
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/parity-tier1.mjs --mode=ir --full --report-only --history=ir-history.csv | tee ir-field-parity-report.md
 
       - name: Upload artefacts
         if: always()
