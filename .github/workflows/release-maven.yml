@@ -21,15 +21,24 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v6
-      - name: Verify package version matches tag
+      # 本仓双制品：JVM(packages/jvm) 与 npm(packages/js) 版本独立（如 jvm 1.0.4 /
+      # npm 1.0.2），但两个 release workflow 都监听 v*。推 v1.0.4 会同时触发本
+      # workflow 和 release-npm.yml——若 tag 版本不等于本 artifact 版本，**skip 而非
+      # fail**（否则非目标 workflow 永远红）。tag 版本==本 artifact 版本时才真正校验+发布。
+      - name: Resolve publish gate (tag == this artifact's version?)
+        id: gate
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
           PKG_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' build.gradle.kts | head -n1)
-          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "Error: Tag version ($TAG_VERSION) does not match build.gradle.kts version ($PKG_VERSION)"
-            exit 1
+          if [ "$TAG_VERSION" = "$PKG_VERSION" ]; then
+            echo "match=true" >> "$GITHUB_OUTPUT"
+            echo "tag v$TAG_VERSION matches JVM package version $PKG_VERSION → publish"
+          else
+            echo "match=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::tag v$TAG_VERSION != JVM package version $PKG_VERSION → skip Maven publish (this tag is for another artifact)"
           fi
-      - run: ./gradlew publish
+      - if: steps.gate.outputs.match == 'true'
+        run: ./gradlew publish
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -15,6 +15,20 @@ jobs:
         working-directory: packages/js
     steps:
       - uses: actions/checkout@v6
+      # 防漂移 gate（ADR 0023 阶段6）：校验 test:npm（packages/js）版本符合 release-plan.json。
+      - uses: actions/checkout@v6
+        with:
+          repository: aster-cloud/aster-lang-platform
+          path: aster-lang-platform
+          token: ${{ secrets.CROSS_REPO_TOKEN }}
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Release-plan drift gate
+        working-directory: ${{ github.workspace }}
+        run: |
+          python3 aster-lang-platform/scripts/release-plan/check-artifact.py \
+            --plan aster-lang-platform/release-plan.json \
+            --artifact test:npm --repo-root .
       - uses: pnpm/action-setup@v6
         with:
           version: 9
@@ -44,6 +58,21 @@ jobs:
         working-directory: packages/jvm
     steps:
       - uses: actions/checkout@v6
+      # 防漂移 gate（ADR 0023 阶段6）：校验 test:jvm（packages/jvm）版本符合 release-plan.json。
+      # gate step 覆盖 job 的默认 working-directory，回到 repo root。
+      - uses: actions/checkout@v6
+        with:
+          repository: aster-cloud/aster-lang-platform
+          path: aster-lang-platform
+          token: ${{ secrets.CROSS_REPO_TOKEN }}
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - name: Release-plan drift gate
+        working-directory: ${{ github.workspace }}
+        run: |
+          python3 aster-lang-platform/scripts/release-plan/check-artifact.py \
+            --plan aster-lang-platform/release-plan.json \
+            --artifact test:jvm --repo-root .
       - uses: actions/setup-java@v5
         with:
           distribution: 'temurin'
