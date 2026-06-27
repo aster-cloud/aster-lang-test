@@ -22,16 +22,26 @@ jobs:
         with:
           node-version: '22'
           registry-url: 'https://registry.npmjs.org'
-      - name: Verify package version matches tag
+      # 本仓双制品：npm(packages/js) 与 JVM(packages/jvm) 版本独立，但两个 release
+      # workflow 都监听 v*。tag 版本不等于本 npm artifact 版本时 **skip 而非 fail**
+      # （否则推 JVM 的 tag 会让本 workflow 永远红）。详见 release-maven.yml 同款注释。
+      - name: Resolve publish gate (tag == this artifact's version?)
+        id: gate
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
           PKG_VERSION=$(node -p "require('./package.json').version")
-          if [ "$TAG_VERSION" != "$PKG_VERSION" ]; then
-            echo "Error: Tag version ($TAG_VERSION) does not match package.json version ($PKG_VERSION)"
-            exit 1
+          if [ "$TAG_VERSION" = "$PKG_VERSION" ]; then
+            echo "match=true" >> "$GITHUB_OUTPUT"
+            echo "tag v$TAG_VERSION matches npm package version $PKG_VERSION → publish"
+          else
+            echo "match=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::tag v$TAG_VERSION != npm package version $PKG_VERSION → skip npm publish (this tag is for another artifact)"
           fi
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm build
-      - run: pnpm publish --access public --no-git-checks
+      - if: steps.gate.outputs.match == 'true'
+        run: pnpm install --frozen-lockfile
+      - if: steps.gate.outputs.match == 'true'
+        run: pnpm build
+      - if: steps.gate.outputs.match == 'true'
+        run: pnpm publish --access public --no-git-checks
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
