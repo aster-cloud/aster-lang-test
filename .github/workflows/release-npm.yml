@@ -4,9 +4,64 @@ on:
   push:
     tags:
       - 'v*'
+  # orchestrator 入口（同 release-maven.yml 注释）：dispatch 创建本 npm artifact 版本的
+  # tag、tag-push 走本 workflow 的 publish；非目标 tag 在 skip-on-mismatch gate 跳过。
+  # 本仓双制品 JVM/npm 版本独立，故 release-maven.yml 与 release-npm.yml 各自同文件双触发。
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '要发布的 npm 版本（不含 v 前缀），须等于 packages/js/package.json 的 version'
+        required: true
+        type: string
+      artifactIds:
+        description: 'release-plan 的 artifact id 列表（逗号分隔，审计用，如 test:npm）'
+        required: false
+        type: string
+      trainId:
+        description: 'release train 标识（审计用）'
+        required: false
+        type: string
+
+concurrency:
+  group: release-npm-${{ github.repository }}-${{ inputs.version && format('v{0}', inputs.version) || github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
+  create-tag:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.CROSS_REPO_TOKEN }}
+          fetch-depth: 0
+      - name: Create & push release tag
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          PKG_VERSION=$(node -p "require('./packages/js/package.json').version")
+          if [ "$VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::dispatch version ($VERSION) != packages/js/package.json version ($PKG_VERSION)"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch --tags origin
+          TAG="v${VERSION}"
+          if git show-ref --verify --quiet "refs/tags/$TAG"; then
+            TAG_SHA=$(git rev-list -n1 "$TAG"); HEAD_SHA=$(git rev-parse HEAD)
+            if [ "$TAG_SHA" = "$HEAD_SHA" ]; then
+              echo "::notice::$TAG already on this commit → no-op (idempotent)"; exit 0
+            fi
+            echo "::error::$TAG exists but points to $TAG_SHA, not HEAD $HEAD_SHA"; exit 1
+          fi
+          git tag "$TAG"
+          git push origin "$TAG"
+
   publish:
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -16,15 +71,10 @@ jobs:
       id-token: write
     steps:
       - uses: actions/checkout@v6
-      - uses: pnpm/action-setup@v6
-        with: { version: 9 }
-      - uses: actions/setup-node@v6
-        with:
-          node-version: '22'
-          registry-url: 'https://registry.npmjs.org'
       # 本仓双制品：npm(packages/js) 与 JVM(packages/jvm) 版本独立，但两个 release
       # workflow 都监听 v*。tag 版本不等于本 npm artifact 版本时 **skip 而非 fail**
-      # （否则推 JVM 的 tag 会让本 workflow 永远红）。详见 release-maven.yml 同款注释。
+      # （否则推 JVM 的 tag 会让本 workflow 永远红）。gate 紧跟 checkout（先于 node/pnpm
+      # setup），让旁路 mismatch run 尽早结束、不因 setup 偶发失败污染历史。
       - name: Resolve publish gate (tag == this artifact's version?)
         id: gate
         run: |
@@ -37,6 +87,14 @@ jobs:
             echo "match=false" >> "$GITHUB_OUTPUT"
             echo "::notice::tag v$TAG_VERSION != npm package version $PKG_VERSION → skip npm publish (this tag is for another artifact)"
           fi
+      - if: steps.gate.outputs.match == 'true'
+        uses: pnpm/action-setup@v6
+        with: { version: 9 }
+      - if: steps.gate.outputs.match == 'true'
+        uses: actions/setup-node@v6
+        with:
+          node-version: '22'
+          registry-url: 'https://registry.npmjs.org'
       - if: steps.gate.outputs.match == 'true'
         run: pnpm install --frozen-lockfile
       - if: steps.gate.outputs.match == 'true'
