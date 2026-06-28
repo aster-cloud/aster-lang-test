@@ -4,9 +4,74 @@ on:
   push:
     tags:
       - 'v*'
+  # orchestrator（aster-lang-platform/release-train.yml）入口：dispatch 只创建并 push
+  # tag（用 CROSS_REPO_TOKEN/PAT，GITHUB_TOKEN 推的 tag 不会再触发 workflow）。真正
+  # publish 仍只走下面的 tag-push 路径。本仓双制品（packages/jvm Maven / packages/js
+  # npm 版本独立），release-maven.yml 与 release-npm.yml 各自「同文件双触发」：dispatch
+  # 创建自己版本的 tag、tag-push 走自己的 publish；非目标 artifact 的 publish 在
+  # skip-on-mismatch gate 跳过。orchestrator 的 wait_publish_run 只查本 workflow 的
+  # push run，旁路触发的另一 workflow（skip）不影响判定。详见 ADR 0023 阶段2/§9 复盘。
+  workflow_dispatch:
+    inputs:
+      version:
+        description: '要发布的 JVM corpus 版本（不含 v 前缀），须等于 packages/jvm/build.gradle.kts 的 version'
+        required: true
+        type: string
+      artifactIds:
+        description: 'release-plan 的 artifact id 列表（逗号分隔，审计用，如 test:jvm）'
+        required: false
+        type: string
+      trainId:
+        description: 'release train 标识（审计用）'
+        required: false
+        type: string
+
+# dispatch(vX) 与 tag-push(vX) 同 concurrency group（inputs.version 补 v 前缀对齐
+# ref_name），串行化同版本的 create-tag 与 publish；cancel-in-progress:false 避免
+# 与同版本另一 trigger 互相取消。group 含 workflow 名，避免与 release-npm.yml 争用。
+concurrency:
+  group: release-maven-${{ github.repository }}-${{ inputs.version && format('v{0}', inputs.version) || github.ref_name }}
+  cancel-in-progress: false
 
 jobs:
+  # dispatch 路径：仅创建 tag（用 PAT），让既有 tag-push publish 复用。
+  create-tag:
+    # 仅允许从默认分支 dispatch，避免给某个 version 恰好匹配的 feature 分支 HEAD 打 release tag。
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          token: ${{ secrets.CROSS_REPO_TOKEN }}
+          fetch-depth: 0
+      - name: Create & push release tag
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          PKG_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' packages/jvm/build.gradle.kts | head -n1)
+          if [ "$VERSION" != "$PKG_VERSION" ]; then
+            echo "::error::dispatch version ($VERSION) != packages/jvm/build.gradle.kts version ($PKG_VERSION)"
+            exit 1
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git fetch --tags origin
+          TAG="v${VERSION}"
+          if git show-ref --verify --quiet "refs/tags/$TAG"; then
+            TAG_SHA=$(git rev-list -n1 "$TAG"); HEAD_SHA=$(git rev-parse HEAD)
+            if [ "$TAG_SHA" = "$HEAD_SHA" ]; then
+              echo "::notice::$TAG already on this commit → no-op (idempotent)"; exit 0
+            fi
+            echo "::error::$TAG exists but points to $TAG_SHA, not HEAD $HEAD_SHA"; exit 1
+          fi
+          git tag "$TAG"
+          git push origin "$TAG"
+
   publish:
+    # tag-push 路径（含 orchestrator create-tag 推的 tag）才真正发布。
+    if: github.event_name == 'push'
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -16,15 +81,12 @@ jobs:
       packages: write
     steps:
       - uses: actions/checkout@v6
-      - uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '25'
-      - uses: gradle/actions/setup-gradle@v6
-      # 本仓双制品：JVM(packages/jvm) 与 npm(packages/js) 版本独立（如 jvm 1.0.4 /
-      # npm 1.0.2），但两个 release workflow 都监听 v*。推 v1.0.4 会同时触发本
+      # 本仓双制品：JVM(packages/jvm) 与 npm(packages/js) 版本独立（如 jvm 1.0.6 /
+      # npm 1.0.3），但两个 release workflow 都监听 v*。推 v1.0.6 会同时触发本
       # workflow 和 release-npm.yml——若 tag 版本不等于本 artifact 版本，**skip 而非
       # fail**（否则非目标 workflow 永远红）。tag 版本==本 artifact 版本时才真正校验+发布。
+      # gate 紧跟 checkout（先于 setup-java/gradle），让 mismatch 的旁路 run 尽早结束、
+      # 不因后续 setup 步骤偶发失败而污染 Actions 历史。
       - name: Resolve publish gate (tag == this artifact's version?)
         id: gate
         run: |
@@ -37,6 +99,13 @@ jobs:
             echo "match=false" >> "$GITHUB_OUTPUT"
             echo "::notice::tag v$TAG_VERSION != JVM package version $PKG_VERSION → skip Maven publish (this tag is for another artifact)"
           fi
+      - if: steps.gate.outputs.match == 'true'
+        uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+      - if: steps.gate.outputs.match == 'true'
+        uses: gradle/actions/setup-gradle@v6
       - if: steps.gate.outputs.match == 'true'
         run: ./gradlew publish
         env:
