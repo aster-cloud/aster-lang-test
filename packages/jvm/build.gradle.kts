@@ -9,7 +9,12 @@ plugins {
 }
 
 group = "cloud.aster-lang"
-version = "1.0.6"
+
+// corpus jar 版本 = 共享版本目录的 asterLang（JVM 生态单一版本源，ADR 0012/0023 §9）。
+// 不硬编码字面量——字面量是版本漂移的来源（test:jvm 在 ecosystem 1.0.6 发车中曾整仓被漏）。
+// 从 catalog 派生让版本永远跟随 ecosystemVersion。与 core/runtime/validation/truffle 同构。
+version = extensions.getByType<VersionCatalogsExtension>()
+    .named("asterLibs").findVersion("asterLang").get().requiredVersion
 
 java {
     toolchain {

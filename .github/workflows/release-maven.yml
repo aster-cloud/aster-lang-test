@@ -46,13 +46,25 @@ jobs:
         with:
           token: ${{ secrets.CROSS_REPO_TOKEN }}
           fetch-depth: 0
+      # catalog-derived version（ADR 0023 §9）：packages/jvm version=findVersion("asterLang")，
+      # 不再 sed 字面量。先 checkout platform 并 publishToMavenLocal，packages/jvm 的 Gradle
+      # 才能解析 catalog 派生的 project version。
+      - uses: actions/checkout@v6
+        with:
+          repository: aster-cloud/aster-lang-platform
+          path: aster-lang-platform
+          token: ${{ secrets.CROSS_REPO_TOKEN }}
+      - uses: actions/setup-java@v5
+        with: { java-version: '25', distribution: 'temurin' }
+      - name: Bootstrap version catalog to Maven Local
+        run: cd aster-lang-platform && ./gradlew publishToMavenLocal
       - name: Create & push release tag
         env:
           VERSION: ${{ inputs.version }}
         run: |
-          PKG_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' packages/jvm/build.gradle.kts | head -n1)
-          if [ "$VERSION" != "$PKG_VERSION" ]; then
-            echo "::error::dispatch version ($VERSION) != packages/jvm/build.gradle.kts version ($PKG_VERSION)"
+          RESOLVED=$(cd packages/jvm && ./gradlew -q properties | sed -n 's/^version: //p' | head -n1)
+          if [ "$VERSION" != "$RESOLVED" ]; then
+            echo "::error::dispatch version ($VERSION) != Gradle-resolved catalog version ($RESOLVED)"
             exit 1
           fi
           git config user.name "github-actions[bot]"
@@ -73,25 +85,36 @@ jobs:
     # tag-push 路径（含 orchestrator create-tag 推的 tag）才真正发布。
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: packages/jvm
     permissions:
       contents: read
       packages: write
     steps:
       - uses: actions/checkout@v6
+      # 共享版本目录（ADR 0012/0023 §9）：packages/jvm version=catalog-derived，须先把
+      # platform publishToMavenLocal 才能用 Gradle 解析 corpus 版本（skip-on-mismatch gate
+      # 也要解析，故 bootstrap 必须在 gate 之前——即使本 tag 是给 npm 的会 skip）。
+      - uses: actions/checkout@v6
+        with:
+          repository: aster-cloud/aster-lang-platform
+          path: aster-lang-platform
+          token: ${{ secrets.CROSS_REPO_TOKEN }}
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+      - uses: gradle/actions/setup-gradle@v6
+      - name: Bootstrap version catalog to Maven Local
+        run: cd aster-lang-platform && ./gradlew publishToMavenLocal
       # 本仓双制品：JVM(packages/jvm) 与 npm(packages/js) 版本独立（如 jvm 1.0.6 /
       # npm 1.0.3），但两个 release workflow 都监听 v*。推 v1.0.6 会同时触发本
       # workflow 和 release-npm.yml——若 tag 版本不等于本 artifact 版本，**skip 而非
-      # fail**（否则非目标 workflow 永远红）。tag 版本==本 artifact 版本时才真正校验+发布。
-      # gate 紧跟 checkout（先于 setup-java/gradle），让 mismatch 的旁路 run 尽早结束、
-      # 不因后续 setup 步骤偶发失败而污染 Actions 历史。
+      # fail**（否则非目标 workflow 永远红）。version 已是 catalog-derived，故用 Gradle 解析
+      # 而非 sed 字面量；bootstrap 已在前完成，skip 路径也能解析。
       - name: Resolve publish gate (tag == this artifact's version?)
         id: gate
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
-          PKG_VERSION=$(sed -n 's/^version = "\(.*\)"/\1/p' build.gradle.kts | head -n1)
+          PKG_VERSION=$(cd packages/jvm && ./gradlew -q properties | sed -n 's/^version: //p' | head -n1)
           if [ "$TAG_VERSION" = "$PKG_VERSION" ]; then
             echo "match=true" >> "$GITHUB_OUTPUT"
             echo "tag v$TAG_VERSION matches JVM package version $PKG_VERSION → publish"
@@ -100,13 +123,7 @@ jobs:
             echo "::notice::tag v$TAG_VERSION != JVM package version $PKG_VERSION → skip Maven publish (this tag is for another artifact)"
           fi
       - if: steps.gate.outputs.match == 'true'
-        uses: actions/setup-java@v5
-        with:
-          distribution: 'temurin'
-          java-version: '25'
-      - if: steps.gate.outputs.match == 'true'
-        uses: gradle/actions/setup-gradle@v6
-      - if: steps.gate.outputs.match == 'true'
+        working-directory: packages/jvm
         run: ./gradlew publish
         env:
           GITHUB_ACTOR: ${{ github.actor }}

@@ -78,6 +78,11 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v6
+      # catalog bootstrap（ADR 0023 §9）：packages/jvm version=catalog-derived，settings 从
+      # mavenLocal 解析 catalog → 须先把已 checkout 的 platform publishToMavenLocal。
+      - name: Bootstrap version catalog to Maven Local
+        working-directory: ${{ github.workspace }}/aster-lang-platform
+        run: ./gradlew publishToMavenLocal
       - run: ./gradlew test
 
   # Cross-engine inventory gate is enforced on the consumer side:
