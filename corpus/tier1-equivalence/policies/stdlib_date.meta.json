@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "aster-lang-test/corpus/tier1-equivalence/policies/stdlib_date.aster"
+}
