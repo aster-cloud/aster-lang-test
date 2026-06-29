@@ -17,3 +17,6 @@ Rule maxOf given xs, produce:
 
 Rule minOf given xs, produce:
   Return List.min(xs).
+
+Rule combosCount given xs, produce:
+  Return List.length(List.combinations(xs, 2)).
