@@ -156,6 +156,7 @@
     "tier1-equivalence/policies/match_enum.aster",
     "tier1-equivalence/policies/match_multi.aster",
     "tier1-equivalence/policies/match_null.aster",
+    "tier1-equivalence/policies/multiline_continuation.aster",
     "tier1-equivalence/policies/neq_test.aster",
     "tier1-equivalence/policies/nested_generic_function.aster",
     "tier1-equivalence/policies/nested_generic_lambda.aster",

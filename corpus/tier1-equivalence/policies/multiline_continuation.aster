@@ -1,0 +1,20 @@
+Module multiline.
+
+Rule greet given name as Text, produce Text:
+  Return "Hello, "
+  plus name
+  plus "!".
+
+Rule total given a as Int, produce Int:
+  Return a
+  plus 10
+  plus 20.
+
+Rule inRange given x as Int, produce Bool:
+  Return x at least 1
+  and x at most 9.
+
+Rule scaled given a as Int, produce Int:
+  Return a
+  times 2
+  times 3.
