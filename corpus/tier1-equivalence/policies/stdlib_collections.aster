@@ -11,3 +11,9 @@ Rule id given x, produce:
 
 Rule mapId given xs, produce:
   Return List.map(xs, id).
+
+Rule maxOf given xs, produce:
+  Return List.max(xs).
+
+Rule minOf given xs, produce:
+  Return List.min(xs).
