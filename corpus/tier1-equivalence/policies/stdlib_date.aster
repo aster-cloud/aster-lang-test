@@ -1,0 +1,22 @@
+Module std.date.
+
+Rule parseDate given iso, produce:
+  Return Date.fromISO(iso).
+
+Rule spanDays given startIso, endIso, produce:
+  Return Date.daysBetween(Date.fromISO(startIso), Date.fromISO(endIso)).
+
+Rule shift given iso, n, produce:
+  Return Date.addDays(Date.fromISO(iso), n).
+
+Rule yearOf given iso, produce:
+  Return Date.year(Date.fromISO(iso)).
+
+Rule monthOf given iso, produce:
+  Return Date.month(Date.fromISO(iso)).
+
+Rule dayOf given iso, produce:
+  Return Date.day(Date.fromISO(iso)).
+
+Rule waitElapsed given evalIso, startIso, produce:
+  Return Date.daysBetween(Date.fromISO(startIso), Date.fromISO(evalIso)) at least 30.
