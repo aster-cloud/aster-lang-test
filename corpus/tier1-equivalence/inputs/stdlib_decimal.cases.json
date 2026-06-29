@@ -1,0 +1,20 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_decimal.aster",
+  "entry": "compute",
+  "cases": [
+    {
+      "name": "M1+M2 chain: (100.00m×1.08m+0.1m−0.2m) ÷7 sc4 HALF_EVEN then round sc2 HALF_UP = 15.41",
+      "input": [
+        0
+      ],
+      "expectedOutput": "15.41"
+    },
+    {
+      "name": "seed ignored — same exact result",
+      "input": [
+        42
+      ],
+      "expectedOutput": "15.41"
+    }
+  ]
+}
