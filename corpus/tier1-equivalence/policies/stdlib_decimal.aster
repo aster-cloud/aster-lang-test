@@ -1,0 +1,43 @@
+Module std.decimal.
+
+Rule priceWithTax produce Decimal:
+  Return 100.00m times 1.08m.
+
+Rule exactSum produce Decimal:
+  Return 0.1m plus 0.2m.
+
+Rule netAfterFee produce Decimal:
+  Return 100.01m minus 0.02m.
+
+Rule scaleGrowth produce Decimal:
+  Return 1.20m times 1.080m.
+
+Rule intPromotion produce Decimal:
+  Return 1m plus 2.
+
+Rule monthlyTotal produce Decimal:
+  Let debt be 1200.50m.
+  Let payment be 800.25m.
+  Return debt plus payment.
+
+Rule meetsThreshold produce Bool:
+  Return 0.1m plus 0.2m equals to 0.3m.
+
+Rule valueSemantics produce Bool:
+  Return 1.0m equals to 1.00m.
+
+Rule roundedTax produce Decimal:
+  Return Decimal.round(100.005m times 1.08m, 2, "HALF_EVEN").
+
+Rule monthlyRate produce Decimal:
+  Return Decimal.divide(0.0725m, 12m, 6, "HALF_EVEN").
+
+Rule perUnit produce Decimal:
+  Return Decimal.divide(100m, 3m, 4, "HALF_UP").
+
+Rule compute given seed as Int, produce Decimal:
+  Let base be 100.00m times 1.08m.
+  Let adjusted be base plus 0.1m.
+  Let net be adjusted minus 0.2m.
+  Let rate be Decimal.divide(net, 7m, 4, "HALF_EVEN").
+  Return Decimal.round(rate, 2, "HALF_UP").

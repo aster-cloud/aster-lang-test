@@ -183,6 +183,7 @@
     "tier1-equivalence/policies/soc2-audit-demo.aster",
     "tier1-equivalence/policies/stdlib_collections.aster",
     "tier1-equivalence/policies/stdlib_date.aster",
+    "tier1-equivalence/policies/stdlib_decimal.aster",
     "tier1-equivalence/policies/stdlib_io.aster",
     "tier1-equivalence/policies/stdlib_maybe_result.aster",
     "tier1-equivalence/policies/stdlib_text.aster",
