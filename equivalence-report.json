@@ -1,11 +1,11 @@
 {
   "summary": {
-    "total": 213,
-    "equivalent": 213,
+    "total": 217,
+    "equivalent": 217,
     "divergent": 0,
     "bothFail": 0,
     "rate": 1,
-    "basedOnHistory": "2026-06-29T06:52:14.847Z"
+    "basedOnHistory": "2026-06-30T06:16:12.951Z"
   },
   "rows": [
     {
@@ -793,6 +793,13 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/g3-apply-call.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/greet.aster",
       "ts": true,
       "java": true,
@@ -1066,6 +1073,13 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/multiline_continuation.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/neq_test.aster",
       "ts": true,
       "java": true,
@@ -1242,6 +1256,20 @@
     },
     {
       "path": "tier1-equivalence/policies/stdlib_collections.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/stdlib_date.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/stdlib_decimal.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
