@@ -1,0 +1,20 @@
+{
+  "policy": "tier1-equivalence/policies/multiline_continuation.aster",
+  "entry": "total",
+  "cases": [
+    {
+      "name": "multi-line `a plus 10 plus 20` (a=5) = 35",
+      "input": [
+        5
+      ],
+      "expectedOutput": 35
+    },
+    {
+      "name": "multi-line continuation, a=0 = 30",
+      "input": [
+        0
+      ],
+      "expectedOutput": 30
+    }
+  ]
+}

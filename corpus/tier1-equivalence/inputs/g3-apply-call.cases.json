@@ -1,0 +1,20 @@
+{
+  "policy": "tier1-equivalence/policies/g3-apply-call.aster",
+  "entry": "run",
+  "cases": [
+    {
+      "name": "run(4) = twice(4+1) = 10  (apply lowers to call)",
+      "input": [
+        4
+      ],
+      "expectedOutput": 10
+    },
+    {
+      "name": "run(0) = twice(0+1) = 2",
+      "input": [
+        0
+      ],
+      "expectedOutput": 2
+    }
+  ]
+}

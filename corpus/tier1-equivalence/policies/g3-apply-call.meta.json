@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0027 无括号单参调用 `apply <fn> to <arg>`：lower 成与 fn(arg) 完全相同的 Call（零新 AST/Core IR 节点）。七条规则覆盖 Codex 实现审查的语法面——递归 countdown、贪婪 arg run、apply 在二元右操作数 rightOperand、wrapper 构造 wrap（apply Some to x ≡ Some(x)）、软关键词函数名 return + apply return to x（structKeywordName 放行）。core 经 applyExpr（unaryExpr 层）+ callTargetSegment（MAP 每段放行）+ APPLY 软关键词；TS 经 parseApplyOrPrimary + isValidCallTargetWord（放行集对齐 Java）。双引擎 parse+ir+eval parity 锁定。",
+  "capabilities": [
+    "cases-golden"
+  ]
+}

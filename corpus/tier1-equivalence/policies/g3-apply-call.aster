@@ -1,0 +1,22 @@
+Module dual.engine.apply.call.
+
+Rule twice given n, produce:
+  Return n times 2.
+
+Rule countdown given stars, produce:
+  Return apply countdown to stars minus 1.
+
+Rule run given seed, produce:
+  Return apply twice to seed plus 1.
+
+Rule wrap given x, produce:
+  Return apply Some to x.
+
+Rule rightOperand given a, b, produce:
+  Return a plus apply twice to b plus 1.
+
+Rule return given x, produce:
+  Return x times 3.
+
+Rule viaSoftKeyword given x, produce:
+  Return apply return to x.

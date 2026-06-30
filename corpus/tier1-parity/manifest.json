@@ -156,6 +156,7 @@
     "tier1-equivalence/policies/match_enum.aster",
     "tier1-equivalence/policies/match_multi.aster",
     "tier1-equivalence/policies/match_null.aster",
+    "tier1-equivalence/policies/multiline_continuation.aster",
     "tier1-equivalence/policies/neq_test.aster",
     "tier1-equivalence/policies/nested_generic_function.aster",
     "tier1-equivalence/policies/nested_generic_lambda.aster",
@@ -224,6 +225,7 @@
     "tier1-equivalence/policies/g1-lowercase-keywords.aster",
     "tier1-equivalence/policies/g1-softkeyword-idents.aster",
     "tier1-equivalence/policies/g2a-inline-if.aster",
-    "tier1-equivalence/policies/g2b-if-expression.aster"
+    "tier1-equivalence/policies/g2b-if-expression.aster",
+    "tier1-equivalence/policies/g3-apply-call.aster"
   ]
 }
