@@ -6,6 +6,15 @@ on:
   pull_request:
     branches: [main]
 
+# 同一 ref 上新 push 到来时取消尚在跑的过时 CI（PR 连续 push 常见）——省算力/排队。
+# ★cancel-in-progress 只对 PR 生效（Codex 审 High）：本仓 CI 的 notify-consumers job 在
+# main push + corpus 变更时会 repository_dispatch 到 aster-lang-ts/core 触发下游 regression
+# ——属跨仓副作用。若 main push A（改 corpus）被后续 push B（未改 corpus）取消，则 A 的
+# consumer dispatch 丢失、B 的 paths-filter 又不触发 → regression 漏跑。故 main run 不取消。
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build-js:
     name: Build & test (Node)
