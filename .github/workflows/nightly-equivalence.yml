@@ -140,16 +140,20 @@ jobs:
         run: node scripts/check-equivalence-freshness.mjs --require-fresh
 
       # Phase C：eval-parity 趋势（eval-history.csv）。--history 追加一行
-      # timestamp,total,identical,divergent,rate。report-only 不让分歧让 nightly 失败
-      # （趋势记录优先），真实 PR-blocking 在 aster-lang-test/aster-lang-core CI。
-      # report-only 不让 parity 分歧让 nightly 失败，但仍须 pipefail：node 进程
+      # timestamp,total,identical,divergent,rate。
+      # GATING（audit #58）：eval-parity 自 2026-06-30 起连续 4+ 夜 255/255=1.0000
+      # （见 eval-history.csv 尾部），已从 report-only 升级为 gating——一次 eval 回归
+      # 现在让 nightly 失败，从而阻断 if:success() 的 "Append history to main"，
+      # 使下跌后的 CSV/report 不会被提交进 main 污染回归基线。gating 只作用于有
+      # .cases.json golden 的样本（当前 137/143 eval-able 覆盖，95.8%；未覆盖的 6 个
+      # 无 golden、天然不参与比对，见 EVAL-EXEMPTIONS.md）。仍须 pipefail：node 进程
       # 崩溃（非分歧）的非零退出不应被管道末端的 tee 掩盖成 success。
       - name: Run eval-parity harness
         working-directory: aster-lang-test
         shell: bash
         run: |
           set -o pipefail
-          node scripts/parity-tier1.mjs --mode=eval --report-only --history=eval-history.csv | tee eval-parity-report.md
+          node scripts/parity-tier1.mjs --mode=eval --history=eval-history.csv | tee eval-parity-report.md
 
       # eval 覆盖率趋势（covered / eval-able），供 equivalence 走势图。
       - name: Record eval-coverage history
@@ -166,14 +170,19 @@ jobs:
           node scripts/feature-coverage.mjs --history=feature-coverage-history.csv | tee feature-coverage-report.md
 
       # ADR 0016：字段级 Core IR parity（归一化后逐字段比对两引擎 IR）。
-      # report-only，盲点记入 IR-DIVERGENCE-LEDGER.md。复用上面已发布的 core。
+      # 盲点记入 IR-DIVERGENCE-LEDGER.md。复用上面已发布的 core。
       # --history 记 IR 字段级一致率趋势（供走势图）。
+      # GATING（audit #58）：IR field-level parity 自 2026-06-30 起连续 4+ 夜
+      # 212/212=1.0000（见 ir-history.csv 尾部），已从 report-only 升级为 gating，
+      # 与 ci.yml 的 PR 门禁（--mode=ir --full，已 PR-blocking）对齐。`divergent-exempt`
+      # 的 effect/workflow/interop 派生分析差异不算失败；一次结构性 IR 回归让 nightly
+      # 失败并阻断 "Append history to main"。仍须 pipefail（见 eval step）。
       - name: Run field-level IR parity
         working-directory: aster-lang-test
         shell: bash
         run: |
           set -o pipefail
-          node scripts/parity-tier1.mjs --mode=ir --full --report-only --history=ir-history.csv | tee ir-field-parity-report.md
+          node scripts/parity-tier1.mjs --mode=ir --full --history=ir-history.csv | tee ir-field-parity-report.md
 
       - name: Upload artefacts
         if: always()

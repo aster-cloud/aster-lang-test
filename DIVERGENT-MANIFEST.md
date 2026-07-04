@@ -1,11 +1,13 @@
 # Equivalence Divergent Manifest
 
-> **Authoritative parity (note added 2026-06-16).** The current source of truth
-> for the live parse-equivalence rate is the **latest row of
-> `equivalence-history.csv`** (2026-06-16: **208 total / 208 equivalent / 0
-> divergent = 1.0000**). The static `equivalence-report.json` snapshot
-> (197 total / 183 equivalent / 14 divergent) and the per-case tables below
-> reflect the **2026-05-21 baseline** and are NOT regenerated on every change —
+> **Authoritative parity (note added 2026-06-16; citation refreshed 2026-07-04).**
+> The current source of truth for the live parse-equivalence rate is the
+> **latest row of `equivalence-history.csv`** (2026-07-03: **217 total / 217
+> equivalent / 0 divergent = 1.0000**). The static `equivalence-report.json`
+> snapshot and the current-state summary below now agree with it (0 divergent).
+> The historical **2026-05-21 baseline** (197 total / 183 equivalent / 14
+> divergent) is retained only in the "Historical baseline" section for
+> provenance — those counts are NOT regenerated on every change and are NOT
 > `equivalence-report.json` (and the appended CSV trend row) are produced by the
 > nightly job `.github/workflows/nightly-equivalence.yml`
 > (`scripts/equivalence-nightly.mjs`). Treat the historical counts in this file
@@ -20,22 +22,39 @@
 > baseline disagrees with the report. The nightly job runs it with
 > `--require-fresh` after regenerating the report.
 
-Generated against `equivalence-report.json` (dated baseline, history row
-2026-05-13: 183/197 = 92.93%).
+## Current state (refreshed 2026-07-04)
 
-⚠️ **Scope**: The current runner (`scripts/equivalence-nightly.mjs`) is a
+**Live divergent count: 0.** The latest `equivalence-history.csv` row
+(2026-07-03) is **217 total / 217 equivalent / 0 divergent = 1.0000**, and
+`tier2-divergent/` is empty — every case listed in the historical baseline
+below has since been fixed or reconciled. There is no open per-case divergence
+backlog. The stale 14-case tables that used to live here (2026-05-21 baseline)
+have been retired; they are preserved only as counts in the "Historical
+baseline" section for provenance.
+
+Nightly parity is now gated on all three modes (audit #58):
+
+| Mode | Latest nightly | Gate |
+|---|---|---|
+| parse (`equivalence-nightly.mjs`) | 217/217 = 1.0000 | **Gating** (nightly + PR) |
+| ir (`parity-tier1.mjs --mode=ir --full`) | 212/212 = 1.0000 | **Gating** (nightly + PR) |
+| eval (`parity-tier1.mjs --mode=eval`) | 255/255 = 1.0000 | **Gating** (nightly); report-only in PR CI |
+
+Eval-parity coverage and the exemption denominator are tracked in
+**`EVAL-EXEMPTIONS.md`** (137/143 eval-able = 95.8%; 6-sample backlog + 74
+exempt). If a new divergence ever appears, re-add a per-case row here and file
+the corresponding engine issue.
+
+⚠️ **Scope**: The parse runner (`scripts/equivalence-nightly.mjs`) is a
 **parse-equivalence** check only — it compares whether each engine ACCEPTS
-the source, not whether they lower to identical IR or produce identical
-runtime output. Categories below reflect that scope.
-
-Maps each of the 14 divergent corpus cases to a **root-cause category** so future
-fixes can be sequenced and tracked.
+the source. IR/eval parity (lowering + runtime output) are covered by the two
+gating `parity-tier1.mjs` modes above.
 
 ## Tier policy (read this before editing the corpus)
 
 | Tier | What it asserts | CI gate |
 |---|---|---|
-| **tier1-parity** | Curated subset of tier1 where both engines must accept. Source of truth: `corpus/tier1-parity/manifest.json`. | **PR-blocking (parse)** in `aster-lang-test`, `aster-lang-core`, `aster-lang-ts` via `scripts/parity-tier1.mjs --mode=parse`. **Report-only (IR fingerprint)** alongside via `--mode=ir --report-only`. |
+| **tier1-parity** | Curated subset of tier1 where both engines must accept. Source of truth: `corpus/tier1-parity/manifest.json`. | **PR-blocking (parse)** in `aster-lang-test`, `aster-lang-core`, `aster-lang-ts` via `scripts/parity-tier1.mjs --mode=parse`. **PR-blocking (IR field-level)** alongside via `--mode=ir --full`. Eval (`--mode=eval`) gates in the nightly (audit #58); report-only in PR CI. |
 | tier1-equivalence | Full set of samples that *should* be bidirectionally accepted; tier1-parity is a subset of this. | Nightly (`equivalence-nightly.mjs`), regression on rate vs. last-recorded baseline. |
 | tier2-divergent | Known one-engine-only samples; drives the divergence backlog. | Nightly only; cases catalogued in this file. |
 | tier3-fixtures | Single-engine specialty fixtures (golden AST/Core, lossless, lsp, runtime-retry, type-checker). | Each consumer runs its own subset. |
@@ -51,11 +70,11 @@ below.
 
 ### Mode escalation policy
 
-Mode | Status | Promotion trigger
+Mode | Status | History
 ---|---|---
-`--mode=parse` | **PR-blocking** | Was promoted in the Phase A landing PR.
-`--mode=ir` (fingerprint) | **report-only** — initial Phase B cycle | Promote to PR-blocking once two conditions hold: (1) baseline divergence reaches zero or a stable known set; (2) ADR resolves the field-name divergence (e.g. `Import.path` vs `Import.name`) and the runner is upgraded from fingerprint comparison to full normalized JSON parity.
-`--mode=eval` (evaluator output) | **report-only** — initial Phase C cycle | Promote to PR-blocking once the Truffle-side multi-argument NPE is fixed (see below). Phase C compares each side's evaluator output against the other engine's output AND the golden `expectedOutput`.
+`--mode=parse` | **PR-blocking + nightly-gating** | Promoted in the Phase A landing PR.
+`--mode=ir --full` (field-level) | **PR-blocking + nightly-gating** | Promoted to PR-blocking after the normalizing comparator landed (both conditions met: baseline divergence reached zero; field-level normalized JSON parity replaced fingerprint comparison). Nightly promoted from report-only to gating in audit #58 (212/212 = 1.0000 for 4+ consecutive nights).
+`--mode=eval` (evaluator output) | **nightly-gating** (report-only in PR CI) | The Truffle multi-argument NPE and the eval divergences catalogued below are all resolved; eval-parity held 255/255 = 1.0000 for 4+ consecutive nights, so the nightly step was promoted from report-only to gating in audit #58. PR CI keeps it report-only (`continue-on-error`) because it runs a smaller changed-files subset. Phase C compares each side's evaluator output against the other engine's output AND the golden `expectedOutput`.
 
 The Phase B fingerprint is structural — it compares `moduleName`, `declCount`,
 the `kind → count` histogram, and the sorted list of declared symbol names —
@@ -73,77 +92,42 @@ case to completion. The Java-side NPE is a Truffle codegen regression
 that has to be fixed in `aster-lang-truffle/src/main/java/aster/truffle/nodes/`
 before Phase C can be promoted to PR-blocking.
 
-## Summary
-
-| Category | Count | Direction | Status |
-|---|---:|---|---|
-| **TS-only (Java parser doesn't accept)** | 13 | TS pass, Java fail | Assessed |
-| **Java-only (TS parser doesn't accept)** | 1 | TS fail, Java pass | Assessed |
-| **Lowering / IR divergence** | — | both parse, lowered IR differs | **Not assessed in this report** |
-| **Runtime / output normalization** | — | both lower, evaluator yields different value | **Not assessed in this report** |
-
-Total: **14 divergent / 197 corpus = 7.1%** (matches CSV history baseline).
-
-Lowering and runtime divergences are NOT zero by exclusion — they are simply
-out of scope for the parse-equivalence runner. A separate pipeline gate
-(comparing lowered Core IR JSON, then evaluator outputs) is required before
-this manifest can claim full-pipeline parity. The categories are listed here
-so future work can fill them in.
-
 ## Cases
 
-### Category A: TS-only (13)
-
-Java parser rejects valid TS-accepted syntax. Each row should produce a Java
-parser issue (with proposed grammar rule) before being either fixed or
-demoted to "TS-only by design".
-
-| # | Path | Suspected root cause | Suggested action |
-|---|---|---|---|
-| 1 | `tier2-divergent/ts-only/comparison_operators.aster` | Java doesn't accept the comparison operator aliases yet (e.g. `greater than or equal`, `not equal to`, `in range`) | Extend ANTLR grammar in `aster-lang-core` (already accepts most aliases — verify `>=` / `<=` / `in range` triplet) |
-| 2 | `tier2-divergent/ts-only/cross_compiler_ops.aster` | Same operator-alias family as #1, packaged as cross-engine probes | Same as #1 |
-| 3 | `tier2-divergent/ts-only/lambda_cnl_match_bind.aster` | Java parser doesn't accept `Match … When Constructor(field, field), Return …` pattern binding inside lambda | Add `MatchExpr` with `Bind` pattern to Java grammar |
-| 4 | `tier2-divergent/ts-only/lambda_cnl_match_bind__programs-patterns.aster` | Same as #3 (programs-patterns variant) | Same as #3 |
-| 5 | `tier2-divergent/ts-only/lambda_cnl_match_maybe.aster` | Match arm pattern for `Maybe(value)` / `Nothing()` | Same as #3 |
-| 6 | `tier2-divergent/ts-only/lambda_cnl_match_maybe__programs-patterns.aster` | Same as #5 (programs-patterns variant) | Same as #3 |
-| 7 | `tier2-divergent/ts-only/lambda_cnl_match_result.aster` | Match arm pattern for `Ok(value)` / `Err(message)` | Same as #3 |
-| 8 | `tier2-divergent/ts-only/lambda_cnl_match_result__programs-patterns.aster` | Same as #7 (programs-patterns variant) | Same as #3 |
-| 9 | `tier2-divergent/ts-only/lambda_cnl_mixed.aster` | Lambda body containing both `Match` and `If` arms | Likely subsumed once #3 lands |
-| 10 | `tier2-divergent/ts-only/loan.aster` | Likely uses lambda / match / let-with-call combination | Re-run after #3 and #13 land; track residual |
-| 11 | `tier2-divergent/ts-only/nested_generic_lambda.aster` | Generic type parameter binding inside nested lambda | Java grammar needs nested-generic support; investigate `[T] given x as T` form |
-| 12 | `tier2-divergent/ts-only/test_eligibility_with_ifs.aster` | Multi-clause `If … Otherwise If … Otherwise …` chain | Verify Java grammar treats `Otherwise If` as `else if` |
-| 13 | `tier2-divergent/ts-only/test_let_with_call.aster` | `Let x be foo(args)` form — `Let` binding to a call expression | Extend `LetBinding` to accept any expression on RHS in Java grammar |
-
-### Category B: Java-only (1)
-
-| # | Path | TS parser error | Java behavior | Suggested action |
-|---|---|---|---|---|
-| 14 | `tier2-divergent/java-only/neq_test.aster` | `Expected ')' after expression` — TS parser tokenises `not (x equals to y)` strangely | Java parses fine; emits `!=` in IR | Fix TS parser to recognise the `not (X equals to Y)` pattern as `!=` — likely a precedence issue in `unary_op` |
-
-## Recommended Sequencing
-
-1. **First pass (low-risk grammar adds)** — items 1, 12, 13: comparison aliases, `Otherwise If`, `Let` + call. ETA: 1-2 days. Should clear 3-4 cases.
-2. **Second pass (Match patterns)** — items 3-9: lands one grammar rule (`MatchExpr` with `Bind`) but unlocks 7 cases. ETA: 2-3 days.
-3. **Third pass (nested generic lambda)** — item 11: scope creep risk; defer until 1 + 2 are landed. ETA: 1-2 days.
-4. **TS-side fix** — item 14: not(equals to) precedence. ETA: 0.5 day.
-
-If 1+2+4 land, baseline goes to **194/197 = 98.5%**. Item 11 is the only "demote
-to TS-only by design" candidate if it proves expensive — that drops 1 from the
-denominator and keeps baseline at 100% of expected-equivalent corpus.
+**None open.** `tier2-divergent/` is empty and the live parse-equivalence rate
+is 1.0000 (217/217). When a divergence reappears, catalogue it here with a
+root-cause category and a corresponding engine issue, mirroring the historical
+format retired below.
 
 ## Regression Guard
 
-To prevent silent regression on the 183 passing cases, set up a CI gate:
+Regression is now caught automatically, not by manual review of this file:
 
-```bash
-# In aster-lang-core CI (today only TS side runs):
-./gradlew :aster-lang-core:test --tests '*DualEngineCrossLangTest*'
-# Should be wired into the default test target, not `excludeTags("crosslang")`.
-```
+- **parse** — `scripts/parity-tier1.mjs --mode=parse`, PR-blocking in
+  `aster-lang-test`, `aster-lang-core`, `aster-lang-ts`, and nightly-gating.
+- **ir (field-level)** — `scripts/parity-tier1.mjs --mode=ir --full`,
+  PR-blocking and nightly-gating.
+- **eval** — `scripts/parity-tier1.mjs --mode=eval`, nightly-gating
+  (report-only in PR CI). Coverage/exemptions in `EVAL-EXEMPTIONS.md`.
 
-This file is checked into the repo so the failure manifest itself is reviewable.
-Update it whenever a category-A case is fixed (delete the row) or a new case
-appears (add row + root-cause line).
+A rate drop on any mode now fails the nightly job, which blocks the
+`if: success()` "Append history to main" step so a regressed CSV/report can't be
+committed to `main` and poison the baseline. The freshness guard
+(`scripts/check-equivalence-freshness.mjs`) keeps the committed report honest.
+
+## Historical baseline (2026-05-21, retired)
+
+Preserved for provenance only — these are NOT current numbers (current
+divergent = 0). At the 2026-05-21 baseline the parse-equivalence runner
+reported **14 divergent / 197 corpus = 7.1%**: 13 TS-only cases (Java parser
+rejected valid TS-accepted syntax — comparison-operator aliases, `Match`
+pattern binding inside lambdas, `Otherwise If` chains, `Let x be <call>`,
+nested generic lambdas) and 1 Java-only case (`neq_test.aster`, TS
+mis-tokenised `not (x equals to y)`). All 14 were subsequently fixed across the
+Phase A/B/C landings and the follow-up grammar work; the per-case tables and
+sequencing plan that tracked them were removed on 2026-07-04 (audit #58) once
+the backlog reached zero. The detailed resolution notes for the runtime/eval
+layer are retained in the sections below.
 
 ## Runtime (eval) divergences revealed after Phase B/C fixes (2026-06-05)
 
