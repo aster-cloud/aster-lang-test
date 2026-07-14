@@ -294,19 +294,21 @@ jobs:
           node scripts/parity-tier1.mjs --mode=ir --full | tee parity-tier1-ir-report.md
 
       # Phase C: evaluator output parity for samples with .cases.json.
-      # Operates on a smaller subset (15 samples / ~45 cases as of this
-      # landing) and exercises Truffle Context.eval → Value.execute().
-      # Report-only because the initial run surfaces a systemic NPE on
-      # multi-argument Truffle invocations that has to be fixed
-      # upstream before this can be PR-blocking.
-      - name: Run tier1-parity (eval, report-only)
+      # Exercises Truffle Context.eval → Value.execute() on both engines and
+      # asserts每 case 两引擎输出一致 AND 匹配 golden。
+      #
+      # ★2026-07-15 升 PR-blocking：原 report-only 是因 multi-argument Truffle
+      # invocation 的 systemic NPE（须 upstream 修）。该 blocker 已解决——本地实测
+      # 全语料 255/255 cases identical、0 divergent、0 failure（TS+Java 双引擎），
+      # 故移除 continue-on-error + --report-only。eval 输出漂移现直接 PR-blocking
+      # （与 parse/ir 门齐），补上「客户规则升级后语义是否漂移」的执行层守门。
+      - name: Run tier1-parity strict gate (eval, PR-blocking)
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
-        continue-on-error: true
         shell: bash
         run: |
           set -o pipefail
-          node scripts/parity-tier1.mjs --mode=eval --report-only | tee parity-tier1-eval-report.md
+          node scripts/parity-tier1.mjs --mode=eval | tee parity-tier1-eval-report.md
 
       - name: Upload parity reports
         if: always() && (steps.changed.outputs.parity == 'true' || github.event_name == 'push')
