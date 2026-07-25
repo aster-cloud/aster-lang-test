@@ -1,0 +1,10 @@
+{
+  "policy": "tier1-equivalence/policies/g0-omit-produce.aster",
+  "entry": "add",
+  "cases": [
+    { "name": "add(3, 4) → 7", "input": [3, 4], "expectedOutput": 7 },
+    { "name": "add(0, 0) → 0", "input": [0, 0], "expectedOutput": 0 },
+    { "name": "add(10, -3) → 7", "input": [10, -3], "expectedOutput": 7 },
+    { "name": "add(100, 200) → 300", "input": [100, 200], "expectedOutput": 300 }
+  ]
+}

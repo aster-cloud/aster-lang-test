@@ -1,0 +1,10 @@
+{
+  "policy": "tier1-equivalence/policies/enterprise.aster",
+  "entry": "assessLiquidity",
+  "cases": [
+    { "name": "ratio 300 → Excellent", "input": [{ "currentAssets": 300, "currentLiabilities": 100, "totalAssets": 0, "totalLiabilities": 0, "equity": 0, "cashFlow": 0, "outstandingDebt": 0 }], "expectedOutput": { "__type": "LiquidityAnalysis", "currentRatio": 300, "quickRatio": 300, "isHealthy": true, "recommendation": "Excellent liquidity" } },
+    { "name": "ratio 180 → Good", "input": [{ "currentAssets": 180, "currentLiabilities": 100, "totalAssets": 0, "totalLiabilities": 0, "equity": 0, "cashFlow": 0, "outstandingDebt": 0 }], "expectedOutput": { "__type": "LiquidityAnalysis", "currentRatio": 180, "quickRatio": 180, "isHealthy": true, "recommendation": "Good liquidity" } },
+    { "name": "ratio 120 → Adequate", "input": [{ "currentAssets": 120, "currentLiabilities": 100, "totalAssets": 0, "totalLiabilities": 0, "equity": 0, "cashFlow": 0, "outstandingDebt": 0 }], "expectedOutput": { "__type": "LiquidityAnalysis", "currentRatio": 120, "quickRatio": 120, "isHealthy": true, "recommendation": "Adequate liquidity" } },
+    { "name": "ratio 80 → Poor", "input": [{ "currentAssets": 80, "currentLiabilities": 100, "totalAssets": 0, "totalLiabilities": 0, "equity": 0, "cashFlow": 0, "outstandingDebt": 0 }], "expectedOutput": { "__type": "LiquidityAnalysis", "currentRatio": 80, "quickRatio": 80, "isHealthy": false, "recommendation": "Poor liquidity" } }
+  ]
+}

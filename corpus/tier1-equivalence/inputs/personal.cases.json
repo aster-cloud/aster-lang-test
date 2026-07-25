@@ -1,0 +1,10 @@
+{
+  "policy": "tier1-equivalence/policies/personal.aster",
+  "entry": "assessCredit",
+  "cases": [
+    { "name": "score 780 → EXCELLENT", "input": [{ "creditScore": 780, "creditUtilization": 30, "latePayments": 1, "defaults": 0, "bankruptcies": 0 }], "expectedOutput": { "__type": "CreditAssessment", "scoreGrade": "EXCELLENT", "historyGrade": "STRONG", "utilizationRatio": 30, "negativeMarks": 1, "riskIndicator": "LOW", "maxLoanAmount": 50000 } },
+    { "name": "score 720 → GOOD", "input": [{ "creditScore": 720, "creditUtilization": 30, "latePayments": 1, "defaults": 0, "bankruptcies": 0 }], "expectedOutput": { "__type": "CreditAssessment", "scoreGrade": "GOOD", "historyGrade": "SOLID", "utilizationRatio": 30, "negativeMarks": 1, "riskIndicator": "LOW", "maxLoanAmount": 30000 } },
+    { "name": "score 660 → FAIR", "input": [{ "creditScore": 660, "creditUtilization": 30, "latePayments": 1, "defaults": 0, "bankruptcies": 0 }], "expectedOutput": { "__type": "CreditAssessment", "scoreGrade": "FAIR", "historyGrade": "ADEQUATE", "utilizationRatio": 30, "negativeMarks": 1, "riskIndicator": "MEDIUM", "maxLoanAmount": 20000 } },
+    { "name": "score 600 → POOR", "input": [{ "creditScore": 600, "creditUtilization": 30, "latePayments": 1, "defaults": 0, "bankruptcies": 0 }], "expectedOutput": { "__type": "CreditAssessment", "scoreGrade": "POOR", "historyGrade": "LIMITED", "utilizationRatio": 30, "negativeMarks": 1, "riskIndicator": "HIGH", "maxLoanAmount": 10000 } }
+  ]
+}

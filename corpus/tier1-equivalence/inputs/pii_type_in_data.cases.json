@@ -1,0 +1,7 @@
+{
+  "policy": "tier1-equivalence/policies/pii_type_in_data.aster",
+  "entry": "create_user",
+  "cases": [
+    { "name": "create_user() → User{email,name}", "input": [], "expectedOutput": { "__type": "User", "email": "test@example.com", "name": "John" } }
+  ]
+}
