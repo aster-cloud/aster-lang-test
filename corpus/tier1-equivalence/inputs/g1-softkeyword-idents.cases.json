@@ -1,0 +1,10 @@
+{
+  "policy": "tier1-equivalence/policies/g1-softkeyword-idents.aster",
+  "entry": "pick",
+  "cases": [
+    { "name": "pick(start, B) → first arm binds all → start", "input": ["start", "B"], "expectedOutput": "start" },
+    { "name": "pick(other, B) → other", "input": ["other", "B"], "expectedOutput": "other" },
+    { "name": "pick(zzz, B) → zzz", "input": ["zzz", "B"], "expectedOutput": "zzz" },
+    { "name": "pick(1, 2) numeric → 1", "input": [1, 2], "expectedOutput": 1 }
+  ]
+}

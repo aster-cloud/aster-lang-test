@@ -1,0 +1,9 @@
+{
+  "policy": "tier1-equivalence/policies/g1-lowercase-keywords.aster",
+  "entry": "classify",
+  "cases": [
+    { "name": "classify(750) > 700 → Gold", "input": [750], "expectedOutput": { "__type": "?", "_enum": "Tier", "value": "Gold", "variant": "Gold", "args": [] } },
+    { "name": "classify(650) <= 700 → Silver", "input": [650], "expectedOutput": { "__type": "?", "_enum": "Tier", "value": "Silver", "variant": "Silver", "args": [] } },
+    { "name": "classify(700) boundary (not > 700) → Silver", "input": [700], "expectedOutput": { "__type": "?", "_enum": "Tier", "value": "Silver", "variant": "Silver", "args": [] } }
+  ]
+}
