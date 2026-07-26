@@ -6,6 +6,13 @@ on:
   pull_request:
     branches: [main]
 
+# 最小权限（CodeQL actions/missing-workflow-permissions）：本 workflow 全部 job 仅
+# checkout + build + test，不推 commit/tag/release、不评论 PR、不推镜像、不传 SARIF、
+# 无 OIDC 云登录。跨仓 checkout 与 repository-dispatch 均由 secrets.CROSS_REPO_TOKEN
+# (PAT) 鉴权，GITHUB_TOKEN 只需读本仓内容。故顶层收敛为只读。
+permissions:
+  contents: read
+
 # 同一 ref 上新 push 到来时取消尚在跑的过时 CI（PR 连续 push 常见）——省算力/排队。
 # ★cancel-in-progress 只对 PR 生效（Codex 审 High）：本仓 CI 的 notify-consumers job 在
 # main push + corpus 变更时会 repository_dispatch 到 aster-lang-ts/core 触发下游 regression
