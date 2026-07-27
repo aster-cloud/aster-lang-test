@@ -8,8 +8,5 @@
   "source": "aster-lang-test/corpus/tier1-equivalence/policies/personal.aster",
   "capabilities": [
     "cases-golden"
-  ],
-  "evalExempt": true,
-  "evalExemptReason": "not-yet-eval-verified",
-  "evalExemptDetail": "named-field struct construction now valid in both engines; eval-parity not yet promoted (was: positional construction unsupported)"
+  ]
 }

@@ -7,6 +7,6 @@
   "lexicon": "en-US",
   "source": "aster-lang-ts/test/cnl/programs/examples/greet.aster",
   "evalExempt": true,
-  "evalExemptReason": "pattern-matching",
-  "evalExemptDetail": "parse-parity fixture (pattern destructuring `When User(id, name)`); eval-parity not yet promoted"
+  "evalExemptReason": "unsupported-syntax",
+  "evalExemptDetail": "pattern destructuring `When User(…)` unsupported in both pure evaluators"
 }

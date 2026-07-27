@@ -44,6 +44,7 @@ import { dirname, resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { upsertDailyHistory } from './lib/history.mjs';
+import { collectEvalCaseProblem } from './lib/eval-cases.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -747,30 +748,51 @@ const TS_DUAL_ENGINE_RUNNER = join(TS_REPO, 'scripts', 'dual-engine-runner.mjs')
  */
 function collectEvalRequests(samples) {
   const requests = [];
+  // ★守卫:非 eval-exempt 的样本必须有**有效** golden，否则报错而非静默跳过。
+  // 历史缺陷:缺 cases 的样本被静默丢弃 —— 曾让 `stdlib_date`（因白名单误判被剔出分母）
+  // 悄悄消失，制造"伪 100%"（143/143 隐藏了 date）。守卫覆盖全部失效形态（缺文件 / JSON
+  // 损坏 / 缺 entry / cases 非数组 / cases 空数组），判定逻辑与 tag-eval-exempt 共用
+  // scripts/lib/eval-cases.mjs（单一事实源，防漂移）。豁免样本（meta.evalExempt=true）本就
+  // 不需要 golden（走 derived-analysis 结构比对），跳过合法。
+  const problems = []; // { rel, why }
   for (const { rel, abs } of samples) {
+    const isExempt = exemptReasonOf(abs) !== null;
     const base = abs.split('/').pop().replace(/\.aster$/, '');
     const casesPath = join(CORPUS, 'tier1-equivalence', 'inputs', `${base}.cases.json`);
-    if (!existsSync(casesPath)) continue;
-    let cases;
-    try {
-      cases = JSON.parse(readFileSync(casesPath, 'utf8'));
-    } catch {
+    const exists = existsSync(casesPath);
+    let doc = null;
+    let parseError = null;
+    if (exists) {
+      try {
+        doc = JSON.parse(readFileSync(casesPath, 'utf8'));
+      } catch (e) {
+        parseError = (e && e.message) || String(e);
+      }
+    }
+    const problem = collectEvalCaseProblem({ exists, parseError, doc });
+    if (problem) {
+      if (!isExempt) problems.push({ rel, why: problem });
       continue;
     }
-    const entry = cases.entry;
-    if (!entry || !Array.isArray(cases.cases)) continue;
-    for (let i = 0; i < cases.cases.length; i++) {
-      const c = cases.cases[i];
+    for (let i = 0; i < doc.cases.length; i++) {
+      const c = doc.cases[i];
       requests.push({
         rel,
         samplePath: abs,
-        entry,
+        entry: doc.entry,
         input: Array.isArray(c.input) ? c.input : [],
         caseIndex: i,
         caseName: c.name || `case ${i}`,
         expected: c.expectedOutput,
       });
     }
+  }
+  if (problems.length > 0) {
+    throw new Error(
+      `[parity-tier1] ${problems.length} 个非 eval-exempt 样本无有效 golden（eval 盲区，拒绝静默跳过）:\n` +
+      problems.map((p) => `  - ${p.rel}: ${p.why}`).join('\n') +
+      `\n给它们补有效 golden（scripts/gen-cases.mjs）或在 .meta.json 标 evalExempt 并说明理由。`,
+    );
   }
   return requests;
 }
