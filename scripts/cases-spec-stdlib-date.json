@@ -1,0 +1,16 @@
+{
+  "_comment": "P4 度量诚实化:stdlib_date 补 eval golden。现有 harness 单 policy 单 entry(parity-tier1 按 <basename>.cases.json 唯一查找),故选覆盖核心链路的 spanDays(fromISO×2 + daysBetween)。其余 rule 的 eval 覆盖需 harness 支持多 entry(后续)。期望值经 Python epoch-day 交叉核对;gen-cases 再跑双引擎交叉验证才写入。",
+  "samples": [
+    {
+      "name": "stdlib_date",
+      "entry": "spanDays",
+      "cases": [
+        { "name": "2024-01-01 → 2024-03-01 = 60 天", "input": ["2024-01-01", "2024-03-01"], "expectedOutput": 60 },
+        { "name": "逆序 → -60（可为负）", "input": ["2024-03-01", "2024-01-01"], "expectedOutput": -60 },
+        { "name": "同日 → 0", "input": ["2024-01-01", "2024-01-01"], "expectedOutput": 0 },
+        { "name": "跨闰日 2024-02-28 → 2024-03-01 = 2 天", "input": ["2024-02-28", "2024-03-01"], "expectedOutput": 2 },
+        { "name": "跨年 2023-12-31 → 2024-01-01 = 1 天", "input": ["2023-12-31", "2024-01-01"], "expectedOutput": 1 }
+      ]
+    }
+  ]
+}

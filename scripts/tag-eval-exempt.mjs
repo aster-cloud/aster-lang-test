@@ -18,6 +18,7 @@
  */
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
+import { collectEvalCaseProblem } from './lib/eval-cases.mjs';
 import { upsertDailyHistory } from './lib/history.mjs';
 import { fileURLToPath } from 'node:url';
 
@@ -73,7 +74,14 @@ function exemptReason(name, src) {
   return null;
 }
 
-const STDLIB_NAMESPACES = new Set(['Text', 'List', 'Map', 'Maybe', 'Option', 'Result']);
+// ★Date / Decimal 是双引擎已实现的 stdlib 命名空间（aster-truffle Builtins.java +
+// DateBuiltinTest / DecimalBuiltinTest；TS 引擎同款），此前遗漏在白名单中。
+// 注意分类规则「有 cases 即 eval-able，否则才走 exemptReason（含此白名单）」：
+//  - `Date` 修复实质影响 `stdlib_date`——它当时无 golden，`Date.*` 命中"非白名单静态方法
+//    → unsupported"而被误剔出 eval 分母（143/143 隐藏 date 的"伪 100%"）。
+//  - `Decimal` 仅补齐白名单声明；`stdlib_decimal` 自 PR #52 起就有 `compute` golden，按
+//    "有 cases 即 eval-able"规则一直在分母内，其覆盖状态不因本次改动而变。
+const STDLIB_NAMESPACES = new Set(['Text', 'List', 'Map', 'Maybe', 'Option', 'Result', 'Date', 'Decimal']);
 
 /** Returns a reason string if the source uses a construction/dispatch form that
  *  fails in both pure evaluators, else null. */
@@ -81,7 +89,13 @@ function usesUnsupportedConstruction(src) {
   // Collect Define'd type names, then look for a positional call to one.
   const definedTypes = new Set();
   for (const m of src.matchAll(/\bDefine\s+([A-Z]\w*)\b/g)) definedTypes.add(m[1]);
-  for (const m of src.matchAll(/(?<![A-Za-z0-9_.])([A-Z]\w*)\s*\(/g)) {
+  // ★先识别 `When Type(...)` 模式解构：它虽也不被纯 evaluator 支持，但语义上是**模式解构**
+  //   而非位置式结构体构造，须给准确 detail（否则 --write 会写错并反复覆盖回错误描述）。
+  for (const m of src.matchAll(/\bWhen\s+([A-Z]\w*)\s*\(/g)) {
+    if (definedTypes.has(m[1])) return `pattern destructuring \`When ${m[1]}(…)\` unsupported in both pure evaluators`;
+  }
+  // 位置式结构体构造 `Type(...)`（排除上面已处理的 `When Type(...)`）。
+  for (const m of src.matchAll(/(?<!\bWhen\s)(?<![A-Za-z0-9_.])([A-Z]\w*)\s*\(/g)) {
     if (definedTypes.has(m[1])) return `positional struct construction \`${m[1]}(…)\` (only the \`with … set to\` form is supported in both engines)`;
   }
   // Qualified static call on a non-stdlib type, e.g. `Action.equals(...)`.
@@ -114,12 +128,34 @@ function callsUndefinedFunction(src) {
 }
 
 const all = readdirSync(POLICIES).filter((f) => f.endsWith('.aster')).map((f) => f.replace('.aster', ''));
-const hasCases = new Set(
-  readdirSync(INPUTS).filter((f) => f.endsWith('.cases.json')).map((f) => f.replace('.cases.json', '')),
-);
+
+// hasCases = 有**有效** golden 的样本。★用共享 helper（scripts/lib/eval-cases.mjs）验证每个
+// .cases.json，与 parity-tier1 守卫同一事实源——损坏/缺 entry/空数组的 cases 不算 covered，
+// 否则覆盖率会虚高（tag 报 100% 而 parity 才失败）。无效 cases 直接让本工具非零退出。
+const invalidCases = [];
+const hasCases = new Set();
+for (const f of readdirSync(INPUTS).filter((n) => n.endsWith('.cases.json'))) {
+  const name = f.replace('.cases.json', '');
+  let doc = null;
+  let parseError = null;
+  try {
+    doc = JSON.parse(readFileSync(join(INPUTS, f), 'utf8'));
+  } catch (e) {
+    parseError = (e && e.message) || String(e);
+  }
+  const problem = collectEvalCaseProblem({ exists: true, parseError, doc });
+  if (problem) invalidCases.push(`${f}: ${problem}`);
+  else hasCases.add(name);
+}
+if (invalidCases.length > 0) {
+  console.error(`[tag-eval-exempt] ${invalidCases.length} 个 .cases.json 无效（不计入覆盖）:`);
+  for (const c of invalidCases) console.error(`  - ${c}`);
+  process.exit(1);
+}
 
 let exemptCount = 0;
 let taggedCount = 0;
+let clearedCount = 0; // --write 时清除的 stale evalExempt 标记数
 const exemptByReason = {};
 const evalableNoCases = [];
 
@@ -144,8 +180,22 @@ for (const name of all) {
         taggedCount++;
       }
     }
-  } else if (!hasCases.has(name)) {
-    evalableNoCases.push(name);
+  } else {
+    // 非豁免（eval-able）。★清除**陈旧**的 evalExempt 标记：样本一旦补了 golden（或分类
+    // 改判为 eval-able），旧的 `evalExempt:true`/`not-yet-eval-verified` 必须清掉——否则
+    // parity-tier1 的守卫信任 meta.evalExempt，stale 标记会让缺 cases 的样本被静默跳过，
+    // 正是本机制要消灭的分母漂移（Codex 复审发现 enterprise/personal/pii_type_in_data 三处 stale）。
+    if (WRITE && existsSync(metaPath)) {
+      const meta = JSON.parse(readFileSync(metaPath, 'utf8'));
+      if (meta.evalExempt !== undefined || meta.evalExemptReason !== undefined || meta.evalExemptDetail !== undefined) {
+        delete meta.evalExempt;
+        delete meta.evalExemptReason;
+        delete meta.evalExemptDetail;
+        writeFileSync(metaPath, JSON.stringify(meta, null, 2) + '\n');
+        clearedCount++;
+      }
+    }
+    if (!hasCases.has(name)) evalableNoCases.push(name);
   }
 }
 
