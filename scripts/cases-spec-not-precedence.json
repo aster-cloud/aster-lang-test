@@ -1,0 +1,22 @@
+{
+  "_comment": "P1 parity 修复(not 优先级):Java 曾把 NOT 挂在 unaryExpr 上(紧于比较),`not x greater than y` 解析成 (not x) greater than y 导致类型错误崩溃;修为松绑定 not(x greater than y) 对齐 TS(and < not < 比较)。policy 里三条 rule 全部走双引擎求值——notNot/notAnd 用 case 级 `entry` 覆盖文档默认(见 scripts/lib/eval-cases.mjs 的多 entry 说明)。notAnd 的用例刻意覆盖 and 两侧的四种真值组合,使错误分组 not(x>0 and y>0) 与正确分组 and(not(x>0), y>0) 在 x<=0,y<=0 一例上必然给出不同结果,故这些 golden 能真正锁住优先级而非仅锁住返回类型。",
+  "samples": [
+    {
+      "name": "not-precedence",
+      "entry": "notCompare",
+      "cases": [
+        { "name": "notCompare: not 5 gt 3 = not(true) = false", "input": [5, 3], "expectedOutput": false },
+        { "name": "notCompare: not 3 gt 5 = not(false) = true", "input": [3, 5], "expectedOutput": true },
+        { "name": "notCompare: not 5 gt 5 = not(false) = true", "input": [5, 5], "expectedOutput": true },
+
+        { "name": "notNot: not not true = true", "entry": "notNot", "input": [true], "expectedOutput": true },
+        { "name": "notNot: not not false = false", "entry": "notNot", "input": [false], "expectedOutput": false },
+
+        { "name": "notAnd: x=5,y=5 -> and(not(T), T) = false", "entry": "notAnd", "input": [5, 5], "expectedOutput": false },
+        { "name": "notAnd: x=-1,y=5 -> and(not(F), T) = true", "entry": "notAnd", "input": [-1, 5], "expectedOutput": true },
+        { "name": "notAnd: x=5,y=-1 -> and(not(T), F) = false", "entry": "notAnd", "input": [5, -1], "expectedOutput": false },
+        { "name": "notAnd: x=-1,y=-1 -> and(not(F), F) = false (错误分组会给 true)", "entry": "notAnd", "input": [-1, -1], "expectedOutput": false }
+      ]
+    }
+  ]
+}

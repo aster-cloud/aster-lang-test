@@ -25,6 +25,18 @@
  *     ]
  *   }
  *
+ * A case may carry its own `"entry"` to override the sample-level default, so a
+ * policy with several rules can have every rule evaluated instead of only one:
+ *
+ *   { "name": "not-precedence", "entry": "notCompare",
+ *     "cases": [
+ *       { "name": "...", "input": [5, 3], "expectedOutput": false },
+ *       { "name": "...", "entry": "notNot", "input": [true], "expectedOutput": true }
+ *     ] }
+ *
+ * The override is echoed into the generated .cases.json so the parity gate
+ * evaluates each case against the same entry it was verified with.
+ *
  * Usage:
  *   node scripts/gen-cases.mjs <spec.json> [--write] [--only=NAME,NAME]
  *   (without --write it's a dry run: reports agreement, writes nothing)
@@ -71,9 +83,10 @@ for (const s of samples) {
     continue;
   }
   s.cases.forEach((c, i) => {
+    // case 级 `entry` 覆盖 sample 级默认——让一个 policy 内的多条 rule 都能生成 golden。
     requests.push({
-      sample: s.name, samplePath, entry: s.entry, input: c.input,
-      localIndex: i, gIndex: gIdx++, name: c.name, expected: c.expectedOutput,
+      sample: s.name, samplePath, entry: c.entry || s.entry, input: c.input,
+      caseEntry: c.entry, localIndex: i, gIndex: gIdx++, name: c.name, expected: c.expectedOutput,
     });
   });
 }
@@ -154,7 +167,12 @@ for (const r of requests) {
   if (tsOk && jaOk) {
     agree++;
     if (!bySample.has(r.sample)) bySample.set(r.sample, []);
-    bySample.get(r.sample).push({ name: r.name, input: r.input, expectedOutput: exp });
+    // 只有显式写了 case 级 entry 的才回写该字段——避免给存量单-entry 文件平添噪声。
+    bySample.get(r.sample).push(
+      r.caseEntry
+        ? { name: r.name, entry: r.caseEntry, input: r.input, expectedOutput: exp }
+        : { name: r.name, input: r.input, expectedOutput: exp },
+    );
   } else {
     problems.push({ key, name: r.name, expected: exp, ts: t.success ? tVal : `ERR:${t.error}`, java: jr.ok ? jVal : `ERR:${jr.error}` });
   }

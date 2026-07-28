@@ -141,6 +141,8 @@ jobs:
               - 'corpus/tier1-parity/**'
               - 'scripts/parity-tier1.mjs'
               - 'scripts/equivalence-nightly.mjs'
+              - 'scripts/lib/eval-cases.mjs'
+              - 'scripts/test-eval-guard.mjs'
               - '.github/workflows/ci.yml'
 
       # Shared version catalog (aster-lang-platform, ADR 0012). aster-lang-core
@@ -288,6 +290,14 @@ jobs:
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test/packages/jvm
         run: ./gradlew publishToMavenLocal -x test
+
+      # scripts/lib/eval-cases.mjs 是 parity-tier1 守卫与 tag-eval-exempt 分类的**单一事实源**
+      # （含 case 级 entry 覆盖的解析）。它一旦回归，eval 门会「安静地测错 entry」而非报错，
+      # 所以先跑它的回归测试快速失败。纯 node:assert，无需 gradle/maven，秒级完成。
+      - name: Run eval-cases guard regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-eval-guard.mjs
 
       - name: Run tier1-parity strict gate (parse, PR-blocking)
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
