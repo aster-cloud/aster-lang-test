@@ -21,11 +21,28 @@
  *     ] }
  *
  * 保留 `doc.entry` 必填是刻意的：它既是默认值，也让"缺 entry"守卫对存量文件继续生效。
+ *
+ * **错误路径用例（`expectError`）**：全部 golden 原本只断言正常返回值，跨引擎的**错误
+ * 语义**从未被触发过——不是"测了没发现"，而是"从未被输入触发"（issue #69）。
+ * `classifyEval` 本就能区分 ts-only-failed / java-only-failed / both-failed，却没有
+ * 任何 case 会走到那里，且 `both-failed` 一律算失败，无法表达"两侧都**应该**失败"。
+ *
+ *   { "name": "除零", "input": [10, 0], "expectError": true }
+ *
+ * 语义：**两个引擎都必须失败**才算通过；任一侧返回值即判失败（说明该引擎没拒绝非法
+ * 输入）。刻意**不比对错误消息**——消息是实现细节（Java 带堆栈与中文提示、TS 是短句），
+ * 强行对齐只会制造脆弱断言；契约是"拒绝与否"，不是"怎么措辞"。
+ * 带 `expectError` 时不应再写 `expectedOutput`（写了会被忽略，故校验直接拒绝）。
  */
 
 /** 取某个 case 实际使用的 entry：case 级覆盖优先，否则回落文档级默认。 */
 export function entryForCase(doc, testCase) {
   return (testCase && testCase.entry) || doc.entry;
+}
+
+/** 该 case 是否断言"两引擎都应失败"。 */
+export function expectsError(testCase) {
+  return testCase != null && testCase.expectError === true;
 }
 
 /** 文档层校验：doc 已 JSON.parse。返回 null（有效）或原因字符串（无效）。 */
@@ -40,6 +57,17 @@ export function validateEvalCasesDocument(doc) {
     const e = doc.cases[i].entry;
     if (e !== undefined && (typeof e !== 'string' || e.length === 0)) {
       return `cases[${i}].entry 非空字符串`;
+    }
+    // expectError 只接受字面 true：写成 "true" / 1 之类会被 === true 判否而**静默
+    // 退回值比对**，把一条本想测错误路径的用例悄悄变成 happy-path。
+    const ee = doc.cases[i].expectError;
+    if (ee !== undefined && ee !== true) {
+      return `cases[${i}].expectError 只能是 true（省略即普通值断言）`;
+    }
+    // expectError 与 expectedOutput 互斥：两者同时出现时 expectedOutput 必然被忽略，
+    // 留着只会让读者误以为它生效。
+    if (ee === true && Object.prototype.hasOwnProperty.call(doc.cases[i], 'expectedOutput')) {
+      return `cases[${i}] 同时有 expectError 与 expectedOutput（互斥）`;
     }
   }
   return null;

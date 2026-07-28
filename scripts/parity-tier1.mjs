@@ -44,7 +44,7 @@ import { dirname, resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { upsertDailyHistory } from './lib/history.mjs';
-import { collectEvalCaseProblem, entryForCase } from './lib/eval-cases.mjs';
+import { collectEvalCaseProblem, entryForCase, expectsError } from './lib/eval-cases.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -786,6 +786,8 @@ function collectEvalRequests(samples) {
         caseIndex: i,
         caseName: c.name || `case ${i}`,
         expected: c.expectedOutput,
+        // 断言"两引擎都应拒绝"的错误路径用例（issue #69）
+        expectError: expectsError(c),
       });
     }
   }
@@ -941,7 +943,20 @@ function classifyEval(tsResults, javaResults, requests) {
     const javaMatchesExpected = j.ok && JSON.stringify(j.value) === expectedJson;
 
     let verdict;
-    if (!t.ok && !j.ok) {
+    if (req.expectError) {
+      // 错误路径用例（issue #69）：契约是**两个引擎都必须拒绝**。
+      // 任一侧返回了值 = 该引擎没拒绝非法输入 → 这正是要抓的跨引擎错误语义分歧
+      // （例如一方除零抛异常、另一方返回 Infinity）。
+      // 刻意不比对错误消息：消息是实现细节（Java 带堆栈+中文提示，TS 是短句），
+      // 强行对齐只会制造脆弱断言；契约是"拒绝与否"。
+      if (!t.ok && !j.ok) {
+        verdict = 'identical';
+      } else if (t.ok && j.ok) {
+        verdict = 'both-wrong'; // 两侧都没拒绝 → golden 说该失败，实际都成功了
+      } else {
+        verdict = t.ok ? 'java-only-failed' : 'ts-only-failed';
+      }
+    } else if (!t.ok && !j.ok) {
       verdict = 'both-failed';
     } else if (!t.ok) {
       verdict = 'ts-only-failed';
@@ -964,6 +979,7 @@ function classifyEval(tsResults, javaResults, requests) {
       caseIndex: req.caseIndex,
       caseName: req.caseName,
       expected: req.expected,
+      expectError: req.expectError === true,
       tsMatchesExpected,
       javaMatchesExpected,
       ts: t.ok,
@@ -1009,15 +1025,35 @@ function printMarkdownEval(rows, mode) {
     console.log('');
   }
 
-  if (bothWrong.length > 0) {
+  // expectError 用例的 both-wrong 含义不同：不是"值对不上 golden"，而是"该拒绝却都
+  // 接受了"。分开列，避免维护者按值比对的思路去排查一个错误路径问题。
+  const bothWrongValue = bothWrong.filter((r) => !r.expectError);
+  const bothAcceptedUnexpectedly = bothWrong.filter((r) => r.expectError);
+
+  if (bothWrongValue.length > 0) {
     console.log('## Both-wrong (engines agree but neither matches the golden)\n');
     console.log('Either the `.cases.json` expectedOutput is stale, or both engines share a real bug.\n');
     console.log('| path | case | engine value | expected |');
     console.log('|------|------|--------------|----------|');
-    for (const r of bothWrong.slice(0, 30)) {
+    for (const r of bothWrongValue.slice(0, 30)) {
       console.log(
         `| ${r.path} | ${r.caseName} | ${JSON.stringify(r.tsValue)} | ` +
         `${JSON.stringify(r.expected)} |`,
+      );
+    }
+    console.log('');
+  }
+
+  if (bothAcceptedUnexpectedly.length > 0) {
+    console.log('## Expected-error cases that BOTH engines accepted\n');
+    console.log('`expectError: true` 断言两侧都应拒绝，但两侧都返回了值——'
+      + '要么该输入其实合法（golden 写错），要么两个引擎共享同一个"不拒绝非法输入"的缺陷。\n');
+    console.log('| path | case | ts value | java value |');
+    console.log('|------|------|----------|------------|');
+    for (const r of bothAcceptedUnexpectedly.slice(0, 30)) {
+      console.log(
+        `| ${r.path} | ${r.caseName} | ${JSON.stringify(r.tsValue)} | ` +
+        `${JSON.stringify(r.javaValue)} |`,
       );
     }
     console.log('');

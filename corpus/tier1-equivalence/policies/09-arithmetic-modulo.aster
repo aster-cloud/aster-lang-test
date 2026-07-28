@@ -2,3 +2,6 @@ Module dual.engine.arithmetic.evencheck.
 
 Rule is_even given n produce:
   Return n modulo 2 equals to 0.
+
+Rule mod given n, d, produce:
+  Return n modulo d.

@@ -13,7 +13,7 @@
  * 用法：node scripts/test-eval-guard.mjs（退出码 0=全过，1=有失败）。
  */
 import assert from 'node:assert';
-import { validateEvalCasesDocument, collectEvalCaseProblem, entryForCase } from './lib/eval-cases.mjs';
+import { validateEvalCasesDocument, collectEvalCaseProblem, entryForCase, expectsError } from './lib/eval-cases.mjs';
 
 let pass = 0;
 let fail = 0;
@@ -108,6 +108,61 @@ check('entryForCase: 有覆盖 → 用 case 级', () => {
 
 check('entryForCase: 文档级仍必填（存量文件守卫不被削弱）', () => {
   assert.match(validateEvalCasesDocument({ cases: [{ entry: 'only-case-level', input: [] }] }), /缺 entry/);
+});
+
+
+// —— 错误路径用例 expectError（issue #69）——
+// 契约：两个引擎都必须失败才算通过；任一侧返回值即判失败。
+
+check('expectsError: 缺省 → false', () => {
+  assert.strictEqual(expectsError({ input: [], expectedOutput: 1 }), false);
+});
+
+check('expectsError: true → true', () => {
+  assert.strictEqual(expectsError({ input: [], expectError: true }), true);
+});
+
+check('expectsError: null/undefined 输入不炸', () => {
+  assert.strictEqual(expectsError(null), false);
+  assert.strictEqual(expectsError(undefined), false);
+});
+
+check('validate: expectError=true 合法', () => {
+  assert.strictEqual(
+    validateEvalCasesDocument({ entry: 'f', cases: [{ input: [1, 0], expectError: true }] }),
+    null,
+  );
+});
+
+check('validate: expectError 写成字符串 → 报错（否则静默退回值比对）', () => {
+  assert.match(
+    validateEvalCasesDocument({ entry: 'f', cases: [{ input: [], expectError: 'true' }] }),
+    /cases\[0\]\.expectError/,
+  );
+});
+
+check('validate: expectError=false → 报错（省略即可，显式 false 易误读）', () => {
+  assert.match(
+    validateEvalCasesDocument({ entry: 'f', cases: [{ input: [], expectError: false }] }),
+    /cases\[0\]\.expectError/,
+  );
+});
+
+check('validate: expectError 与 expectedOutput 并存 → 报错（互斥）', () => {
+  assert.match(
+    validateEvalCasesDocument({
+      entry: 'f',
+      cases: [{ input: [], expectError: true, expectedOutput: 1 }],
+    }),
+    /互斥/,
+  );
+});
+
+check('validate: 普通用例的 expectedOutput 不受影响', () => {
+  assert.strictEqual(
+    validateEvalCasesDocument({ entry: 'f', cases: [{ input: [], expectedOutput: null }] }),
+    null,
+  );
 });
 
 console.log(`\n${pass} 过 / ${fail} 失败`);

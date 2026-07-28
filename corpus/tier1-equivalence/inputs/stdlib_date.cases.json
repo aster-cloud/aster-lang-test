@@ -3,7 +3,7 @@
   "entry": "spanDays",
   "cases": [
     {
-      "name": "2024-01-01 → 2024-03-01 = 60 天",
+      "name": "2024-01-01 → 2024-03-01 = 60",
       "input": [
         "2024-01-01",
         "2024-03-01"
@@ -11,7 +11,7 @@
       "expectedOutput": 60
     },
     {
-      "name": "逆序 → -60（可为负）",
+      "name": "反向区间 = -60",
       "input": [
         "2024-03-01",
         "2024-01-01"
@@ -19,7 +19,7 @@
       "expectedOutput": -60
     },
     {
-      "name": "同日 → 0",
+      "name": "同日 = 0",
       "input": [
         "2024-01-01",
         "2024-01-01"
@@ -27,7 +27,7 @@
       "expectedOutput": 0
     },
     {
-      "name": "跨闰日 2024-02-28 → 2024-03-01 = 2 天",
+      "name": "闰年 2024-02-28 → 03-01 = 2",
       "input": [
         "2024-02-28",
         "2024-03-01"
@@ -35,12 +35,45 @@
       "expectedOutput": 2
     },
     {
-      "name": "跨年 2023-12-31 → 2024-01-01 = 1 天",
+      "name": "跨年 2023-12-31 → 2024-01-01 = 1",
       "input": [
         "2023-12-31",
         "2024-01-01"
       ],
       "expectedOutput": 1
+    },
+    {
+      "name": "parseDate: 非 ISO 串 → 两引擎都必须拒绝",
+      "entry": "parseDate",
+      "input": [
+        "not-a-date"
+      ],
+      "expectError": true
+    },
+    {
+      "name": "parseDate: 月/日越界 2026-13-45 → 两引擎都必须拒绝",
+      "entry": "parseDate",
+      "input": [
+        "2026-13-45"
+      ],
+      "expectError": true
+    },
+    {
+      "name": "yearOf: 非法 ISO 经 Date.year 传播 → 两引擎都必须拒绝",
+      "entry": "yearOf",
+      "input": [
+        "garbage"
+      ],
+      "expectError": true
+    },
+    {
+      "name": "spanDays: 第二参数非法 ISO → 两引擎都必须拒绝",
+      "entry": "spanDays",
+      "input": [
+        "2026-01-01",
+        "bad"
+      ],
+      "expectError": true
     }
   ]
 }
