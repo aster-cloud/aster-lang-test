@@ -1,11 +1,11 @@
 {
   "summary": {
-    "total": 217,
-    "equivalent": 217,
+    "total": 218,
+    "equivalent": 218,
     "divergent": 0,
     "bothFail": 0,
     "rate": 1,
-    "basedOnHistory": "2026-07-27T05:53:34.822Z"
+    "basedOnHistory": "2026-07-28T05:17:34.233Z"
   },
   "rows": [
     {
@@ -1095,6 +1095,13 @@
     },
     {
       "path": "tier1-equivalence/policies/nested_generic_lambda.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/not-precedence.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",

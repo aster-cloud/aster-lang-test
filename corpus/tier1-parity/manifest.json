@@ -3,9 +3,9 @@
   "version": 1,
   "description": "Strict bidirectional parity subset. PR-blocking.",
   "basedOnEquivalence": {
-    "history": "2026-07-27T05:53:34.822Z",
-    "total": 217,
-    "equivalent": 217,
+    "history": "2026-07-28T05:17:34.233Z",
+    "total": 218,
+    "equivalent": 218,
     "divergent": 0,
     "_comment": "Dated baseline matching equivalence-report.json (summary.basedOnHistory). Kept consistent by scripts/check-equivalence-freshness.mjs. The live rate is the latest row of equivalence-history.csv."
   },
