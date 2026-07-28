@@ -160,6 +160,7 @@
     "tier1-equivalence/policies/neq_test.aster",
     "tier1-equivalence/policies/nested_generic_function.aster",
     "tier1-equivalence/policies/nested_generic_lambda.aster",
+    "tier1-equivalence/policies/not-precedence.aster",
     "tier1-equivalence/policies/patient-record.aster",
     "tier1-equivalence/policies/personal.aster",
     "tier1-equivalence/policies/pii_function_return.aster",

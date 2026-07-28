@@ -44,7 +44,7 @@ import { dirname, resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { upsertDailyHistory } from './lib/history.mjs';
-import { collectEvalCaseProblem } from './lib/eval-cases.mjs';
+import { collectEvalCaseProblem, entryForCase } from './lib/eval-cases.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -776,10 +776,12 @@ function collectEvalRequests(samples) {
     }
     for (let i = 0; i < doc.cases.length; i++) {
       const c = doc.cases[i];
+      // entry 逐 case 解析：case 级 `entry` 覆盖文档级默认，让**一个 policy 里的多条 rule**
+      // 都能被求值（此前一文件只能测一个 entry，同文件其余 rule 仅被解析 = eval 盲区）。
       requests.push({
         rel,
         samplePath: abs,
-        entry: doc.entry,
+        entry: entryForCase(doc, c),
         input: Array.isArray(c.input) ? c.input : [],
         caseIndex: i,
         caseName: c.name || `case ${i}`,

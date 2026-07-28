@@ -1,0 +1,10 @@
+Module not_prec.
+
+Rule notCompare given x as Int, y as Int, produce Bool:
+  Return not x greater than y.
+
+Rule notNot given b as Bool, produce Bool:
+  Return not not b.
+
+Rule notAnd given x as Int, y as Int, produce Bool:
+  Return not x greater than 0 and y greater than 0.

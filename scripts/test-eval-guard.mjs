@@ -13,7 +13,7 @@
  * 用法：node scripts/test-eval-guard.mjs（退出码 0=全过，1=有失败）。
  */
 import assert from 'node:assert';
-import { validateEvalCasesDocument, collectEvalCaseProblem } from './lib/eval-cases.mjs';
+import { validateEvalCasesDocument, collectEvalCaseProblem, entryForCase } from './lib/eval-cases.mjs';
 
 let pass = 0;
 let fail = 0;
@@ -68,6 +68,46 @@ check('validate: 有效文档 → null', () => {
 
 check('validate: 非对象 → 报错原因', () => {
   assert.match(validateEvalCasesDocument(null), /非对象/);
+});
+
+// —— 多 entry：case 级 entry 覆盖文档级默认 ——
+// 背景：一个 policy 常含多条 rule，早期一文件只能测一个 entry，其余 rule 只被解析、
+// 从不被求值（隐性 eval 盲区）。case 级 entry 让每条 rule 都能有 golden。
+
+check('validate: case 级 entry 覆盖 → 有效', () => {
+  assert.strictEqual(
+    validateEvalCasesDocument({
+      entry: 'first',
+      cases: [{ input: [] }, { entry: 'second', input: [] }],
+    }),
+    null,
+  );
+});
+
+check('validate: case entry 为空串 → 报错（否则静默回落换掉被测 rule）', () => {
+  assert.match(
+    validateEvalCasesDocument({ entry: 'e', cases: [{ entry: '', input: [] }] }),
+    /cases\[0\]\.entry/,
+  );
+});
+
+check('validate: case entry 非字符串 → 报错', () => {
+  assert.match(
+    validateEvalCasesDocument({ entry: 'e', cases: [{ input: [] }, { entry: 42, input: [] }] }),
+    /cases\[1\]\.entry/,
+  );
+});
+
+check('entryForCase: 无覆盖 → 用文档默认', () => {
+  assert.strictEqual(entryForCase({ entry: 'base', cases: [] }, { input: [] }), 'base');
+});
+
+check('entryForCase: 有覆盖 → 用 case 级', () => {
+  assert.strictEqual(entryForCase({ entry: 'base', cases: [] }, { entry: 'other', input: [] }), 'other');
+});
+
+check('entryForCase: 文档级仍必填（存量文件守卫不被削弱）', () => {
+  assert.match(validateEvalCasesDocument({ cases: [{ entry: 'only-case-level', input: [] }] }), /缺 entry/);
 });
 
 console.log(`\n${pass} 过 / ${fail} 失败`);
