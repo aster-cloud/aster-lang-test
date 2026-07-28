@@ -23,7 +23,7 @@
 | **Coverage** | **145 / 145 = 100.0 %** |
 | Eval-able but NOT yet covered (backlog) | 0 |
 
-`--mode=eval` 实测 **289/289 identical**（双引擎一致且匹配 golden，0 divergent）。
+`--mode=eval` 实测 **298/298 identical**（双引擎一致且匹配 golden，0 divergent）。
 
 > **2026-07 审计修复（P4 度量诚实化）。** 审计发现 `tag-eval-exempt.mjs` 的
 > `STDLIB_NAMESPACES` 静态白名单漏了 `Date` / `Decimal` 两个已实现命名空间。
@@ -49,6 +49,13 @@
 > 此前一个 `.cases.json` 只能测一个 `doc.entry`，同 policy 内其余 rule 只被解析、
 > 从不被求值（隐性 eval 盲区，与上文 `stdlib_date` 属同一类「分母悄悄变小」问题）。
 > 机制见 `scripts/lib/eval-cases.mjs` 的 `entryForCase`。
+>
+> **再后续（issue #69，错误路径覆盖）**：全部 golden 原先只断言正常返回值，跨引擎的
+> **错误语义**从未被任何输入触发——不是"测了没发现"，而是"从未被输入触发"。新增
+> `expectError: true` 用例形态，断言**两个引擎都必须拒绝**（任一侧返回值即判失败，
+> 正是要抓的"一方抛异常、另一方返回 Infinity"类分歧）。已覆盖除零 / 取模零 /
+> 非法 ISO 日期，eval cases 289 → **298**。刻意不比对错误消息——Java 带类名与中文
+> 提示、TS 是短句，强行对齐只会制造脆弱断言；契约是「拒绝与否」而非「怎么措辞」。
 
 ## Exempt categories (73)
 

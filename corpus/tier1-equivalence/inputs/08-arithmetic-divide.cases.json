@@ -11,7 +11,7 @@
       "expectedOutput": 5
     },
     {
-      "name": "7 / 2 = 3.5 (float division)",
+      "name": "7 / 2 = 3.5",
       "input": [
         7,
         2
@@ -25,6 +25,22 @@
         10
       ],
       "expectedOutput": 10
+    },
+    {
+      "name": "除零 10 / 0 → 两引擎都必须拒绝",
+      "input": [
+        10,
+        0
+      ],
+      "expectError": true
+    },
+    {
+      "name": "除零 0 / 0 → 两引擎都必须拒绝",
+      "input": [
+        0,
+        0
+      ],
+      "expectError": true
     }
   ]
 }

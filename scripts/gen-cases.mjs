@@ -37,6 +37,16 @@
  * The override is echoed into the generated .cases.json so the parity gate
  * evaluates each case against the same entry it was verified with.
  *
+ * A case may instead carry `"expectError": true` to assert that **both engines
+ * must reject** the input (issue #69) — used for divide-by-zero, invalid ISO
+ * dates, and other runtime-error paths that value-only goldens never exercise.
+ * Verification passes only when neither engine produced a value; error messages
+ * are deliberately NOT compared (Java prefixes the exception class and uses
+ * Chinese hints, TS emits a short sentence — the contract is "rejected or not",
+ * not the wording).
+ *
+ *   { "name": "10 / 0 must be rejected", "input": [10, 0], "expectError": true }
+ *
  * Usage:
  *   node scripts/gen-cases.mjs <spec.json> [--write] [--only=NAME,NAME]
  *   (without --write it's a dry run: reports agreement, writes nothing)
@@ -87,6 +97,8 @@ for (const s of samples) {
     requests.push({
       sample: s.name, samplePath, entry: c.entry || s.entry, input: c.input,
       caseEntry: c.entry, localIndex: i, gIndex: gIdx++, name: c.name, expected: c.expectedOutput,
+      // 错误路径用例（issue #69）：断言两引擎都应拒绝，而非比对返回值
+      expectError: c.expectError === true,
     });
   });
 }
@@ -162,19 +174,27 @@ for (const r of requests) {
   const tVal = t.success ? t.value : undefined;
   const jVal = jr.ok ? jr.value : undefined;
   const exp = r.expected;
-  const tsOk = t.success && J(tVal) === J(exp);
-  const jaOk = jr.ok && J(jVal) === J(exp);
-  if (tsOk && jaOk) {
+  // expectError：契约是"两侧都必须拒绝"，不比对错误消息（消息是实现细节）。
+  const verified = r.expectError
+    ? (!t.success && !jr.ok)
+    : (t.success && J(tVal) === J(exp) && jr.ok && J(jVal) === J(exp));
+  if (verified) {
     agree++;
     if (!bySample.has(r.sample)) bySample.set(r.sample, []);
     // 只有显式写了 case 级 entry 的才回写该字段——避免给存量单-entry 文件平添噪声。
+    const base = r.caseEntry
+      ? { name: r.name, entry: r.caseEntry, input: r.input }
+      : { name: r.name, input: r.input };
     bySample.get(r.sample).push(
-      r.caseEntry
-        ? { name: r.name, entry: r.caseEntry, input: r.input, expectedOutput: exp }
-        : { name: r.name, input: r.input, expectedOutput: exp },
+      r.expectError ? { ...base, expectError: true } : { ...base, expectedOutput: exp },
     );
   } else {
-    problems.push({ key, name: r.name, expected: exp, ts: t.success ? tVal : `ERR:${t.error}`, java: jr.ok ? jVal : `ERR:${jr.error}` });
+    problems.push({
+      key, name: r.name,
+      expected: r.expectError ? '<both engines must fail>' : exp,
+      ts: t.success ? tVal : `ERR:${t.error}`,
+      java: jr.ok ? jVal : `ERR:${jr.error}`,
+    });
   }
 }
 
