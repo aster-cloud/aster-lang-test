@@ -12,18 +12,18 @@
 > `.meta.json`. The nightly records the coverage trend row into
 > `eval-coverage-history.csv` via `scripts/tag-eval-exempt.mjs --history=…`.
 
-## Current state (2026-07-28)
+## Current state (2026-07-28, 复核于 not-precedence 合并后)
 
 | Metric | Count |
 |---|---:|
-| Total tier1-equivalence samples | 217 |
+| Total tier1-equivalence samples | 218 |
 | Eval-exempt (no meaningful pure-eval golden) | 73 |
-| **Eval-able** (denominator) | **144** |
-| Covered by a `*.cases.json` golden | 144 |
-| **Coverage** | **144 / 144 = 100.0 %** |
+| **Eval-able** (denominator) | **145** |
+| Covered by a `*.cases.json` golden | 145 |
+| **Coverage** | **145 / 145 = 100.0 %** |
 | Eval-able but NOT yet covered (backlog) | 0 |
 
-`--mode=eval` 实测 **280/280 identical**（双引擎一致且匹配 golden，0 divergent）。
+`--mode=eval` 实测 **289/289 identical**（双引擎一致且匹配 golden，0 divergent）。
 
 > **2026-07 审计修复（P4 度量诚实化）。** 审计发现 `tag-eval-exempt.mjs` 的
 > `STDLIB_NAMESPACES` 静态白名单漏了 `Date` / `Decimal` 两个已实现命名空间。
@@ -42,6 +42,13 @@
 > - **(C)** 仅为真缺 golden 的 `stdlib_date` 新增双引擎验证过的 `spanDays` golden；
 >   `stdlib_decimal` **保留原有 `compute` golden**（未替换）。
 > 结果：143/143（藏了 date）→ **144/144 真 100%**。
+>
+> **后续（PR #72，`not` 优先级 parity）**：新增 `not-precedence` 样本使分母 144 → **145**，
+> 其 golden 覆盖同一 policy 内三条 rule（`notCompare` / `notNot` / `notAnd`），
+> eval cases 280 → **289**。该样本也是**首个使用 case 级 `entry` 覆盖**的 golden——
+> 此前一个 `.cases.json` 只能测一个 `doc.entry`，同 policy 内其余 rule 只被解析、
+> 从不被求值（隐性 eval 盲区，与上文 `stdlib_date` 属同一类「分母悄悄变小」问题）。
+> 机制见 `scripts/lib/eval-cases.mjs` 的 `entryForCase`。
 
 ## Exempt categories (73)
 
