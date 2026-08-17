@@ -1,0 +1,4 @@
+Module dual.engine.text.equals.
+
+Rule sameOwner given ownerId, userId, produce:
+  Return Text.equals(ownerId, userId).
