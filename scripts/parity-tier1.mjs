@@ -121,16 +121,39 @@ function resolveSamples(manifest) {
   return out;
 }
 
+// 加载 TS 侧的词法表对象（en-US 用 undefined 走默认路径，保持既有行为逐字节不变）。
+async function loadTsLexicons(mod) {
+  const out = {};
+  const specs = [
+    ['zh-CN', 'config/lexicons/zh-CN.js', 'ZH_CN'],
+    ['de-DE', 'config/lexicons/de-DE.js', 'DE_DE'],
+    ['hi-IN', 'config/lexicons/hi-IN.js', 'HI_IN'],
+  ];
+  for (const [name, rel, exportName] of specs) {
+    try {
+      const m = await import(join(TS_REPO, 'dist', 'src', rel));
+      if (m[exportName]) out[name] = m[exportName];
+    } catch {
+      // 该词法表在当前构建中不可用；只有样本真的声明它时才会 fail（见调用处）
+    }
+  }
+  return out;
+}
+
 async function runTsParse(samples) {
   const distIndex = join(TS_REPO, 'dist', 'src', 'index.js');
   if (!existsSync(distIndex)) {
     fail(`aster-lang-ts not built. Run: cd ${TS_REPO} && pnpm build`);
   }
   const mod = await import(distIndex);
-  const { canonicalize, lex, parse } = mod;
+  const { canonicalize, lex, parse, parseWithLexicon } = mod;
   if (!canonicalize || !lex || !parse) {
     fail('aster-lang-ts is missing expected exports (canonicalize/lex/parse)');
   }
+
+  // ★按样本声明的词法表驱动（2026-08-17 审计）：此前 runner 从不读 meta.lexicon，
+  //   一律按默认英语处理，导致非英语词法表在双引擎 parity 上零覆盖。
+  const lexicons = await loadTsLexicons(mod);
 
   const results = {};
   for (const { rel, abs } of samples) {
@@ -138,9 +161,16 @@ async function runTsParse(samples) {
     let err = null;
     try {
       const src = readFileSync(abs, 'utf8');
-      const canonical = canonicalize(src);
-      const tokens = lex(canonical);
-      const { ast, diagnostics } = parse(tokens);
+      const lexName = lexiconOf(abs);
+      const lexObj = lexicons[lexName];
+      if (!lexObj && lexName !== 'en-US') {
+        fail(`sample ${rel} declares lexicon "${lexName}" but it could not be loaded from aster-lang-ts`);
+      }
+      const canonical = lexObj ? canonicalize(src, lexObj) : canonicalize(src);
+      const tokens = lexObj ? lex(canonical, lexObj) : lex(canonical);
+      const { ast, diagnostics } = lexObj && parseWithLexicon
+        ? parseWithLexicon(tokens, lexObj)
+        : parse(tokens);
       if (diagnostics && diagnostics.some((d) => d.severity === 'error')) {
         err = diagnostics.find((d) => d.severity === 'error').message;
       } else if (!ast) {
@@ -623,6 +653,24 @@ function summarize(v) {
 // engines legitimately represent differently — the same boundary eval-parity
 // uses. Such divergences are reported but do NOT count as structural-parity
 // failures, matching ADR 0016's "structural parity = the executable tree".
+// Read a sample's declared lexicon (defaults to 'en-US').
+//
+// ★2026-08-17 审计：每个 .meta.json 都声明了 `lexicon` 字段，但 parity runner
+//   **从不读取它**——两侧引擎一律按默认（英语）词法表处理。结果是：
+//   219 个 tier1 样本全部是 en-US，非英语词法表在双引擎 parity 上**零覆盖**。
+//   CJK / 天城文 等标识符的双引擎分歧因此无法被自动发现，只能靠人工审计。
+//   本函数让 runner 真正按样本声明的词法表驱动两侧引擎。
+function lexiconOf(abs) {
+  const metaPath = abs.replace(/\.aster$/, '.meta.json');
+  if (!existsSync(metaPath)) return 'en-US';
+  try {
+    const meta = JSON.parse(readFileSync(metaPath, 'utf8'));
+    return typeof meta.lexicon === 'string' && meta.lexicon ? meta.lexicon : 'en-US';
+  } catch {
+    return 'en-US';
+  }
+}
+
 function exemptReasonOf(abs) {
   const metaPath = abs.replace(/\.aster$/, '.meta.json');
   if (!existsSync(metaPath)) return null;
