@@ -1,0 +1,6 @@
+Module demo.lambdacaptureinlineif.
+
+Rule choose given outer, flag, produce:
+  Let f be function with x, produce:
+    Return If x then outer else 0.
+  Return f(flag).

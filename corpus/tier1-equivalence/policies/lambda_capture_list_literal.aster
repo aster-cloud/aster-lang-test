@@ -1,0 +1,7 @@
+Module demo.lambdacapturelistliteral.
+
+Rule pick given outer, index, produce:
+  Let f be function with x, produce:
+    Return [outer, x].
+  Let pair be f(index).
+  Return List.get(pair, 0).
