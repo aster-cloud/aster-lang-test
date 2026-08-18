@@ -1,0 +1,38 @@
+{
+  "policy": "tier1-equivalence/policies/45-text-equals.aster",
+  "entry": "sameOwner",
+  "cases": [
+    {
+      "name": "相同所有者 → true（访问控制的所有权判断）",
+      "input": [
+        "user-1",
+        "user-1"
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "不同所有者 → false",
+      "input": [
+        "user-1",
+        "user-2"
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "大小写敏感（TS 用 === ，两侧须一致）",
+      "input": [
+        "Admin",
+        "admin"
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "空串相等",
+      "input": [
+        "",
+        ""
+      ],
+      "expectedOutput": true
+    }
+  ]
+}

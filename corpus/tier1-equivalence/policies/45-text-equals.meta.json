@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "2026-08-17 安全审计：Text.equals 此前在 Truffle 完全缺失，TS 侧三处齐全。唯一用到它的语料样本 policy_engine.aster 因 Action.equals 而整体 evalExempt，导致该分歧从未被求值覆盖。本样本单独覆盖 Text.equals，不依赖任何未支持语法。",
+  "capabilities": [
+    "cases-golden"
+  ]
+}
