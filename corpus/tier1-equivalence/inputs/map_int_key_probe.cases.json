@@ -1,0 +1,7 @@
+{
+  "policy": "tier1-equivalence/policies/map_int_key_probe.aster",
+  "entry": "lookup",
+  "cases": [
+    { "name": "整数键 put 后 get", "input": [1], "expectedOutput": "one" }
+  ]
+}

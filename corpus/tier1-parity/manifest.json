@@ -161,6 +161,7 @@
     "tier1-equivalence/policies/loan_with_constraints.aster",
     "tier1-equivalence/policies/loan_with_int.aster",
     "tier1-equivalence/policies/login.aster",
+    "tier1-equivalence/policies/map_int_key_probe.aster",
     "tier1-equivalence/policies/map_ops.aster",
     "tier1-equivalence/policies/match_enum.aster",
     "tier1-equivalence/policies/match_multi.aster",
