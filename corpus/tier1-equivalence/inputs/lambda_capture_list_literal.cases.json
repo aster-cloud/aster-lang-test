@@ -1,0 +1,14 @@
+{
+  "policy": "tier1-equivalence/policies/lambda_capture_list_literal.aster",
+  "entry": "pick",
+  "cases": [
+    {
+      "name": "捕获变量出现在列表字面量里",
+      "input": [
+        7,
+        1
+      ],
+      "expectedOutput": 7
+    }
+  ]
+}

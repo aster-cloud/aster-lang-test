@@ -1,0 +1,22 @@
+{
+  "policy": "tier1-equivalence/policies/lambda_capture_inline_if.aster",
+  "entry": "choose",
+  "cases": [
+    {
+      "name": "捕获变量出现在内联 if 的 then 分支",
+      "input": [
+        42,
+        true
+      ],
+      "expectedOutput": 42
+    },
+    {
+      "name": "内联 if 走 else 分支",
+      "input": [
+        42,
+        false
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}
