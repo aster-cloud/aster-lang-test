@@ -1,11 +1,11 @@
 {
   "summary": {
-    "total": 219,
-    "equivalent": 219,
+    "total": 222,
+    "equivalent": 222,
     "divergent": 0,
     "bothFail": 0,
     "rate": 1,
-    "basedOnHistory": "2026-08-18T02:57:33.858Z"
+    "basedOnHistory": "2026-08-19T02:58:51.630Z"
   },
   "rows": [
     {
@@ -898,6 +898,20 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/lambda_capture_inline_if.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/lambda_capture_list_literal.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/lambda_cnl.aster",
       "ts": true,
       "java": true,
@@ -1046,6 +1060,13 @@
     },
     {
       "path": "tier1-equivalence/policies/login.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/map_int_key_probe.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
