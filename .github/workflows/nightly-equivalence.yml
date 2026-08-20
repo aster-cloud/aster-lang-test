@@ -52,7 +52,7 @@ jobs:
       # 共享版本目录（aster-lang-platform，ADR 0012）。aster-lang-core 的
       # settings.gradle 经 asterLibs.* 引用它，core 的任何 gradle 调用前必须
       # 先把它发到 Maven Local，否则解析 cloud.aster-lang:aster-lang-platform 失败。
-      - uses: actions/checkout@v6
+      - uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with: { repository: aster-cloud/aster-lang-platform, path: aster-lang-platform, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
 
       # 语言包源：aster-lang-locales（现役，catalog 驱动，asterLang 版本统一）。
@@ -62,7 +62,7 @@ jobs:
       # aster-lang-locales 一次性发 en/zh/de（同坐标，版本永远跟随 platform catalog）。
       # locales 的 verifyLexiconParity 需 aster-lang-core 在 ../aster-lang-core（sibling），
       # 上面已 checkout 到该路径。
-      - uses: actions/checkout@v6
+      - uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with: { repository: aster-cloud/aster-lang-locales, path: aster-lang-locales, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
 
       # Hindi(hi-IN) 是独立的热插拔 SPI 包（aster-lang-hi 仓，非 locales 的一部分）。
@@ -70,14 +70,14 @@ jobs:
       # runtimeOnly(bundles.locales) 依赖 aster-lang-hi:1.0.3。不发布它会让 Phase C
       # 的 CoreIrEvalCli 解析 aster-lang-hi 失败、eval-parity 的 Java 侧无输出
       # （此前因该 step 缺 pipefail 被 tee 静默掩盖成 success）。
-      - uses: actions/checkout@v6
+      - uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with: { repository: aster-cloud/aster-lang-hi, path: aster-lang-hi, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
 
       # Phase C eval-parity 需要 Truffle 求值器（CoreIrEvalCli 在 truffle 仓），
       # truffle 经 Maven Local 依赖 core + runtime。
-      - uses: actions/checkout@v6
+      - uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with: { repository: aster-cloud/aster-lang-runtime, path: aster-lang-runtime, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
-      - uses: actions/checkout@v6
+      - uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with: { repository: aster-cloud/aster-lang-truffle, path: aster-lang-truffle, token: '${{ secrets.CROSS_REPO_TOKEN || github.token }}' }
 
       - uses: pnpm/action-setup@v6
