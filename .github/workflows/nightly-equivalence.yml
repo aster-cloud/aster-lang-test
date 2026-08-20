@@ -37,13 +37,13 @@ jobs:
           path: aster-lang-test
           token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
 
-      - uses: actions/checkout@v6
+      - uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with:
           repository: aster-cloud/aster-lang-ts
           path: aster-lang-ts
           token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
 
-      - uses: actions/checkout@v6
+      - uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with:
           repository: aster-cloud/aster-lang-core
           path: aster-lang-core
