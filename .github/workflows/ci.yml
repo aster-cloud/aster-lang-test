@@ -32,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v6
       # 防漂移 gate（ADR 0023 阶段6）：校验 test:npm（packages/js）版本符合 release-plan.json。
-      - uses: actions/checkout@v6
+      - uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with:
           repository: aster-cloud/aster-lang-platform
           path: aster-lang-platform
@@ -76,7 +76,7 @@ jobs:
       - uses: actions/checkout@v6
       # 防漂移 gate（ADR 0023 阶段6）：校验 test:jvm（packages/jvm）版本符合 release-plan.json。
       # gate step 覆盖 job 的默认 working-directory，回到 repo root。
-      - uses: actions/checkout@v6
+      - uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with:
           repository: aster-cloud/aster-lang-platform
           path: aster-lang-platform
@@ -153,7 +153,7 @@ jobs:
       # 否则回退 main —— 让跨仓 PR 合并前即可联合验证。
       - name: Checkout aster-lang-platform
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: ./aster-lang-test/.github/actions/checkout-sibling
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with:
           repository: aster-cloud/aster-lang-platform
           path: aster-lang-platform
@@ -161,7 +161,7 @@ jobs:
 
       - name: Checkout aster-lang-ts
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: ./aster-lang-test/.github/actions/checkout-sibling
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with:
           repository: aster-cloud/aster-lang-ts
           path: aster-lang-ts
@@ -169,7 +169,7 @@ jobs:
 
       - name: Checkout aster-lang-core
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: ./aster-lang-test/.github/actions/checkout-sibling
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with:
           repository: aster-cloud/aster-lang-core
           path: aster-lang-core
@@ -181,7 +181,7 @@ jobs:
       # 与 aster-lang-core ci.yml 一致迁移到 aster-lang-locales。
       - name: Checkout aster-lang-locales
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: ./aster-lang-test/.github/actions/checkout-sibling
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with:
           repository: aster-cloud/aster-lang-locales
           path: aster-lang-locales
@@ -193,7 +193,7 @@ jobs:
       # GitHub Packages 拉 aster-lang-hi 遇 401（本仓 token 无该仓包读权限）→ core 解析失败。
       - name: Checkout aster-lang-hi
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: ./aster-lang-test/.github/actions/checkout-sibling
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with:
           repository: aster-cloud/aster-lang-hi
           path: aster-lang-hi
@@ -205,14 +205,14 @@ jobs:
       # chain further down.
       - name: Checkout aster-lang-runtime
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: ./aster-lang-test/.github/actions/checkout-sibling
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with:
           repository: aster-cloud/aster-lang-runtime
           path: aster-lang-runtime
           token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
       - name: Checkout aster-lang-truffle
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
-        uses: ./aster-lang-test/.github/actions/checkout-sibling
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with:
           repository: aster-cloud/aster-lang-truffle
           path: aster-lang-truffle
