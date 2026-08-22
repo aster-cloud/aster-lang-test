@@ -1,0 +1,11 @@
+Module dual.engine.struct.equality.
+
+Define Point has x as Int, y as Int.
+
+Rule samePoint given ax as Int, ay as Int, bx as Int, by as Int, produce Bool:
+  Let p1 be Point with x set to ax, y set to ay.
+  Let p2 be Point with x set to bx, y set to by.
+  Return p1 is equal to p2.
+
+Rule sameList given n as Int, m as Int, produce Bool:
+  Return List.range(1, n) is equal to List.range(1, m).
