@@ -1,4 +1,4 @@
 Module test.boundary.map_type.
 
 Rule get_value given m, k, produce:
-  Return Map.get(m, k).
+  Return Maybe.withDefault(Map.get(m, k), 0).
