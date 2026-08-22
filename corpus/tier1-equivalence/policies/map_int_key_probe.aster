@@ -2,4 +2,4 @@ Module demo.mapintkeyprobe.
 
 Rule lookup given key, produce:
   Let m be Map.put(Map.empty(), key, "one").
-  Return Map.get(m, key).
+  Return Maybe.withDefault(Map.get(m, key), "missing").

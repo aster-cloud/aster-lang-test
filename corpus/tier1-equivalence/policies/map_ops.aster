@@ -1,7 +1,7 @@
 Module demo.map.
 
 Rule val given m, k, produce:
-  Return Map.get(m, k).
+  Return Maybe.withDefault(Map.get(m, k), 0).
 
 Rule valStrict given m, k, produce:
-  Return Map.get(m, k).
+  Return Maybe.withDefault(Map.get(m, k), 0).
