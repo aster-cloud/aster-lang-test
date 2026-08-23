@@ -15,6 +15,7 @@
  * Usage:
  *   node scripts/tag-eval-exempt.mjs            # report coverage only (dry)
  *   node scripts/tag-eval-exempt.mjs --write    # write evalExempt into meta.json
+ *   node scripts/tag-eval-exempt.mjs --check    # exit 1 if stamped flags drift from live classification (CI rot gate, audit #95)
  */
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
@@ -27,6 +28,11 @@ const ROOT = resolve(__dirname, '..');
 const POLICIES = join(ROOT, 'corpus', 'tier1-equivalence', 'policies');
 const INPUTS = join(ROOT, 'corpus', 'tier1-equivalence', 'inputs');
 const WRITE = process.argv.includes('--write');
+// --check（audit #95 豁免锈蚀检测）：meta.json 里**盖章**的 evalExempt 标记与**实时**
+// 分类不一致时以退出码 1 失败——陈旧的 evalExempt:true 会让 parity-tier1 守卫静默跳过
+// 已可 eval 的样本（分母漂移），漏盖/错因同样是分类漂移。此前只有 --write 会顺手清理，
+// 干跑与 --history 模式永远绿灯，锈蚀积到有人手动重跑 --write 为止。CI 用 --check 守门。
+const CHECK = process.argv.includes('--check');
 // --history=<file>: append a trend row `timestamp,total,value,rate` (value =
 // covered, total = eval-able) so the dashboard can chart eval coverage over time.
 const HISTORY_FILE = (() => {
@@ -158,6 +164,7 @@ let taggedCount = 0;
 let clearedCount = 0; // --write 时清除的 stale evalExempt 标记数
 const exemptByReason = {};
 const evalableNoCases = [];
+const drift = []; // --check：盖章标记 vs 实时分类的漂移清单
 
 for (const name of all) {
   const metaPath = join(POLICIES, `${name}.meta.json`);
@@ -170,6 +177,14 @@ for (const name of all) {
   if (ex) {
     exemptCount++;
     exemptByReason[ex.reason] = (exemptByReason[ex.reason] || 0) + 1;
+    if (CHECK) {
+      const meta = JSON.parse(readFileSync(metaPath, 'utf8'));
+      if (meta.evalExempt !== true) {
+        drift.push(`${name}: 应豁免（${ex.reason}）但 meta.json 未盖 evalExempt 章`);
+      } else if (meta.evalExemptReason !== ex.reason) {
+        drift.push(`${name}: 豁免原因漂移 —— 盖章 "${meta.evalExemptReason}"，实时分类 "${ex.reason}"`);
+      }
+    }
     if (WRITE) {
       const meta = JSON.parse(readFileSync(metaPath, 'utf8'));
       if (meta.evalExempt !== true || meta.evalExemptReason !== ex.reason) {
@@ -185,6 +200,12 @@ for (const name of all) {
     // 改判为 eval-able），旧的 `evalExempt:true`/`not-yet-eval-verified` 必须清掉——否则
     // parity-tier1 的守卫信任 meta.evalExempt，stale 标记会让缺 cases 的样本被静默跳过，
     // 正是本机制要消灭的分母漂移（Codex 复审发现 enterprise/personal/pii_type_in_data 三处 stale）。
+    if (CHECK) {
+      const meta = JSON.parse(readFileSync(metaPath, 'utf8'));
+      if (meta.evalExempt !== undefined || meta.evalExemptReason !== undefined || meta.evalExemptDetail !== undefined) {
+        drift.push(`${name}: 陈旧豁免章（evalExempt=${JSON.stringify(meta.evalExempt)}, reason=${JSON.stringify(meta.evalExemptReason)}）—— 实时分类已为 eval-able，须清除（否则 parity-tier1 守卫会静默跳过它）`);
+      }
+    }
     if (WRITE && existsSync(metaPath)) {
       const meta = JSON.parse(readFileSync(metaPath, 'utf8'));
       if (meta.evalExempt !== undefined || meta.evalExemptReason !== undefined || meta.evalExemptDetail !== undefined) {
@@ -221,4 +242,15 @@ if (HISTORY_FILE) {
   // Per-day upsert: one row per UTC day (last run wins).
   upsertDailyHistory(HISTORY_FILE, 'timestamp,total,value,rate', `${ts},${evalable},${covered},${rate.toFixed(4)}`);
   console.error(`[tag-eval-exempt] recorded coverage history → ${HISTORY_FILE} (${covered}/${evalable})`);
+}
+
+// --check 的失败放在 history 落盘之后：趋势行照记，锈蚀照失败（audit #95）。
+if (CHECK) {
+  if (drift.length > 0) {
+    console.error(`\n[tag-eval-exempt --check] ${drift.length} 处豁免章与实时分类漂移：`);
+    for (const d of drift) console.error(`  - ${d}`);
+    console.error('修复：node scripts/tag-eval-exempt.mjs --write （重盖/清除后提交 meta.json）');
+    process.exit(1);
+  }
+  console.log('[tag-eval-exempt --check] 豁免章与实时分类一致 ✓');
 }

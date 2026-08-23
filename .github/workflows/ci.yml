@@ -299,6 +299,14 @@ jobs:
         working-directory: aster-lang-test
         run: node scripts/test-eval-guard.mjs
 
+      # audit #95：豁免锈蚀守门 —— meta.json 盖章的 evalExempt 与实时分类漂移即失败
+      # （陈旧豁免会让 parity-tier1 守卫静默跳过已可 eval 的样本，分母漂移）。
+      # 修复方式：node scripts/tag-eval-exempt.mjs --write 后提交。纯 node，秒级。
+      - name: Check eval-exemption stamps (rot gate)
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/tag-eval-exempt.mjs --check
+
       - name: Run tier1-parity strict gate (parse, PR-blocking)
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
