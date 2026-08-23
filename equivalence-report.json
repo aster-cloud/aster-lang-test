@@ -1,11 +1,11 @@
 {
   "summary": {
-    "total": 222,
-    "equivalent": 222,
+    "total": 223,
+    "equivalent": 223,
     "divergent": 0,
     "bothFail": 0,
     "rate": 1,
-    "basedOnHistory": "2026-08-22T02:56:46.569Z"
+    "basedOnHistory": "2026-08-23T03:05:41.120Z"
   },
   "rows": [
     {
@@ -1326,6 +1326,13 @@
     },
     {
       "path": "tier1-equivalence/policies/stdlib_text.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/struct_list_equality.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
