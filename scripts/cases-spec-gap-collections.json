@@ -1,0 +1,27 @@
+{
+  "_comment": "真实缺口批次（见 #103 拆桶后的 real 桶）。stdlib_collections 的 length/maxOf/minOf/combosCount 四条从未在任一引擎执行过。★head 故意不补：它返回 none，而 None 的运行期表示两引擎仍不同（TS 裸 null vs Truffle {__type:'None'}），属 ADR 0036 §7 未决项、aster-lang-ts#137 跟进——在此写基线等于替引擎选一侧当正确答案。",
+  "samples": [
+    {
+      "name": "stdlib_collections",
+      "entry": "mapId",
+      "cases": [
+        { "name": "map identity over list", "input": [[1, 2, 3]], "expectedOutput": [1, 2, 3] },
+
+        { "name": "length of 3", "entry": "length", "input": [[10, 20, 30]], "expectedOutput": 3 },
+        { "name": "length of empty", "entry": "length", "input": [[]], "expectedOutput": 0 },
+
+        { "name": "max of positives", "entry": "maxOf", "input": [[3, 9, 4]], "expectedOutput": 9 },
+        { "name": "max with negatives", "entry": "maxOf", "input": [[-5, -2, -9]], "expectedOutput": -2 },
+        { "name": "max of single", "entry": "maxOf", "input": [[7]], "expectedOutput": 7 },
+
+        { "name": "min of positives", "entry": "minOf", "input": [[3, 9, 4]], "expectedOutput": 3 },
+        { "name": "min with negatives", "entry": "minOf", "input": [[-5, -2, -9]], "expectedOutput": -9 },
+        { "name": "min of single", "entry": "minOf", "input": [[7]], "expectedOutput": 7 },
+
+        { "name": "C(4,2)=6", "entry": "combosCount", "input": [[1, 2, 3, 4]], "expectedOutput": 6 },
+        { "name": "C(2,2)=1", "entry": "combosCount", "input": [[1, 2]], "expectedOutput": 1 },
+        { "name": "C(1,2)=0 不足则无组合", "entry": "combosCount", "input": [[1]], "expectedOutput": 0 }
+      ]
+    }
+  ]
+}
