@@ -1,0 +1,11 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_decimal.aster",
+  "entry": "netAfterFee",
+  "cases": [
+    {
+      "name": "100.01m − 0.02m —— 精确减法",
+      "input": [],
+      "expectedOutput": "99.99"
+    }
+  ]
+}

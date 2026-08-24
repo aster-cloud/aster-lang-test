@@ -1,0 +1,13 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_date.aster",
+  "entry": "dayOf",
+  "cases": [
+    {
+      "name": "提取日",
+      "input": [
+        "2026-03-15"
+      ],
+      "expectedOutput": 15
+    }
+  ]
+}

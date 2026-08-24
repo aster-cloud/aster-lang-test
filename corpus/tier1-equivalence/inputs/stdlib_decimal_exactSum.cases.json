@@ -1,0 +1,11 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_decimal.aster",
+  "entry": "exactSum",
+  "cases": [
+    {
+      "name": "0.1m + 0.2m = 0.3 精确（IEEE754 下会是 0.30000000000000004）",
+      "input": [],
+      "expectedOutput": "0.3"
+    }
+  ]
+}

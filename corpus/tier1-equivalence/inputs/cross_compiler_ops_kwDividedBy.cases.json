@@ -1,0 +1,14 @@
+{
+  "policy": "tier1-equivalence/policies/cross_compiler_ops.aster",
+  "entry": "kwDividedBy",
+  "cases": [
+    {
+      "name": "x=7, y=3 → 2.3333333333333335",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": 2.3333333333333335
+    }
+  ]
+}

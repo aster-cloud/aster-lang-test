@@ -1,0 +1,11 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_decimal.aster",
+  "entry": "scaleGrowth",
+  "cases": [
+    {
+      "name": "1.20m × 1.080m —— 标度相加：2+3 位 → 结果 3 位有效小数",
+      "input": [],
+      "expectedOutput": "1.296"
+    }
+  ]
+}
