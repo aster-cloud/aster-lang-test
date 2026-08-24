@@ -1,0 +1,16 @@
+{
+  "policy": "tier1-equivalence/policies/g3-apply-call.aster",
+  "entry": "wrap",
+  "cases": [
+    {
+      "name": "apply Some to x：x=9 → Some(9)（标签统一为 __type 后可定基线，ADR 0036）",
+      "input": [
+        9
+      ],
+      "expectedOutput": {
+        "__type": "Some",
+        "value": 9
+      }
+    }
+  ]
+}
