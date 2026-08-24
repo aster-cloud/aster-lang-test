@@ -3,12 +3,123 @@
   "entry": "testGreaterThanOrEqual",
   "cases": [
     {
-      "name": "stub returns 0",
+      "name": "3 >= 5 假",
+      "input": [
+        3,
+        5
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "7 >= 5 真",
+      "input": [
+        7,
+        5
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "5 >= 5 真（边界：与 > 的唯一差别）",
       "input": [
         5,
-        3
+        5
       ],
-      "expectedOutput": 0
+      "expectedOutput": true
+    },
+    {
+      "name": "3 <= 5 真",
+      "entry": "testLessThanOrEqual",
+      "input": [
+        3,
+        5
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "7 <= 5 假",
+      "entry": "testLessThanOrEqual",
+      "input": [
+        7,
+        5
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "5 <= 5 真（边界）",
+      "entry": "testLessThanOrEqual",
+      "input": [
+        5,
+        5
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "3 != 5 真",
+      "entry": "testNotEqual",
+      "input": [
+        3,
+        5
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "5 != 5 假（边界）",
+      "entry": "testNotEqual",
+      "input": [
+        5,
+        5
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "范围内 5∈[1,10]",
+      "entry": "testInRange",
+      "input": [
+        5,
+        1,
+        10
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "低于下界 0∉[1,10]",
+      "entry": "testInRange",
+      "input": [
+        0,
+        1,
+        10
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "高于上界 11∉[1,10]",
+      "entry": "testInRange",
+      "input": [
+        11,
+        1,
+        10
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "恰在下界 1∈[1,10]（闭区间）",
+      "entry": "testInRange",
+      "input": [
+        1,
+        1,
+        10
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "恰在上界 10∈[1,10]（闭区间）",
+      "entry": "testInRange",
+      "input": [
+        10,
+        1,
+        10
+      ],
+      "expectedOutput": true
     }
   ]
 }
