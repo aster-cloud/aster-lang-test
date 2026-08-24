@@ -1,0 +1,19 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_maybe_result.aster",
+  "entry": "tapError",
+  "cases": [
+    {
+      "name": "Result.tapError(Err(7), logErr) → 原样返回 Err(7)",
+      "input": [
+        {
+          "__type": "Err",
+          "value": 7
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Err",
+        "value": 7
+      }
+    }
+  ]
+}

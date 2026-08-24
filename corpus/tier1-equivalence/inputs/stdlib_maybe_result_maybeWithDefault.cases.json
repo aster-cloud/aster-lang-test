@@ -1,0 +1,17 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_maybe_result.aster",
+  "entry": "maybeWithDefault",
+  "cases": [
+    {
+      "name": "Maybe.withDefault(Some(7), 0) → 7（宿主传入的变体，aster-lang-ts#138 修复后两引擎一致）",
+      "input": [
+        {
+          "__type": "Some",
+          "value": 7
+        },
+        0
+      ],
+      "expectedOutput": 7
+    }
+  ]
+}
