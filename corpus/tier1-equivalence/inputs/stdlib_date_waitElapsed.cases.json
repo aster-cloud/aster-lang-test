@@ -1,0 +1,14 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_date.aster",
+  "entry": "waitElapsed",
+  "cases": [
+    {
+      "name": "2/1→3/15 共 42 天，at least 30 成立",
+      "input": [
+        "2026-03-15",
+        "2026-02-01"
+      ],
+      "expectedOutput": true
+    }
+  ]
+}

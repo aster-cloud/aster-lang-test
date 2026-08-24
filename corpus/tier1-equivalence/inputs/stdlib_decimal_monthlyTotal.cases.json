@@ -1,0 +1,11 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_decimal.aster",
+  "entry": "monthlyTotal",
+  "cases": [
+    {
+      "name": "经 Let 绑定的两个 Decimal 相加",
+      "input": [],
+      "expectedOutput": "2000.75"
+    }
+  ]
+}

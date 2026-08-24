@@ -1,0 +1,14 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_date.aster",
+  "entry": "shift",
+  "cases": [
+    {
+      "name": "addDays 20 天：20527 + 20",
+      "input": [
+        "2026-03-15",
+        20
+      ],
+      "expectedOutput": 20547
+    }
+  ]
+}

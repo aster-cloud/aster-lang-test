@@ -1,0 +1,11 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_decimal.aster",
+  "entry": "meetsThreshold",
+  "cases": [
+    {
+      "name": "0.1m + 0.2m equals to 0.3m —— 精确相等成立",
+      "input": [],
+      "expectedOutput": true
+    }
+  ]
+}

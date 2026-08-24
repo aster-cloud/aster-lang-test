@@ -1,0 +1,11 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_decimal.aster",
+  "entry": "priceWithTax",
+  "cases": [
+    {
+      "name": "100.00m × 1.08m —— 精确乘法，无二进制浮点误差",
+      "input": [],
+      "expectedOutput": "108"
+    }
+  ]
+}

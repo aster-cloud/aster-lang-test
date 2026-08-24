@@ -1,0 +1,11 @@
+{
+  "policy": "tier1-equivalence/policies/stdlib_decimal.aster",
+  "entry": "intPromotion",
+  "cases": [
+    {
+      "name": "1m + 2 —— Int 提升为 Decimal 后相加",
+      "input": [],
+      "expectedOutput": "3"
+    }
+  ]
+}
