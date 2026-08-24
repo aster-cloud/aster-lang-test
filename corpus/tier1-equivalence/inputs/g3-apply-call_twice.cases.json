@@ -1,0 +1,13 @@
+{
+  "policy": "tier1-equivalence/policies/g3-apply-call.aster",
+  "entry": "twice",
+  "cases": [
+    {
+      "name": "n=5 → 10（被 apply 调用的目标规则）",
+      "input": [
+        5
+      ],
+      "expectedOutput": 10
+    }
+  ]
+}
