@@ -10,10 +10,26 @@
 **内联**在自己体内、不调用任何其它规则——那 11 条从未在任一引擎上执行过。
 等价性语料本该是发现双引擎分叉的第一道网，这些格子却是空的。
 
+★2026-08-25 订正：本脚本最初把「不可达」当成单一数字上报，导致连续四个批次
+汇报的基线虚高。不可达的规则实际有**三种性质完全不同**的成因，混在一起报
+等于把「不该做的事」和「该做的事」加在同一个分子里：
+
+  1. eval-exempt —— meta.json 标了 `evalExempt`（effects / interop / io / pii …）。
+     这些样本的存在是为测**编译期**语义，本就不该求值。仓里 `tag-eval-exempt.mjs`
+     一直在维护该标记（并会清除陈旧标记），`parity-tier1.mjs` 也读它；
+     只有本脚本从不读，是本脚本的缺陷。
+  2. stub —— 规则体**全部**是 `Return 0.` 的占位样本（如 test_life 的 36 条）。
+     它们是**只测语法**的 fixture：规则签名覆盖 `given` / `produce` / `Define … has`
+     的文法，body 从来不打算跑。给它们补 cases 会把 `0` 固化成 36 条规则的
+     "正确答案"——那是在制造假基线，不是提升覆盖率。
+     ★判据用「所有缩进行都是 `Return 0.`」而非「存在 `Return 0.`」，
+     后者会把正常规则里合法的 `Return 0.` 分支误判成占位。
+  3. real —— 有真实逻辑、却从 entry 不可达。**只有这一类是待补的缺口。**
+
 用法：
     python3 scripts/coverage-report.py [--tier tier1-equivalence] [--json]
 
-输出每个 policy 的「规则总数 / 可达数 / 不可达清单」，以及总体统计。
+输出每个 policy 的「规则总数 / 可达数 / 不可达清单」，以及按上述三类拆分的统计。
 """
 import argparse
 import glob
@@ -32,6 +48,29 @@ def bodies_of(src: str) -> dict[str, str]:
     for m in re.finditer(r'^Rule\s+(\w+)(.*?)(?=^Rule\s+|\Z)', src, re.M | re.S):
         out[m.group(1)] = m.group(2)
     return out
+
+
+def exempt_reason_of(meta_path: str) -> str | None:
+    """读 meta.json 的 evalExempt 标记。与 parity-tier1.mjs / tag-eval-exempt.mjs 同源。"""
+    if not os.path.isfile(meta_path):
+        return None
+    try:
+        with open(meta_path, encoding='utf-8') as fh:
+            meta = json.load(fh)
+    except Exception:
+        return None
+    return (meta.get('evalExemptReason') or 'exempt') if meta.get('evalExempt') is True else None
+
+
+def is_stub(src: str) -> bool:
+    """规则体是否**全部**为 `Return 0.`（占位 fixture）。
+
+    ★必须是「全部」而非「存在」：正常规则里 `Return 0.` 是完全合法的分支
+    （如 test_eligibility 的兜底），用「存在」判定会把真实样本误标成占位、
+    从而把真缺口藏起来——那比虚报更糟。
+    """
+    bodies = [ln for ln in src.splitlines() if ln[:1] in (' ', '\t') and ln.strip()]
+    return bool(bodies) and all(ln.strip() == 'Return 0.' for ln in bodies)
 
 
 def reachable(entries: set[str], bodies: dict[str, str]) -> set[str]:
@@ -66,6 +105,9 @@ def main() -> int:
 
     report = []
     total_rules = total_dead = no_cases = 0
+    # 三类分桶：只有 real 是待补缺口，另两类不该计入分子。
+    buckets = {'exempt': 0, 'stub': 0, 'real': 0}
+    exempt_by_reason: dict[str, int] = {}
     for path in sorted(glob.glob(f'{base}/policies/*.aster')):
         name = os.path.basename(path)[:-6]
         src = open(path, encoding='utf-8').read()
@@ -79,35 +121,57 @@ def main() -> int:
             except Exception:
                 pass
 
+        # 分类只取决于样本自身性质，与「有没有 cases」无关，故先判后分支。
+        reason = exempt_reason_of(f'{base}/policies/{name}.meta.json')
+        if reason:
+            kind = 'exempt'
+        elif is_stub(src):
+            kind = 'stub'
+        else:
+            kind = 'real'
+
         if not entries:
             no_cases += 1
-            total_dead += len(rules)
-            report.append({'policy': name, 'rules': len(rules), 'reachable': 0,
-                           'unreachable': rules, 'reason': 'no-cases-file'})
-            continue
+            dead = rules
+            why = 'no-cases-file'
+        else:
+            seen = reachable(entries, bodies_of(src))
+            dead = [r for r in rules if r not in seen]
+            why = 'unreachable-from-entry'
 
-        seen = reachable(entries, bodies_of(src))
-        dead = [r for r in rules if r not in seen]
+        if not dead:
+            continue
         total_dead += len(dead)
-        if dead:
-            report.append({'policy': name, 'rules': len(rules),
-                           'reachable': len(rules) - len(dead),
-                           'unreachable': dead, 'reason': 'unreachable-from-entry'})
+        buckets[kind] += len(dead)
+        if kind == 'exempt':
+            exempt_by_reason[reason] = exempt_by_reason.get(reason, 0) + len(dead)
+        report.append({'policy': name, 'rules': len(rules),
+                       'reachable': len(rules) - len(dead),
+                       'unreachable': dead, 'reason': why, 'kind': kind})
 
     if args.json:
         json.dump({'total_rules': total_rules, 'unreachable': total_dead,
+                   'gap': buckets['real'], 'buckets': buckets,
+                   'exempt_by_reason': exempt_by_reason,
                    'policies_without_cases': no_cases, 'detail': report},
                   sys.stdout, ensure_ascii=False, indent=2)
         print()
         return 0
 
-    pct = total_dead * 100 // total_rules if total_rules else 0
+    gap = buckets['real']
+    pct = gap * 100 // total_rules if total_rules else 0
     print(f'语料: {args.tier}')
     print(f'规则总数: {total_rules}')
-    print(f'从 entry 不可达（从未执行）: {total_dead}  ({pct}%)')
+    print(f'从 entry 不可达: {total_dead}，拆分如下——')
+    reasons = ', '.join(f'{k} {v}' for k, v in sorted(exempt_by_reason.items(), key=lambda x: -x[1]))
+    print(f'  · eval-exempt（设计上不求值）: {buckets["exempt"]}  [{reasons}]')
+    print(f'  · stub（规则体全是 Return 0. 的语法 fixture）: {buckets["stub"]}')
+    print(f'  ★ 真实缺口（有逻辑却没跑过）: {gap}  ({pct}% of 全部规则)')
     print(f'完全没有 cases 文件的 policy: {no_cases}')
     print()
-    for row in sorted(report, key=lambda r: -len(r['unreachable']))[:20]:
+    print('真实缺口明细：')
+    real_rows = [r for r in report if r['kind'] == 'real']
+    for row in sorted(real_rows, key=lambda r: -len(r['unreachable']))[:20]:
         head = ', '.join(row['unreachable'][:4])
         more = f' …共 {len(row["unreachable"])} 条' if len(row['unreachable']) > 4 else ''
         print(f'  {row["policy"]}: {row["reachable"]}/{row["rules"]} 可达 | 未执行: {head}{more}')

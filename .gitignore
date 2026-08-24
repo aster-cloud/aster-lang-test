@@ -23,3 +23,6 @@ equivalence-report.md
 eval-parity-report.md
 feature-coverage-report.md
 ir-field-parity-report.md
+
+# Python 工具脚本的字节码缓存
+__pycache__/
