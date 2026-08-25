@@ -9,6 +9,114 @@
         "bar"
       ],
       "expectedOutput": "foobar"
+    },
+    {
+      "name": "concat 空串",
+      "input": [
+        "",
+        "bar"
+      ],
+      "expectedOutput": "bar"
+    },
+    {
+      "name": "toUpper 基本",
+      "entry": "shout",
+      "input": [
+        "hello"
+      ],
+      "expectedOutput": "HELLO"
+    },
+    {
+      "name": "toUpper 已大写不变",
+      "entry": "shout",
+      "input": [
+        "ABC"
+      ],
+      "expectedOutput": "ABC"
+    },
+    {
+      "name": "toUpper 空串",
+      "entry": "shout",
+      "input": [
+        ""
+      ],
+      "expectedOutput": ""
+    },
+    {
+      "name": "startsWith 命中",
+      "entry": "hasPrefix",
+      "input": [
+        "foobar",
+        "foo"
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "startsWith 未命中",
+      "entry": "hasPrefix",
+      "input": [
+        "foobar",
+        "bar"
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "startsWith 空前缀恒真",
+      "entry": "hasPrefix",
+      "input": [
+        "foobar",
+        ""
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "indexOf 命中返回下标",
+      "entry": "find",
+      "input": [
+        "foobar",
+        "bar"
+      ],
+      "expectedOutput": 3
+    },
+    {
+      "name": "indexOf 首位为 0",
+      "entry": "find",
+      "input": [
+        "foobar",
+        "foo"
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "indexOf 未命中返回 -1（★两引擎的哨兵值必须一致）",
+      "entry": "find",
+      "input": [
+        "foobar",
+        "zzz"
+      ],
+      "expectedOutput": -1
+    },
+    {
+      "name": "split 按空格",
+      "entry": "words",
+      "input": [
+        "a b c"
+      ],
+      "expectedOutput": [
+        "a",
+        "b",
+        "c"
+      ]
+    },
+    {
+      "name": "split 无分隔符则单元素",
+      "entry": "words",
+      "input": [
+        "abc"
+      ],
+      "expectedOutput": [
+        "abc"
+      ]
     }
   ]
 }

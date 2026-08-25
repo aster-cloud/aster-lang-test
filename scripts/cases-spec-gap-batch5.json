@@ -1,0 +1,106 @@
+{
+  "_comment": "真实缺口批次（#103 拆桶后的 real 桶）。全部是有真实逻辑、却从 entry 不可达的规则。★选边界值而非 happy path：Text.indexOf 找不到时返回什么、List.get 越界、not 的优先级、整数除法截断方向——这些格子才可能暴露双引擎分叉。",
+  "samples": [
+    {
+      "name": "text_ops",
+      "entry": "join",
+      "cases": [
+        { "name": "concat", "input": ["foo", "bar"], "expectedOutput": "foobar" },
+        { "name": "concat 空串", "input": ["", "bar"], "expectedOutput": "bar" },
+
+        { "name": "toUpper 基本", "entry": "shout", "input": ["hello"], "expectedOutput": "HELLO" },
+        { "name": "toUpper 已大写不变", "entry": "shout", "input": ["ABC"], "expectedOutput": "ABC" },
+        { "name": "toUpper 空串", "entry": "shout", "input": [""], "expectedOutput": "" },
+
+        { "name": "startsWith 命中", "entry": "hasPrefix", "input": ["foobar", "foo"], "expectedOutput": true },
+        { "name": "startsWith 未命中", "entry": "hasPrefix", "input": ["foobar", "bar"], "expectedOutput": false },
+        { "name": "startsWith 空前缀恒真", "entry": "hasPrefix", "input": ["foobar", ""], "expectedOutput": true },
+
+        { "name": "indexOf 命中返回下标", "entry": "find", "input": ["foobar", "bar"], "expectedOutput": 3 },
+        { "name": "indexOf 首位为 0", "entry": "find", "input": ["foobar", "foo"], "expectedOutput": 0 },
+        { "name": "indexOf 未命中返回 -1（★两引擎的哨兵值必须一致）", "entry": "find", "input": ["foobar", "zzz"], "expectedOutput": -1 },
+
+        { "name": "split 按空格", "entry": "words", "input": ["a b c"], "expectedOutput": ["a", "b", "c"] },
+        { "name": "split 无分隔符则单元素", "entry": "words", "input": ["abc"], "expectedOutput": ["abc"] }
+      ]
+    },
+    {
+      "name": "list_ops",
+      "entry": "length",
+      "cases": [
+        { "name": "length 3", "input": [[1, 2, 3]], "expectedOutput": 3 },
+        { "name": "length 空表", "input": [[]], "expectedOutput": 0 },
+
+        { "name": "get 下标 2（第三个）", "entry": "third", "input": [[10, 20, 30]], "expectedOutput": 30 },
+        { "name": "get 下标 2（更长的表）", "entry": "third", "input": [[10, 20, 30, 40]], "expectedOutput": 30 },
+
+        { "name": "isEmpty 空表为真", "entry": "isEmpty", "input": [[]], "expectedOutput": true },
+        { "name": "isEmpty 非空为假", "entry": "isEmpty", "input": [[1]], "expectedOutput": false }
+      ]
+    },
+    {
+      "name": "cli_tool",
+      "entry": "greet",
+      "cases": [
+        { "name": "greet", "input": ["Ada"], "expectedOutput": "Hello, Ada" },
+        { "name": "exclaim", "entry": "exclaim", "input": ["hi"], "expectedOutput": "hi!" },
+        { "name": "length 基本", "entry": "length", "input": ["hello"], "expectedOutput": 5 },
+        { "name": "length 空串", "entry": "length", "input": [""], "expectedOutput": 0 }
+      ]
+    },
+    {
+      "name": "rest_service",
+      "entry": "greet",
+      "cases": [
+        { "name": "greet", "input": ["Ada"], "expectedOutput": "Hello, Ada" },
+        { "name": "exclaim", "entry": "exclaim", "input": ["hi"], "expectedOutput": "hi!" },
+        { "name": "length 基本", "entry": "length", "input": ["hello"], "expectedOutput": 5 }
+      ]
+    },
+    {
+      "name": "neq_test",
+      "entry": "isDifferent",
+      "cases": [
+        { "name": "不同为真", "input": [1, 2], "expectedOutput": true },
+        { "name": "相同为假", "input": [2, 2], "expectedOutput": false },
+
+        { "name": "isNotZero 非零为真", "entry": "isNotZero", "input": [5], "expectedOutput": true },
+        { "name": "isNotZero 零为假（边界）", "entry": "isNotZero", "input": [0], "expectedOutput": false },
+        { "name": "isNotZero 负数为真", "entry": "isNotZero", "input": [-1], "expectedOutput": true },
+
+        { "name": "checkNotEqual 不同为真", "entry": "checkNotEqual", "input": [1, 2], "expectedOutput": true },
+        { "name": "checkNotEqual 相同为假", "entry": "checkNotEqual", "input": [7, 7], "expectedOutput": false }
+      ]
+    },
+    {
+      "name": "not-precedence",
+      "entry": "notCompare",
+      "cases": [
+        { "name": "not (5 > 3) = false", "input": [5, 3], "expectedOutput": false },
+        { "name": "not (3 > 5) = true", "input": [3, 5], "expectedOutput": true },
+
+        { "name": "notNot true", "entry": "notNot", "input": [true], "expectedOutput": true },
+        { "name": "notNot false", "entry": "notNot", "input": [false], "expectedOutput": false },
+
+        { "name": "notAnd: not(1>0) and 1>0 → false", "entry": "notAnd", "input": [1, 1], "expectedOutput": false },
+        { "name": "notAnd: not(-1>0) and 1>0 → true", "entry": "notAnd", "input": [-1, 1], "expectedOutput": true },
+        { "name": "notAnd: not(-1>0) and -1>0 → false", "entry": "notAnd", "input": [-1, -1], "expectedOutput": false }
+      ]
+    },
+    {
+      "name": "symbolic_operators",
+      "entry": "testSymbolicComparison",
+      "cases": [
+        { "name": "eq 相等为真", "input": [3, 3], "expectedOutput": true },
+        { "name": "eq 不等为假", "input": [3, 4], "expectedOutput": false },
+
+        { "name": "算术 sum", "entry": "testSymbolicArithmetic", "input": [7, 3], "expectedOutput": 10 },
+        { "name": "算术 sum 含负数", "entry": "testSymbolicArithmetic", "input": [-7, 3], "expectedOutput": -4 },
+
+        { "name": "混合 7+5>10 为真", "entry": "testMixedOperators", "input": [7, 5], "expectedOutput": true },
+        { "name": "混合 3+5>10 为假", "entry": "testMixedOperators", "input": [3, 5], "expectedOutput": false },
+        { "name": "混合 5+5>10 为假（边界：> 非 >=）", "entry": "testMixedOperators", "input": [5, 5], "expectedOutput": false }
+      ]
+    }
+  ]
+}

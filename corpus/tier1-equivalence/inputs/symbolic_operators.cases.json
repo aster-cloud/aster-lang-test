@@ -3,18 +3,63 @@
   "entry": "testSymbolicComparison",
   "cases": [
     {
-      "name": "5 == 5 → true",
+      "name": "eq 相等为真",
       "input": [
-        5,
+        3,
+        3
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "eq 不等为假",
+      "input": [
+        3,
+        4
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "算术 sum",
+      "entry": "testSymbolicArithmetic",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": 10
+    },
+    {
+      "name": "算术 sum 含负数",
+      "entry": "testSymbolicArithmetic",
+      "input": [
+        -7,
+        3
+      ],
+      "expectedOutput": -4
+    },
+    {
+      "name": "混合 7+5>10 为真",
+      "entry": "testMixedOperators",
+      "input": [
+        7,
         5
       ],
       "expectedOutput": true
     },
     {
-      "name": "5 == 3 → false",
+      "name": "混合 3+5>10 为假",
+      "entry": "testMixedOperators",
+      "input": [
+        3,
+        5
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "混合 5+5>10 为假（边界：> 非 >=）",
+      "entry": "testMixedOperators",
       "input": [
         5,
-        3
+        5
       ],
       "expectedOutput": false
     }
