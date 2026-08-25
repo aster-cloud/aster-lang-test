@@ -216,8 +216,37 @@ for (const s of samples) {
     continue;
   }
   const doc = { policy: `tier1-equivalence/policies/${s.name}.aster`, entry: s.entry, cases };
+  const outPath = join(INPUTS, `${s.name}.cases.json`);
+
+  // ★写入是**整文件覆盖**而非合并。若既有 cases 文件里有本 spec 未涵盖的 case
+  // （常见于分批补覆盖：先写了 A 组，后写 B 组时忘了把 A 组并进同一个 spec），
+  // 直接覆盖会**静默抹掉**已验证的 golden——实际发生过两次
+  // （patient-record 丢 8 条、enterprise 丢 4 条），都是靠 coverage 报告
+  // 「已清零的 policy 又冒出未执行规则」才发现的。
+  // 这里主动比对并拒绝写入，把静默数据丢失变成响亮失败。
+  if (existsSync(outPath)) {
+    try {
+      const prev = JSON.parse(readFileSync(outPath, 'utf8'));
+      const keyOf = (c, defEntry) => `${c.entry ?? defEntry} ${c.name}`;
+      const now = new Set(cases.map((c) => keyOf(c, s.entry)));
+      const lost = (prev.cases ?? []).filter((c) => !now.has(keyOf(c, prev.entry))).map((c) => `${c.entry ?? prev.entry}/${c.name}`);
+      if (lost.length > 0) {
+        console.error(
+          `  ✗ ${s.name}: 拒绝写入——会抹掉既有 ${lost.length} 条 golden：\n` +
+          lost.map((x) => `      - ${x}`).join('\n') +
+          `\n    修法：把它们并入本 spec（同一 policy 的 case 必须写在同一个 spec 里）。`,
+        );
+        process.exitCode = 1;
+        continue;
+      }
+    } catch {
+      // 既有文件不可解析：不阻塞写入（等价于重建），但提示一声。
+      console.error(`  ~ ${s.name}: 既有 cases 文件无法解析，将整体重建`);
+    }
+  }
+
   if (WRITE) {
-    writeFileSync(join(INPUTS, `${s.name}.cases.json`), JSON.stringify(doc, null, 2) + '\n');
+    writeFileSync(outPath, JSON.stringify(doc, null, 2) + '\n');
     written++;
   }
 }
