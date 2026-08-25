@@ -3,7 +3,7 @@
   "entry": "testLessOrEqual",
   "cases": [
     {
-      "name": "constructs TestResult",
+      "name": "结构体返回：value + message",
       "input": [
         5
       ],
@@ -11,6 +11,30 @@
         "__type": "TestResult",
         "value": 5,
         "message": "greater than 10"
+      }
+    },
+    {
+      "name": "testGreaterOrEqual 结构体",
+      "entry": "testGreaterOrEqual",
+      "input": [
+        42
+      ],
+      "expectedOutput": {
+        "__type": "TestResult",
+        "value": 42,
+        "message": "less than 10"
+      }
+    },
+    {
+      "name": "testNotEqual 结构体",
+      "entry": "testNotEqual",
+      "input": [
+        10
+      ],
+      "expectedOutput": {
+        "__type": "TestResult",
+        "value": 10,
+        "message": "Equal to 10"
       }
     }
   ]
