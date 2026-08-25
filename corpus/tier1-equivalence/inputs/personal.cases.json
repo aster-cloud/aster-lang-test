@@ -2,9 +2,427 @@
   "policy": "tier1-equivalence/policies/personal.aster",
   "entry": "assessCredit",
   "cases": [
-    { "name": "score 780 → EXCELLENT", "input": [{ "creditScore": 780, "creditUtilization": 30, "latePayments": 1, "defaults": 0, "bankruptcies": 0 }], "expectedOutput": { "__type": "CreditAssessment", "scoreGrade": "EXCELLENT", "historyGrade": "STRONG", "utilizationRatio": 30, "negativeMarks": 1, "riskIndicator": "LOW", "maxLoanAmount": 50000 } },
-    { "name": "score 720 → GOOD", "input": [{ "creditScore": 720, "creditUtilization": 30, "latePayments": 1, "defaults": 0, "bankruptcies": 0 }], "expectedOutput": { "__type": "CreditAssessment", "scoreGrade": "GOOD", "historyGrade": "SOLID", "utilizationRatio": 30, "negativeMarks": 1, "riskIndicator": "LOW", "maxLoanAmount": 30000 } },
-    { "name": "score 660 → FAIR", "input": [{ "creditScore": 660, "creditUtilization": 30, "latePayments": 1, "defaults": 0, "bankruptcies": 0 }], "expectedOutput": { "__type": "CreditAssessment", "scoreGrade": "FAIR", "historyGrade": "ADEQUATE", "utilizationRatio": 30, "negativeMarks": 1, "riskIndicator": "MEDIUM", "maxLoanAmount": 20000 } },
-    { "name": "score 600 → POOR", "input": [{ "creditScore": 600, "creditUtilization": 30, "latePayments": 1, "defaults": 0, "bankruptcies": 0 }], "expectedOutput": { "__type": "CreditAssessment", "scoreGrade": "POOR", "historyGrade": "LIMITED", "utilizationRatio": 30, "negativeMarks": 1, "riskIndicator": "HIGH", "maxLoanAmount": 10000 } }
+    {
+      "name": "信用 750 -> EXCELLENT（边界：at least）",
+      "input": [
+        {
+          "creditScore": 750,
+          "creditHistory": "L",
+          "activeLoans": 0,
+          "creditCardCount": 1,
+          "creditUtilization": 20,
+          "latePayments": 0,
+          "defaults": 0,
+          "bankruptcies": 0,
+          "inquiries": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "CreditAssessment",
+        "scoreGrade": "EXCELLENT",
+        "historyGrade": "STRONG",
+        "utilizationRatio": 20,
+        "negativeMarks": 0,
+        "riskIndicator": "LOW",
+        "maxLoanAmount": 50000
+      }
+    },
+    {
+      "name": "信用 749 -> GOOD（边界下一格）",
+      "input": [
+        {
+          "creditScore": 749,
+          "creditHistory": "L",
+          "activeLoans": 0,
+          "creditCardCount": 1,
+          "creditUtilization": 20,
+          "latePayments": 0,
+          "defaults": 0,
+          "bankruptcies": 0,
+          "inquiries": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "CreditAssessment",
+        "scoreGrade": "GOOD",
+        "historyGrade": "SOLID",
+        "utilizationRatio": 20,
+        "negativeMarks": 0,
+        "riskIndicator": "LOW",
+        "maxLoanAmount": 30000
+      }
+    },
+    {
+      "name": "信用 650 -> FAIR（边界）",
+      "input": [
+        {
+          "creditScore": 650,
+          "creditHistory": "L",
+          "activeLoans": 0,
+          "creditCardCount": 1,
+          "creditUtilization": 35,
+          "latePayments": 0,
+          "defaults": 0,
+          "bankruptcies": 0,
+          "inquiries": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "CreditAssessment",
+        "scoreGrade": "FAIR",
+        "historyGrade": "ADEQUATE",
+        "utilizationRatio": 35,
+        "negativeMarks": 0,
+        "riskIndicator": "MEDIUM",
+        "maxLoanAmount": 20000
+      }
+    },
+    {
+      "name": "信用 649 -> POOR + ★negativeMarks 加权 2+3*3+5*5=36",
+      "input": [
+        {
+          "creditScore": 649,
+          "creditHistory": "S",
+          "activeLoans": 3,
+          "creditCardCount": 5,
+          "creditUtilization": 90,
+          "latePayments": 2,
+          "defaults": 3,
+          "bankruptcies": 5,
+          "inquiries": 4
+        }
+      ],
+      "expectedOutput": {
+        "__type": "CreditAssessment",
+        "scoreGrade": "POOR",
+        "historyGrade": "LIMITED",
+        "utilizationRatio": 90,
+        "negativeMarks": 36,
+        "riskIndicator": "HIGH",
+        "maxLoanAmount": 10000
+      }
+    },
+    {
+      "name": "收入: PERMANENT 优先于金额判定",
+      "entry": "assessIncome",
+      "input": [
+        {
+          "applicantId": "A",
+          "age": 30,
+          "educationLevel": "BACHELOR",
+          "employmentStatus": "FT",
+          "occupation": "ENG",
+          "yearsAtJob": 3,
+          "monthsAtAddress": 24,
+          "maritalStatus": "S",
+          "dependents": 0
+        },
+        {
+          "monthlyIncome": 1000,
+          "additionalIncome": 0,
+          "spouseIncome": 0,
+          "rentIncome": 0,
+          "incomeStability": "PERMANENT",
+          "incomeGrowthRate": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "IncomeAssessment",
+        "totalMonthlyIncome": 1000,
+        "stabilityGrade": "GOOD",
+        "adequacy": "ADEQUATE",
+        "loanCapacity": 6000
+      }
+    },
+    {
+      "name": "收入: 非 PERMANENT 但总额 3000 -> FAIR（边界 at least）",
+      "entry": "assessIncome",
+      "input": [
+        {
+          "applicantId": "A",
+          "age": 30,
+          "educationLevel": "BACHELOR",
+          "employmentStatus": "FT",
+          "occupation": "ENG",
+          "yearsAtJob": 3,
+          "monthsAtAddress": 24,
+          "maritalStatus": "S",
+          "dependents": 0
+        },
+        {
+          "monthlyIncome": 2000,
+          "additionalIncome": 500,
+          "spouseIncome": 300,
+          "rentIncome": 200,
+          "incomeStability": "CONTRACT",
+          "incomeGrowthRate": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "IncomeAssessment",
+        "totalMonthlyIncome": 3000,
+        "stabilityGrade": "FAIR",
+        "adequacy": "LOW",
+        "loanCapacity": 18000
+      }
+    },
+    {
+      "name": "收入: 2999 -> POOR 且 loanCapacity 归零（★非 6 倍）",
+      "entry": "assessIncome",
+      "input": [
+        {
+          "applicantId": "A",
+          "age": 30,
+          "educationLevel": "BACHELOR",
+          "employmentStatus": "FT",
+          "occupation": "ENG",
+          "yearsAtJob": 3,
+          "monthsAtAddress": 24,
+          "maritalStatus": "S",
+          "dependents": 0
+        },
+        {
+          "monthlyIncome": 2999,
+          "additionalIncome": 0,
+          "spouseIncome": 0,
+          "rentIncome": 0,
+          "incomeStability": "CONTRACT",
+          "incomeGrowthRate": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "IncomeAssessment",
+        "totalMonthlyIncome": 2999,
+        "stabilityGrade": "POOR",
+        "adequacy": "VERY_LOW",
+        "loanCapacity": 0
+      }
+    },
+    {
+      "name": "★可负担: 低负债 DTI=11.6 -> EXCELLENT（★divided by 是真除法，非截断）",
+      "entry": "assessAffordability",
+      "input": [
+        {
+          "monthlyIncome": 5000,
+          "additionalIncome": 0,
+          "spouseIncome": 0,
+          "rentIncome": 0,
+          "incomeStability": "PERMANENT",
+          "incomeGrowthRate": 0
+        },
+        {
+          "totalMonthlyDebt": 500,
+          "mortgagePayment": 0,
+          "carPayment": 0,
+          "studentLoanPayment": 0,
+          "creditCardMinPayment": 0,
+          "otherDebtPayment": 0
+        },
+        {
+          "requestedAmount": 10000,
+          "purpose": "EDUCATION",
+          "termMonths": 36,
+          "downPayment": 0,
+          "collateralValue": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "AffordabilityAnalysis",
+        "debtToIncomeRatio": 11.6,
+        "residualIncome": 4420,
+        "affordabilityGrade": "EXCELLENT",
+        "maxMonthlyPayment": 1500
+      }
+    },
+    {
+      "name": "★可负担: DTI=37.6 -> FAIR（跨过 36 这一格）",
+      "entry": "assessAffordability",
+      "input": [
+        {
+          "monthlyIncome": 5000,
+          "additionalIncome": 0,
+          "spouseIncome": 0,
+          "rentIncome": 0,
+          "incomeStability": "PERMANENT",
+          "incomeGrowthRate": 0
+        },
+        {
+          "totalMonthlyDebt": 1800,
+          "mortgagePayment": 0,
+          "carPayment": 0,
+          "studentLoanPayment": 0,
+          "creditCardMinPayment": 0,
+          "otherDebtPayment": 0
+        },
+        {
+          "requestedAmount": 10000,
+          "purpose": "EDUCATION",
+          "termMonths": 36,
+          "downPayment": 0,
+          "collateralValue": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "AffordabilityAnalysis",
+        "debtToIncomeRatio": 37.6,
+        "residualIncome": 3120,
+        "affordabilityGrade": "FAIR",
+        "maxMonthlyPayment": 1500
+      }
+    },
+    {
+      "name": "★可负担: DTI=45.6 -> POOR",
+      "entry": "assessAffordability",
+      "input": [
+        {
+          "monthlyIncome": 5000,
+          "additionalIncome": 0,
+          "spouseIncome": 0,
+          "rentIncome": 0,
+          "incomeStability": "PERMANENT",
+          "incomeGrowthRate": 0
+        },
+        {
+          "totalMonthlyDebt": 2200,
+          "mortgagePayment": 0,
+          "carPayment": 0,
+          "studentLoanPayment": 0,
+          "creditCardMinPayment": 0,
+          "otherDebtPayment": 0
+        },
+        {
+          "requestedAmount": 10000,
+          "purpose": "EDUCATION",
+          "termMonths": 36,
+          "downPayment": 0,
+          "collateralValue": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "AffordabilityAnalysis",
+        "debtToIncomeRatio": 45.6,
+        "residualIncome": 2720,
+        "affordabilityGrade": "POOR",
+        "maxMonthlyPayment": 1500
+      }
+    },
+    {
+      "name": "稳定性: 四项全满 = 35",
+      "entry": "calculateStabilityScore",
+      "input": [
+        {
+          "applicantId": "A",
+          "age": 40,
+          "educationLevel": "GRADUATE",
+          "employmentStatus": "FT",
+          "occupation": "ENG",
+          "yearsAtJob": 10,
+          "monthsAtAddress": 60,
+          "maritalStatus": "M",
+          "dependents": 2
+        },
+        {
+          "monthlyIncome": 5000,
+          "additionalIncome": 0,
+          "spouseIncome": 0,
+          "rentIncome": 0,
+          "incomeStability": "PERMANENT",
+          "incomeGrowthRate": 0
+        }
+      ],
+      "expectedOutput": 35
+    },
+    {
+      "name": "稳定性: 四项全空 = 0",
+      "entry": "calculateStabilityScore",
+      "input": [
+        {
+          "applicantId": "A",
+          "age": 25,
+          "educationLevel": "HIGH_SCHOOL",
+          "employmentStatus": "PT",
+          "occupation": "X",
+          "yearsAtJob": 1,
+          "monthsAtAddress": 6,
+          "maritalStatus": "S",
+          "dependents": 0
+        },
+        {
+          "monthlyIncome": 2000,
+          "additionalIncome": 0,
+          "spouseIncome": 0,
+          "rentIncome": 0,
+          "incomeStability": "CONTRACT",
+          "incomeGrowthRate": 0
+        }
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "稳定性: ★恰在 age=35 / yearsAtJob=5 两个边界 = 20",
+      "entry": "calculateStabilityScore",
+      "input": [
+        {
+          "applicantId": "A",
+          "age": 35,
+          "educationLevel": "HIGH_SCHOOL",
+          "employmentStatus": "FT",
+          "occupation": "X",
+          "yearsAtJob": 5,
+          "monthsAtAddress": 12,
+          "maritalStatus": "S",
+          "dependents": 0
+        },
+        {
+          "monthlyIncome": 3000,
+          "additionalIncome": 0,
+          "spouseIncome": 0,
+          "rentIncome": 0,
+          "incomeStability": "CONTRACT",
+          "incomeGrowthRate": 0
+        }
+      ],
+      "expectedOutput": 20
+    },
+    {
+      "name": "用途系数: HOME_RENOVATION=105",
+      "entry": "calculatePurposeAdjustment",
+      "input": [
+        "HOME_RENOVATION"
+      ],
+      "expectedOutput": 105
+    },
+    {
+      "name": "用途系数: EDUCATION=108（最高）",
+      "entry": "calculatePurposeAdjustment",
+      "input": [
+        "EDUCATION"
+      ],
+      "expectedOutput": 108
+    },
+    {
+      "name": "用途系数: DEBT_CONSOLIDATION=95",
+      "entry": "calculatePurposeAdjustment",
+      "input": [
+        "DEBT_CONSOLIDATION"
+      ],
+      "expectedOutput": 95
+    },
+    {
+      "name": "用途系数: VACATION=80（最低）",
+      "entry": "calculatePurposeAdjustment",
+      "input": [
+        "VACATION"
+      ],
+      "expectedOutput": 80
+    },
+    {
+      "name": "用途系数: 未知用途落兜底 85",
+      "entry": "calculatePurposeAdjustment",
+      "input": [
+        "CRYPTO"
+      ],
+      "expectedOutput": 85
+    }
   ]
 }
