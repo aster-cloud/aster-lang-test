@@ -19,7 +19,7 @@
     {
       "name": "unknown -> NONE",
       "input": [
-        "guest"
+        "hacker"
       ],
       "expectedOutput": {
         "__type": "AccessLevel",
@@ -28,6 +28,300 @@
         "can_view_medical": false,
         "can_view_financial": false,
         "can_modify": false
+      }
+    },
+    {
+      "name": "nurse -> CLINICAL（可看医疗、不可改）",
+      "input": [
+        "nurse"
+      ],
+      "expectedOutput": {
+        "__type": "AccessLevel",
+        "level_name": "CLINICAL",
+        "can_view_demographics": true,
+        "can_view_medical": true,
+        "can_view_financial": false,
+        "can_modify": false
+      }
+    },
+    {
+      "name": "billing -> BILLING（可看财务、不可看医疗）",
+      "input": [
+        "billing"
+      ],
+      "expectedOutput": {
+        "__type": "AccessLevel",
+        "level_name": "BILLING",
+        "can_view_demographics": true,
+        "can_view_medical": false,
+        "can_view_financial": true,
+        "can_modify": false
+      }
+    },
+    {
+      "name": "admin -> ADMIN（★仅人口学，医疗/财务均否）",
+      "input": [
+        "admin"
+      ],
+      "expectedOutput": {
+        "__type": "AccessLevel",
+        "level_name": "ADMIN",
+        "can_view_demographics": true,
+        "can_view_medical": false,
+        "can_view_financial": false,
+        "can_modify": false
+      }
+    },
+    {
+      "name": "phi: demographics -> L2 免同意 保留6年",
+      "entry": "get_phi_category",
+      "input": [
+        "demographics"
+      ],
+      "expectedOutput": {
+        "__type": "PHICategory",
+        "category": "DEMOGRAPHICS",
+        "sensitivity": "L2",
+        "requires_consent": false,
+        "retention_years": 6
+      }
+    },
+    {
+      "name": "phi: medical -> L3 需同意 保留10年",
+      "entry": "get_phi_category",
+      "input": [
+        "medical"
+      ],
+      "expectedOutput": {
+        "__type": "PHICategory",
+        "category": "MEDICAL",
+        "sensitivity": "L3",
+        "requires_consent": true,
+        "retention_years": 10
+      }
+    },
+    {
+      "name": "phi: financial -> L2 免同意 保留7年",
+      "entry": "get_phi_category",
+      "input": [
+        "financial"
+      ],
+      "expectedOutput": {
+        "__type": "PHICategory",
+        "category": "FINANCIAL",
+        "sensitivity": "L2",
+        "requires_consent": false,
+        "retention_years": 7
+      }
+    },
+    {
+      "name": "phi: psychotherapy -> L3 需同意",
+      "entry": "get_phi_category",
+      "input": [
+        "psychotherapy"
+      ],
+      "expectedOutput": {
+        "__type": "PHICategory",
+        "category": "PSYCHOTHERAPY",
+        "sensitivity": "L3",
+        "requires_consent": true,
+        "retention_years": 10
+      }
+    },
+    {
+      "name": "phi: 未知类别按最严处理（L3 需同意）",
+      "entry": "get_phi_category",
+      "input": [
+        "zzz"
+      ],
+      "expectedOutput": {
+        "__type": "PHICategory",
+        "category": "UNKNOWN",
+        "sensitivity": "L3",
+        "requires_consent": true,
+        "retention_years": 10
+      }
+    },
+    {
+      "name": "访问控制: 医生看医疗 -> ok",
+      "entry": "validate_access_control",
+      "input": [
+        {
+          "user_id": "DR-1",
+          "user_role": "physician",
+          "phi_category_name": "medical",
+          "purpose": "treatment",
+          "has_consent": true
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Ok",
+        "value": "Access validated for role: physician"
+      }
+    },
+    {
+      "name": "访问控制: 账单看财务 -> ok（本职权限）",
+      "entry": "validate_access_control",
+      "input": [
+        {
+          "user_id": "B-2",
+          "user_role": "billing",
+          "phi_category_name": "financial",
+          "purpose": "payment",
+          "has_consent": true
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Ok",
+        "value": "Access validated for role: billing"
+      }
+    },
+    {
+      "name": "同意: 医疗无同意 -> err",
+      "entry": "validate_consent",
+      "input": [
+        {
+          "user_id": "X",
+          "user_role": "physician",
+          "phi_category_name": "medical",
+          "purpose": "treatment",
+          "has_consent": false
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Err",
+        "value": "HIPAA: Consent required for MEDICAL"
+      }
+    },
+    {
+      "name": "同意: 医疗有同意 -> ok",
+      "entry": "validate_consent",
+      "input": [
+        {
+          "user_id": "X",
+          "user_role": "physician",
+          "phi_category_name": "medical",
+          "purpose": "treatment",
+          "has_consent": true
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Ok",
+        "value": "Consent validated"
+      }
+    },
+    {
+      "name": "同意: 人口学免同意，无同意也 ok",
+      "entry": "validate_consent",
+      "input": [
+        {
+          "user_id": "X",
+          "user_role": "nurse",
+          "phi_category_name": "demographics",
+          "purpose": "treatment",
+          "has_consent": false
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Ok",
+        "value": "Consent validated"
+      }
+    },
+    {
+      "name": "目的: treatment -> ok",
+      "entry": "validate_purpose",
+      "input": [
+        {
+          "user_id": "X",
+          "user_role": "physician",
+          "phi_category_name": "medical",
+          "purpose": "treatment",
+          "has_consent": true
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Ok",
+        "value": "Purpose validated"
+      }
+    },
+    {
+      "name": "目的: payment -> ok",
+      "entry": "validate_purpose",
+      "input": [
+        {
+          "user_id": "X",
+          "user_role": "billing",
+          "phi_category_name": "financial",
+          "purpose": "payment",
+          "has_consent": true
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Ok",
+        "value": "Purpose validated"
+      }
+    },
+    {
+      "name": "目的: healthcare_operations -> ok",
+      "entry": "validate_purpose",
+      "input": [
+        {
+          "user_id": "X",
+          "user_role": "admin",
+          "phi_category_name": "demographics",
+          "purpose": "healthcare_operations",
+          "has_consent": true
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Ok",
+        "value": "Purpose validated"
+      }
+    },
+    {
+      "name": "报告: 合规",
+      "entry": "generate_hipaa_report",
+      "input": [
+        "DR-001",
+        {
+          "is_compliant": true,
+          "passed_count": 3,
+          "failed_count": 0,
+          "message": "ok"
+        }
+      ],
+      "expectedOutput": "HIPAA COMPLIANCE: PASSED for DR-001"
+    },
+    {
+      "name": "全链: 医生+医疗+治疗+有同意 -> 三项全过",
+      "entry": "validate_hipaa_compliance",
+      "input": [
+        {
+          "user_id": "DR-001",
+          "user_role": "physician",
+          "phi_category_name": "medical",
+          "purpose": "treatment",
+          "has_consent": true
+        }
+      ],
+      "expectedOutput": {
+        "__type": "HIPAAValidation",
+        "is_compliant": true,
+        "passed_count": 3,
+        "failed_count": 0,
+        "message": "All HIPAA checks passed"
+      }
+    },
+    {
+      "name": "demo: 合规访问（零参，打通全链）",
+      "entry": "demo_compliant_access",
+      "input": [],
+      "expectedOutput": {
+        "__type": "HIPAAValidation",
+        "is_compliant": true,
+        "passed_count": 3,
+        "failed_count": 0,
+        "message": "All HIPAA checks passed"
       }
     }
   ]
