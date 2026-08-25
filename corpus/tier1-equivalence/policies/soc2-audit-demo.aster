@@ -33,7 +33,7 @@ Define ChainState has
 # 计算审计记录哈希
 # @cpu 因为调用 Crypto.hash 属于 CPU 类能力（本地哈希计算）
 Rule compute_hash given record, produce. It performs cpu:
-  Let content be Text.concat(record.prev_hash, record.event_type, record.timestamp, record.tenant_id, record.policy_module, record.policy_function, Bool.toString(record.success)).
+  Let content be record.prev_hash plus record.event_type plus record.timestamp plus record.tenant_id plus record.policy_module plus record.policy_function plus record.success.
   Return Crypto.hash(content, "SHA-256").
 
 # 验证单条记录完整性
@@ -53,10 +53,10 @@ Rule verify_one_record given state, record, produce. It performs cpu:
   If state.is_valid equals to false
     Return state.
   If verify_record_integrity(record) equals to false
-    Let msg be Text.concat("Hash integrity failed at record ", Int.toString(record.record_number)).
+    Let msg be "Hash integrity failed at record " plus record.record_number.
     Return ChainState with is_valid set to false, records_count set to state.records_count plus 1, broken_index set to record.record_number, reason set to msg, last_hash set to state.last_hash.
   If verify_chain_link(record, state.last_hash) equals to false
-    Let msg be Text.concat("Chain link broken at record ", Int.toString(record.record_number)).
+    Let msg be "Chain link broken at record " plus record.record_number.
     Return ChainState with is_valid set to false, records_count set to state.records_count plus 1, broken_index set to record.record_number, reason set to msg, last_hash set to state.last_hash.
   Return ChainState with is_valid set to true, records_count set to state.records_count plus 1, broken_index set to 0, reason set to "", last_hash set to record.current_hash.
 
@@ -84,9 +84,9 @@ Rule verify_audit_chain given record, produce. It performs cpu:
 # 生成 SOC2 合规报告
 Rule generate_soc2_report given tenant_id, verification, produce:
   If verification.is_valid
-    Return Text.concat("SOC2 CC7.2 PASSED: Audit chain verified for tenant ", tenant_id, ". Records checked: ", Int.toString(verification.records_count)).
+    Return "SOC2 CC7.2 PASSED: Audit chain verified for tenant " plus tenant_id plus ". Records checked: " plus verification.records_count.
   Otherwise
-    Return Text.concat("SOC2 CC7.2 FAILED: Audit chain broken at record ", Int.toString(verification.broken_index), ". Reason: ", verification.reason).
+    Return "SOC2 CC7.2 FAILED: Audit chain broken at record " plus verification.broken_index plus ". Reason: " plus verification.reason.
 
 # 创建 Genesis 记录
 # @cpu 通过 compute_hash 间接传播

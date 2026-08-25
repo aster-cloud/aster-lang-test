@@ -1,5 +1,5 @@
 {
-  "_comment": "真实缺口批次：hipaa-validation-demo 的 9 条未执行规则。★语义完全自含——每条规则的分支条件都写在源码里，无需发明业务含义，只需逐条推演。★重点在三处跨引擎易分叉的形状：(1) 结构体返回值 __type 形状；(2) Result 变体 ok of / err of 的运行期表示；(3) Result.isOk 对变体的判定（#131/#138 修过的那条链）。★demo_* 三条零参规则打通完整链路：构造结构体 → 三次子规则调用 → Result.isOk 判定 → 返回结构体。 ★2026-08-25 撤回 8 个 case：它们走 err 分支，而该样本所有 err 分支都调用超元数 Text.concat（二元 builtin 传 3–4 参）或不存在的 Int.toString，两引擎同时抛异常（见 #107）。不把「抛异常」固化成期望行为——等样本修好再补。",
+  "_comment": "真实缺口批次：hipaa-validation-demo 的 9 条未执行规则。★语义完全自含——每条规则的分支条件都写在源码里，无需发明业务含义，只需逐条推演。★重点在三处跨引擎易分叉的形状：(1) 结构体返回值 __type 形状；(2) Result 变体 ok of / err of 的运行期表示；(3) Result.isOk 对变体的判定（#131/#138 修过的那条链）。★demo_* 三条零参规则打通完整链路：构造结构体 → 三次子规则调用 → Result.isOk 判定 → 返回结构体。 ★2026-08-25 补回此前撤回的 8 个 err 路径 case：样本的超元数 Text.concat / 不存在的 Int.toString 已改写为 plus 链（#107），错误路径不再是死代码。这 8 条正是该 demo 要演示的安全语义（越权访问被拒、伪造角色被拦）。",
   "samples": [
     {
       "name": "hipaa-validation-demo",
@@ -325,6 +325,132 @@
             "passed_count": 3,
             "failed_count": 0,
             "message": "All HIPAA checks passed"
+          }
+        },
+        {
+          "name": "访问控制: 账单看医疗 -> err",
+          "input": [
+            {
+              "user_id": "B-1",
+              "user_role": "billing",
+              "phi_category_name": "medical",
+              "purpose": "payment",
+              "has_consent": true
+            }
+          ],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "HIPAA: Role billing cannot access medical records"
+          },
+          "entry": "validate_access_control"
+        },
+        {
+          "name": "访问控制: 护士看财务 -> err",
+          "input": [
+            {
+              "user_id": "N-1",
+              "user_role": "nurse",
+              "phi_category_name": "financial",
+              "purpose": "payment",
+              "has_consent": true
+            }
+          ],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "HIPAA: Role nurse cannot access financial records"
+          },
+          "entry": "validate_access_control"
+        },
+        {
+          "name": "访问控制: admin 看心理治疗 -> err",
+          "input": [
+            {
+              "user_id": "A-1",
+              "user_role": "admin",
+              "phi_category_name": "psychotherapy",
+              "purpose": "treatment",
+              "has_consent": true
+            }
+          ],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "HIPAA: Role admin cannot access psychotherapy notes"
+          },
+          "entry": "validate_access_control"
+        },
+        {
+          "name": "目的: curiosity -> err（窥私被拒）",
+          "entry": "validate_purpose",
+          "input": [
+            {
+              "user_id": "X",
+              "user_role": "admin",
+              "phi_category_name": "medical",
+              "purpose": "curiosity",
+              "has_consent": true
+            }
+          ],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "HIPAA: Purpose curiosity is not permitted"
+          }
+        },
+        {
+          "name": "报告: 不合规（含失败计数）",
+          "entry": "generate_hipaa_report",
+          "input": [
+            "BILL-001",
+            {
+              "is_compliant": false,
+              "passed_count": 0,
+              "failed_count": 1,
+              "message": "no"
+            }
+          ],
+          "expectedOutput": "HIPAA COMPLIANCE: FAILED for BILL-001. Failed checks: 1"
+        },
+        {
+          "name": "全链: 账单+医疗 -> 访问控制先挂",
+          "entry": "validate_hipaa_compliance",
+          "input": [
+            {
+              "user_id": "B-1",
+              "user_role": "billing",
+              "phi_category_name": "medical",
+              "purpose": "payment",
+              "has_consent": true
+            }
+          ],
+          "expectedOutput": {
+            "__type": "HIPAAValidation",
+            "is_compliant": false,
+            "passed_count": 0,
+            "failed_count": 1,
+            "message": "HIPAA compliance failed"
+          }
+        },
+        {
+          "name": "demo: 账单越权访问医疗 -> 不合规",
+          "entry": "demo_non_compliant_access",
+          "input": [],
+          "expectedOutput": {
+            "__type": "HIPAAValidation",
+            "is_compliant": false,
+            "passed_count": 0,
+            "failed_count": 1,
+            "message": "HIPAA compliance failed"
+          }
+        },
+        {
+          "name": "demo: 伪造 admin 角色被拦（★安全语义）",
+          "entry": "demo_spoofed_access_blocked",
+          "input": [],
+          "expectedOutput": {
+            "__type": "HIPAAValidation",
+            "is_compliant": false,
+            "passed_count": 0,
+            "failed_count": 1,
+            "message": "HIPAA compliance failed"
           }
         }
       ]

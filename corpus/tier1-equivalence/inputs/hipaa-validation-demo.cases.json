@@ -323,6 +323,132 @@
         "failed_count": 0,
         "message": "All HIPAA checks passed"
       }
+    },
+    {
+      "name": "访问控制: 账单看医疗 -> err",
+      "entry": "validate_access_control",
+      "input": [
+        {
+          "user_id": "B-1",
+          "user_role": "billing",
+          "phi_category_name": "medical",
+          "purpose": "payment",
+          "has_consent": true
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Err",
+        "value": "HIPAA: Role billing cannot access medical records"
+      }
+    },
+    {
+      "name": "访问控制: 护士看财务 -> err",
+      "entry": "validate_access_control",
+      "input": [
+        {
+          "user_id": "N-1",
+          "user_role": "nurse",
+          "phi_category_name": "financial",
+          "purpose": "payment",
+          "has_consent": true
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Err",
+        "value": "HIPAA: Role nurse cannot access financial records"
+      }
+    },
+    {
+      "name": "访问控制: admin 看心理治疗 -> err",
+      "entry": "validate_access_control",
+      "input": [
+        {
+          "user_id": "A-1",
+          "user_role": "admin",
+          "phi_category_name": "psychotherapy",
+          "purpose": "treatment",
+          "has_consent": true
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Err",
+        "value": "HIPAA: Role admin cannot access psychotherapy notes"
+      }
+    },
+    {
+      "name": "目的: curiosity -> err（窥私被拒）",
+      "entry": "validate_purpose",
+      "input": [
+        {
+          "user_id": "X",
+          "user_role": "admin",
+          "phi_category_name": "medical",
+          "purpose": "curiosity",
+          "has_consent": true
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Err",
+        "value": "HIPAA: Purpose curiosity is not permitted"
+      }
+    },
+    {
+      "name": "报告: 不合规（含失败计数）",
+      "entry": "generate_hipaa_report",
+      "input": [
+        "BILL-001",
+        {
+          "is_compliant": false,
+          "passed_count": 0,
+          "failed_count": 1,
+          "message": "no"
+        }
+      ],
+      "expectedOutput": "HIPAA COMPLIANCE: FAILED for BILL-001. Failed checks: 1"
+    },
+    {
+      "name": "全链: 账单+医疗 -> 访问控制先挂",
+      "entry": "validate_hipaa_compliance",
+      "input": [
+        {
+          "user_id": "B-1",
+          "user_role": "billing",
+          "phi_category_name": "medical",
+          "purpose": "payment",
+          "has_consent": true
+        }
+      ],
+      "expectedOutput": {
+        "__type": "HIPAAValidation",
+        "is_compliant": false,
+        "passed_count": 0,
+        "failed_count": 1,
+        "message": "HIPAA compliance failed"
+      }
+    },
+    {
+      "name": "demo: 账单越权访问医疗 -> 不合规",
+      "entry": "demo_non_compliant_access",
+      "input": [],
+      "expectedOutput": {
+        "__type": "HIPAAValidation",
+        "is_compliant": false,
+        "passed_count": 0,
+        "failed_count": 1,
+        "message": "HIPAA compliance failed"
+      }
+    },
+    {
+      "name": "demo: 伪造 admin 角色被拦（★安全语义）",
+      "entry": "demo_spoofed_access_blocked",
+      "input": [],
+      "expectedOutput": {
+        "__type": "HIPAAValidation",
+        "is_compliant": false,
+        "passed_count": 0,
+        "failed_count": 1,
+        "message": "HIPAA compliance failed"
+      }
     }
   ]
 }

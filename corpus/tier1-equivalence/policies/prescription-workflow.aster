@@ -70,7 +70,7 @@ Rule verify_prescription given rx, has_aspirin, produce:
 
 # 安全传输处方（脱敏患者信息）
 Rule transmit_prescription_safe given rx, produce:
-  Return Text.concat("Rx ", rx.prescription_id, " for ", redact(rx.patient_name), ": ", rx.medication, " ", rx.dosage).
+  Return "Rx " plus rx.prescription_id plus " for " plus redact(rx.patient_name) plus ": " plus rx.medication plus " " plus rx.dosage.
 
 # 示例：无相互作用的处方验证
 Rule demo_safe_prescription, produce:
