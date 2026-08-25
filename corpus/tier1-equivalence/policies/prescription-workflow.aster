@@ -68,6 +68,13 @@ Rule verify_prescription given rx, has_aspirin, produce:
   Let verification be PharmacyVerification with verified set to true, pharmacist_id set to "PH-001", timestamp set to "2025-11-27T10:00:00Z", notes set to "All checks passed".
   Return ok of verification.
 
+# PHI 脱敏（HIPAA §164.514 去标识化）
+# ★全掩码而非部分保留：本规则同时用于姓名与 SSN 等不同格式的 PHI，
+#   任何「保留末 N 位」的策略对某些字段就是欠脱敏（如短姓名会整体泄露）。
+#   全掩码是**不可能欠脱敏**的那个选择——脱敏策略出错的代价是不对称的。
+Rule redact given value, produce:
+  Return "[REDACTED]".
+
 # 安全传输处方（脱敏患者信息）
 Rule transmit_prescription_safe given rx, produce:
   Return "Rx " plus rx.prescription_id plus " for " plus redact(rx.patient_name) plus ": " plus rx.medication plus " " plus rx.dosage.

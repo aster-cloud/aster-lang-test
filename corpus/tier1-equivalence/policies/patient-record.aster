@@ -53,6 +53,13 @@ Rule get_patient_summary given request, patient_phi, produce:
     Return ok of PatientSummary with patient_id set to patient_phi.patient_id, display_info set to (patient_phi.name plus " - " plus patient_phi.treatment_plan).
   Return err of "Access denied: insufficient role".
 
+# PHI 脱敏（HIPAA §164.514 去标识化）
+# ★全掩码而非部分保留：本规则同时用于姓名与 SSN 等不同格式的 PHI，
+#   任何「保留末 N 位」的策略对某些字段就是欠脱敏（如短姓名会整体泄露）。
+#   全掩码是**不可能欠脱敏**的那个选择——脱敏策略出错的代价是不对称的。
+Rule redact given value, produce:
+  Return "[REDACTED]".
+
 # 安全的 PHI 显示：自动脱敏
 Rule display_patient_safe given patient_phi, produce:
   Return "Patient: " plus redact(patient_phi.name) plus ", SSN: " plus redact(patient_phi.ssn).
