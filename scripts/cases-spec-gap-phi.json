@@ -1,22 +1,249 @@
 {
-  "_comment": "#107 修好超元数 Text.concat 后解锁的样本。★display_patient_safe 与 transmit_prescription_safe 两条**不补**：它们调用 `redact(...)`，而两引擎都没有这个 builtin（与 Int.toString / Bool.toString 同类的幽灵函数），属独立问题、已在 #107 记录。补它们等于把「抛异常」固化成期望行为。",
+  "_comment": "#107 修好超元数 Text.concat 后解锁的样本。★display_patient_safe 与 transmit_prescription_safe 两条**不补**：它们调用 `redact(...)`，而两引擎都没有这个 builtin（与 Int.toString / Bool.toString 同类的幽灵函数），属独立问题、已在 #107 记录。补它们等于把「抛异常」固化成期望行为。 ★2026-08-25 #110 定义 Rule redact 后，display_patient_safe 已解锁并并入本 spec。★教训：gen-cases --write 是**整文件覆盖**而非合并——同一 policy 的 case 必须写在同一个 spec 里，分散在两个 spec 会让后写的那个把先写的覆盖掉（本次 10 条被覆盖成 2 条）。",
   "samples": [
     {
       "name": "patient-record",
       "entry": "verify_consent",
       "cases": [
-        { "name": "同意: 无同意 -> 无效", "input": [{ "requester_id": "X", "requester_role": "physician", "purpose": "treatment", "patient_id": "P-1", "has_consent": false }], "expectedOutput": { "__type": "ConsentResult", "is_valid": false, "reason": "Patient consent not obtained" } },
-        { "name": "同意: 有同意但目的为空 -> 无效", "input": [{ "requester_id": "X", "requester_role": "physician", "purpose": "", "patient_id": "P-1", "has_consent": true }], "expectedOutput": { "__type": "ConsentResult", "is_valid": false, "reason": "Purpose of access not specified" } },
-        { "name": "同意: 有同意且目的明确 -> 有效", "input": [{ "requester_id": "X", "requester_role": "physician", "purpose": "treatment", "patient_id": "P-1", "has_consent": true }], "expectedOutput": { "__type": "ConsentResult", "is_valid": true, "reason": "Consent verified" } },
-
-        { "name": "最小必要: 医生看到诊断", "entry": "get_patient_summary", "input": [{ "requester_id": "DR-1", "requester_role": "physician", "purpose": "treatment", "patient_id": "P-1", "has_consent": true }, { "patient_id": "P-1", "name": "John Doe", "ssn": "123-45-6789", "date_of_birth": "1990-01-01", "diagnosis": "Hypertension", "treatment_plan": "Medication daily", "insurance_id": "INS-1" }], "expectedOutput": { "__type": "Ok", "value": { "__type": "PatientSummary", "patient_id": "P-1", "display_info": "John Doe - Hypertension" } } },
-        { "name": "最小必要: 账单只看到保险号（★不含诊断）", "entry": "get_patient_summary", "input": [{ "requester_id": "B-1", "requester_role": "billing", "purpose": "payment", "patient_id": "P-1", "has_consent": true }, { "patient_id": "P-1", "name": "John Doe", "ssn": "123-45-6789", "date_of_birth": "1990-01-01", "diagnosis": "Hypertension", "treatment_plan": "Medication daily", "insurance_id": "INS-1" }], "expectedOutput": { "__type": "Ok", "value": { "__type": "PatientSummary", "patient_id": "P-1", "display_info": "P-1 - INS-1" } } },
-        { "name": "最小必要: 护士看到治疗方案", "entry": "get_patient_summary", "input": [{ "requester_id": "N-1", "requester_role": "nurse", "purpose": "treatment", "patient_id": "P-1", "has_consent": true }, { "patient_id": "P-1", "name": "John Doe", "ssn": "123-45-6789", "date_of_birth": "1990-01-01", "diagnosis": "Hypertension", "treatment_plan": "Medication daily", "insurance_id": "INS-1" }], "expectedOutput": { "__type": "Ok", "value": { "__type": "PatientSummary", "patient_id": "P-1", "display_info": "John Doe - Medication daily" } } },
-        { "name": "★无同意 -> err（此前是死代码）", "entry": "get_patient_summary", "input": [{ "requester_id": "A-1", "requester_role": "admin", "purpose": "curiosity", "patient_id": "P-1", "has_consent": false }, { "patient_id": "P-1", "name": "John Doe", "ssn": "123-45-6789", "date_of_birth": "1990-01-01", "diagnosis": "Hypertension", "treatment_plan": "Medication daily", "insurance_id": "INS-1" }], "expectedOutput": { "__type": "Err", "value": "Patient consent not obtained" } },
-        { "name": "★有同意但角色未授权 -> err", "entry": "get_patient_summary", "input": [{ "requester_id": "Z-1", "requester_role": "janitor", "purpose": "treatment", "patient_id": "P-1", "has_consent": true }, { "patient_id": "P-1", "name": "John Doe", "ssn": "123-45-6789", "date_of_birth": "1990-01-01", "diagnosis": "Hypertension", "treatment_plan": "Medication daily", "insurance_id": "INS-1" }], "expectedOutput": { "__type": "Err", "value": "Access denied: insufficient role" } },
-
-        { "name": "demo: 合规访问（零参打通全链）", "entry": "demo_compliant_access", "input": [], "expectedOutput": { "__type": "Ok", "value": { "__type": "PatientSummary", "patient_id": "P-001", "display_info": "John Doe - Hypertension" } } },
-        { "name": "demo: ★无同意的 admin 窥私被拒", "entry": "demo_non_compliant_access", "input": [], "expectedOutput": { "__type": "Err", "value": "Patient consent not obtained" } }
+        {
+          "name": "同意: 无同意 -> 无效",
+          "input": [
+            {
+              "requester_id": "X",
+              "requester_role": "physician",
+              "purpose": "treatment",
+              "patient_id": "P-1",
+              "has_consent": false
+            }
+          ],
+          "expectedOutput": {
+            "__type": "ConsentResult",
+            "is_valid": false,
+            "reason": "Patient consent not obtained"
+          }
+        },
+        {
+          "name": "同意: 有同意但目的为空 -> 无效",
+          "input": [
+            {
+              "requester_id": "X",
+              "requester_role": "physician",
+              "purpose": "",
+              "patient_id": "P-1",
+              "has_consent": true
+            }
+          ],
+          "expectedOutput": {
+            "__type": "ConsentResult",
+            "is_valid": false,
+            "reason": "Purpose of access not specified"
+          }
+        },
+        {
+          "name": "同意: 有同意且目的明确 -> 有效",
+          "input": [
+            {
+              "requester_id": "X",
+              "requester_role": "physician",
+              "purpose": "treatment",
+              "patient_id": "P-1",
+              "has_consent": true
+            }
+          ],
+          "expectedOutput": {
+            "__type": "ConsentResult",
+            "is_valid": true,
+            "reason": "Consent verified"
+          }
+        },
+        {
+          "name": "最小必要: 医生看到诊断",
+          "entry": "get_patient_summary",
+          "input": [
+            {
+              "requester_id": "DR-1",
+              "requester_role": "physician",
+              "purpose": "treatment",
+              "patient_id": "P-1",
+              "has_consent": true
+            },
+            {
+              "patient_id": "P-1",
+              "name": "John Doe",
+              "ssn": "123-45-6789",
+              "date_of_birth": "1990-01-01",
+              "diagnosis": "Hypertension",
+              "treatment_plan": "Medication daily",
+              "insurance_id": "INS-1"
+            }
+          ],
+          "expectedOutput": {
+            "__type": "Ok",
+            "value": {
+              "__type": "PatientSummary",
+              "patient_id": "P-1",
+              "display_info": "John Doe - Hypertension"
+            }
+          }
+        },
+        {
+          "name": "最小必要: 账单只看到保险号（★不含诊断）",
+          "entry": "get_patient_summary",
+          "input": [
+            {
+              "requester_id": "B-1",
+              "requester_role": "billing",
+              "purpose": "payment",
+              "patient_id": "P-1",
+              "has_consent": true
+            },
+            {
+              "patient_id": "P-1",
+              "name": "John Doe",
+              "ssn": "123-45-6789",
+              "date_of_birth": "1990-01-01",
+              "diagnosis": "Hypertension",
+              "treatment_plan": "Medication daily",
+              "insurance_id": "INS-1"
+            }
+          ],
+          "expectedOutput": {
+            "__type": "Ok",
+            "value": {
+              "__type": "PatientSummary",
+              "patient_id": "P-1",
+              "display_info": "P-1 - INS-1"
+            }
+          }
+        },
+        {
+          "name": "最小必要: 护士看到治疗方案",
+          "entry": "get_patient_summary",
+          "input": [
+            {
+              "requester_id": "N-1",
+              "requester_role": "nurse",
+              "purpose": "treatment",
+              "patient_id": "P-1",
+              "has_consent": true
+            },
+            {
+              "patient_id": "P-1",
+              "name": "John Doe",
+              "ssn": "123-45-6789",
+              "date_of_birth": "1990-01-01",
+              "diagnosis": "Hypertension",
+              "treatment_plan": "Medication daily",
+              "insurance_id": "INS-1"
+            }
+          ],
+          "expectedOutput": {
+            "__type": "Ok",
+            "value": {
+              "__type": "PatientSummary",
+              "patient_id": "P-1",
+              "display_info": "John Doe - Medication daily"
+            }
+          }
+        },
+        {
+          "name": "★无同意 -> err（此前是死代码）",
+          "entry": "get_patient_summary",
+          "input": [
+            {
+              "requester_id": "A-1",
+              "requester_role": "admin",
+              "purpose": "curiosity",
+              "patient_id": "P-1",
+              "has_consent": false
+            },
+            {
+              "patient_id": "P-1",
+              "name": "John Doe",
+              "ssn": "123-45-6789",
+              "date_of_birth": "1990-01-01",
+              "diagnosis": "Hypertension",
+              "treatment_plan": "Medication daily",
+              "insurance_id": "INS-1"
+            }
+          ],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "Patient consent not obtained"
+          }
+        },
+        {
+          "name": "★有同意但角色未授权 -> err",
+          "entry": "get_patient_summary",
+          "input": [
+            {
+              "requester_id": "Z-1",
+              "requester_role": "janitor",
+              "purpose": "treatment",
+              "patient_id": "P-1",
+              "has_consent": true
+            },
+            {
+              "patient_id": "P-1",
+              "name": "John Doe",
+              "ssn": "123-45-6789",
+              "date_of_birth": "1990-01-01",
+              "diagnosis": "Hypertension",
+              "treatment_plan": "Medication daily",
+              "insurance_id": "INS-1"
+            }
+          ],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "Access denied: insufficient role"
+          }
+        },
+        {
+          "name": "demo: 合规访问（零参打通全链）",
+          "entry": "demo_compliant_access",
+          "input": [],
+          "expectedOutput": {
+            "__type": "Ok",
+            "value": {
+              "__type": "PatientSummary",
+              "patient_id": "P-001",
+              "display_info": "John Doe - Hypertension"
+            }
+          }
+        },
+        {
+          "name": "demo: ★无同意的 admin 窥私被拒",
+          "entry": "demo_non_compliant_access",
+          "input": [],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "Patient consent not obtained"
+          }
+        },
+        {
+          "name": "★脱敏显示：姓名与 SSN 均被掩码",
+          "input": [
+            {
+              "patient_id": "P-1",
+              "name": "John Doe",
+              "ssn": "123-45-6789",
+              "date_of_birth": "1990-01-01",
+              "diagnosis": "Hypertension",
+              "treatment_plan": "Medication daily",
+              "insurance_id": "INS-1"
+            }
+          ],
+          "expectedOutput": "Patient: [REDACTED], SSN: [REDACTED]",
+          "entry": "display_patient_safe"
+        },
+        {
+          "name": "redact 全掩码",
+          "entry": "redact",
+          "input": [
+            "John Doe"
+          ],
+          "expectedOutput": "[REDACTED]"
+        }
       ]
     }
   ]

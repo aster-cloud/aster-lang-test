@@ -216,6 +216,30 @@
         "__type": "Err",
         "value": "Patient consent not obtained"
       }
+    },
+    {
+      "name": "★脱敏显示：姓名与 SSN 均被掩码",
+      "entry": "display_patient_safe",
+      "input": [
+        {
+          "patient_id": "P-1",
+          "name": "John Doe",
+          "ssn": "123-45-6789",
+          "date_of_birth": "1990-01-01",
+          "diagnosis": "Hypertension",
+          "treatment_plan": "Medication daily",
+          "insurance_id": "INS-1"
+        }
+      ],
+      "expectedOutput": "Patient: [REDACTED], SSN: [REDACTED]"
+    },
+    {
+      "name": "redact 全掩码",
+      "entry": "redact",
+      "input": [
+        "John Doe"
+      ],
+      "expectedOutput": "[REDACTED]"
     }
   ]
 }

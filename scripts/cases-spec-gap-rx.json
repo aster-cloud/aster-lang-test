@@ -1,0 +1,262 @@
+{
+  "_comment": "prescription-workflow 与 patient-record 的脱敏规则（#110 定义 Rule redact 后解锁）。★注意 check_warfarin_aspirin_interaction 的命名与语义相反：发现相互作用时返回 ok（'Increased bleeding risk'），没有相互作用时返回 err（'No interaction'）。verify_prescription 因此用 `If Result.isOk(interaction_check)` 判定为**失败**。这不是我的推断——逐字来自源码，case 名里标注以免后人误读。 ★patient-record 的 case 统一放在 cases-spec-gap-phi.json（同一 policy 不可跨 spec 分散，见该文件注释）。",
+  "samples": [
+    {
+      "name": "prescription-workflow",
+      "entry": "check_warfarin_aspirin_interaction",
+      "cases": [
+        {
+          "name": "华法林+阿司匹林 -> ok（★ok 表示「发现相互作用」）",
+          "input": [
+            "warfarin",
+            true
+          ],
+          "expectedOutput": {
+            "__type": "Ok",
+            "value": "Increased bleeding risk"
+          }
+        },
+        {
+          "name": "华法林但无阿司匹林 -> err（无相互作用）",
+          "input": [
+            "warfarin",
+            false
+          ],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "No interaction"
+          }
+        },
+        {
+          "name": "其它药+阿司匹林 -> err",
+          "input": [
+            "lisinopril",
+            true
+          ],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "No interaction"
+          }
+        },
+        {
+          "name": "执照: 空 ID -> 不通过",
+          "entry": "validate_prescriber",
+          "input": [
+            ""
+          ],
+          "expectedOutput": {
+            "__type": "VerificationStep",
+            "step_name": "validate_prescriber",
+            "passed": false,
+            "message": "Prescriber ID required"
+          }
+        },
+        {
+          "name": "执照: 有 ID -> 通过",
+          "entry": "validate_prescriber",
+          "input": [
+            "DR-001"
+          ],
+          "expectedOutput": {
+            "__type": "VerificationStep",
+            "step_name": "validate_prescriber",
+            "passed": true,
+            "message": "Prescriber validated"
+          }
+        },
+        {
+          "name": "剂量: 空 -> 不通过",
+          "entry": "verify_dosage",
+          "input": [
+            "lisinopril",
+            ""
+          ],
+          "expectedOutput": {
+            "__type": "VerificationStep",
+            "step_name": "verify_dosage",
+            "passed": false,
+            "message": "Dosage required"
+          }
+        },
+        {
+          "name": "剂量: 有值 -> 通过",
+          "entry": "verify_dosage",
+          "input": [
+            "lisinopril",
+            "10mg"
+          ],
+          "expectedOutput": {
+            "__type": "VerificationStep",
+            "step_name": "verify_dosage",
+            "passed": true,
+            "message": "Dosage verified"
+          }
+        },
+        {
+          "name": "工作流: 全通过 -> ok(PharmacyVerification)",
+          "entry": "verify_prescription",
+          "input": [
+            {
+              "prescription_id": "RX-1",
+              "patient_id": "P-1",
+              "patient_name": "John Doe",
+              "medication": "lisinopril",
+              "dosage": "10mg",
+              "frequency": "once daily",
+              "prescriber_id": "DR-1",
+              "prescriber_name": "Dr. S"
+            },
+            false
+          ],
+          "expectedOutput": {
+            "__type": "Ok",
+            "value": {
+              "__type": "PharmacyVerification",
+              "verified": true,
+              "pharmacist_id": "PH-001",
+              "timestamp": "2025-11-27T10:00:00Z",
+              "notes": "All checks passed"
+            }
+          }
+        },
+        {
+          "name": "工作流: 无执照先挂（★早于相互作用检查）",
+          "entry": "verify_prescription",
+          "input": [
+            {
+              "prescription_id": "RX-2",
+              "patient_id": "P-2",
+              "patient_name": "X",
+              "medication": "warfarin",
+              "dosage": "5mg",
+              "frequency": "daily",
+              "prescriber_id": "",
+              "prescriber_name": ""
+            },
+            true
+          ],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "Prescriber ID required"
+          }
+        },
+        {
+          "name": "工作流: 检出药物相互作用 -> err",
+          "entry": "verify_prescription",
+          "input": [
+            {
+              "prescription_id": "RX-3",
+              "patient_id": "P-3",
+              "patient_name": "X",
+              "medication": "warfarin",
+              "dosage": "5mg",
+              "frequency": "daily",
+              "prescriber_id": "DR-2",
+              "prescriber_name": "Dr. J"
+            },
+            true
+          ],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "Drug interaction detected"
+          }
+        },
+        {
+          "name": "工作流: 剂量缺失 -> err",
+          "entry": "verify_prescription",
+          "input": [
+            {
+              "prescription_id": "RX-4",
+              "patient_id": "P-4",
+              "patient_name": "X",
+              "medication": "lisinopril",
+              "dosage": "",
+              "frequency": "daily",
+              "prescriber_id": "DR-3",
+              "prescriber_name": "Dr. K"
+            },
+            false
+          ],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "Dosage required"
+          }
+        },
+        {
+          "name": "★脱敏传输：患者姓名被掩码，药名剂量保留",
+          "entry": "transmit_prescription_safe",
+          "input": [
+            {
+              "prescription_id": "RX-001",
+              "patient_id": "P-1",
+              "patient_name": "John Doe",
+              "medication": "lisinopril",
+              "dosage": "10mg",
+              "frequency": "daily",
+              "prescriber_id": "DR-1",
+              "prescriber_name": "Dr. S"
+            }
+          ],
+          "expectedOutput": "Rx RX-001 for [REDACTED]: lisinopril 10mg"
+        },
+        {
+          "name": "脱敏: 空姓名同样被掩码（不泄露长度信息）",
+          "entry": "transmit_prescription_safe",
+          "input": [
+            {
+              "prescription_id": "RX-002",
+              "patient_id": "P-2",
+              "patient_name": "",
+              "medication": "aspirin",
+              "dosage": "81mg",
+              "frequency": "daily",
+              "prescriber_id": "DR-2",
+              "prescriber_name": "Dr. J"
+            }
+          ],
+          "expectedOutput": "Rx RX-002 for [REDACTED]: aspirin 81mg"
+        },
+        {
+          "name": "redact 全掩码（任意输入同一输出）",
+          "entry": "redact",
+          "input": [
+            "John Doe"
+          ],
+          "expectedOutput": "[REDACTED]"
+        },
+        {
+          "name": "redact 对 SSN 同样全掩码",
+          "entry": "redact",
+          "input": [
+            "123-45-6789"
+          ],
+          "expectedOutput": "[REDACTED]"
+        },
+        {
+          "name": "demo: 安全处方 -> 全通过",
+          "entry": "demo_safe_prescription",
+          "input": [],
+          "expectedOutput": {
+            "__type": "Ok",
+            "value": {
+              "__type": "PharmacyVerification",
+              "verified": true,
+              "pharmacist_id": "PH-001",
+              "timestamp": "2025-11-27T10:00:00Z",
+              "notes": "All checks passed"
+            }
+          }
+        },
+        {
+          "name": "demo: ★华法林+阿司匹林被拦下",
+          "entry": "demo_interaction_prescription",
+          "input": [],
+          "expectedOutput": {
+            "__type": "Err",
+            "value": "Drug interaction detected"
+          }
+        }
+      ]
+    }
+  ]
+}
