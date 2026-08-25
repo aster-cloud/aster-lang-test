@@ -46,16 +46,16 @@ Rule get_patient_summary given request, patient_phi, produce:
   If consent.is_valid equals to false
     Return err of consent.reason.
   If request.requester_role equals to "physician"
-    Return ok of PatientSummary with patient_id set to patient_phi.patient_id, display_info set to Text.concat(patient_phi.name, " - ", patient_phi.diagnosis).
+    Return ok of PatientSummary with patient_id set to patient_phi.patient_id, display_info set to (patient_phi.name plus " - " plus patient_phi.diagnosis).
   If request.requester_role equals to "billing"
-    Return ok of PatientSummary with patient_id set to patient_phi.patient_id, display_info set to Text.concat(patient_phi.patient_id, " - ", patient_phi.insurance_id).
+    Return ok of PatientSummary with patient_id set to patient_phi.patient_id, display_info set to (patient_phi.patient_id plus " - " plus patient_phi.insurance_id).
   If request.requester_role equals to "nurse"
-    Return ok of PatientSummary with patient_id set to patient_phi.patient_id, display_info set to Text.concat(patient_phi.name, " - ", patient_phi.treatment_plan).
+    Return ok of PatientSummary with patient_id set to patient_phi.patient_id, display_info set to (patient_phi.name plus " - " plus patient_phi.treatment_plan).
   Return err of "Access denied: insufficient role".
 
 # 安全的 PHI 显示：自动脱敏
 Rule display_patient_safe given patient_phi, produce:
-  Return Text.concat("Patient: ", redact(patient_phi.name), ", SSN: ", redact(patient_phi.ssn)).
+  Return "Patient: " plus redact(patient_phi.name) plus ", SSN: " plus redact(patient_phi.ssn).
 
 # 示例：合规访问（医生有同意）
 Rule demo_compliant_access, produce:

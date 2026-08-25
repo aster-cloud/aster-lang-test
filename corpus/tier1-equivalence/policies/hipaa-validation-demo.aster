@@ -65,13 +65,13 @@ Rule validate_access_control given request, produce:
   Let category be get_phi_category(request.phi_category_name).
   If category.category equals to "MEDICAL"
     If level.can_view_medical equals to false
-      Return err of Text.concat("HIPAA: Role ", request.user_role, " cannot access medical records").
+      Return err of "HIPAA: Role " plus request.user_role plus " cannot access medical records".
   If category.category equals to "FINANCIAL"
     If level.can_view_financial equals to false
-      Return err of Text.concat("HIPAA: Role ", request.user_role, " cannot access financial records").
+      Return err of "HIPAA: Role " plus request.user_role plus " cannot access financial records".
   If category.category equals to "PSYCHOTHERAPY"
     If level.can_view_medical equals to false
-      Return err of Text.concat("HIPAA: Role ", request.user_role, " cannot access psychotherapy notes").
+      Return err of "HIPAA: Role " plus request.user_role plus " cannot access psychotherapy notes".
   Return ok of Text.concat("Access validated for role: ", request.user_role).
 
 # HIPAA §164.508 - 同意验证
@@ -90,7 +90,7 @@ Rule validate_purpose given request, produce:
     Return ok of "Purpose validated".
   If request.purpose equals to "healthcare_operations"
     Return ok of "Purpose validated".
-  Return err of Text.concat("HIPAA: Purpose ", request.purpose, " is not permitted").
+  Return err of "HIPAA: Purpose " plus request.purpose plus " is not permitted".
 
 # 完整 HIPAA 合规验证（简化版 - 仅检查访问控制）
 Rule validate_hipaa_compliance given request, produce:
@@ -108,7 +108,7 @@ Rule generate_hipaa_report given user_id, validation, produce:
   If validation.is_compliant
     Return Text.concat("HIPAA COMPLIANCE: PASSED for ", user_id).
   Otherwise
-    Return Text.concat("HIPAA COMPLIANCE: FAILED for ", user_id, ". Failed checks: ", Int.toString(validation.failed_count)).
+    Return "HIPAA COMPLIANCE: FAILED for " plus user_id plus ". Failed checks: " plus validation.failed_count.
 
 # 示例：医生访问医疗记录（合规）
 Rule demo_compliant_access, produce:
