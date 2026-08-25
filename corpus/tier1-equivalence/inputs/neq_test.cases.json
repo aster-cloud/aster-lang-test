@@ -3,7 +3,7 @@
   "entry": "isDifferent",
   "cases": [
     {
-      "name": "1 != 2 → true",
+      "name": "不同为真",
       "input": [
         1,
         2
@@ -11,10 +11,52 @@
       "expectedOutput": true
     },
     {
-      "name": "1 != 1 → false",
+      "name": "相同为假",
+      "input": [
+        2,
+        2
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "isNotZero 非零为真",
+      "entry": "isNotZero",
+      "input": [
+        5
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "isNotZero 零为假（边界）",
+      "entry": "isNotZero",
+      "input": [
+        0
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "isNotZero 负数为真",
+      "entry": "isNotZero",
+      "input": [
+        -1
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "checkNotEqual 不同为真",
+      "entry": "checkNotEqual",
       "input": [
         1,
-        1
+        2
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "checkNotEqual 相同为假",
+      "entry": "checkNotEqual",
+      "input": [
+        7,
+        7
       ],
       "expectedOutput": false
     }

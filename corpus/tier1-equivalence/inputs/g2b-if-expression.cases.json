@@ -3,29 +3,64 @@
   "entry": "classify",
   "cases": [
     {
-      "name": "large branch (then)",
-      "input": [50000],
+      "name": "large",
+      "input": [
+        20000
+      ],
       "expectedOutput": "large"
     },
     {
-      "name": "medium branch (else-if then)",
-      "input": [5000],
+      "name": "medium",
+      "input": [
+        5000
+      ],
       "expectedOutput": "medium"
     },
     {
-      "name": "small branch (final else)",
-      "input": [100],
+      "name": "small",
+      "input": [
+        100
+      ],
       "expectedOutput": "small"
     },
     {
-      "name": "boundary at 10000 (not greater → medium)",
-      "input": [10000],
+      "name": "恰在 10000 → medium（边界：> 非 >=）",
+      "input": [
+        10000
+      ],
       "expectedOutput": "medium"
     },
     {
-      "name": "boundary at 1000 (not greater → small)",
-      "input": [1000],
-      "expectedOutput": "small"
+      "name": "Let 内联 if：A",
+      "entry": "gradeWithLet",
+      "input": [
+        95
+      ],
+      "expectedOutput": "A"
+    },
+    {
+      "name": "Let 内联 if：B",
+      "entry": "gradeWithLet",
+      "input": [
+        80
+      ],
+      "expectedOutput": "B"
+    },
+    {
+      "name": "Let 内联 if：C",
+      "entry": "gradeWithLet",
+      "input": [
+        50
+      ],
+      "expectedOutput": "C"
+    },
+    {
+      "name": "Let 内联 if：恰 90 → B（边界）",
+      "entry": "gradeWithLet",
+      "input": [
+        90
+      ],
+      "expectedOutput": "B"
     }
   ]
 }

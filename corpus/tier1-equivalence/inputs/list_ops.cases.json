@@ -3,7 +3,26 @@
   "entry": "length",
   "cases": [
     {
-      "name": "length of 3",
+      "name": "length 3",
+      "input": [
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "expectedOutput": 3
+    },
+    {
+      "name": "length 空表",
+      "input": [
+        []
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "get 下标 2（第三个）",
+      "entry": "third",
       "input": [
         [
           10,
@@ -11,14 +30,38 @@
           30
         ]
       ],
-      "expectedOutput": 3
+      "expectedOutput": 30
     },
     {
-      "name": "length of empty",
+      "name": "get 下标 2（更长的表）",
+      "entry": "third",
+      "input": [
+        [
+          10,
+          20,
+          30,
+          40
+        ]
+      ],
+      "expectedOutput": 30
+    },
+    {
+      "name": "isEmpty 空表为真",
+      "entry": "isEmpty",
       "input": [
         []
       ],
-      "expectedOutput": 0
+      "expectedOutput": true
+    },
+    {
+      "name": "isEmpty 非空为假",
+      "entry": "isEmpty",
+      "input": [
+        [
+          1
+        ]
+      ],
+      "expectedOutput": false
     }
   ]
 }

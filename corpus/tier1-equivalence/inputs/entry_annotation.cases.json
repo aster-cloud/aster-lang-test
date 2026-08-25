@@ -3,18 +3,19 @@
   "entry": "main",
   "cases": [
     {
-      "name": "x + 1",
+      "name": "@entry main",
       "input": [
-        5
+        1
       ],
-      "expectedOutput": 6
+      "expectedOutput": 2
     },
     {
-      "name": "x + 1 (zero)",
+      "name": "helper 亦可直接作 entry 调用",
+      "entry": "helper",
       "input": [
-        0
+        21
       ],
-      "expectedOutput": 1
+      "expectedOutput": 42
     }
   ]
 }

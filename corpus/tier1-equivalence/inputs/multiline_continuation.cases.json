@@ -3,18 +3,75 @@
   "entry": "total",
   "cases": [
     {
-      "name": "multi-line `a plus 10 plus 20` (a=5) = 35",
+      "name": "续行加法 1+10+20",
+      "input": [
+        1
+      ],
+      "expectedOutput": 31
+    },
+    {
+      "name": "续行字符串拼接",
+      "entry": "greet",
+      "input": [
+        "Ada"
+      ],
+      "expectedOutput": "Hello, Ada!"
+    },
+    {
+      "name": "续行 and：5 在 [1,9] 内",
+      "entry": "inRange",
       "input": [
         5
       ],
-      "expectedOutput": 35
+      "expectedOutput": true
     },
     {
-      "name": "multi-line continuation, a=0 = 30",
+      "name": "续行 and：0 越下界",
+      "entry": "inRange",
       "input": [
         0
       ],
-      "expectedOutput": 30
+      "expectedOutput": false
+    },
+    {
+      "name": "续行 and：10 越上界",
+      "entry": "inRange",
+      "input": [
+        10
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "续行 and：恰在下界 1（闭区间）",
+      "entry": "inRange",
+      "input": [
+        1
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "续行 and：恰在上界 9（闭区间）",
+      "entry": "inRange",
+      "input": [
+        9
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "续行乘法 2*2*3",
+      "entry": "scaled",
+      "input": [
+        2
+      ],
+      "expectedOutput": 12
+    },
+    {
+      "name": "续行乘法 0 吸收",
+      "entry": "scaled",
+      "input": [
+        0
+      ],
+      "expectedOutput": 0
     }
   ]
 }

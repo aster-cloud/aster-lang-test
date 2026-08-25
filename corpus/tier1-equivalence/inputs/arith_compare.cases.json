@@ -3,7 +3,7 @@
   "entry": "cmp",
   "cases": [
     {
-      "name": "3 < 5",
+      "name": "3 < 5 真",
       "input": [
         3,
         5
@@ -11,12 +11,30 @@
       "expectedOutput": true
     },
     {
-      "name": "5 < 3",
+      "name": "5 < 5 假（边界）",
       "input": [
         5,
-        3
+        5
       ],
       "expectedOutput": false
+    },
+    {
+      "name": "add 正数",
+      "entry": "add",
+      "input": [
+        3,
+        5
+      ],
+      "expectedOutput": 8
+    },
+    {
+      "name": "add 负数抵消",
+      "entry": "add",
+      "input": [
+        -3,
+        3
+      ],
+      "expectedOutput": 0
     }
   ]
 }

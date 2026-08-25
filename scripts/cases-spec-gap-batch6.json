@@ -1,0 +1,65 @@
+{
+  "_comment": "真实缺口批次 6（#103 real 桶的剩余小项）。★test-operators 返回结构体——结构体在两引擎的运行期形状曾是分叉重灾区（ADR 0036 的 __type 统一即源于此），这三条正好把结构体返回值纳入等价性比对。★multiline_continuation 覆盖等缩进多行续行（ADR 0026）的四种运算符续行形态。",
+  "samples": [
+    {
+      "name": "test-operators",
+      "entry": "testLessOrEqual",
+      "cases": [
+        { "name": "结构体返回：value + message", "input": [5], "expectedOutput": { "__type": "TestResult", "value": 5, "message": "greater than 10" } },
+        { "name": "testGreaterOrEqual 结构体", "entry": "testGreaterOrEqual", "input": [42], "expectedOutput": { "__type": "TestResult", "value": 42, "message": "less than 10" } },
+        { "name": "testNotEqual 结构体", "entry": "testNotEqual", "input": [10], "expectedOutput": { "__type": "TestResult", "value": 10, "message": "Equal to 10" } }
+      ]
+    },
+    {
+      "name": "arith_compare",
+      "entry": "cmp",
+      "cases": [
+        { "name": "3 < 5 真", "input": [3, 5], "expectedOutput": true },
+        { "name": "5 < 5 假（边界）", "input": [5, 5], "expectedOutput": false },
+        { "name": "add 正数", "entry": "add", "input": [3, 5], "expectedOutput": 8 },
+        { "name": "add 负数抵消", "entry": "add", "input": [-3, 3], "expectedOutput": 0 }
+      ]
+    },
+    {
+      "name": "entry_annotation",
+      "entry": "main",
+      "cases": [
+        { "name": "@entry main", "input": [1], "expectedOutput": 2 },
+        { "name": "helper 亦可直接作 entry 调用", "entry": "helper", "input": [21], "expectedOutput": 42 }
+      ]
+    },
+    {
+      "name": "g2b-if-expression",
+      "entry": "classify",
+      "cases": [
+        { "name": "large", "input": [20000], "expectedOutput": "large" },
+        { "name": "medium", "input": [5000], "expectedOutput": "medium" },
+        { "name": "small", "input": [100], "expectedOutput": "small" },
+        { "name": "恰在 10000 → medium（边界：> 非 >=）", "input": [10000], "expectedOutput": "medium" },
+
+        { "name": "Let 内联 if：A", "entry": "gradeWithLet", "input": [95], "expectedOutput": "A" },
+        { "name": "Let 内联 if：B", "entry": "gradeWithLet", "input": [80], "expectedOutput": "B" },
+        { "name": "Let 内联 if：C", "entry": "gradeWithLet", "input": [50], "expectedOutput": "C" },
+        { "name": "Let 内联 if：恰 90 → B（边界）", "entry": "gradeWithLet", "input": [90], "expectedOutput": "B" }
+      ]
+    },
+    {
+      "name": "multiline_continuation",
+      "entry": "total",
+      "cases": [
+        { "name": "续行加法 1+10+20", "input": [1], "expectedOutput": 31 },
+
+        { "name": "续行字符串拼接", "entry": "greet", "input": ["Ada"], "expectedOutput": "Hello, Ada!" },
+
+        { "name": "续行 and：5 在 [1,9] 内", "entry": "inRange", "input": [5], "expectedOutput": true },
+        { "name": "续行 and：0 越下界", "entry": "inRange", "input": [0], "expectedOutput": false },
+        { "name": "续行 and：10 越上界", "entry": "inRange", "input": [10], "expectedOutput": false },
+        { "name": "续行 and：恰在下界 1（闭区间）", "entry": "inRange", "input": [1], "expectedOutput": true },
+        { "name": "续行 and：恰在上界 9（闭区间）", "entry": "inRange", "input": [9], "expectedOutput": true },
+
+        { "name": "续行乘法 2*2*3", "entry": "scaled", "input": [2], "expectedOutput": 12 },
+        { "name": "续行乘法 0 吸收", "entry": "scaled", "input": [0], "expectedOutput": 0 }
+      ]
+    }
+  ]
+}

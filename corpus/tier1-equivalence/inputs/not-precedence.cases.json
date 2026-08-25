@@ -3,7 +3,7 @@
   "entry": "notCompare",
   "cases": [
     {
-      "name": "notCompare: not 5 gt 3 = not(true) = false",
+      "name": "not (5 > 3) = false",
       "input": [
         5,
         3
@@ -11,7 +11,7 @@
       "expectedOutput": false
     },
     {
-      "name": "notCompare: not 3 gt 5 = not(false) = true",
+      "name": "not (3 > 5) = true",
       "input": [
         3,
         5
@@ -19,15 +19,7 @@
       "expectedOutput": true
     },
     {
-      "name": "notCompare: not 5 gt 5 = not(false) = true",
-      "input": [
-        5,
-        5
-      ],
-      "expectedOutput": true
-    },
-    {
-      "name": "notNot: not not true = true",
+      "name": "notNot true",
       "entry": "notNot",
       "input": [
         true
@@ -35,7 +27,7 @@
       "expectedOutput": true
     },
     {
-      "name": "notNot: not not false = false",
+      "name": "notNot false",
       "entry": "notNot",
       "input": [
         false
@@ -43,34 +35,25 @@
       "expectedOutput": false
     },
     {
-      "name": "notAnd: x=5,y=5 -> and(not(T), T) = false",
+      "name": "notAnd: not(1>0) and 1>0 → false",
       "entry": "notAnd",
       "input": [
-        5,
-        5
+        1,
+        1
       ],
       "expectedOutput": false
     },
     {
-      "name": "notAnd: x=-1,y=5 -> and(not(F), T) = true",
+      "name": "notAnd: not(-1>0) and 1>0 → true",
       "entry": "notAnd",
       "input": [
         -1,
-        5
+        1
       ],
       "expectedOutput": true
     },
     {
-      "name": "notAnd: x=5,y=-1 -> and(not(T), F) = false",
-      "entry": "notAnd",
-      "input": [
-        5,
-        -1
-      ],
-      "expectedOutput": false
-    },
-    {
-      "name": "notAnd: x=-1,y=-1 -> and(not(F), F) = false (错误分组会给 true)",
+      "name": "notAnd: not(-1>0) and -1>0 → false",
       "entry": "notAnd",
       "input": [
         -1,

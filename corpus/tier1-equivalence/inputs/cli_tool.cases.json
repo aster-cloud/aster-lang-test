@@ -3,11 +3,35 @@
   "entry": "greet",
   "cases": [
     {
-      "name": "Hello, Alice",
+      "name": "greet",
       "input": [
-        "Alice"
+        "Ada"
       ],
-      "expectedOutput": "Hello, Alice"
+      "expectedOutput": "Hello, Ada"
+    },
+    {
+      "name": "exclaim",
+      "entry": "exclaim",
+      "input": [
+        "hi"
+      ],
+      "expectedOutput": "hi!"
+    },
+    {
+      "name": "length 基本",
+      "entry": "length",
+      "input": [
+        "hello"
+      ],
+      "expectedOutput": 5
+    },
+    {
+      "name": "length 空串",
+      "entry": "length",
+      "input": [
+        ""
+      ],
+      "expectedOutput": 0
     }
   ]
 }
