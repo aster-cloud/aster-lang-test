@@ -1,0 +1,19 @@
+{
+  "_comment": "浮点表示的双引擎一致性。补语料时发现 assessLeverage 某格会产出 200/3=66.666… 无限小数，遂单独考察：两引擎在无限小数与超大量级下的 double 表示是否逐位一致。★1e15/7 那条我最初写 142857142857142.86——该字面量在 double 里根本不可表示（会snap 到 .88），两引擎一致给出 .84。是我的字面量错了，不是引擎分叉：该量级下 double 相邻值间距已超过 0.01。",
+  "samples": [
+    {
+      "name": "08-arithmetic-divide",
+      "entry": "divide",
+      "cases": [
+        { "name": "20 / 4 = 5", "input": [20, 4], "expectedOutput": 5 },
+        { "name": "7 / 2 = 3.5", "input": [7, 2], "expectedOutput": 3.5 },
+        { "name": "100 / 10 = 10", "input": [100, 10], "expectedOutput": 10 },
+        { "name": "★200/3 无限小数：两引擎浮点表示逐位一致", "input": [200, 3], "expectedOutput": 66.66666666666667 },
+        { "name": "★1/3 无限小数", "input": [1, 3], "expectedOutput": 0.3333333333333333 },
+        { "name": "★极大数 1e15/7：该量级下 double 间距已超过 0.01", "input": [1000000000000000, 7], "expectedOutput": 142857142857142.84 },
+        { "name": "★负数除法保号", "input": [-7, 2], "expectedOutput": -3.5 },
+        { "name": "★除数为负", "input": [7, -2], "expectedOutput": -3.5 }
+      ]
+    }
+  ]
+}

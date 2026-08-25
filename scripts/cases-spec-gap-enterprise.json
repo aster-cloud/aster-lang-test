@@ -1,0 +1,497 @@
+{
+  "_comment": "★本 spec 必须包含 enterprise 的**全部** case（含原有 assessLiquidity 4 条）：gen-cases --write 是**整文件覆盖**而非合并，只写新 case 会把既有 golden 抹掉。我上一批次已因此丢过 patient-record 8 条，这次又在 enterprise 上重犯——★补语料前必须先读现有 cases 文件并把它们并进 spec。\n\nenterprise（企业信贷）的 5 条未执行规则。语义自含，期望值逐条手算（★除法是真除法，见 personal 批次的教训：08-arithmetic-divide 已有 7/2=3.5 的 golden）。★三个刻意设计的观察点：(1) assessLeverage 的 equity=0 短路先于任何除法——防除零；(2) d2e=400 那格的 debtToAssets 是 200/3=66.666… 无限小数，考察两引擎的浮点表示是否逐位一致；(3) assessMaturityScore 的 yearsInBusiness>=10 与 >=5 是**两个独立 If 而非 else-if**，故 10 年同时命中两档得 45 分——这类「看起来像分档、实为累加」的结构最容易被误读成 bug。",
+  "samples": [
+    {
+      "name": "enterprise",
+      "entry": "assessLeverage",
+      "cases": [
+        {
+          "name": "ratio 300 → Excellent",
+          "input": [
+            {
+              "currentAssets": 300,
+              "currentLiabilities": 100,
+              "totalAssets": 0,
+              "totalLiabilities": 0,
+              "equity": 0,
+              "cashFlow": 0,
+              "outstandingDebt": 0
+            }
+          ],
+          "expectedOutput": {
+            "__type": "LiquidityAnalysis",
+            "currentRatio": 300,
+            "quickRatio": 300,
+            "isHealthy": true,
+            "recommendation": "Excellent liquidity"
+          },
+          "entry": "assessLiquidity"
+        },
+        {
+          "name": "ratio 180 → Good",
+          "input": [
+            {
+              "currentAssets": 180,
+              "currentLiabilities": 100,
+              "totalAssets": 0,
+              "totalLiabilities": 0,
+              "equity": 0,
+              "cashFlow": 0,
+              "outstandingDebt": 0
+            }
+          ],
+          "expectedOutput": {
+            "__type": "LiquidityAnalysis",
+            "currentRatio": 180,
+            "quickRatio": 180,
+            "isHealthy": true,
+            "recommendation": "Good liquidity"
+          },
+          "entry": "assessLiquidity"
+        },
+        {
+          "name": "ratio 120 → Adequate",
+          "input": [
+            {
+              "currentAssets": 120,
+              "currentLiabilities": 100,
+              "totalAssets": 0,
+              "totalLiabilities": 0,
+              "equity": 0,
+              "cashFlow": 0,
+              "outstandingDebt": 0
+            }
+          ],
+          "expectedOutput": {
+            "__type": "LiquidityAnalysis",
+            "currentRatio": 120,
+            "quickRatio": 120,
+            "isHealthy": true,
+            "recommendation": "Adequate liquidity"
+          },
+          "entry": "assessLiquidity"
+        },
+        {
+          "name": "ratio 80 → Poor",
+          "input": [
+            {
+              "currentAssets": 80,
+              "currentLiabilities": 100,
+              "totalAssets": 0,
+              "totalLiabilities": 0,
+              "equity": 0,
+              "cashFlow": 0,
+              "outstandingDebt": 0
+            }
+          ],
+          "expectedOutput": {
+            "__type": "LiquidityAnalysis",
+            "currentRatio": 80,
+            "quickRatio": 80,
+            "isHealthy": false,
+            "recommendation": "Poor liquidity"
+          },
+          "entry": "assessLiquidity"
+        },
+        {
+          "name": "★equity=0 短路（先于除法，防除零）",
+          "input": [
+            {
+              "totalAssets": 1000,
+              "currentAssets": 500,
+              "totalLiabilities": 500,
+              "currentLiabilities": 200,
+              "equity": 0,
+              "cashFlow": 100,
+              "outstandingDebt": 300
+            }
+          ],
+          "expectedOutput": {
+            "__type": "LeverageAnalysis",
+            "debtToEquity": 0,
+            "debtToAssets": 0,
+            "riskLevel": "CRITICAL",
+            "maxLoanCapacity": 0
+          }
+        },
+        {
+          "name": "d2e=100 恰在 at most 100 -> LOW",
+          "input": [
+            {
+              "totalAssets": 2000,
+              "currentAssets": 800,
+              "totalLiabilities": 1000,
+              "currentLiabilities": 400,
+              "equity": 1000,
+              "cashFlow": 100,
+              "outstandingDebt": 500
+            }
+          ],
+          "expectedOutput": {
+            "__type": "LeverageAnalysis",
+            "debtToEquity": 100,
+            "debtToAssets": 50,
+            "riskLevel": "LOW",
+            "maxLoanCapacity": 3000
+          }
+        },
+        {
+          "name": "d2e=200 恰在第二档边界 -> MEDIUM",
+          "input": [
+            {
+              "totalAssets": 4000,
+              "currentAssets": 800,
+              "totalLiabilities": 2000,
+              "currentLiabilities": 400,
+              "equity": 1000,
+              "cashFlow": 100,
+              "outstandingDebt": 500
+            }
+          ],
+          "expectedOutput": {
+            "__type": "LeverageAnalysis",
+            "debtToEquity": 200,
+            "debtToAssets": 50,
+            "riskLevel": "MEDIUM",
+            "maxLoanCapacity": 3000
+          }
+        },
+        {
+          "name": "d2e=300 恰在第三档边界 -> HIGH",
+          "input": [
+            {
+              "totalAssets": 5000,
+              "currentAssets": 800,
+              "totalLiabilities": 3000,
+              "currentLiabilities": 400,
+              "equity": 1000,
+              "cashFlow": 100,
+              "outstandingDebt": 500
+            }
+          ],
+          "expectedOutput": {
+            "__type": "LeverageAnalysis",
+            "debtToEquity": 300,
+            "debtToAssets": 60,
+            "riskLevel": "HIGH",
+            "maxLoanCapacity": 3000
+          }
+        },
+        {
+          "name": "★d2e=400 超上限 -> CRITICAL 且 capacity 归零（非 baseCapacity）",
+          "input": [
+            {
+              "totalAssets": 8000,
+              "currentAssets": 800,
+              "totalLiabilities": 4000,
+              "currentLiabilities": 400,
+              "equity": 1000,
+              "cashFlow": 100,
+              "outstandingDebt": 500
+            }
+          ],
+          "expectedOutput": {
+            "__type": "LeverageAnalysis",
+            "debtToEquity": 400,
+            "debtToAssets": 50,
+            "riskLevel": "CRITICAL",
+            "maxLoanCapacity": 0
+          }
+        },
+        {
+          "name": "盈利: ROA=15 恰在 at least -> EXCELLENT",
+          "entry": "assessProfitability",
+          "input": [
+            {
+              "companyId": "C1",
+              "companyName": "N",
+              "industry": "Retail",
+              "yearsInBusiness": 5,
+              "employeeCount": 50,
+              "annualRevenue": 1000000,
+              "revenueGrowthRate": 5,
+              "profitMargin": 15
+            },
+            {
+              "totalAssets": 2000,
+              "currentAssets": 800,
+              "totalLiabilities": 1000,
+              "currentLiabilities": 400,
+              "equity": 1000,
+              "cashFlow": 100,
+              "outstandingDebt": 500
+            }
+          ],
+          "expectedOutput": {
+            "__type": "ProfitabilityAnalysis",
+            "returnOnAssets": 15,
+            "returnOnEquity": 15,
+            "profitabilityGrade": "EXCELLENT",
+            "repaymentCapacity": 3600
+          }
+        },
+        {
+          "name": "盈利: ROA=14 落 GOOD（跨档那一格）",
+          "entry": "assessProfitability",
+          "input": [
+            {
+              "companyId": "C1",
+              "companyName": "N",
+              "industry": "Retail",
+              "yearsInBusiness": 5,
+              "employeeCount": 50,
+              "annualRevenue": 1000000,
+              "revenueGrowthRate": 5,
+              "profitMargin": 14
+            },
+            {
+              "totalAssets": 2000,
+              "currentAssets": 800,
+              "totalLiabilities": 1000,
+              "currentLiabilities": 400,
+              "equity": 1000,
+              "cashFlow": 100,
+              "outstandingDebt": 500
+            }
+          ],
+          "expectedOutput": {
+            "__type": "ProfitabilityAnalysis",
+            "returnOnAssets": 14,
+            "returnOnEquity": 14,
+            "profitabilityGrade": "GOOD",
+            "repaymentCapacity": 3600
+          }
+        },
+        {
+          "name": "盈利: ROA=5 恰在 FAIR 边界",
+          "entry": "assessProfitability",
+          "input": [
+            {
+              "companyId": "C1",
+              "companyName": "N",
+              "industry": "Retail",
+              "yearsInBusiness": 5,
+              "employeeCount": 50,
+              "annualRevenue": 1000000,
+              "revenueGrowthRate": 5,
+              "profitMargin": 5
+            },
+            {
+              "totalAssets": 2000,
+              "currentAssets": 800,
+              "totalLiabilities": 1000,
+              "currentLiabilities": 400,
+              "equity": 1000,
+              "cashFlow": 0,
+              "outstandingDebt": 500
+            }
+          ],
+          "expectedOutput": {
+            "__type": "ProfitabilityAnalysis",
+            "returnOnAssets": 5,
+            "returnOnEquity": 5,
+            "profitabilityGrade": "FAIR",
+            "repaymentCapacity": 0
+          }
+        },
+        {
+          "name": "盈利: ROA=4 -> POOR + ★负现金流仍照算 repaymentCapacity",
+          "entry": "assessProfitability",
+          "input": [
+            {
+              "companyId": "C1",
+              "companyName": "N",
+              "industry": "Retail",
+              "yearsInBusiness": 5,
+              "employeeCount": 50,
+              "annualRevenue": 1000000,
+              "revenueGrowthRate": 5,
+              "profitMargin": 4
+            },
+            {
+              "totalAssets": 2000,
+              "currentAssets": 800,
+              "totalLiabilities": 1000,
+              "currentLiabilities": 400,
+              "equity": 1000,
+              "cashFlow": -50,
+              "outstandingDebt": 500
+            }
+          ],
+          "expectedOutput": {
+            "__type": "ProfitabilityAnalysis",
+            "returnOnAssets": 4,
+            "returnOnEquity": 4,
+            "profitabilityGrade": "POOR",
+            "repaymentCapacity": -1800
+          }
+        },
+        {
+          "name": "行业: Healthcare=105",
+          "entry": "calculateIndustryFactor",
+          "input": [
+            "Healthcare"
+          ],
+          "expectedOutput": 105
+        },
+        {
+          "name": "行业: Hospitality=80（最低）",
+          "entry": "calculateIndustryFactor",
+          "input": [
+            "Hospitality"
+          ],
+          "expectedOutput": 80
+        },
+        {
+          "name": "行业: Construction=85",
+          "entry": "calculateIndustryFactor",
+          "input": [
+            "Construction"
+          ],
+          "expectedOutput": 85
+        },
+        {
+          "name": "行业: 未知落兜底 100",
+          "entry": "calculateIndustryFactor",
+          "input": [
+            "Crypto"
+          ],
+          "expectedOutput": 100
+        },
+        {
+          "name": "行业: ★大小写敏感——healthcare 不命中，落兜底 100",
+          "entry": "calculateIndustryFactor",
+          "input": [
+            "healthcare"
+          ],
+          "expectedOutput": 100
+        },
+        {
+          "name": "成熟度: 六项全满 = 90",
+          "entry": "assessMaturityScore",
+          "input": [
+            {
+              "companyId": "C",
+              "companyName": "N",
+              "industry": "Healthcare",
+              "yearsInBusiness": 15,
+              "employeeCount": 200,
+              "annualRevenue": 20000000,
+              "revenueGrowthRate": 10,
+              "profitMargin": 20
+            },
+            {
+              "previousLoans": 3,
+              "defaultCount": 0,
+              "latePayments": 0,
+              "creditUtilization": 30,
+              "largestLoanAmount": 500000,
+              "relationshipYears": 8
+            }
+          ],
+          "expectedOutput": 90
+        },
+        {
+          "name": "成熟度: ★10 年同时命中 >=10 与 >=5 两档 = 30+15 = 45（非分档而是累加）",
+          "entry": "assessMaturityScore",
+          "input": [
+            {
+              "companyId": "C",
+              "companyName": "N",
+              "industry": "Retail",
+              "yearsInBusiness": 10,
+              "employeeCount": 10,
+              "annualRevenue": 100000,
+              "revenueGrowthRate": 1,
+              "profitMargin": 2
+            },
+            {
+              "previousLoans": 1,
+              "defaultCount": 1,
+              "latePayments": 2,
+              "creditUtilization": 80,
+              "largestLoanAmount": 1000,
+              "relationshipYears": 1
+            }
+          ],
+          "expectedOutput": 45
+        },
+        {
+          "name": "成熟度: 9 年只命中 >=5 一档 = 15",
+          "entry": "assessMaturityScore",
+          "input": [
+            {
+              "companyId": "C",
+              "companyName": "N",
+              "industry": "Retail",
+              "yearsInBusiness": 9,
+              "employeeCount": 10,
+              "annualRevenue": 100000,
+              "revenueGrowthRate": 1,
+              "profitMargin": 2
+            },
+            {
+              "previousLoans": 1,
+              "defaultCount": 1,
+              "latePayments": 2,
+              "creditUtilization": 80,
+              "largestLoanAmount": 1000,
+              "relationshipYears": 1
+            }
+          ],
+          "expectedOutput": 15
+        },
+        {
+          "name": "成熟度: 六项全空 = 0（含 defaultCount>0）",
+          "entry": "assessMaturityScore",
+          "input": [
+            {
+              "companyId": "C",
+              "companyName": "N",
+              "industry": "Retail",
+              "yearsInBusiness": 1,
+              "employeeCount": 5,
+              "annualRevenue": 50000,
+              "revenueGrowthRate": 0,
+              "profitMargin": 1
+            },
+            {
+              "previousLoans": 0,
+              "defaultCount": 3,
+              "latePayments": 5,
+              "creditUtilization": 95,
+              "largestLoanAmount": 100,
+              "relationshipYears": 0
+            }
+          ],
+          "expectedOutput": 0
+        },
+        {
+          "name": "成熟度: ★仅零违约这一项 = 10",
+          "entry": "assessMaturityScore",
+          "input": [
+            {
+              "companyId": "C",
+              "companyName": "N",
+              "industry": "Retail",
+              "yearsInBusiness": 1,
+              "employeeCount": 5,
+              "annualRevenue": 50000,
+              "revenueGrowthRate": 0,
+              "profitMargin": 1
+            },
+            {
+              "previousLoans": 0,
+              "defaultCount": 0,
+              "latePayments": 0,
+              "creditUtilization": 20,
+              "largestLoanAmount": 100,
+              "relationshipYears": 0
+            }
+          ],
+          "expectedOutput": 10
+        }
+      ]
+    }
+  ]
+}
