@@ -167,9 +167,11 @@ jobs:
           node scripts/parity-tier1.mjs --mode=eval --history=eval-history.csv | tee eval-parity-report.md
 
       # eval 覆盖率趋势（covered / eval-able），供 equivalence 走势图。
-      - name: Record eval-coverage history
+      # --check（audit #95）：豁免章与实时分类漂移即失败（趋势行仍先落盘）——
+      # 陈旧 evalExempt 会让 parity 守卫静默跳样本，锈蚀不能再默默积累。
+      - name: Record eval-coverage history (+ exemption-rot check)
         working-directory: aster-lang-test
-        run: node scripts/tag-eval-exempt.mjs --history=eval-coverage-history.csv >/dev/null
+        run: node scripts/tag-eval-exempt.mjs --history=eval-coverage-history.csv --check >/dev/null
 
       # Feature-coverage map：哪些语言特性被语料实际执行（dual-engine），
       # 哪些只解析不执行（盲点）。纯文本扫描，无需引擎，report-only。
