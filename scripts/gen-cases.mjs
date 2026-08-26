@@ -49,6 +49,12 @@
  *
  * Usage:
  *   node scripts/gen-cases.mjs <spec.json> [--write] [--only=NAME,NAME]
+ *   node scripts/gen-cases.mjs <spec.json> --write \\
+ *     --allow-drop=NAME --drop-reason="为何这些 golden 该弃"
+ *
+ *   ★--allow-drop 是**逐样本**授权且必须给理由：默认拒绝任何会抹掉既有
+ *   golden 的写入（含既有文件无法解析的情况——无法比对恰恰最需要人看一眼）。
+ *   仅用于「占位样本补真实现」这类有意替换；理由会打进日志供审计。
  *   (without --write it's a dry run: reports agreement, writes nothing)
  */
 import { spawnSync } from 'node:child_process';
@@ -72,7 +78,40 @@ const specPath = args.find((a) => !a.startsWith('--'));
 const WRITE = args.includes('--write');
 // ★仅用于「占位样本补真实现」这类**有意替换**：旧 golden 断言的是占位返回值，
 //   保留它等于把占位值固化成正确答案。默认不开，且开了也会把弃用清单打进日志。
-const ALLOW_DROP = args.includes('--allow-drop');
+// ★弃用既有 golden 必须**逐样本授权**并给出理由，而非一个全局开关：
+//   `--allow-drop=NAME[,NAME]` 指定允许弃用的 sample，`--drop-reason="..."` 说明为何该弃。
+//   全局布尔开关的问题是「批准了 A 的替换，顺手也放行了 B 的误覆盖」——
+//   而误覆盖恰恰是这道护栏要防的（我已因此丢过 38 条 golden）。
+//   理由会打进日志：日后回看「这些 golden 是被谁、以什么理由弃掉的」有据可查。
+const dropArg = args.find((a) => a.startsWith('--allow-drop'));
+const ALLOW_DROP_SAMPLES = dropArg
+  ? new Set(
+      (dropArg.includes('=') ? dropArg.slice(dropArg.indexOf('=') + 1) : '')
+        .split(',')
+        .map((x) => x.trim())
+        .filter(Boolean),
+    )
+  : null;
+const dropReasonArg = args.find((a) => a.startsWith('--drop-reason='));
+const DROP_REASON = dropReasonArg ? dropReasonArg.slice('--drop-reason='.length).trim() : '';
+
+if (dropArg && ALLOW_DROP_SAMPLES.size === 0) {
+  console.error(
+    "错误：--allow-drop 必须指定样本名，如 --allow-drop=test_eligibility。\n" +
+      "  不接受无参形式——全局放行会让本该被拦下的误覆盖一并通过。",
+  );
+  process.exit(2);
+}
+if (dropArg && !DROP_REASON) {
+  console.error(
+    '错误：--allow-drop 必须同时给出 --drop-reason="为何这些 golden 该弃"。\n' +
+      '  理由会打进日志，供日后审计。',
+  );
+  process.exit(2);
+}
+
+/** 该样本是否被显式授权弃用既有 golden。 */
+const allowDropFor = (name) => ALLOW_DROP_SAMPLES !== null && ALLOW_DROP_SAMPLES.has(name);
 const onlyArg = args.find((a) => a.startsWith('--only='));
 const ONLY = onlyArg ? new Set(onlyArg.slice('--only='.length).split(',')) : null;
 
@@ -244,13 +283,13 @@ for (const s of samples) {
       prev = undefined;
     }
     const verdict = detectGoldenLoss(prev, cases, s.entry);
-    if (!verdict.ok && !ALLOW_DROP) {
+    if (!verdict.ok && !allowDropFor(s.name)) {
       if (verdict.reason === 'unparseable') {
         // ★无法解析**不等于**可以随便覆盖：无法比对恰恰最需要人看一眼。
         console.error(
           `  \u2717 ${s.name}: 既有 cases 文件无法解析，拒绝覆盖。` +
             `\n    无法解析就无法确认会丢失哪些 golden——请先人工查看该文件；` +
-            `\n    确认可弃后加 --allow-drop 重建。`,
+            `\n    确认可弃后加 --allow-drop=${s.name} --drop-reason="..." 重建。`,
         );
       } else {
         console.error(
@@ -258,7 +297,7 @@ for (const s of samples) {
             verdict.lost.map((x) => `      - ${x}`).join('\n') +
             `\n    修法：把它们并入本 spec（同一 policy 的 case 必须写在同一个 spec 里）。` +
             `\n    若确实要**替换**（如占位样本补真实现后，旧 golden 断言的是占位` +
-            `\n    返回值、已不再正确），加 --allow-drop 并在 PR 说明为何该弃。`,
+            `\n    返回值、已不再正确），加 --allow-drop=${s.name} --drop-reason="..."。`,
         );
       }
       process.exitCode = 1;
@@ -268,8 +307,8 @@ for (const s of samples) {
       // 显式放行：仍把弃掉的内容打进日志，让「丢了什么」可审。
       console.warn(
         verdict.reason === 'unparseable'
-          ? `  ! ${s.name}: 既有文件无法解析，--allow-drop 生效，整体重建`
-          : `  ! ${s.name}: --allow-drop 生效，弃用既有 ${verdict.lost.length} 条 golden：\n` +
+          ? `  ! ${s.name}: 既有文件无法解析，--allow-drop 生效，整体重建（理由：${DROP_REASON}）`
+          : `  ! ${s.name}: --allow-drop 生效（理由：${DROP_REASON}），弃用既有 ${verdict.lost.length} 条 golden：\n` +
               verdict.lost.map((x) => `      - ${x}`).join('\n'),
       );
     }

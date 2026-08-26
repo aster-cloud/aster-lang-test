@@ -1,5 +1,5 @@
 {
-  "_comment": "#104 方向 A：把 test_eligibility 的 18 条占位规则（原本全是 `Return 0.`）补成真实现。★语义完全由规则名确定，不需要发明业务数字：determineMinorCoverage/SeniorCoverage/StandardCoverage 的分档由 insuranceType 决定，testStandardPremiumHighChronic 这类名字直接指明了「哪一档 × 慢病多少」。covered% 的具体取值是策略作者的选择，但**分档结构**与**单调性**（premium ≥ standard ≥ basic、慢病多的覆盖更高）是名字蕴含的，case 逐格锁住这些关系而非孤立数字。 ★旧 cases 文件里有一条 `stub 0` golden（determineMinorCoverage(\"basic\",…) → 0），那是占位实现的返回值。补真实现后该格应为 80——故**替换**而非保留：保留它等于把占位值固化成正确答案，正是 #104 要消除的东西。防覆盖护栏（本仓 gen-cases）正确拦下了这次写入，确认语义后才以同输入的新期望覆盖。",
+  "_comment": "#104 方向 A：把 test_eligibility 的 18 条占位规则（原本全是 `Return 0.`）补成真实现。★这是**人为设计的合成示例策略**，不是取自真实保险产品——写清楚这一点很重要：\n  · 规则名蕴含的是**分档结构**：按年龄段分 minor/senior/standard 三档，每档内按 insuranceType 再分；testStandardPremiumHighChronic 这类名字指明「哪一档 × 慢病多少」。\n  · 但**具体数值由我选定**：覆盖百分比（100/90/85/…）、年龄阈值 18 与 65、慢病阈值 2、未知档的兜底值、以及「无保险即不合格」这条兜底行为——这些名字都没规定，是为让样本可执行而做的设计选择。\n  · 因此 case 主要锁的是**关系与边界**（premium ≥ standard ≥ basic、慢病多的覆盖更高、恰好落在阈值上的那一格），而不是把某个百分比当成业务真值。若将来接入真实费率表，改数值即可，关系断言仍然成立。 ★旧 cases 文件里有一条 `stub 0` golden（determineMinorCoverage(\"basic\",…) → 0），那是占位实现的返回值。补真实现后该格应为 80——故**替换**而非保留：保留它等于把占位值固化成正确答案，正是 #104 要消除的东西。防覆盖护栏（本仓 gen-cases）正确拦下了这次写入，确认语义后才以同输入的新期望覆盖。",
   "samples": [
     {
       "name": "test_eligibility",
