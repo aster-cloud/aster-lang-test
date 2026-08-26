@@ -69,6 +69,9 @@ const TS_RUNNER = join(TS_REPO, 'scripts', 'dual-engine-runner.mjs');
 const args = process.argv.slice(2);
 const specPath = args.find((a) => !a.startsWith('--'));
 const WRITE = args.includes('--write');
+// ★仅用于「占位样本补真实现」这类**有意替换**：旧 golden 断言的是占位返回值，
+//   保留它等于把占位值固化成正确答案。默认不开，且开了也会把弃用清单打进日志。
+const ALLOW_DROP = args.includes('--allow-drop');
 const onlyArg = args.find((a) => a.startsWith('--only='));
 const ONLY = onlyArg ? new Set(onlyArg.slice('--only='.length).split(',')) : null;
 
@@ -230,18 +233,32 @@ for (const s of samples) {
       const keyOf = (c, defEntry) => `${c.entry ?? defEntry} ${c.name}`;
       const now = new Set(cases.map((c) => keyOf(c, s.entry)));
       const lost = (prev.cases ?? []).filter((c) => !now.has(keyOf(c, prev.entry))).map((c) => `${c.entry ?? prev.entry}/${c.name}`);
-      if (lost.length > 0) {
+      if (lost.length > 0 && !ALLOW_DROP) {
         console.error(
           `  ✗ ${s.name}: 拒绝写入——会抹掉既有 ${lost.length} 条 golden：\n` +
           lost.map((x) => `      - ${x}`).join('\n') +
-          `\n    修法：把它们并入本 spec（同一 policy 的 case 必须写在同一个 spec 里）。`,
+          `\n    修法：把它们并入本 spec（同一 policy 的 case 必须写在同一个 spec 里）。` +
+          `\n    若确实要**替换**（如占位样本补真实现后，旧的 "stub 0" golden 断言的是` +
+          `\n    占位返回值、已不再正确），加 --allow-drop 并在 PR 说明为何这些 golden 该弃。`,
         );
         process.exitCode = 1;
         continue;
       }
-    } catch {
-      // 既有文件不可解析：不阻塞写入（等价于重建），但提示一声。
-      console.error(`  ~ ${s.name}: 既有 cases 文件无法解析，将整体重建`);
+      if (lost.length > 0) {
+        // 显式放行：仍然把弃掉的 golden 逐条打出来，让「丢了什么」留在日志里可审。
+        console.warn(
+          `  ! ${s.name}: --allow-drop 生效，弃用既有 ${lost.length} 条 golden：\n` +
+          lost.map((x) => `      - ${x}`).join('\n'),
+        );
+      }
+    } catch (err) {
+      // ★只放行**真正的 JSON 解析失败**（等价于重建）。其它异常——例如护栏
+      //   代码自身的 ReferenceError——必须响亮失败：我就踩过一次，
+      //   ALLOW_DROP 引用在声明之前，异常被这里吞掉、走进整体重建分支，
+      //   于是 38 条已验证 golden 被一条覆盖掉。把 bug 伪装成文件损坏
+      //   是这类兜底 catch 最危险的失效模式。
+      if (!(err instanceof SyntaxError)) throw err;
+      console.error(`  ~ ${s.name}: 既有 cases 文件 JSON 解析失败，将整体重建`);
     }
   }
 

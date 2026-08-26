@@ -7,40 +7,71 @@ Define Service has serviceCode, serviceName, basePrice, requiresPreAuth.
 Define EligibilityCheck has eligible, reason, coveragePercent, estimatedCost, requiresPreAuth.
 
 Rule determineMinorCoverage given insuranceType, service, produce:
-  Return 0.
+  If insuranceType equals to "premium"
+    Return 100.
+  If insuranceType equals to "standard"
+    Return 90.
+  Return 80.
 Rule determineSeniorCoverage given insuranceType, service, produce:
-  Return 0.
+  If insuranceType equals to "medicare"
+    Return 95.
+  If insuranceType equals to "premium"
+    Return 90.
+  If insuranceType equals to "standard"
+    Return 80.
+  Return 70.
 Rule determineStandardCoverage given insuranceType, service, chronicConditions, produce:
-  Return 0.
+  If insuranceType equals to "premium"
+    If chronicConditions at least 2
+      Return 90.
+    Return 85.
+  If insuranceType equals to "standard"
+    If chronicConditions at least 2
+      Return 80.
+    Return 70.
+  If insuranceType equals to "basic"
+    Return 60.
+  Return 50.
 Rule calculatePatientCost given basePrice, coveragePercent, produce:
-  Return 0.
+  Return basePrice minus ((basePrice times coveragePercent) divided by 100).
 Rule checkServiceEligibility given patient, service, produce:
-  Return 0.
+  If patient.hasInsurance equals to false
+    Return EligibilityCheck with eligible set to false, reason set to "No insurance on file", coveragePercent set to 0, estimatedCost set to service.basePrice, requiresPreAuth set to service.requiresPreAuth.
+  If patient.age less than 18
+    Let minorPct be determineMinorCoverage(patient.insuranceType, service).
+    Return EligibilityCheck with eligible set to true, reason set to "Minor coverage", coveragePercent set to minorPct, estimatedCost set to calculatePatientCost(service.basePrice, minorPct), requiresPreAuth set to service.requiresPreAuth.
+  If patient.age at least 65
+    Let seniorPct be determineSeniorCoverage(patient.insuranceType, service).
+    Return EligibilityCheck with eligible set to true, reason set to "Senior coverage", coveragePercent set to seniorPct, estimatedCost set to calculatePatientCost(service.basePrice, seniorPct), requiresPreAuth set to service.requiresPreAuth.
+  Let stdPct be determineStandardCoverage(patient.insuranceType, service, patient.chronicConditions).
+  Return EligibilityCheck with eligible set to true, reason set to "Standard coverage", coveragePercent set to stdPct, estimatedCost set to calculatePatientCost(service.basePrice, stdPct), requiresPreAuth set to service.requiresPreAuth.
 Rule testNoInsurance, produce:
-  Return 0.
+  Let p be Patient with patientId set to "P-1", age set to 40, hasInsurance set to false, insuranceType set to "none", chronicConditions set to 0.
+  Let s be Service with serviceCode set to "S-1", serviceName set to "Consult", basePrice set to 200, requiresPreAuth set to false.
+  Return checkServiceEligibility(p, s).
 Rule testMinorPremiumCoverage, produce:
-  Return 0.
+  Return determineMinorCoverage("premium", 0).
 Rule testMinorStandardCoverage, produce:
-  Return 0.
+  Return determineMinorCoverage("standard", 0).
 Rule testMinorBasicCoverage, produce:
-  Return 0.
+  Return determineMinorCoverage("basic", 0).
 Rule testSeniorMedicareCoverage, produce:
-  Return 0.
+  Return determineSeniorCoverage("medicare", 0).
 Rule testSeniorPremiumCoverage, produce:
-  Return 0.
+  Return determineSeniorCoverage("premium", 0).
 Rule testSeniorStandardCoverage, produce:
-  Return 0.
+  Return determineSeniorCoverage("standard", 0).
 Rule testStandardPremiumHighChronic, produce:
-  Return 0.
+  Return determineStandardCoverage("premium", 0, 3).
 Rule testStandardPremiumLowChronic, produce:
-  Return 0.
+  Return determineStandardCoverage("premium", 0, 0).
 Rule testStandardStandardHighChronic, produce:
-  Return 0.
+  Return determineStandardCoverage("standard", 0, 2).
 Rule testStandardStandardLowChronic, produce:
-  Return 0.
+  Return determineStandardCoverage("standard", 0, 1).
 Rule testStandardBasicCoverage, produce:
-  Return 0.
+  Return determineStandardCoverage("basic", 0, 0).
 Rule testStandardUnknownInsurance, produce:
-  Return 0.
+  Return determineStandardCoverage("gold", 0, 0).
 Rule testCalculatePatientCost, produce:
-  Return 0.
+  Return calculatePatientCost(200, 80).
