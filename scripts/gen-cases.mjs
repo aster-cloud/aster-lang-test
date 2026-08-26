@@ -56,6 +56,7 @@ import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync } from 'no
 import { dirname, resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { detectGoldenLoss } from './lib/golden-overwrite.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -228,37 +229,49 @@ for (const s of samples) {
   // 「已清零的 policy 又冒出未执行规则」才发现的。
   // 这里主动比对并拒绝写入，把静默数据丢失变成响亮失败。
   if (existsSync(outPath)) {
+    // ★丢失检测抽到 lib/golden-overwrite.mjs：内联在这里就没法为它写快测
+    //   （gen-cases 要真跑两个引擎，分钟级），而这恰恰是最该被锁住的分支——
+    //   我因此把 38 条已验证 golden 覆盖成了 1 条。
+    //   回归测试见 scripts/test-golden-overwrite.mjs。
+    let prev;
     try {
-      const prev = JSON.parse(readFileSync(outPath, 'utf8'));
-      const keyOf = (c, defEntry) => `${c.entry ?? defEntry} ${c.name}`;
-      const now = new Set(cases.map((c) => keyOf(c, s.entry)));
-      const lost = (prev.cases ?? []).filter((c) => !now.has(keyOf(c, prev.entry))).map((c) => `${c.entry ?? prev.entry}/${c.name}`);
-      if (lost.length > 0 && !ALLOW_DROP) {
-        console.error(
-          `  ✗ ${s.name}: 拒绝写入——会抹掉既有 ${lost.length} 条 golden：\n` +
-          lost.map((x) => `      - ${x}`).join('\n') +
-          `\n    修法：把它们并入本 spec（同一 policy 的 case 必须写在同一个 spec 里）。` +
-          `\n    若确实要**替换**（如占位样本补真实现后，旧的 "stub 0" golden 断言的是` +
-          `\n    占位返回值、已不再正确），加 --allow-drop 并在 PR 说明为何这些 golden 该弃。`,
-        );
-        process.exitCode = 1;
-        continue;
-      }
-      if (lost.length > 0) {
-        // 显式放行：仍然把弃掉的 golden 逐条打出来，让「丢了什么」留在日志里可审。
-        console.warn(
-          `  ! ${s.name}: --allow-drop 生效，弃用既有 ${lost.length} 条 golden：\n` +
-          lost.map((x) => `      - ${x}`).join('\n'),
-        );
-      }
+      prev = JSON.parse(readFileSync(outPath, 'utf8'));
     } catch (err) {
-      // ★只放行**真正的 JSON 解析失败**（等价于重建）。其它异常——例如护栏
-      //   代码自身的 ReferenceError——必须响亮失败：我就踩过一次，
-      //   ALLOW_DROP 引用在声明之前，异常被这里吞掉、走进整体重建分支，
-      //   于是 38 条已验证 golden 被一条覆盖掉。把 bug 伪装成文件损坏
-      //   是这类兜底 catch 最危险的失效模式。
+      // 只把**真正的 JSON 解析失败**转成 unparseable；其它异常（护栏自身的
+      // ReferenceError、文件权限错误等）必须响亮抛出——把 bug 伪装成
+      // 「文件损坏」是这类兜底 catch 最危险的失效模式。
       if (!(err instanceof SyntaxError)) throw err;
-      console.error(`  ~ ${s.name}: 既有 cases 文件 JSON 解析失败，将整体重建`);
+      prev = undefined;
+    }
+    const verdict = detectGoldenLoss(prev, cases, s.entry);
+    if (!verdict.ok && !ALLOW_DROP) {
+      if (verdict.reason === 'unparseable') {
+        // ★无法解析**不等于**可以随便覆盖：无法比对恰恰最需要人看一眼。
+        console.error(
+          `  \u2717 ${s.name}: 既有 cases 文件无法解析，拒绝覆盖。` +
+            `\n    无法解析就无法确认会丢失哪些 golden——请先人工查看该文件；` +
+            `\n    确认可弃后加 --allow-drop 重建。`,
+        );
+      } else {
+        console.error(
+          `  \u2717 ${s.name}: 拒绝写入——会抹掉既有 ${verdict.lost.length} 条 golden：\n` +
+            verdict.lost.map((x) => `      - ${x}`).join('\n') +
+            `\n    修法：把它们并入本 spec（同一 policy 的 case 必须写在同一个 spec 里）。` +
+            `\n    若确实要**替换**（如占位样本补真实现后，旧 golden 断言的是占位` +
+            `\n    返回值、已不再正确），加 --allow-drop 并在 PR 说明为何该弃。`,
+        );
+      }
+      process.exitCode = 1;
+      continue;
+    }
+    if (!verdict.ok) {
+      // 显式放行：仍把弃掉的内容打进日志，让「丢了什么」可审。
+      console.warn(
+        verdict.reason === 'unparseable'
+          ? `  ! ${s.name}: 既有文件无法解析，--allow-drop 生效，整体重建`
+          : `  ! ${s.name}: --allow-drop 生效，弃用既有 ${verdict.lost.length} 条 golden：\n` +
+              verdict.lost.map((x) => `      - ${x}`).join('\n'),
+      );
     }
   }
 
