@@ -185,10 +185,21 @@ function runJava(reqs) {
   return out;
 }
 
-console.error(`[gen-cases] ${requests.length} cases across ${samples.length} samples — running TS…`);
-const ts = runTs(requests);
-console.error('[gen-cases] running Java (gradle, ~1min)…');
-const java = runJava(requests);
+// ★零 case 时不启动任何引擎：跑两个引擎去验证 0 条用例纯属浪费
+//   （Gradle 冷启动分钟级）。这条捷径也让「声明清空」的护栏能被秒级测试覆盖
+//   ——否则一个 cases:[] 的 spec 要等 8 分钟才走到闸门。
+//   注意：短路的只是**求值**，下面的写入/护栏循环照常执行。
+let ts, java;
+if (requests.length === 0) {
+  console.error('[gen-cases] 0 cases — 跳过引擎启动');
+  ts = new Map();
+  java = new Map();
+} else {
+  console.error(`[gen-cases] ${requests.length} cases across ${samples.length} samples — running TS…`);
+  ts = runTs(requests);
+  console.error('[gen-cases] running Java (gradle, ~1min)…');
+  java = runJava(requests);
+}
 
 // ---- compare + decide ----
 const J = (v) => JSON.stringify(v);
@@ -238,7 +249,33 @@ if (problems.length) {
 let written = 0;
 for (const s of samples) {
   const cases = bySample.get(s.name);
-  if (!cases || cases.length === 0) continue;
+  // ★这里必须区分两种「没有 case」，它们此前共用一个 continue：
+  //   (a) 本次运行没有任何 case 通过双引擎验证 → 跳过是对的，不能拿空结果覆盖；
+  //   (b) spec 里**显式声明** cases: [] → 这是「把该样本清空」的意图，
+  //       是真实事故的最极端形态（38 条 → 0 条）。此前它在抵达护栏之前就被
+  //       continue 掉，于是 detectGoldenLoss 从未被调用——helper 单测绿着，
+  //       集成路径却整条绕过。文件没被清空纯属侥幸（写入循环压根没进）。
+  //   现在把 (b) 显式拦下：声明清空必须走与其它丢失同一道授权闸门。
+  if (!cases || cases.length === 0) {
+    const declaredEmpty = Array.isArray(s.cases) && s.cases.length === 0;
+    const outPathEmpty = join(INPUTS, `${s.name}.cases.json`);
+    // ★只在 --write 时拒绝：dry-run 是预演，不落盘就没有丢失，
+    //   让它失败会把「预演一下看看」变成红灯，属误伤。
+    if (WRITE && declaredEmpty && existsSync(outPathEmpty) && !allowDropFor(s.name)) {
+      let prevCount = '未知';
+      try {
+        const prevDoc = JSON.parse(readFileSync(outPathEmpty, 'utf8'));
+        if (Array.isArray(prevDoc?.cases)) prevCount = String(prevDoc.cases.length);
+      } catch { /* 计数仅用于提示，解析失败不影响拒绝 */ }
+      console.error(
+        `  ✗ ${s.name}: spec 声明 cases 为空，将清空既有 ${prevCount} 条 golden，拒绝写入。` +
+          `\n    这是最严重的丢失形态（整体清零）。确认可弃后加` +
+          ` --allow-drop=${s.name} --drop-reason="..." 重跑。`,
+      );
+      process.exitCode = 1;
+    }
+    continue;
+  }
   if (cases.length !== s.cases.length) {
     console.log(`  ~ ${s.name}: only ${cases.length}/${s.cases.length} cases verified — NOT writing (partial)`);
     continue;
@@ -252,20 +289,31 @@ for (const s of samples) {
   // （patient-record 丢 8 条、enterprise 丢 4 条），都是靠 coverage 报告
   // 「已清零的 policy 又冒出未执行规则」才发现的。
   // 这里主动比对并拒绝写入，把静默数据丢失变成响亮失败。
-  if (existsSync(outPath)) {
+  {
     // ★丢失检测抽到 lib/golden-overwrite.mjs：内联在这里就没法为它写快测
     //   （gen-cases 要真跑两个引擎，分钟级），而这恰恰是最该被锁住的分支——
     //   我因此把 38 条已验证 golden 覆盖成了 1 条。
     //   回归测试见 scripts/test-golden-overwrite.mjs。
+    //
+    // ★这里**不再用 existsSync 预检**，改由 readFileSync 的 ENOENT 直接判定：
+    //   原先「existsSync 为真才进来」使 FILE_ABSENT 哨兵永远传不进去——
+    //   它被 import 了却从不使用，是「注释声称已接线、实际是死导入」
+    //   （Codex 第四轮抓出）。顺带消除了 exists 与 read 之间的 TOCTOU 窗口：
+    //   文件若在两步之间被删，旧写法会抛错，新写法正确地按"不存在"放行。
     let prev;
     try {
       prev = JSON.parse(readFileSync(outPath, 'utf8'));
     } catch (err) {
-      // 只把**真正的 JSON 解析失败**转成 unparseable；其它异常（护栏自身的
-      // ReferenceError、文件权限错误等）必须响亮抛出——把 bug 伪装成
-      // 「文件损坏」是这类兜底 catch 最危险的失效模式。
-      if (!(err instanceof SyntaxError)) throw err;
-      prev = undefined;
+      if (err?.code === 'ENOENT') {
+        prev = FILE_ABSENT; // 首次生成：无既有 golden 可丢，放行
+      } else if (err instanceof SyntaxError) {
+        // 只把**真正的 JSON 解析失败**转成 unparseable；其它异常（护栏自身的
+        // ReferenceError、文件权限错误等）必须响亮抛出——把 bug 伪装成
+        // 「文件损坏」是这类兜底 catch 最危险的失效模式。
+        prev = undefined;
+      } else {
+        throw err;
+      }
     }
     const verdict = detectGoldenLoss(prev, cases, s.entry);
     if (!verdict.ok && !allowDropFor(s.name)) {

@@ -146,6 +146,7 @@ jobs:
               - 'scripts/lib/golden-overwrite.mjs'
               - 'scripts/lib/drop-authorization.mjs'
               - 'scripts/test-drop-authorization.mjs'
+              - 'scripts/test-wipe-guard.mjs'
               - 'scripts/test-golden-overwrite.mjs'
               - 'scripts/gen-cases.mjs'
               - '.github/workflows/ci.yml'
@@ -320,6 +321,15 @@ jobs:
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         run: node scripts/test-drop-authorization.mjs
+
+      # ★入口级集成护栏。单测只能证明「函数被调用时行为正确」，证不了
+      # 「入口真的照它接线」——Codex 第四轮实证：把入口两根线同时改坏
+      # （绕过 parseDropArgs + 恢复旧 process.exit），66 条单测仍全绿。
+      # 本测试直接跑真实 CLI 观测退出码与文件字节，双破坏下 6/9 报红。
+      - name: Run wipe-guard integration tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-wipe-guard.mjs
 
       # audit #95：豁免锈蚀守门 —— meta.json 盖章的 evalExempt 与实时分类漂移即失败
       # （陈旧豁免会让 parity-tier1 守卫静默跳过已可 eval 的样本，分母漂移）。
