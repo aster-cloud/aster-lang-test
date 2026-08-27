@@ -80,6 +80,53 @@ check('★授权 alpha 不等于授权 beta（逐样本隔离）', () => {
   assert.ok(!r.samples.has('beta'), '未列出的样本不得被放行');
 });
 
+// ---- 重复 / 乱序 flag（第四轮复审要求枚举的绕过面）----
+//
+// 判定原则：授权只能**收窄**，绝不能因写法歧义而扩大。
+// 下面每一条都确认了「首个匹配生效」或「直接拒绝」，没有取并集的路径。
+
+check('★重复 --allow-drop → 只认第一个，不取并集', () => {
+  const r = parseDropArgs(['--allow-drop=a', '--allow-drop=b', '--drop-reason=x']);
+  assert.deepStrictEqual([...r.samples], ['a'], '第二个 flag 不得追加授权');
+  assert.ok(!r.samples.has('b'));
+});
+
+check('★第一个 --allow-drop 为空值 → 拒绝，不被后一个补救', () => {
+  // 若改成"找最后一个"或"取并集"，这里会静默授权 b —— 属放宽，必须拦住
+  const r = parseDropArgs(['--allow-drop=', '--allow-drop=b', '--drop-reason=x']);
+  assert.strictEqual(r.ok, false);
+  assert.strictEqual(r.error, 'MISSING_SAMPLES');
+});
+
+check('重复 --drop-reason → 取第一个（理由只影响日志，不影响授权范围）', () => {
+  const r = parseDropArgs(['--allow-drop=a', '--drop-reason=first', '--drop-reason=second']);
+  assert.strictEqual(r.reason, 'first');
+});
+
+check('参数顺序无关：--drop-reason 在 --allow-drop 之前也成立', () => {
+  const r = parseDropArgs(['--drop-reason=x', '--allow-drop=a']);
+  assert.strictEqual(r.ok, true);
+  assert.deepStrictEqual([...r.samples], ['a']);
+});
+
+check('★空格分隔（--allow-drop a）→ 拒绝，而非把 a 当样本', () => {
+  // 安全方向：不识别就拒绝。错误文案已明确提示"必须用等号"。
+  const r = parseDropArgs(['--allow-drop', 'a', '--drop-reason=x']);
+  assert.strictEqual(r.ok, false);
+  assert.strictEqual(r.error, 'MISSING_SAMPLES');
+});
+
+check('★--drop-reason 裸形式（无等号）→ 视为缺理由', () => {
+  const r = parseDropArgs(['--allow-drop=a', '--drop-reason', 'x']);
+  assert.strictEqual(r.ok, false);
+  assert.strictEqual(r.error, 'MISSING_REASON');
+});
+
+check('样本名含等号 → 只切第一个等号，保留其余', () => {
+  const r = parseDropArgs(['--allow-drop=a=b', '--drop-reason=x']);
+  assert.deepStrictEqual([...r.samples], ['a=b']);
+});
+
 // ---- finalExitCode ----
 
 check('★护栏已设 exitCode=1 → 不被 problems=0 覆盖成 0', () => {

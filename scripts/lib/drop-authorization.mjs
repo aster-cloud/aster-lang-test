@@ -12,7 +12,9 @@
 export const DROP_ARG_ERRORS = {
   MISSING_SAMPLES:
     '错误：--allow-drop 必须指定样本名，如 --allow-drop=test_eligibility。\n' +
-    '  不接受无参形式——全局放行会让本该被拦下的误覆盖一并通过。',
+    '  不接受无参形式——全局放行会让本该被拦下的误覆盖一并通过。\n' +
+    '  注意必须用等号：空格分隔（--allow-drop test_eligibility）不被识别，\n' +
+    '  会按「未指定样本」拒绝，而不会静默放行。',
   MISSING_REASON:
     '错误：--allow-drop 必须同时给出 --drop-reason="为何这些 golden 该弃"。\n' +
     '  理由会打进日志，供日后审计。',
