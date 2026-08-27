@@ -86,5 +86,51 @@ check('空 cases 数组 → 放行（无 golden 可丢）', () => {
   assert.strictEqual(detectGoldenLoss({ entry: 'e', cases: [] }, [{ name: 'a' }], 'e').ok, true);
 });
 
+// ---- 变异审计补的两处高危盲区 ----
+
+check('★新集合为空 → 报 lost 全部旧 case（整体清空是最严重的丢失形态）', () => {
+  // ★本文件头部就写着"我把 38 条已验证 golden 覆盖成了 1 条"，
+  //   但**从来没有一条测试给 nextCases 传过 []**——最极端的事故形态
+  //   （覆盖成 0 条）此前零覆盖，加一行 `if (!nextCases.length) return {ok:true}`
+  //   就能静默放行且全绿。用真实事故的 38 条规模钉死。
+  const prev = { entry: 'e', cases: Array.from({ length: 38 }, (_, i) => ({ name: `c${i}` })) };
+  const r = detectGoldenLoss(prev, [], 'e');
+  assert.strictEqual(r.ok, false);
+  assert.strictEqual(r.reason, 'lost');
+  assert.strictEqual(r.lost.length, 38, '必须报出全部 38 条，不能只报首条');
+});
+
+check('★多条丢失必须全部报出（防只保留首条）', () => {
+  const r = detectGoldenLoss(doc('e', ['a', 'b', 'c', 'd']), [{ name: 'a' }], 'e');
+  assert.strictEqual(r.ok, false);
+  assert.deepStrictEqual(r.lost.sort(), ['e/b', 'e/c', 'e/d']);
+});
+
+check('★FILE_ABSENT 必须是不可被 JSON 内容伪造的 Symbol', () => {
+  // ★哨兵若退化成字符串 'file-absent'，一个内容恰为该字符串的既有文件
+  //   就会被当成"文件不存在"而无授权整体覆盖——正是 null/哨兵混用那个
+  //   漏洞换了个马甲。原测试只验了"null 不是哨兵"，没验"哨兵不可伪造"。
+  assert.strictEqual(typeof FILE_ABSENT, 'symbol');
+  for (const forged of ['file-absent', 'Symbol(file-absent)', 0, false, '', NaN]) {
+    assert.strictEqual(
+      detectGoldenLoss(forged, [{ name: 'a' }], 'e').ok,
+      false,
+      `${String(forged)} 不得被当成"文件不存在"而放行`,
+    );
+  }
+});
+
+check('★unparseable 必须带 lost:[]（调用方会读 .lost.length）', () => {
+  // 去掉该字段时调用方 result.lost.length 直接崩，此前测试无感
+  const r = detectGoldenLoss(undefined, [{ name: 'a' }], 'e');
+  assert.ok(Array.isArray(r.lost), 'lost 必须是数组，否则调用方崩溃');
+  assert.strictEqual(r.lost.length, 0);
+});
+
+check('★caseKey 用 ?? 而非 ||：entry 为空串时不得回退到文档级', () => {
+  // `||` 会把合法的空串 entry 当成缺省，静默改变归属
+  assert.strictEqual(caseKey({ name: 'n', entry: '' }, 'doc'), ' n');
+});
+
 console.log(`\ngolden-overwrite guard: ${pass} passed, ${fail} failed`);
 process.exit(fail > 0 ? 1 : 0);
