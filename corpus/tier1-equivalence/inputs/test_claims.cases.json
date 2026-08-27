@@ -3,13 +3,94 @@
   "entry": "calculateClaimApproval",
   "cases": [
     {
-      "name": "stub 0",
-      "input": [
-        1000,
-        80,
-        "general"
-      ],
-      "expectedOutput": 0
+      "name": "网外提供者→OON 拒付(KFF 2024 网外拒付率 37% vs 网内 19%)",
+      "entry": "testOutOfNetworkProvider",
+      "input": [],
+      "expectedOutput": "OON"
+    },
+    {
+      "name": "金额超自动裁定上限→转人工",
+      "entry": "testAmountExceedsLimit",
+      "input": [],
+      "expectedOutput": "LIMIT"
+    },
+    {
+      "name": "提供者星级<3→质量拒付(CMS Star Ratings 质量奖金门槛 3.5)",
+      "entry": "testLowQualityProvider",
+      "input": [],
+      "expectedOutput": "QUALITY"
+    },
+    {
+      "name": "普通门诊 500×80% = 400(KFF 2025 住院 coinsurance 20%)",
+      "entry": "testGeneralProviderNormalClaim",
+      "input": [],
+      "expectedOutput": 400
+    },
+    {
+      "name": "专科降 5 个百分点 500×75% = 375",
+      "entry": "testSpecialistProvider",
+      "input": [],
+      "expectedOutput": 375
+    },
+    {
+      "name": "手术降 10 个百分点 500×70% = 350",
+      "entry": "testSurgeryProvider",
+      "input": [],
+      "expectedOutput": 350
+    },
+    {
+      "name": "恰好低于上限 99000×70% = 69300(边界)",
+      "entry": "testHighAmountInNetworkClaim",
+      "input": [],
+      "expectedOutput": 69300
+    },
+    {
+      "name": "小额 100×80% = 80",
+      "entry": "testMinimalAmountClaim",
+      "input": [],
+      "expectedOutput": 80
+    },
+    {
+      "name": "大额+预授权+转诊→通过",
+      "entry": "testValidDocumentationWithPreAuth",
+      "input": [],
+      "expectedOutput": true
+    },
+    {
+      "name": "★大额缺预授权→拒(KFF 2024 拒付理由 9% 为缺预授权/转诊)",
+      "entry": "testInvalidDocumentationNoPreAuth",
+      "input": [],
+      "expectedOutput": false
+    },
+    {
+      "name": "缺转诊→拒(HMO/POS 需转诊)",
+      "entry": "testInvalidDocumentationNoReferral",
+      "input": [],
+      "expectedOutput": false
+    },
+    {
+      "name": "★小额免预授权(200<1000 阈值)→通过",
+      "entry": "testLowAmountNoPreAuthRequired",
+      "input": [],
+      "expectedOutput": true
+    },
+    {
+      "name": "calculateClaimApproval general 1000×80% = 800",
+      "entry": "testCalculateClaimApprovalGeneral",
+      "input": [],
+      "expectedOutput": 800
+    },
+    {
+      "name": "calculateClaimApproval specialist 1000×75% = 750",
+      "entry": "testCalculateClaimApprovalSpecialist",
+      "input": [],
+      "expectedOutput": 750
+    },
+    {
+      "name": "calculateClaimApproval surgery 1000×70% = 700",
+      "entry": "testCalculateClaimApprovalSurgery",
+      "input": [],
+      "expectedOutput": 700
     }
   ]
 }

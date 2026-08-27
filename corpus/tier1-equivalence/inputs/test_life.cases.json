@@ -3,12 +3,361 @@
   "entry": "calculateBaseRate",
   "cases": [
     {
-      "name": "stub 0",
+      "name": "★基准 40 岁/20 年 = $321/年(LifeStein 实测 $321)",
+      "entry": "calculateBaseRate",
       "input": [
         40,
         20
       ],
-      "expectedOutput": 0
+      "expectedOutput": 321
+    },
+    {
+      "name": "基准 30 岁/20 年 = $213/年(LifeStein $213)",
+      "entry": "calculateBaseRate",
+      "input": [
+        30,
+        20
+      ],
+      "expectedOutput": 213
+    },
+    {
+      "name": "基准 50 岁/20 年 = $810/年(LifeStein $810)",
+      "entry": "calculateBaseRate",
+      "input": [
+        50,
+        20
+      ],
+      "expectedOutput": 810
+    },
+    {
+      "name": "基准 60 岁/20 年 = $2331/年(LifeStein $2331)",
+      "entry": "calculateBaseRate",
+      "input": [
+        60,
+        20
+      ],
+      "expectedOutput": 2331
+    },
+    {
+      "name": "★基准 70 岁/20 年 = $9702/年(LifeStein $9702)",
+      "entry": "calculateBaseRate",
+      "input": [
+        70,
+        20
+      ],
+      "expectedOutput": 9702
+    },
+    {
+      "name": "基准 20 岁/20 年 = $210/年(LifeStein $210；20→30 仅涨 1.4%)",
+      "entry": "calculateBaseRate",
+      "input": [
+        20,
+        20
+      ],
+      "expectedOutput": 210
+    },
+    {
+      "name": "10 年期 = 20 年期的 62%",
+      "entry": "testCalculateBaseRateYoungShort",
+      "input": [],
+      "expectedOutput": 130
+    },
+    {
+      "name": "30 年期 = 20 年期的 138%",
+      "entry": "testCalculateBaseRateYoungLong",
+      "input": [],
+      "expectedOutput": 289
+    },
+    {
+      "name": "40 岁 10 年期",
+      "entry": "testCalculateBaseRateMiddleShort",
+      "input": [],
+      "expectedOutput": 199
+    },
+    {
+      "name": "40 岁 30 年期",
+      "entry": "testCalculateBaseRateMiddleLong",
+      "input": [],
+      "expectedOutput": 442
+    },
+    {
+      "name": "50 岁 10 年期",
+      "entry": "testCalculateBaseRateOlderShort",
+      "input": [],
+      "expectedOutput": 502
+    },
+    {
+      "name": "50 岁 30 年期",
+      "entry": "testCalculateBaseRateOlderLong",
+      "input": [],
+      "expectedOutput": 1117
+    },
+    {
+      "name": "60 岁 10 年期",
+      "entry": "testCalculateBaseRateSeniorShort",
+      "input": [],
+      "expectedOutput": 1445
+    },
+    {
+      "name": "★15 年期 = 20 年期的 80%",
+      "entry": "calculateBaseRate",
+      "input": [
+        40,
+        15
+      ],
+      "expectedOutput": 256
+    },
+    {
+      "name": "清白体况倍数 100",
+      "entry": "testCalculateHealthMultiplierClean",
+      "input": [],
+      "expectedOutput": 100
+    },
+    {
+      "name": "★吸烟倍数 362(LifeStein 实算 3.62x；ValuePenguin +215%、U.S.News +146%)",
+      "entry": "testCalculateHealthMultiplierSmoker",
+      "input": [],
+      "expectedOutput": 362
+    },
+    {
+      "name": "★BMI 32 倍数 177(InsuranceGeek: BMI 31-35 = Standard)",
+      "entry": "testCalculateHealthMultiplierHighBMI",
+      "input": [],
+      "expectedOutput": 177
+    },
+    {
+      "name": "★优秀体况倍数 88(healthScore>=90 且 BMI<29 → Preferred Plus 折扣)",
+      "entry": "testCalculateHealthMultiplierExcellent",
+      "input": [],
+      "expectedOutput": 88
+    },
+    {
+      "name": "BMI 29-30 倍数 121(Standard Plus 档)",
+      "entry": "calculateHealthMultiplier",
+      "input": [
+        {
+          "applicantId": "A",
+          "age": 40,
+          "gender": "M",
+          "smoker": false,
+          "bmi": 29,
+          "occupation": "office",
+          "healthScore": 75
+        }
+      ],
+      "expectedOutput": 121
+    },
+    {
+      "name": "★BMI 36-40 倍数 250(Table Rating 次标准档)",
+      "entry": "calculateHealthMultiplier",
+      "input": [
+        {
+          "applicantId": "A",
+          "age": 40,
+          "gender": "M",
+          "smoker": false,
+          "bmi": 36,
+          "occupation": "office",
+          "healthScore": 75
+        }
+      ],
+      "expectedOutput": 250
+    },
+    {
+      "name": "★吸烟叠加高 BMI: 177×3.62 = 640",
+      "entry": "calculateHealthMultiplier",
+      "input": [
+        {
+          "applicantId": "A",
+          "age": 40,
+          "gender": "M",
+          "smoker": true,
+          "bmi": 32,
+          "occupation": "office",
+          "healthScore": 75
+        }
+      ],
+      "expectedOutput": 640
+    },
+    {
+      "name": "★伐木 3350(BLS 2024: 110.4/10万 = 33.5x 全国基准)",
+      "entry": "testCalculateOccupationMultiplierHighRisk",
+      "input": [],
+      "expectedOutput": 3350
+    },
+    {
+      "name": "★渔猎 2690(BLS 2024: 88.8/10万 = 26.9x)",
+      "entry": "calculateOccupationMultiplier",
+      "input": [
+        "fishing"
+      ],
+      "expectedOutput": 2690
+    },
+    {
+      "name": "★屋顶工 1480(BLS 2024: 48.7/10万 = 14.8x)",
+      "entry": "calculateOccupationMultiplier",
+      "input": [
+        "roofing"
+      ],
+      "expectedOutput": 1480
+    },
+    {
+      "name": "★飞行员 1110(BLS 2024: 36.7/10万 = 11.1x)",
+      "entry": "calculateOccupationMultiplier",
+      "input": [
+        "pilot"
+      ],
+      "expectedOutput": 1110
+    },
+    {
+      "name": "★卡车司机 780(BLS 2024: 25.7/10万；绝对死亡数 950 全美最高)",
+      "entry": "calculateOccupationMultiplier",
+      "input": [
+        "truck-driver"
+      ],
+      "expectedOutput": 780
+    },
+    {
+      "name": "建筑工 480(BLS 2024: 15.8/10万 = 4.8x)",
+      "entry": "testCalculateOccupationMultiplierModerate",
+      "input": [],
+      "expectedOutput": 480
+    },
+    {
+      "name": "文职 100(基准)",
+      "entry": "testCalculateOccupationMultiplierOffice",
+      "input": [],
+      "expectedOutput": 100
+    },
+    {
+      "name": "★未知职业落基准 100(不惩罚未列举职业)",
+      "entry": "testCalculateOccupationMultiplierUnknown",
+      "input": [],
+      "expectedOutput": 100
+    },
+    {
+      "name": "低风险: 100+10 = 110",
+      "entry": "testCalculateRiskScoreLowRisk",
+      "input": [],
+      "expectedOutput": 110
+    },
+    {
+      "name": "★高风险: 100-30-20-15-15 = 20(吸烟+BMI37+62岁)",
+      "entry": "testCalculateRiskScoreHighRisk",
+      "input": [],
+      "expectedOutput": 20
+    },
+    {
+      "name": "★未满 18 岁→拒",
+      "entry": "testApplicantTooYoung",
+      "input": [],
+      "expectedOutput": "Applicant below minimum issue age"
+    },
+    {
+      "name": "★超 75 岁→拒(注意: 无行业统一上限，此为示例产品条款)",
+      "entry": "testApplicantTooOld",
+      "input": [],
+      "expectedOutput": "Applicant above maximum issue age"
+    },
+    {
+      "name": "健康分过低→拒",
+      "entry": "testHealthScoreTooLow",
+      "input": [],
+      "expectedOutput": "Health score below underwriting threshold"
+    },
+    {
+      "name": "★保额超上限→拒",
+      "entry": "testCoverageExceedsMaximum",
+      "input": [],
+      "expectedOutput": "Coverage exceeds maximum"
+    },
+    {
+      "name": "★BMI 41→超出体格核保限(InsuranceGeek: >40-42 拒保)",
+      "entry": "generateLifeQuote",
+      "input": [
+        {
+          "applicantId": "A",
+          "age": 40,
+          "gender": "M",
+          "smoker": false,
+          "bmi": 41,
+          "occupation": "office",
+          "healthScore": 85
+        },
+        {
+          "coverageAmount": 500000,
+          "termYears": 20,
+          "policyType": "term"
+        }
+      ],
+      "expectedOutput": {
+        "__type": "LifeQuote",
+        "approved": false,
+        "reason": "Build outside underwriting limits",
+        "monthlyPremium": 0,
+        "coverageAmount": 0,
+        "termYears": 0
+      }
+    },
+    {
+      "name": "25 岁健康 10 年期 = $10/月",
+      "entry": "testYoungHealthyNonSmokerShortTerm",
+      "input": [],
+      "expectedOutput": 10
+    },
+    {
+      "name": "30 岁健康 20 年期 = $17/月",
+      "entry": "testYoungHealthyNonSmokerLongTerm",
+      "input": [],
+      "expectedOutput": 17
+    },
+    {
+      "name": "★45 岁吸烟+BMI32 = $171/月(vs 同龄清白 $26，6.6 倍)",
+      "entry": "testMiddleAgedSmokerHighBMI",
+      "input": [],
+      "expectedOutput": 171
+    },
+    {
+      "name": "45 岁清白 = $26/月",
+      "entry": "testMiddleAgedNonSmokerLowBMI",
+      "input": [],
+      "expectedOutput": 26
+    },
+    {
+      "name": "★60 岁健康 = $194/月 = $2328/年(LifeStein $2331，误差<0.2%)",
+      "entry": "testOlderApplicantHealthy",
+      "input": [],
+      "expectedOutput": 194
+    },
+    {
+      "name": "★伐木工 = $896/月(职业倍数 33.5x 主导)",
+      "entry": "testHighRiskOccupation",
+      "input": [],
+      "expectedOutput": 896
+    },
+    {
+      "name": "建筑工 = $128/月",
+      "entry": "testModerateRiskOccupation",
+      "input": [],
+      "expectedOutput": 128
+    },
+    {
+      "name": "★文职 40 岁 = $26/月 = $312/年(LifeStein $321，误差 3%)",
+      "entry": "testOfficeWorkerLowRisk",
+      "input": [],
+      "expectedOutput": 26
+    },
+    {
+      "name": "★50 岁吸烟+BMI37 = $610/月",
+      "entry": "testSmokerVeryHighBMI",
+      "input": [],
+      "expectedOutput": 610
+    },
+    {
+      "name": "★优秀体况 40 岁 = $23/月(低于标准档 $26)",
+      "entry": "testExcellentHealthHighScore",
+      "input": [],
+      "expectedOutput": 23
     }
   ]
 }
