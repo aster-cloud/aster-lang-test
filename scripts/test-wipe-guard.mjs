@@ -14,8 +14,11 @@
  * 教训：单测证明的是「函数被调用时行为正确」，不能证明「它会被调用」。
  * 最极端的事故形态（38 条 golden → 0 条）只能在 CLI 层面钉死。
  *
- * 本测试刻意使用**不存在的样本名**，因此 gen-cases 会在参数校验阶段就返回，
- * 不会真跑两个引擎（秒级），可安全放进 CI。
+ * ★为何秒级、可进 CI（原注释说「用不存在的样本名」，**已不成立**——
+ * 现在用的是真实的 test_eligibility）：两条捷径共同保证不启动引擎——
+ *   · `cases: []` 的 spec 触发 gen-cases 的零 case 短路（requests 为空即跳过引擎）；
+ *   · 非空写入路径用 GEN_CASES_FAKE_ENGINE 注入引擎结果。
+ * 全套约 33 秒，其中绝大部分是逐条 spawn node 进程的开销。
  *
  * 用法：node scripts/test-wipe-guard.mjs（退出码 0=全过，1=有失败）。
  */
@@ -45,8 +48,8 @@ function check(name, fn) {
 
 /**
  * 跑 gen-cases，返回 {code, out}。绝不让异常逃逸成假绿。
- * ★out 必须是 stdout + stderr 合并：拒绝信息在 stderr、授权日志在 stdout，
- *   只取其一会让断言瞎掉一半（我已因此误判过一次）。
+ * ★out 必须是 stdout + stderr 合并：拒绝(console.error)与授权(console.warn)
+ *   都在 **stderr**，汇总行在 stdout；只取其一断言就瞎一半（我已误判过一次）。
  */
 function runGen(args) {
   const r = spawnSync('node', [GEN, ...args], { encoding: 'utf8' });
@@ -118,10 +121,11 @@ function supersetSpec(dir, tag) {
 }
 
 function runGenFake(args, fake) {
-  // ★成功路径必须**合并 stdout 与 stderr**：护栏的拒绝信息走 console.error（stderr），
-  //   而授权放行的「--allow-drop 生效（理由：…）」走 console.log（stdout）。
-  //   只取返回值（= stdout）会让「理由是否进日志」这条断言看不到 stderr 的内容，
-  //   反之只看 stderr 会漏掉授权日志。我第一版只取返回值，误判成「理由没打进日志」。
+  // ★必须**合并 stdout 与 stderr**。原注释说授权日志走 console.log/stdout，
+  //   **说错了**：它走 console.warn，而 console.warn 在 Node 里输出到 **stderr**
+  //   （实测 `node -e "console.warn('X')" 2>/dev/null` 无输出）。
+  //   真正的原因是：拒绝(console.error)与授权(console.warn)都在 stderr，
+  //   而汇总行「✅ wrote N」在 stdout；断言要同时看到两类信息就必须合并。
   const r = spawnSync('node', [GEN, ...args], {
     encoding: 'utf8',
     env: { ...process.env, GEN_CASES_FAKE_ENGINE: fake },
@@ -300,6 +304,30 @@ try {
       rmSync(p, { force: true });
       rmSync(g, { force: true });
     }
+  });
+
+  check('★同键改写断言必须被拒（Codex 第五轮实证的注入绕过）', () => {
+    // ★这是我自己开的洞：GEN_CASES_FAKE_ENGINE 本意只让「引擎算出了什么」
+    //   可控，但护栏当时只比 entry+name，于是保持键不变、把 input/expected
+    //   从 100 改成 999，无需 --allow-drop 就能 exit 0 静默改写 golden。
+    //   单测已在 test-golden-overwrite 覆盖 detectGoldenLoss；这里从 CLI
+    //   观测**接线后果**——单测证明不了入口真的照它接线（本 session 的主线教训）。
+    const prev = JSON.parse(before);
+    const cases = prev.cases.map((c) => ({
+      name: c.name, entry: c.entry, input: c.input,
+      ...(c.expectError ? { expectError: true } : { expectedOutput: c.expectedOutput }),
+    }));
+    cases[0] = { ...cases[0], input: [999], expectedOutput: 999 }; // 键不变，内容改
+    const specPath = join(tmp, 'rewrite.json');
+    writeFileSync(specPath, JSON.stringify({ samples: [{ name: SAMPLE, entry: prev.entry, cases }] }));
+    const fake = join(tmp, 'rewrite.jsonl');
+    writeFileSync(fake, cases.map((c, i) => JSON.stringify(
+      c.expectError ? { gIndex: i, error: 'x' } : { gIndex: i, value: c.expectedOutput },
+    )).join('\n') + '\n');
+    const { code, out } = runGenFake([specPath, '--write'], fake);
+    assert.strictEqual(code, 1, `无授权改写断言必须 exit 1，实际 ${code}`);
+    assert.ok(out.includes('改写'), `拒绝信息须指出是改写。实际：${out.slice(-300)}`);
+    assert.strictEqual(readFileSync(goldenPath, 'utf8'), before, '文件必须逐字节不变');
   });
 
   check('★--allow-drop 在主路径上真的放行且理由进日志（正向锁 + 审计留痕）', () => {

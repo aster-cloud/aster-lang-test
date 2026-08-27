@@ -325,7 +325,9 @@ jobs:
       # ★入口级集成护栏。单测只能证明「函数被调用时行为正确」，证不了
       # 「入口真的照它接线」——Codex 第四轮实证：把入口两根线同时改坏
       # （绕过 parseDropArgs + 恢复旧 process.exit），66 条单测仍全绿。
-      # 本测试直接跑真实 CLI 观测退出码与文件字节，双破坏下 6/9 报红。
+      # 本测试直接跑真实 CLI 观测退出码与文件字节（现 17 条）。
+      # red/green 实证：入口双破坏报红；主写入路径 7 个变异亦全部报红；
+      # 同键改写断言（无授权把 100 改成 999）报红。
       - name: Run wipe-guard integration tests
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test

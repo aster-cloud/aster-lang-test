@@ -20,7 +20,12 @@ Module test.insurance.auto.
 #   · 低信用 +91%：III（保险信息研究所）口径
 #     ★加州/夏威夷/马萨诸塞/密歇根禁止用信用分定价——真实系统须按州禁用此因子
 #   · 免赔额档位：CarInsurance.com / Quadrant 2026-04（$250/$500/$1000）
-#   · 责任限额 100/300/100：III 推荐档位
+#   · 责任限额：III 推荐 100/300/100（= 每人伤害 $100k / 每次事故 $300k /
+#     财产损失 $100k，**三个独立限额**）。
+#     ★实现把三段**折叠成单一 `coverageLimit`**（premium 300000 / standard
+#     100000 / basic 50000）——PolicyQuote 只有一个限额字段，样本不建模
+#     per-person / per-accident / property 的区分。故这三个数**不是**
+#     100/300/100 中的任何一段，只是借其量级做的分档，不可对号入座。
 
 Define Driver has driverId, age, yearsLicensed, accidentCount, violationCount, creditScore.
 

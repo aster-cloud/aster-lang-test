@@ -10,7 +10,7 @@
  * 用法：node scripts/test-golden-overwrite.mjs（退出码 0=全过，1=有失败）。
  */
 import assert from 'node:assert';
-import { detectGoldenLoss, caseKey, FILE_ABSENT } from './lib/golden-overwrite.mjs';
+import { detectGoldenLoss, caseKey, caseAssertion, FILE_ABSENT } from './lib/golden-overwrite.mjs';
 
 let pass = 0;
 let fail = 0;
@@ -125,6 +125,61 @@ check('★unparseable 必须带 lost:[]（调用方会读 .lost.length）', () =
   const r = detectGoldenLoss(undefined, [{ name: 'a' }], 'e');
   assert.ok(Array.isArray(r.lost), 'lost 必须是数组，否则调用方崩溃');
   assert.strictEqual(r.lost.length, 0);
+});
+
+// ---- 同键改写（Codex 第五轮的主阻塞项）----
+//
+// ★护栏原先只比 entry+name，于是「键相同、断言内容被改」读作「没有丢失」
+//   而静默放行。实测能把一条名为「未成年 premium = 100」的 golden
+//   改写成 expectedOutput: 999 且 exit 0——名字承诺 100、断言体断言 999。
+
+check('★同键但 expectedOutput 被改 → 必须报 rewritten', () => {
+  const prev = { entry: 'e', cases: [{ name: 'x', input: [1], expectedOutput: 100 }] };
+  const r = detectGoldenLoss(prev, [{ name: 'x', input: [1], expectedOutput: 999 }], 'e');
+  assert.strictEqual(r.ok, false, '断言被改写不得放行');
+  assert.strictEqual(r.reason, 'rewritten');
+  assert.strictEqual(r.rewritten.length, 1);
+  assert.ok(r.rewritten[0].includes('100') && r.rewritten[0].includes('999'), '须列出前后值');
+});
+
+check('★同键但 input 被改 → 必须报 rewritten（输入变了断言就换了对象）', () => {
+  const prev = { entry: 'e', cases: [{ name: 'x', input: ['premium', 0], expectedOutput: 100 }] };
+  const r = detectGoldenLoss(prev, [{ name: 'x', input: [999], expectedOutput: 100 }], 'e');
+  assert.strictEqual(r.ok, false);
+  assert.strictEqual(r.reason, 'rewritten');
+});
+
+check('★expectError 契约被换成值断言 → 必须报 rewritten', () => {
+  const prev = { entry: 'e', cases: [{ name: 'x', input: [1], expectError: true }] };
+  const r = detectGoldenLoss(prev, [{ name: 'x', input: [1], expectedOutput: 0 }], 'e');
+  assert.strictEqual(r.ok, false);
+  assert.strictEqual(r.reason, 'rewritten');
+});
+
+check('内容完全相同 → 放行（改写检测不得误伤正常重写）', () => {
+  const prev = { entry: 'e', cases: [{ name: 'x', input: [1], expectedOutput: 100 }] };
+  const r = detectGoldenLoss(prev, [{ name: 'x', input: [1], expectedOutput: 100 }], 'e');
+  assert.strictEqual(r.ok, true);
+});
+
+check('★丢失优先于改写：两者并存时 reason=lost 且两个清单都在', () => {
+  const prev = { entry: 'e', cases: [
+    { name: 'a', input: [1], expectedOutput: 1 },
+    { name: 'b', input: [2], expectedOutput: 2 },
+  ] };
+  const r = detectGoldenLoss(prev, [{ name: 'a', input: [1], expectedOutput: 999 }], 'e');
+  assert.strictEqual(r.ok, false);
+  assert.strictEqual(r.reason, 'lost', '有整条丢失时以 lost 为主因');
+  assert.deepStrictEqual(r.lost, ['e/b']);
+  assert.strictEqual(r.rewritten.length, 1, '被改写的 a 也必须列出');
+});
+
+check('★unparseable 分支必须同时带 lost 与 rewritten 空数组（调用方会读 .length）', () => {
+  // Codex 指出 unparseable 的 lost 是死字段——调用方确实不读它，
+  // 但字段缺失会让任何未来的 .length 访问直接崩，故保留并补齐 rewritten。
+  const r = detectGoldenLoss(undefined, [{ name: 'a' }], 'e');
+  assert.ok(Array.isArray(r.lost), 'lost 必须是数组');
+  assert.ok(Array.isArray(r.rewritten), 'rewritten 必须是数组');
 });
 
 check('★caseKey 用 ?? 而非 ||：entry 为空串时不得回退到文档级', () => {

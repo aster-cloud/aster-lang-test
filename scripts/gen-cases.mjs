@@ -356,6 +356,17 @@ for (const s of samples) {
             `\n    无法解析就无法确认会丢失哪些 golden——请先人工查看该文件；` +
             `\n    确认可弃后加 --allow-drop=${s.name} --drop-reason="..." 重建。`,
         );
+      } else if (verdict.reason === 'rewritten') {
+        // ★键（entry+name）没变、**断言内容**被改写。这同样是「既有 golden
+        //   不再成立」，必须与整条丢失走同一道闸门——否则可以把一条名为
+        //   「未成年 premium = 100」的 golden 静默改成 expectedOutput: 999。
+        console.error(
+          `  \u2717 ${s.name}: 拒绝写入——${verdict.rewritten.length} 条 golden 的断言被改写：\n` +
+            verdict.rewritten.map((x) => `      - ${x}`).join('\n') +
+            `\n    键（entry+name）没变但输入/期望变了，等于把旧断言悄悄换掉。` +
+            `\n    若确实要**修正期望**（如实现补真后旧期望已不正确），` +
+            `\n    加 --allow-drop=${s.name} --drop-reason="..."。`,
+        );
       } else {
         console.error(
           `  \u2717 ${s.name}: 拒绝写入——会抹掉既有 ${verdict.lost.length} 条 golden：\n` +
@@ -370,11 +381,21 @@ for (const s of samples) {
     }
     if (!verdict.ok) {
       // 显式放行：仍把弃掉的内容打进日志，让「丢了什么」可审。
+      // ★丢失与改写要分别列出：两者都是「旧断言不再成立」，
+      //   但改写更隐蔽（键还在，只是内容变了），审计时必须看得见。
+      const parts = [];
+      if (verdict.lost?.length) {
+        parts.push(`弃用既有 ${verdict.lost.length} 条 golden：\n` +
+          verdict.lost.map((x) => `      - ${x}`).join('\n'));
+      }
+      if (verdict.rewritten?.length) {
+        parts.push(`改写 ${verdict.rewritten.length} 条 golden 的断言：\n` +
+          verdict.rewritten.map((x) => `      - ${x}`).join('\n'));
+      }
       console.warn(
         verdict.reason === 'unparseable'
           ? `  ! ${s.name}: 既有文件无法解析，--allow-drop 生效，整体重建（理由：${DROP_REASON}）`
-          : `  ! ${s.name}: --allow-drop 生效（理由：${DROP_REASON}），弃用既有 ${verdict.lost.length} 条 golden：\n` +
-              verdict.lost.map((x) => `      - ${x}`).join('\n'),
+          : `  ! ${s.name}: --allow-drop 生效（理由：${DROP_REASON}），` + parts.join('；'),
       );
     }
   }

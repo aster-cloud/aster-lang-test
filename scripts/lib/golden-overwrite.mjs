@@ -22,6 +22,22 @@ export function caseKey(c, defaultEntry) {
 }
 
 /**
+ * case 的**断言内容**指纹：输入 + 期望（或 expectError 契约）。
+ *
+ * ★为什么必须有：护栏原先只比 `entry + name`，于是「键相同、断言内容被改」
+ * 读作「没有丢失」而静默放行。实测可把一条名为
+ * `未成年 premium = 100` 的 golden 改写成 `expectedOutput: 999` 且 exit 0。
+ * 名字承诺 100、断言体断言 999——正是本仓最该防的那类腐坏。
+ */
+export function caseAssertion(c) {
+  return JSON.stringify(
+    c.expectError === true
+      ? { input: c.input ?? null, expectError: true }
+      : { input: c.input ?? null, expectedOutput: c.expectedOutput ?? null },
+  );
+}
+
+/**
  * 判断把 `nextCases` 写入会不会丢掉 `prevDoc` 里的 golden。
  *
  * @param prevDoc   既有 cases 文档；`null` 表示文件不存在，
@@ -42,11 +58,30 @@ export function detectGoldenLoss(prevDoc, nextCases, nextEntry) {
     typeof prevDoc !== 'object' ||
     !Array.isArray(prevDoc.cases)
   ) {
-    return { ok: false, reason: 'unparseable', lost: [] };
+    // ★两个清单都给空数组：调用方（现在或将来）读 `.length` 时不会因
+    //   字段缺失而崩。Codex 指出 unparseable 的 lost 目前无人消费——属实，
+    //   但缺字段的代价是运行时崩溃，保留的代价只是一个空数组。
+    return { ok: false, reason: 'unparseable', lost: [], rewritten: [] };
   }
-  const now = new Set(nextCases.map((c) => caseKey(c, nextEntry)));
-  const lost = prevDoc.cases
-    .filter((c) => !now.has(caseKey(c, prevDoc.entry)))
-    .map((c) => `${c.entry ?? prevDoc.entry}/${c.name}`);
-  return lost.length > 0 ? { ok: false, reason: 'lost', lost } : { ok: true };
+  // 键 → 断言内容，用于同时检出「整条消失」与「键在但断言被改写」。
+  const now = new Map(nextCases.map((c) => [caseKey(c, nextEntry), caseAssertion(c)]));
+  const lost = [];
+  const rewritten = [];
+  for (const c of prevDoc.cases) {
+    const k = caseKey(c, prevDoc.entry);
+    const label = `${c.entry ?? prevDoc.entry}/${c.name}`;
+    if (!now.has(k)) {
+      lost.push(label);
+      continue;
+    }
+    // ★键相同不代表内容相同。断言被改写同样是「既有 golden 不再成立」，
+    //   必须与整条丢失走同一道授权闸门，否则可以静默把 100 改成 999。
+    const before = caseAssertion(c);
+    const after = now.get(k);
+    if (before !== after) rewritten.push(`${label}: ${before} → ${after}`);
+  }
+  if (lost.length > 0 || rewritten.length > 0) {
+    return { ok: false, reason: lost.length > 0 ? 'lost' : 'rewritten', lost, rewritten };
+  }
+  return { ok: true };
 }
