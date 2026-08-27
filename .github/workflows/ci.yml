@@ -143,6 +143,9 @@ jobs:
               - 'scripts/equivalence-nightly.mjs'
               - 'scripts/lib/eval-cases.mjs'
               - 'scripts/test-eval-guard.mjs'
+              - 'scripts/lib/golden-overwrite.mjs'
+              - 'scripts/test-golden-overwrite.mjs'
+              - 'scripts/gen-cases.mjs'
               - '.github/workflows/ci.yml'
 
       # Shared version catalog (aster-lang-platform, ADR 0012). aster-lang-core
@@ -298,6 +301,15 @@ jobs:
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         run: node scripts/test-eval-guard.mjs
+
+      # golden 覆盖护栏（gen-cases 的写入判定）。它决定「会不会静默抹掉已验证的
+      # golden」——曾因该逻辑失守把 38 条 case 覆盖成 1 条。逻辑抽在
+      # lib/golden-overwrite.mjs 就是为了能在这里秒级跑到（gen-cases 本身要真跑
+      # 两个引擎，分钟级，不适合当门禁）。
+      - name: Run golden-overwrite guard regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-golden-overwrite.mjs
 
       # audit #95：豁免锈蚀守门 —— meta.json 盖章的 evalExempt 与实时分类漂移即失败
       # （陈旧豁免会让 parity-tier1 守卫静默跳过已可 eval 的样本，分母漂移）。

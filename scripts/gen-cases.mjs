@@ -62,7 +62,7 @@ import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync } from 'no
 import { dirname, resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
-import { detectGoldenLoss } from './lib/golden-overwrite.mjs';
+import { detectGoldenLoss, FILE_ABSENT } from './lib/golden-overwrite.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -83,7 +83,9 @@ const WRITE = args.includes('--write');
 //   全局布尔开关的问题是「批准了 A 的替换，顺手也放行了 B 的误覆盖」——
 //   而误覆盖恰恰是这道护栏要防的（我已因此丢过 38 条 golden）。
 //   理由会打进日志：日后回看「这些 golden 是被谁、以什么理由弃掉的」有据可查。
-const dropArg = args.find((a) => a.startsWith('--allow-drop'));
+// ★必须精确匹配 `--allow-drop=`：用 startsWith('--allow-drop') 会把
+//   `--allow-dropfoo=alpha` 当成合法授权（Codex 复审抓出）。
+const dropArg = args.find((a) => a === '--allow-drop' || a.startsWith('--allow-drop='));
 const ALLOW_DROP_SAMPLES = dropArg
   ? new Set(
       (dropArg.includes('=') ? dropArg.slice(dropArg.indexOf('=') + 1) : '')
@@ -320,4 +322,11 @@ for (const s of samples) {
   }
 }
 console.log(WRITE ? `\n✅ wrote ${written} verified .cases.json file(s).` : `\n(dry run — pass --write to persist ${bySample.size} fully-verified sample(s))`);
-process.exit(problems.length > 0 ? 1 : 0);
+// ★不要写成 `process.exit(problems.length > 0 ? 1 : 0)`：那会**覆盖**上面
+//   护栏设的 `process.exitCode = 1`，让「拒绝写入」在 CI 里被读成成功。
+//   （Codex 复审抓出：护栏正确打印了拒绝，进程却 exit 0。）
+//   保留已设的失败码；仅在尚未失败时才按 problems 决定。
+if (process.exitCode === undefined || process.exitCode === 0) {
+  process.exitCode = problems.length > 0 ? 1 : 0;
+}
+process.exit(process.exitCode);

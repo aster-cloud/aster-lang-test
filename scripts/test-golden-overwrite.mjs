@@ -10,7 +10,7 @@
  * 用法：node scripts/test-golden-overwrite.mjs（退出码 0=全过，1=有失败）。
  */
 import assert from 'node:assert';
-import { detectGoldenLoss, caseKey } from './lib/golden-overwrite.mjs';
+import { detectGoldenLoss, caseKey, FILE_ABSENT } from './lib/golden-overwrite.mjs';
 
 let pass = 0;
 let fail = 0;
@@ -26,8 +26,16 @@ function check(name, fn) {
 
 const doc = (entry, names) => ({ entry, cases: names.map((n) => ({ name: n })) });
 
-check('文件不存在 → 放行', () => {
-  assert.deepStrictEqual(detectGoldenLoss(null, [{ name: 'a' }], 'e'), { ok: true });
+check('文件不存在（FILE_ABSENT 哨兵）→ 放行', () => {
+  assert.deepStrictEqual(detectGoldenLoss(FILE_ABSENT, [{ name: 'a' }], 'e'), { ok: true });
+});
+
+check('★内容为合法 JSON null → unparseable，不得当成"文件不存在"放行', () => {
+  // Codex 复审抓出：原实现用 null 兼表"不存在"，于是一个内容真是 `null`
+  // 的既有文件会被无授权整体覆盖。哨兵与数据必须分离。
+  const r = detectGoldenLoss(null, [{ name: 'a' }], 'e');
+  assert.strictEqual(r.ok, false);
+  assert.strictEqual(r.reason, 'unparseable');
 });
 
 check('新集合覆盖旧集合 → 放行', () => {

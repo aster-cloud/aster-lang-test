@@ -8,6 +8,14 @@
  * 伪装成「文件损坏 → 整体重建」）。
  */
 
+/**
+ * 「既有文件不存在」的哨兵。
+ *
+ * ★不能用 `null` 表达：JSON 内容本身就可能是合法的 `null`，
+ * 两者混用会让一个内容为 `null` 的文件被当成"没有文件"而无授权覆盖。
+ */
+export const FILE_ABSENT = Symbol('file-absent');
+
 /** case 的唯一键：entry 缺省时用文档级 entry。 */
 export function caseKey(c, defaultEntry) {
   return `${c.entry ?? defaultEntry} ${c.name}`;
@@ -24,9 +32,13 @@ export function caseKey(c, defaultEntry) {
  * 调用方须在 ALLOW_DROP 下才放行，与「有意替换」走同一道授权。
  */
 export function detectGoldenLoss(prevDoc, nextCases, nextEntry) {
-  if (prevDoc === null) return { ok: true };
+  // ★「文件不存在」必须由调用方用**独立哨兵** FILE_ABSENT 表达，不能用 null：
+  //   既有文件的内容完全可能是合法 JSON `null`，若把它也当成"不存在"，
+  //   就会无授权整体覆盖（Codex 复审抓出）。
+  if (prevDoc === FILE_ABSENT) return { ok: true };
   if (
     prevDoc === undefined ||
+    prevDoc === null ||
     typeof prevDoc !== 'object' ||
     !Array.isArray(prevDoc.cases)
   ) {
