@@ -144,6 +144,8 @@ jobs:
               - 'scripts/lib/eval-cases.mjs'
               - 'scripts/test-eval-guard.mjs'
               - 'scripts/lib/golden-overwrite.mjs'
+              - 'scripts/lib/drop-authorization.mjs'
+              - 'scripts/test-drop-authorization.mjs'
               - 'scripts/test-golden-overwrite.mjs'
               - 'scripts/gen-cases.mjs'
               - '.github/workflows/ci.yml'
@@ -310,6 +312,14 @@ jobs:
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         run: node scripts/test-golden-overwrite.mjs
+
+      # drop 授权参数解析 + 最终退出码合并。★上一轮真实回归过：护栏正确打印
+      # 「拒绝写入」，进程却 exit 0（末行 process.exit 覆盖了 exitCode=1），
+      # CI 把拒绝读成成功。逻辑抽成纯函数就是为了能在这里秒级守住。
+      - name: Run drop-authorization guard regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-drop-authorization.mjs
 
       # audit #95：豁免锈蚀守门 —— meta.json 盖章的 evalExempt 与实时分类漂移即失败
       # （陈旧豁免会让 parity-tier1 守卫静默跳过已可 eval 的样本，分母漂移）。

@@ -63,6 +63,7 @@ import { dirname, resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { detectGoldenLoss, FILE_ABSENT } from './lib/golden-overwrite.mjs';
+import { parseDropArgs, finalExitCode, DROP_ARG_ERRORS } from './lib/drop-authorization.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -83,37 +84,19 @@ const WRITE = args.includes('--write');
 //   全局布尔开关的问题是「批准了 A 的替换，顺手也放行了 B 的误覆盖」——
 //   而误覆盖恰恰是这道护栏要防的（我已因此丢过 38 条 golden）。
 //   理由会打进日志：日后回看「这些 golden 是被谁、以什么理由弃掉的」有据可查。
-// ★必须精确匹配 `--allow-drop=`：用 startsWith('--allow-drop') 会把
-//   `--allow-dropfoo=alpha` 当成合法授权（Codex 复审抓出）。
-const dropArg = args.find((a) => a === '--allow-drop' || a.startsWith('--allow-drop='));
-const ALLOW_DROP_SAMPLES = dropArg
-  ? new Set(
-      (dropArg.includes('=') ? dropArg.slice(dropArg.indexOf('=') + 1) : '')
-        .split(',')
-        .map((x) => x.trim())
-        .filter(Boolean),
-    )
-  : null;
-const dropReasonArg = args.find((a) => a.startsWith('--drop-reason='));
-const DROP_REASON = dropReasonArg ? dropReasonArg.slice('--drop-reason='.length).trim() : '';
-
-if (dropArg && ALLOW_DROP_SAMPLES.size === 0) {
-  console.error(
-    "错误：--allow-drop 必须指定样本名，如 --allow-drop=test_eligibility。\n" +
-      "  不接受无参形式——全局放行会让本该被拦下的误覆盖一并通过。",
-  );
+// 参数解析抽到 lib/drop-authorization.mjs：内联在这里就没法为它写快测
+// （gen-cases 要真跑两个引擎），而这正是上一轮出过回归的地方。
+// 回归测试见 scripts/test-drop-authorization.mjs。
+const dropParse = parseDropArgs(args);
+if (!dropParse.ok) {
+  console.error(DROP_ARG_ERRORS[dropParse.error]);
   process.exit(2);
 }
-if (dropArg && !DROP_REASON) {
-  console.error(
-    '错误：--allow-drop 必须同时给出 --drop-reason="为何这些 golden 该弃"。\n' +
-      '  理由会打进日志，供日后审计。',
-  );
-  process.exit(2);
-}
+const ALLOW_DROP_SAMPLES = dropParse.samples;
+const DROP_REASON = dropParse.reason;
 
 /** 该样本是否被显式授权弃用既有 golden。 */
-const allowDropFor = (name) => ALLOW_DROP_SAMPLES !== null && ALLOW_DROP_SAMPLES.has(name);
+const allowDropFor = (name) => ALLOW_DROP_SAMPLES.has(name);
 const onlyArg = args.find((a) => a.startsWith('--only='));
 const ONLY = onlyArg ? new Set(onlyArg.slice('--only='.length).split(',')) : null;
 
@@ -326,7 +309,4 @@ console.log(WRITE ? `\n✅ wrote ${written} verified .cases.json file(s).` : `\n
 //   护栏设的 `process.exitCode = 1`，让「拒绝写入」在 CI 里被读成成功。
 //   （Codex 复审抓出：护栏正确打印了拒绝，进程却 exit 0。）
 //   保留已设的失败码；仅在尚未失败时才按 problems 决定。
-if (process.exitCode === undefined || process.exitCode === 0) {
-  process.exitCode = problems.length > 0 ? 1 : 0;
-}
-process.exit(process.exitCode);
+process.exit(finalExitCode(process.exitCode, problems.length));
