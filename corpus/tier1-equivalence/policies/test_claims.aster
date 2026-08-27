@@ -7,6 +7,11 @@ Module test.healthcare.claims.
 #   · 预授权金额阈值 1000：★KFF 明示预授权按服务类型而非金额触发，
 #     此阈值是为让样本可执行而做的工程简化，无权威出处。
 #   · 拒付理由枚举参考 KFF 2024 六分类（缺预授权/转诊占 9%）
+#   · ★`divided by` 是**真除法**（非取整）：金额不整除时会产生小数
+#     （如 333×80% = 266.4）。这是金额该有的语义（有分位），故保留；
+#     但既有 case 全都恰好整除属**侥幸**，一旦有人加个不整除的金额，
+#     golden 就会是浮点数。testCalculateClaimApprovalFractional 专门
+#     钉住这条路径，让「会产生小数」成为被断言的性质而非意外。
 #   · ★自动裁定金额上限 $100,000：**无权威出处**。KFF 只统计「高额理赔
 #     （>$10万/年）占成员 1.2%、占支出约 33%」（全国医保采购联盟 2024），
 #     那是**年度累计**口径，不是单笔自动裁定阈值。此处借其量级设为单笔阈值，
@@ -96,6 +101,8 @@ Rule testInvalidDocumentationNoReferral, produce:
 Rule testLowAmountNoPreAuthRequired, produce:
   Let claim be Claim with claimId set to "C12", patientId set to "P1", providerId set to "PR12", serviceDate set to "2026-01-15", amount set to 200, diagnosisCode set to "Z00".
   Return validateClaimDocumentation(claim, false, true).
+Rule testCalculateClaimApprovalFractional, produce:
+  Return calculateClaimApproval(333, 80, "general").
 Rule testCalculateClaimApprovalGeneral, produce:
   Return calculateClaimApproval(1000, 80, "general").
 Rule testCalculateClaimApprovalSpecialist, produce:

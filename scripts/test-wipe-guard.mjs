@@ -20,8 +20,8 @@
  * 用法：node scripts/test-wipe-guard.mjs（退出码 0=全过，1=有失败）。
  */
 import assert from 'node:assert';
-import { execFileSync } from 'node:child_process';
-import { mkdtempSync, writeFileSync, readFileSync, rmSync } from 'node:fs';
+import { spawnSync } from 'node:child_process';
+import { mkdtempSync, writeFileSync, readFileSync, rmSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -43,17 +43,14 @@ function check(name, fn) {
   }
 }
 
-/** 跑 gen-cases，返回 {code, out}。绝不让异常逃逸成假绿。 */
+/**
+ * 跑 gen-cases，返回 {code, out}。绝不让异常逃逸成假绿。
+ * ★out 必须是 stdout + stderr 合并：拒绝信息在 stderr、授权日志在 stdout，
+ *   只取其一会让断言瞎掉一半（我已因此误判过一次）。
+ */
 function runGen(args) {
-  try {
-    const out = execFileSync('node', [GEN, ...args], {
-      encoding: 'utf8',
-      stdio: ['ignore', 'pipe', 'pipe'],
-    });
-    return { code: 0, out };
-  } catch (err) {
-    return { code: err.status ?? -1, out: `${err.stdout ?? ''}${err.stderr ?? ''}` };
-  }
+  const r = spawnSync('node', [GEN, ...args], { encoding: 'utf8' });
+  return { code: r.status ?? -1, out: `${r.stdout ?? ''}${r.stderr ?? ''}` };
 }
 
 /** 写一个「声明 cases 为空」的 spec，指向真实存在且有 golden 的样本。 */
@@ -61,6 +58,75 @@ function wipeSpec(dir, sample, entry) {
   const p = join(dir, 'wipe.json');
   writeFileSync(p, JSON.stringify({ samples: [{ name: sample, entry, cases: [] }] }));
   return p;
+}
+
+// ---- 非空写入路径的装置 ----
+//
+// ★变异审计用插桩证明：上面 9 条（全部用 cases: []）走的是早退分支，
+//   非空写入分支**命中 0 次**。于是 partial 拦截、prev 解析分流、
+//   detectGoldenLoss、主拒绝块、writeFileSync 全部零覆盖——
+//   把主护栏条件**整个反转**（真丢失被写入、安全写入被拒）时 75 条测试仍全绿。
+//   要覆盖它就必须有 case 通过验证，而那本来要真跑两个引擎（分钟级）。
+//   故用 GEN_CASES_FAKE_ENGINE 注入引擎结果：只让「引擎算出了什么」可控，
+//   护栏逻辑一行不碰（见 gen-cases.mjs 中该注入点的安全边界说明）。
+
+/** 造 spec + 对应的假引擎输出，使每条 case 都「双引擎一致且等于期望」。 */
+function nonEmptySpec(dir, sample, entry, caseNames, tag = 'ne') {
+  const cases = caseNames.map((n, i) => ({ name: n, input: [i], expectedOutput: i }));
+  const specPath = join(dir, `${tag}.json`);
+  writeFileSync(specPath, JSON.stringify({ samples: [{ name: sample, entry, cases }] }));
+  const fake = join(dir, `${tag}.jsonl`);
+  writeFileSync(fake, cases.map((c, i) => JSON.stringify({ gIndex: i, value: i })).join('\n') + '\n');
+  return { specPath, fake };
+}
+
+/** 只让前 n 条通过验证（其余引擎给出不匹配的值）→ 触发 partial 拦截。 */
+function partialSpec(dir, sample, entry, total, passing) {
+  const cases = Array.from({ length: total }, (_, i) => ({ name: `c${i}`, input: [i], expectedOutput: i }));
+  const specPath = join(dir, 'partial.json');
+  writeFileSync(specPath, JSON.stringify({ samples: [{ name: sample, entry, cases }] }));
+  const fake = join(dir, 'partial.jsonl');
+  writeFileSync(
+    fake,
+    cases.map((c, i) => JSON.stringify({ gIndex: i, value: i < passing ? i : 9999 })).join('\n') + '\n',
+  );
+  return { specPath, fake };
+}
+
+/**
+ * 造一个「既有 golden 的**超集**」spec：保留全部既有 case 再加一条。
+ * 用于验证「不丢失时应放行」，以及 dry-run 是否偷偷落盘。
+ * ★必须沿用既有 case 的 entry/input/expectedOutput，否则写出来的是另一种形状。
+ */
+function supersetSpec(dir, tag) {
+  const prev = JSON.parse(before);
+  const cases = prev.cases.map((c) => ({
+    name: c.name, entry: c.entry, input: c.input,
+    ...(c.expectError ? { expectError: true } : { expectedOutput: c.expectedOutput }),
+  }));
+  cases.push({ name: `zz-added-${tag}`, input: [0], expectedOutput: 0 });
+  const specPath = join(dir, `${tag}.json`);
+  writeFileSync(specPath, JSON.stringify({ samples: [{ name: SAMPLE, entry: prev.entry, cases }] }));
+  const fake = join(dir, `${tag}.jsonl`);
+  writeFileSync(
+    fake,
+    cases.map((c, i) => JSON.stringify(
+      c.expectError ? { gIndex: i, error: 'expected-rejection' } : { gIndex: i, value: c.expectedOutput },
+    )).join('\n') + '\n',
+  );
+  return { specPath, fake, total: cases.length };
+}
+
+function runGenFake(args, fake) {
+  // ★成功路径必须**合并 stdout 与 stderr**：护栏的拒绝信息走 console.error（stderr），
+  //   而授权放行的「--allow-drop 生效（理由：…）」走 console.log（stdout）。
+  //   只取返回值（= stdout）会让「理由是否进日志」这条断言看不到 stderr 的内容，
+  //   反之只看 stderr 会漏掉授权日志。我第一版只取返回值，误判成「理由没打进日志」。
+  const r = spawnSync('node', [GEN, ...args], {
+    encoding: 'utf8',
+    env: { ...process.env, GEN_CASES_FAKE_ENGINE: fake },
+  });
+  return { code: r.status ?? -1, out: `${r.stdout ?? ''}${r.stderr ?? ''}` };
 }
 
 const tmp = mkdtempSync(join(tmpdir(), 'wipe-guard-'));
@@ -142,6 +208,130 @@ try {
     assert.ok(out.includes('✗'), '必须确实打印了拒绝');
     assert.strictEqual(code, 1, '打印了拒绝就必须 exit 非 0，否则 CI 读成成功');
   });
+  // ---- 非空写入路径（变异审计暴露的零覆盖区）----
+  //
+  // 下面每条都对应一个此前**存活**的变异。括号里是变异编号。
+
+  check('★首次生成（无既有文件）必须成功创建（杀 prev=FILE_ABSENT→undefined）', () => {
+    // FILE_ABSENT 哨兵在集成层此前零覆盖：改成 undefined 会让首次生成从
+    // "放行"翻成"拒绝"，等于任何新样本都建不出 golden，却无人发现。
+    const fresh = `zz_fresh_${process.pid}`;
+    const freshPolicy = join(INPUTS, '..', 'policies', `${fresh}.aster`);
+    const freshGolden = join(INPUTS, `${fresh}.cases.json`);
+    writeFileSync(freshPolicy, 'Module zz.fresh.\n\nRule ident given x, produce:\n  Return x.\n');
+    try {
+      const { specPath, fake } = nonEmptySpec(tmp, fresh, 'ident', ['a', 'b'], 'fresh');
+      const { code, out } = runGenFake([specPath, '--write'], fake);
+      assert.strictEqual(code, 0, `首次生成应成功，实际 ${code}。输出：${out}`);
+      assert.ok(existsSync(freshGolden), '必须真的创建了 golden 文件');
+      assert.strictEqual(JSON.parse(readFileSync(freshGolden, 'utf8')).cases.length, 2);
+    } finally {
+      rmSync(freshPolicy, { force: true });
+      rmSync(freshGolden, { force: true });
+    }
+  });
+
+  check('★既有文件损坏（非 ENOENT）必须拒绝而非当作"不存在"放行（杀 ENOENT→true）', () => {
+    // 文件头注释警告过这个失效模式（把 bug 伪装成"文件损坏→整体重建"，
+    // 38 条变 1 条），却一直没有测试锁住它。
+    const broken = `zz_broken_${process.pid}`;
+    const brokenPolicy = join(INPUTS, '..', 'policies', `${broken}.aster`);
+    const brokenGolden = join(INPUTS, `${broken}.cases.json`);
+    writeFileSync(brokenPolicy, 'Module zz.broken.\n\nRule ident given x, produce:\n  Return x.\n');
+    writeFileSync(brokenGolden, '{{{ not json');
+    try {
+      const { specPath, fake } = nonEmptySpec(tmp, broken, 'ident', ['a'], 'broken');
+      const { code, out } = runGenFake([specPath, '--write'], fake);
+      assert.strictEqual(code, 1, `损坏文件必须拒绝覆盖，实际 exit ${code}`);
+      assert.ok(out.includes('无法解析'), `拒绝信息应说明无法解析。实际：${out}`);
+      assert.strictEqual(readFileSync(brokenGolden, 'utf8'), '{{{ not json', '文件必须原样不动');
+    } finally {
+      rmSync(brokenPolicy, { force: true });
+      rmSync(brokenGolden, { force: true });
+    }
+  });
+
+  check('★主护栏：真丢失必须拒绝且 exit 1（杀主分支 exitCode=1→0、条件反转）', () => {
+    // 与"清空分支"那条同构，但走的是**非空**路径——正是零覆盖的那条。
+    const { specPath, fake } = nonEmptySpec(tmp, SAMPLE, ENTRY, ['only-one'], 'loss');
+    const { code, out } = runGenFake([specPath, '--write'], fake);
+    assert.strictEqual(code, 1, `会抹掉既有 ${beforeCount} 条，必须 exit 1，实际 ${code}`);
+    assert.ok(out.includes('✗'), '必须打印拒绝');
+    assert.strictEqual(readFileSync(goldenPath, 'utf8'), before, '文件必须逐字节不变');
+  });
+
+  check('★主护栏：安全新增（新集合是旧集合超集）必须放行（与上一条成对，杀条件反转）', () => {
+    // ★必须成对：只测"拒绝"时，把条件反转仍可能只红一条而另一条恰好也红；
+    //   两个方向都钉住，反转就无处可逃。
+    const { specPath, fake, total } = supersetSpec(tmp, 'superset');
+    const { code, out } = runGenFake([specPath, '--write'], fake);
+    try {
+      assert.strictEqual(code, 0, `超集写入不丢任何 golden，应放行，实际 ${code}。输出：${out}`);
+      const after = JSON.parse(readFileSync(goldenPath, 'utf8'));
+      assert.strictEqual(after.cases.length, total, `应写入 ${total} 条（原 ${beforeCount} + 1）`);
+    } finally {
+      writeFileSync(goldenPath, before); // 立刻还原，避免影响后续断言
+    }
+  });
+
+  check('★dry-run 绝不落盘（杀去掉 if (WRITE) 的写入门）', () => {
+    // 原有的 dry-run 测试只断言 exit 0，管不住"它偷偷写了"。
+    // ★用**超集** spec：不丢任何 golden，故 dry-run 应 exit 0；
+    //   若用会丢 golden 的 spec，护栏会正确报 exit 1（我第一版写错了期望，
+    //   把「护栏正常工作」当成了测试失败）。这里要隔离的是「写没写」这一件事。
+    const { specPath, fake } = supersetSpec(tmp, 'dryrun');
+    const { code } = runGenFake([specPath], fake); // 不加 --write
+    assert.strictEqual(code, 0, 'dry-run 超集 spec 不丢 golden，应 exit 0');
+    assert.strictEqual(readFileSync(goldenPath, 'utf8'), before, 'dry-run 必须一个字节都不写');
+  });
+
+  check('★partial（部分 case 未通过验证）不得写入（杀摘除 partial 护栏）', () => {
+    const fresh = `zz_partial_${process.pid}`;
+    const p = join(INPUTS, '..', 'policies', `${fresh}.aster`);
+    const g = join(INPUTS, `${fresh}.cases.json`);
+    writeFileSync(p, 'Module zz.partial.\n\nRule ident given x, produce:\n  Return x.\n');
+    try {
+      const { specPath, fake } = partialSpec(tmp, fresh, 'ident', 3, 2);
+      const { code, out } = runGenFake([specPath, '--write'], fake);
+      assert.ok(out.includes('partial'), `应报告 partial。实际：${out}`);
+      assert.ok(!existsSync(g), 'partial 时不得创建文件');
+      assert.strictEqual(code, 1, '有 case 未通过验证应 exit 1');
+    } finally {
+      rmSync(p, { force: true });
+      rmSync(g, { force: true });
+    }
+  });
+
+  check('★--allow-drop 在主路径上真的放行且理由进日志（正向锁 + 审计留痕）', () => {
+    // 此前只有 helper 层测了 DROP_REASON 解析，集成层从未验证它**进过日志**。
+    // ★用既有 golden 的第一条（沿用其 entry/input/期望值），故这是一次
+    //   真正的**缩减**写入（N 条 → 1 条），必须靠 --allow-drop 才放行。
+    const prev = JSON.parse(before);
+    const c0 = prev.cases[0];
+    const cases = [{
+      name: c0.name, entry: c0.entry, input: c0.input,
+      ...(c0.expectError ? { expectError: true } : { expectedOutput: c0.expectedOutput }),
+    }];
+    const specPath = join(tmp, 'authz.json');
+    writeFileSync(specPath, JSON.stringify({ samples: [{ name: SAMPLE, entry: prev.entry, cases }] }));
+    const fake = join(tmp, 'authz.jsonl');
+    writeFileSync(fake, JSON.stringify(
+      c0.expectError ? { gIndex: 0, error: 'expected-rejection' } : { gIndex: 0, value: c0.expectedOutput },
+    ) + '\n');
+    const reason = 'ZZ-TEST-REASON-VISIBLE-IN-LOG';
+    const { code, out } = runGenFake(
+      [specPath, '--write', `--allow-drop=${SAMPLE}`, `--drop-reason=${reason}`],
+      fake,
+    );
+    try {
+      assert.strictEqual(code, 0, `授权后应放行，实际 ${code}。输出：${out}`);
+      assert.ok(out.includes(reason), `理由必须打进日志供审计。实际输出：${out.slice(-400)}`);
+      assert.strictEqual(JSON.parse(readFileSync(goldenPath, 'utf8')).cases.length, 1, '应按 spec 重建为 1 条');
+    } finally {
+      writeFileSync(goldenPath, before);
+    }
+  });
+
 } finally {
   // 无论断言成败都必须还原，避免把仓库留在脏状态
   writeFileSync(goldenPath, before);

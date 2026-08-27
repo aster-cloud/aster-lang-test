@@ -91,6 +91,12 @@
       "entry": "testCalculateClaimApprovalSurgery",
       "input": [],
       "expectedOutput": 700
+    },
+    {
+      "name": "★非整除金额产生小数 333×80% = 266.4(divided by 是真除法)",
+      "entry": "testCalculateClaimApprovalFractional",
+      "input": [],
+      "expectedOutput": 266.4
     }
   ]
 }

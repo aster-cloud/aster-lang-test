@@ -189,8 +189,40 @@ function runJava(reqs) {
 //   （Gradle 冷启动分钟级）。这条捷径也让「声明清空」的护栏能被秒级测试覆盖
 //   ——否则一个 cases:[] 的 spec 要等 8 分钟才走到闸门。
 //   注意：短路的只是**求值**，下面的写入/护栏循环照常执行。
+// ★测试专用引擎注入（GEN_CASES_FAKE_ENGINE=<jsonl 路径>）。
+//
+//   为什么需要：护栏最关键的那段（partial 拦截、prev 解析分流、detectGoldenLoss、
+//   主拒绝块、writeFileSync）**只在有 case 通过验证时才执行**，而那要求真跑两个
+//   引擎（Gradle 分钟级）。结果是这段代码在 CLI 层零覆盖——变异审计实测：
+//   把主护栏条件整个反转（真丢失被写入、安全写入被拒），**75 条测试仍全绿**。
+//   这正是「单测证明不了入口照它接线」的同一个病，只是换了条分支。
+//
+//   ★安全边界（这个注入点不得成为绕过护栏的后门）：
+//     · 只替换**引擎求值结果**（ts/java 两个 Map），护栏逻辑一行不碰；
+//     · 不改变 WRITE/allow-drop/丢失检测的任何判定；
+//     · 未设该环境变量时代码路径与生产完全一致（下面 else 分支原样保留）。
+//   即：它能让「引擎算出了什么」可控，但不能让「该不该写」可控。
+const FAKE_ENGINE = process.env.GEN_CASES_FAKE_ENGINE;
 let ts, java;
-if (requests.length === 0) {
+if (FAKE_ENGINE) {
+  // jsonl 每行 {gIndex, value} 或 {gIndex, error}：两引擎给同一结果，
+  // 因为本注入点服务于**写入路径**的测试，不是引擎分歧的测试。
+  console.error(`[gen-cases] ★FAKE ENGINE（仅供测试）：${FAKE_ENGINE}`);
+  ts = new Map();
+  java = new Map();
+  for (const line of readFileSync(FAKE_ENGINE, 'utf8').split('\n').filter(Boolean)) {
+    const rec = JSON.parse(line);
+    const r = requests.find((x) => x.gIndex === rec.gIndex);
+    if (!r) continue;
+    if ('error' in rec) {
+      ts.set(rec.gIndex, { success: false, error: rec.error });
+      java.set(javaKey(r), { ok: false, error: rec.error });
+    } else {
+      ts.set(rec.gIndex, { success: true, value: rec.value });
+      java.set(javaKey(r), { ok: true, value: rec.value });
+    }
+  }
+} else if (requests.length === 0) {
   console.error('[gen-cases] 0 cases — 跳过引擎启动');
   ts = new Map();
   java = new Map();
