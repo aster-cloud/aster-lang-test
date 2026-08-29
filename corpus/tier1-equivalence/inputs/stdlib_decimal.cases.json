@@ -15,6 +15,72 @@
         42
       ],
       "expectedOutput": "15.41"
+    },
+    {
+      "name": "0.1m + 0.2m = 0.3 精确（IEEE754 下会是 0.30000000000000004）",
+      "input": [],
+      "expectedOutput": "0.3",
+      "entry": "exactSum"
+    },
+    {
+      "name": "1m + 2 —— Int 提升为 Decimal 后相加",
+      "input": [],
+      "expectedOutput": "3",
+      "entry": "intPromotion"
+    },
+    {
+      "name": "0.1m + 0.2m equals to 0.3m —— 精确相等成立",
+      "input": [],
+      "expectedOutput": true,
+      "entry": "meetsThreshold"
+    },
+    {
+      "name": "Decimal.divide(0.0725m, 12m, 6, HALF_EVEN) —— 年化转月化",
+      "input": [],
+      "expectedOutput": "0.006042",
+      "entry": "monthlyRate"
+    },
+    {
+      "name": "经 Let 绑定的两个 Decimal 相加",
+      "input": [],
+      "expectedOutput": "2000.75",
+      "entry": "monthlyTotal"
+    },
+    {
+      "name": "100.01m − 0.02m —— 精确减法",
+      "input": [],
+      "expectedOutput": "99.99",
+      "entry": "netAfterFee"
+    },
+    {
+      "name": "Decimal.divide(100m, 3m, 4, HALF_UP) —— 无限循环小数按标度截断",
+      "input": [],
+      "expectedOutput": "33.3333",
+      "entry": "perUnit"
+    },
+    {
+      "name": "100.00m × 1.08m —— 精确乘法，无二进制浮点误差",
+      "input": [],
+      "expectedOutput": "108",
+      "entry": "priceWithTax"
+    },
+    {
+      "name": "Decimal.round(100.005m × 1.08m, 2, HALF_EVEN)",
+      "input": [],
+      "expectedOutput": "108.01",
+      "entry": "roundedTax"
+    },
+    {
+      "name": "1.20m × 1.080m —— 标度相加：2+3 位 → 结果 3 位有效小数",
+      "input": [],
+      "expectedOutput": "1.296",
+      "entry": "scaleGrowth"
+    },
+    {
+      "name": "1.0m equals to 1.00m —— 值语义相等，不看标度",
+      "input": [],
+      "expectedOutput": true,
+      "entry": "valueSemantics"
     }
   ]
 }

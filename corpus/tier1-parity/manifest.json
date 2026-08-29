@@ -199,6 +199,7 @@
     "tier1-equivalence/policies/stdlib_io.aster",
     "tier1-equivalence/policies/stdlib_maybe_result.aster",
     "tier1-equivalence/policies/stdlib_text.aster",
+    "tier1-equivalence/policies/struct_list_equality.aster",
     "tier1-equivalence/policies/symbolic_operators.aster",
     "tier1-equivalence/policies/test-operators.aster",
     "tier1-equivalence/policies/test_all_comparisons.aster",

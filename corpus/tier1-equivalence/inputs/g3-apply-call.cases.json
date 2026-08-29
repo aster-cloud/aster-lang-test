@@ -15,6 +15,57 @@
         0
       ],
       "expectedOutput": 2
+    },
+    {
+      "name": "规则名为软关键词 return，x=6 → 18",
+      "input": [
+        6
+      ],
+      "expectedOutput": 18,
+      "entry": "return"
+    },
+    {
+      "name": "a + apply twice to b plus 1：1 + twice(2+1) = 7",
+      "input": [
+        1,
+        2
+      ],
+      "expectedOutput": 7,
+      "entry": "rightOperand"
+    },
+    {
+      "name": "apply twice to seed plus 1：seed=4 → twice(4+1)=10，验证 apply 绑到右侧完整表达式",
+      "input": [
+        4
+      ],
+      "expectedOutput": 10
+    },
+    {
+      "name": "n=5 → 10（被 apply 调用的目标规则）",
+      "input": [
+        5
+      ],
+      "expectedOutput": 10,
+      "entry": "twice"
+    },
+    {
+      "name": "apply return to x —— 软关键词可作 apply 目标",
+      "input": [
+        6
+      ],
+      "expectedOutput": 18,
+      "entry": "viaSoftKeyword"
+    },
+    {
+      "name": "apply Some to x：x=9 → Some(9)（标签统一为 __type 后可定基线，ADR 0036）",
+      "input": [
+        9
+      ],
+      "expectedOutput": {
+        "__type": "Some",
+        "value": 9
+      },
+      "entry": "wrap"
     }
   ]
 }

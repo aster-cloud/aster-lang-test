@@ -39,8 +39,8 @@
  *   parity-tier1-report.json — machine-readable detail (per-sample verdict)
  */
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
-import { dirname, resolve, join } from 'node:path';
+import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync, readdirSync } from 'node:fs';
+import { dirname, resolve, join, basename } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { upsertDailyHistory } from './lib/history.mjs';
@@ -119,6 +119,76 @@ function resolveSamples(manifest) {
     fail(`manifest references ${missing.length} missing sample(s):\n  - ${missing.join('\n  - ')}`);
   }
   return out;
+}
+
+/**
+ * 守卫一：tier1 policies 下的每个 .aster 都必须在 manifest 中。
+ *
+ * ★为什么需要：三个严格门（parse/IR/eval）都只遍历 manifest。样本不在 manifest 里
+ * 就是**全部跳过**，而不是失败——于是「为某个真实跨引擎缺陷写的守门用例」可以
+ * 从未生效而 CI 全绿。实测发现 struct_list_equality 正是如此：policies 有 223 个
+ * .aster，manifest 只有 222 条，唯一缺席的就是它（PR #90 的提交信息明言它是
+ * 「TS === 引用相等 vs Java Objects.equals 结构相等」那条修复的守门）。
+ *
+ * 豁免用 EXEMPT_FROM_MANIFEST 显式列出并写明理由——必须是显式的，
+ * 「悄悄不在 manifest 里」正是本守卫要消灭的状态。
+ */
+const EXEMPT_FROM_MANIFEST = new Set([
+  // 目前无豁免。新增豁免必须在此写明理由。
+]);
+
+function assertAllPoliciesInManifest(manifest) {
+  const dir = join(CORPUS, 'tier1-equivalence', 'policies');
+  if (!existsSync(dir)) return;
+  const onDisk = readdirSync(dir).filter((f) => f.endsWith('.aster'));
+  const inManifest = new Set(
+    manifest.samples.map((rel) => basename(rel).replace(/\.aster$/, '')),
+  );
+  const orphans = onDisk
+    .map((f) => f.replace(/\.aster$/, ''))
+    .filter((name) => !inManifest.has(name) && !EXEMPT_FROM_MANIFEST.has(name))
+    .sort();
+  if (orphans.length > 0) {
+    fail(
+      `${orphans.length} tier1 policy sample(s) are not in manifest — ` +
+        `all three gates SKIP them silently:\n  - ${orphans.join('\n  - ')}\n` +
+        `Add them to corpus/tier1-parity/manifest.json, ` +
+        `or list them in EXEMPT_FROM_MANIFEST with a reason.`,
+    );
+  }
+}
+
+/**
+ * 守卫二：inputs 下的每个 .cases.json 都必须能被某个 manifest 样本加载到。
+ *
+ * ★为什么需要：eval 门查 golden 用的是**精确文件名** `${base}.cases.json`
+ * （base = .aster 去后缀）。命名成 `<样本>_<规则>.cases.json` 的文件永远匹配不上，
+ * 于是那些期望**从未被执行**。更糟的是 coverage-report.py 用前缀 glob
+ * `{name}*.cases.json` 把它们计入「已执行」——**度量说已覆盖、门禁实际没跑**，
+ * 这批规则若在任一引擎回归，CI 依然全绿。
+ *
+ * 实测（修复前）：206 个 cases 文件里 57 个是孤儿，712 条 case 里 60 条死置。
+ * 正确做法是用 case 级 `entry` 覆盖合并进基文件（lib/eval-cases.mjs 已支持），
+ * 而不是另起文件名。
+ */
+function assertNoOrphanCaseFiles(manifest) {
+  const dir = join(CORPUS, 'tier1-equivalence', 'inputs');
+  if (!existsSync(dir)) return;
+  const loadable = new Set(
+    manifest.samples.map((rel) => basename(rel).replace(/\.aster$/, '')),
+  );
+  const orphans = readdirSync(dir)
+    .filter((f) => f.endsWith('.cases.json'))
+    .filter((f) => !loadable.has(f.replace(/\.cases\.json$/, '')))
+    .sort();
+  if (orphans.length > 0) {
+    fail(
+      `${orphans.length} .cases.json file(s) can never be loaded by any manifest sample ` +
+        `(eval gate matches the exact filename \`<sample>.cases.json\`):\n  - ${orphans.join('\n  - ')}\n` +
+        `Merge them into the base file using per-case \`entry\` overrides ` +
+        `(see scripts/lib/eval-cases.mjs), then delete the orphan file.`,
+    );
+  }
 }
 
 // 加载 TS 侧的词法表对象（en-US 用 undefined 走默认路径，保持既有行为逐字节不变）。
@@ -1164,6 +1234,10 @@ async function main() {
   }
 
   const manifest = loadManifest();
+  // ★两道守卫先于三门运行：语料与 manifest 脱节时必须**红**，
+  //   而不是静默跳过（跳过看起来跟通过一模一样）。
+  assertAllPoliciesInManifest(manifest);
+  assertNoOrphanCaseFiles(manifest);
   const samples = resolveSamples(manifest);
   console.error(
     `[parity-tier1] manifest declares ${samples.length} samples (mode=${MODE}` +

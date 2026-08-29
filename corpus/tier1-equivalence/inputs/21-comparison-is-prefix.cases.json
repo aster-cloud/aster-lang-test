@@ -15,6 +15,54 @@
         699
       ],
       "expectedOutput": false
+    },
+    {
+      "name": "score=750 → false（is 前缀比较）",
+      "input": [
+        750
+      ],
+      "expectedOutput": false,
+      "entry": "at_most_check"
+    },
+    {
+      "name": "score=750 → true（is 前缀比较）",
+      "input": [
+        750
+      ],
+      "expectedOutput": true,
+      "entry": "greater_check"
+    },
+    {
+      "name": "score=750 → false（is 前缀比较）",
+      "input": [
+        750
+      ],
+      "expectedOutput": false,
+      "entry": "less_check"
+    },
+    {
+      "name": "score=750 → true（is 前缀比较）",
+      "input": [
+        750
+      ],
+      "expectedOutput": true,
+      "entry": "more_check"
+    },
+    {
+      "name": "score=750 → true（is 前缀比较）",
+      "input": [
+        750
+      ],
+      "expectedOutput": true,
+      "entry": "over_check"
+    },
+    {
+      "name": "score=750 → false（is 前缀比较）",
+      "input": [
+        750
+      ],
+      "expectedOutput": false,
+      "entry": "under_check"
     }
   ]
 }
