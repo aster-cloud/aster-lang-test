@@ -291,24 +291,41 @@ function runJavaParse(samples) {
     fail('aster-lang-core inventory test output incomplete:\n' + output.slice(-2000));
   }
 
-  // Extract Discovered N — assert against manifest coverage.
-  const discoveredMatch = output.match(/Discovered\s+(\d+)\s+samples/);
-  if (!discoveredMatch) {
-    fail('could not parse "Discovered N" from Java inventory output');
+  // ★逐样本「已观测」判定（issue #119）——取代原先的 Discovered 计数比较。
+  //
+  //   原防线是 `Discovered N >= manifest size`。但 Discovered 统计的是
+  //   **tier1 全量 + tier2/ts-only**，是 manifest 的**超集**——陈旧 Maven 语料
+  //   缺少某个新增 manifest 样本时，计数照样够，那个新样本被静默判为 Java-pass。
+  //   超集比较对「缺了哪一个」这件事天然盲。
+  //
+  //   现在 core 的 inventory 测试逐条输出 `OBSERVED <path>`，这里按**集合**核对：
+  //   manifest 里任何一个样本没出现在观测清单中 → 拒绝给出结论。
+  const observed = new Set();
+  for (const line of output.split('\n')) {
+    const m = line.match(/^\s*OBSERVED\s+(\S+\.aster)\s*$/);
+    if (m) observed.add(m[1].replace(/^corpus\//, ''));
   }
-  const discovered = Number(discoveredMatch[1]);
-  if (discovered < samples.length) {
+  if (observed.size === 0) {
     fail(
-      `Java inventory observed ${discovered} samples but the manifest declares ${samples.length}.\n` +
+      'Java inventory did not emit any "OBSERVED <path>" line.\n' +
+      'Either aster-lang-core is older than the observed-list change (issue #119),\n' +
+      'or the test did not actually run. Refusing to report a verdict.',
+    );
+  }
+  const unobserved = samples.map((x) => x.rel).filter((rel) => !observed.has(rel));
+  if (unobserved.length > 0) {
+    fail(
+      `Java inventory did not observe ${unobserved.length} manifest sample(s):\n` +
+      unobserved.map((r) => `  - ${r}`).join('\n') + '\n\n' +
       `This means aster-lang-core is reading a stale corpus artifact, NOT the PR's\n` +
       `aster-lang-test checkout. The CI workflow must publish the local corpus\n` +
-      `(./packages/jvm -> publishToMavenLocal) before invoking core's gradle test,\n` +
-      `or the inventory test must be extended to accept a corpus override path.\n` +
-      `Refusing to report a verdict — the result would be invalid.`,
+      `(./packages/jvm -> publishToMavenLocal) before invoking core's gradle test.\n` +
+      `Refusing to report a verdict — "not in the failure list" would wrongly count\n` +
+      `these as passing.`,
     );
   }
 
-  // Failure rows only. Anything in the manifest NOT listed here is a pass.
+  // Failure rows only. Anything OBSERVED and not listed here is a genuine pass.
   const failed = new Set();
   for (const line of output.split('\n')) {
     const m = line.match(/^\s*\|\s*(corpus\/[^|]+?\.aster)\s*\|\s*❌\s*\|/);
