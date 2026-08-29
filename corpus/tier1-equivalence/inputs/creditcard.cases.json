@@ -3,19 +3,876 @@
   "entry": "evaluateCreditCardApplication",
   "cases": [
     {
-      "name": "stub 0",
+      "name": "FICO Exceptional 800+ = 50 分(myFICO 官方档)",
+      "entry": "calculateCreditScorePoints",
+      "input": [
+        810
+      ],
+      "expectedOutput": 50
+    },
+    {
+      "name": "FICO Very Good 740-799 = 40 分",
+      "entry": "calculateCreditScorePoints",
+      "input": [
+        740
+      ],
+      "expectedOutput": 40
+    },
+    {
+      "name": "FICO Good 670-739 = 30 分",
+      "entry": "calculateCreditScorePoints",
+      "input": [
+        670
+      ],
+      "expectedOutput": 30
+    },
+    {
+      "name": "FICO Fair 580-669 = 15 分",
+      "entry": "calculateCreditScorePoints",
+      "input": [
+        580
+      ],
+      "expectedOutput": 15
+    },
+    {
+      "name": "★FICO Poor 579 = 0 分(580 边界下沿)",
+      "entry": "calculateCreditScorePoints",
+      "input": [
+        579
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "使用率 7%(Exceptional 档均值 7.1)→无罚分",
+      "entry": "calculateUtilizationPenalty",
+      "input": [
+        7
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "使用率 16%(接近 Very Good 15.2)→罚 6",
+      "entry": "calculateUtilizationPenalty",
+      "input": [
+        16
+      ],
+      "expectedOutput": 6
+    },
+    {
+      "name": "使用率 39%(接近 Good 38.6)→罚 14",
+      "entry": "calculateUtilizationPenalty",
+      "input": [
+        39
+      ],
+      "expectedOutput": 14
+    },
+    {
+      "name": "使用率 61%(Fair 档均值 61.4)→罚 22",
+      "entry": "calculateUtilizationPenalty",
+      "input": [
+        61
+      ],
+      "expectedOutput": 22
+    },
+    {
+      "name": "使用率 81%(Poor 档均值 80.7)→罚 30",
+      "entry": "calculateUtilizationPenalty",
+      "input": [
+        81
+      ],
+      "expectedOutput": 30
+    },
+    {
+      "name": "★硬查询 6 次→重罚 20(myFICO: ≥6 次破产概率 8 倍)",
+      "entry": "calculateInquiryPenalty",
+      "input": [
+        6
+      ],
+      "expectedOutput": 20
+    },
+    {
+      "name": "硬查询 3 次→罚 8",
+      "entry": "calculateInquiryPenalty",
+      "input": [
+        3
+      ],
+      "expectedOutput": 8
+    },
+    {
+      "name": "硬查询 1 次→罚 3(myFICO: 单次通常<5 分)",
+      "entry": "calculateInquiryPenalty",
+      "input": [
+        1
+      ],
+      "expectedOutput": 3
+    },
+    {
+      "name": "硬查询 0 次→无罚",
+      "entry": "calculateInquiryPenalty",
+      "input": [
+        0
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "无逾期→35 分",
+      "entry": "calculateHistoryPoints",
       "input": [
         {
-          "income": 50000
-        },
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 35
+    },
+    {
+      "name": "★有破产→历史分归零(压倒其它)",
+      "entry": "calculateHistoryPoints",
+      "input": [
         {
-          "score": 700
-        },
-        {
-          "limit": 5000
+          "bankruptcyCount": 1,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
         }
       ],
       "expectedOutput": 0
+    },
+    {
+      "name": "逾期 2 次→20 分",
+      "entry": "calculateHistoryPoints",
+      "input": [
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 2,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 20
+    },
+    {
+      "name": "逾期 5 次→10 分",
+      "entry": "calculateHistoryPoints",
+      "input": [
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 5,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 10
+    },
+    {
+      "name": "逾期 6 次→0 分",
+      "entry": "calculateHistoryPoints",
+      "input": [
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 6,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "在职 5 年+→25 分",
+      "entry": "assessEmploymentStability",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        }
+      ],
+      "expectedOutput": 25
+    },
+    {
+      "name": "在职 2 年→20 分",
+      "entry": "assessEmploymentStability",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 2
+        }
+      ],
+      "expectedOutput": 20
+    },
+    {
+      "name": "在职 1 年→10 分",
+      "entry": "assessEmploymentStability",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 1
+        }
+      ],
+      "expectedOutput": 10
+    },
+    {
+      "name": "自雇 2 年+→15 分",
+      "entry": "assessEmploymentStability",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "self-employed",
+          "yearsAtCurrentJob": 3
+        }
+      ],
+      "expectedOutput": 15
+    },
+    {
+      "name": "自雇 <2 年→5 分",
+      "entry": "assessEmploymentStability",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "self-employed",
+          "yearsAtCurrentJob": 1
+        }
+      ],
+      "expectedOutput": 5
+    },
+    {
+      "name": "★失业→0 分",
+      "entry": "assessEmploymentStability",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "unemployed",
+          "yearsAtCurrentJob": 0
+        }
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "优质申请人综合分 = 40+35+15-0-0 = 90",
+      "entry": "calculateComprehensiveRiskScore",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 90
+    },
+    {
+      "name": "★高使用率+多查询拉低: 40+35+15-30-20 = 40",
+      "entry": "calculateComprehensiveRiskScore",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 81,
+          "accountAge": 60,
+          "hardInquiries": 6
+        }
+      ],
+      "expectedOutput": 40
+    },
+    {
+      "name": "APR 760+ = 25.80%(CFPB Fig85)",
+      "entry": "calculateAPR",
+      "input": [
+        780,
+        60,
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 2580
+    },
+    {
+      "name": "APR 740-759 = 27.30%",
+      "entry": "calculateAPR",
+      "input": [
+        750,
+        60,
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 2730
+    },
+    {
+      "name": "APR 720-739 = 28.20%",
+      "entry": "calculateAPR",
+      "input": [
+        730,
+        60,
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 2820
+    },
+    {
+      "name": "APR 700-719 = 28.70%",
+      "entry": "calculateAPR",
+      "input": [
+        710,
+        60,
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 2870
+    },
+    {
+      "name": "APR 680-699 = 29.00%",
+      "entry": "calculateAPR",
+      "input": [
+        690,
+        60,
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 2900
+    },
+    {
+      "name": "APR 660-679 = 29.20%",
+      "entry": "calculateAPR",
+      "input": [
+        670,
+        60,
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 2920
+    },
+    {
+      "name": "APR 640-659 = 29.40%",
+      "entry": "calculateAPR",
+      "input": [
+        650,
+        60,
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 2940
+    },
+    {
+      "name": "APR 620-639 = 29.90%",
+      "entry": "calculateAPR",
+      "input": [
+        630,
+        60,
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 2990
+    },
+    {
+      "name": "APR <620 = 30.00%",
+      "entry": "calculateAPR",
+      "input": [
+        600,
+        60,
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 3000
+    },
+    {
+      "name": "★破产 +2 个百分点",
+      "entry": "calculateAPR",
+      "input": [
+        780,
+        60,
+        {
+          "bankruptcyCount": 1,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 2780
+    },
+    {
+      "name": "★低风险 -1 个百分点",
+      "entry": "calculateAPR",
+      "input": [
+        780,
+        75,
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        }
+      ],
+      "expectedOutput": 2480
+    },
+    {
+      "name": "★破产→需担保卡",
+      "entry": "shouldRequireSecuredCard",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 700,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        {
+          "bankruptcyCount": 1,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        },
+        70
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "★分数<580→需担保卡(FICO Poor 上沿)",
+      "entry": "shouldRequireSecuredCard",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 579,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        },
+        70
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "风险分<40→需担保卡",
+      "entry": "shouldRequireSecuredCard",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 700,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        },
+        35
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "优质申请人→无需担保",
+      "entry": "shouldRequireSecuredCard",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        },
+        80
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "★无需担保→押金 0",
+      "entry": "calculateRequiredDeposit",
+      "input": [
+        false,
+        5000
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "担保卡押金=额度(Discover 1:1)",
+      "entry": "calculateRequiredDeposit",
+      "input": [
+        true,
+        1000
+      ],
+      "expectedOutput": 1000
+    },
+    {
+      "name": "★担保卡最低押金 $200(行业通例)",
+      "entry": "calculateRequiredDeposit",
+      "input": [
+        true,
+        150
+      ],
+      "expectedOutput": 200
+    },
+    {
+      "name": "担保卡无月费(Capital One/Discover 均 $0 年费)",
+      "entry": "determineMonthlyFee",
+      "input": [
+        "premium",
+        true,
+        700
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "premium 月费 74(≈Amex Platinum $895/年)",
+      "entry": "determineMonthlyFee",
+      "input": [
+        "premium",
+        false,
+        780
+      ],
+      "expectedOutput": 74
+    },
+    {
+      "name": "rewards 月费 8(≈$95/年 中端卡)",
+      "entry": "determineMonthlyFee",
+      "input": [
+        "rewards",
+        false,
+        740
+      ],
+      "expectedOutput": 8
+    },
+    {
+      "name": "basic 无月费",
+      "entry": "determineMonthlyFee",
+      "input": [
+        "basic",
+        false,
+        700
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "★可支配收入不足→拒(Reg Z 1026.51 要求评估还款能力)",
+      "entry": "validateIncomeRequirements",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 20000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1800,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        5000
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "可支配充足→通过",
+      "entry": "validateIncomeRequirements",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 90000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1000,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        5000
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "★风险分<30→额度 0",
+      "entry": "determineFinalCreditLimit",
+      "input": [
+        5000,
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 60000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        },
+        25,
+        20
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "请求额度低于两个上限→按请求给",
+      "entry": "determineFinalCreditLimit",
+      "input": [
+        3000,
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 90000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1000,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        },
+        90,
+        25
+      ],
+      "expectedOutput": 3000
+    },
+    {
+      "name": "★受风险上限约束: (40+20)*100=6000 < 可支配上限",
+      "entry": "determineFinalCreditLimit",
+      "input": [
+        20000,
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 90000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1000,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        },
+        40,
+        20
+      ],
+      "expectedOutput": 6000
+    },
+    {
+      "name": "★未满 21 岁→拒(Reg Z 1026.51(b))",
+      "entry": "evaluateCreditCardApplication",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 20,
+          "annualIncome": 60000,
+          "creditScore": 740,
+          "existingCreditCards": 2,
+          "monthlyRent": 1500,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        },
+        {
+          "productType": "rewards",
+          "requestedLimit": 5000,
+          "hasRewards": true,
+          "annualFee": 95
+        }
+      ],
+      "expectedOutput": {
+        "__type": "ApprovalDecision",
+        "approved": false,
+        "reason": "Applicant under 21 requires independent ability to pay or cosigner",
+        "approvedLimit": 0,
+        "interestRateAPR": 0,
+        "monthlyFee": 0,
+        "creditLine": 0,
+        "requiresDeposit": false,
+        "depositAmount": 0
+      }
+    },
+    {
+      "name": "优质申请人获批: 额度 5000/APR 24.80%(760+ 减低风险 1pp)/rewards 月费 8",
+      "entry": "evaluateCreditCardApplication",
+      "input": [
+        {
+          "applicantId": "A1",
+          "age": 35,
+          "annualIncome": 90000,
+          "creditScore": 780,
+          "existingCreditCards": 2,
+          "monthlyRent": 1000,
+          "employmentStatus": "employed",
+          "yearsAtCurrentJob": 5
+        },
+        {
+          "bankruptcyCount": 0,
+          "latePayments": 0,
+          "utilization": 10,
+          "accountAge": 60,
+          "hardInquiries": 0
+        },
+        {
+          "productType": "rewards",
+          "requestedLimit": 5000,
+          "hasRewards": true,
+          "annualFee": 95
+        }
+      ],
+      "expectedOutput": {
+        "__type": "ApprovalDecision",
+        "approved": true,
+        "reason": "Approved",
+        "approvedLimit": 5000,
+        "interestRateAPR": 2480,
+        "monthlyFee": 8,
+        "creditLine": 5000,
+        "requiresDeposit": false,
+        "depositAmount": 0
+      }
     }
   ]
 }

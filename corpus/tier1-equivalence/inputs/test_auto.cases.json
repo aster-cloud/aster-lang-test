@@ -3,11 +3,340 @@
   "entry": "calculateAgeFactor",
   "cases": [
     {
-      "name": "stub 0",
+      "name": "★16-19 岁因子 320(Quadrant: 19 岁 $5718 vs 60 岁 $2312 ≈2.47x；含 16 岁 $10387 拉高)",
+      "entry": "testCalculateAgeFactorYoung",
+      "input": [],
+      "expectedOutput": 320
+    },
+    {
+      "name": "30-49 岁因子 109(Quadrant: 40 岁 $2578/60 岁 $2312 = 1.115)",
+      "entry": "testCalculateAgeFactorMiddle",
+      "input": [],
+      "expectedOutput": 109
+    },
+    {
+      "name": "★65-74 岁因子 108(Quadrant: 70 岁 $2498，老年回升)",
+      "entry": "testCalculateAgeFactorSenior",
+      "input": [],
+      "expectedOutput": 108
+    },
+    {
+      "name": "20-24 岁因子 155(Quadrant: 22 岁 $3867/2312 = 1.67)",
+      "entry": "calculateAgeFactor",
       "input": [
-        30
+        22
       ],
-      "expectedOutput": 0
+      "expectedOutput": 155
+    },
+    {
+      "name": "★60-64 岁因子 100(Quadrant 全表最低 $2312 作基准)",
+      "entry": "calculateAgeFactor",
+      "input": [
+        60
+      ],
+      "expectedOutput": 100
+    },
+    {
+      "name": "★75+ 因子 119(Quadrant: 75 岁 $2742)",
+      "entry": "calculateAgeFactor",
+      "input": [
+        80
+      ],
+      "expectedOutput": 119
+    },
+    {
+      "name": "★19/20 岁边界: 20 岁落入 20-24 档",
+      "entry": "calculateAgeFactor",
+      "input": [
+        20
+      ],
+      "expectedOutput": 155
+    },
+    {
+      "name": "★24/25 岁边界: 25 岁落入 25-29 档",
+      "entry": "calculateAgeFactor",
+      "input": [
+        25
+      ],
+      "expectedOutput": 118
+    },
+    {
+      "name": "新车(2026 当年)因子 125",
+      "entry": "testCalculateVehicleFactorNew",
+      "input": [],
+      "expectedOutput": 125
+    },
+    {
+      "name": "16 年车龄因子 75(The Zebra: 车龄越大 collision/comp 敞口越小)",
+      "entry": "testOldVehicle",
+      "input": [],
+      "expectedOutput": 75
+    },
+    {
+      "name": "★2010 年款(16 年)因子 75",
+      "entry": "testCalculateVehicleFactorOld",
+      "input": [],
+      "expectedOutput": 75
+    },
+    {
+      "name": "3 年内因子 115",
+      "entry": "calculateVehicleFactor",
+      "input": [
+        {
+          "vin": "X",
+          "year": 2024,
+          "make": "H",
+          "model": "A",
+          "value": 20000,
+          "safetyRating": 5
+        }
+      ],
+      "expectedOutput": 115
+    },
+    {
+      "name": "★4-8 年因子 100(基准档)",
+      "entry": "calculateVehicleFactor",
+      "input": [
+        {
+          "vin": "X",
+          "year": 2020,
+          "make": "H",
+          "model": "A",
+          "value": 20000,
+          "safetyRating": 5
+        }
+      ],
+      "expectedOutput": 100
+    },
+    {
+      "name": "9-15 年因子 84",
+      "entry": "calculateVehicleFactor",
+      "input": [
+        {
+          "vin": "X",
+          "year": 2015,
+          "make": "H",
+          "model": "A",
+          "value": 10000,
+          "safetyRating": 5
+        }
+      ],
+      "expectedOutput": 84
+    },
+    {
+      "name": "清白记录乘数 100",
+      "entry": "testCalculateRiskMultiplierClean",
+      "input": [],
+      "expectedOutput": 100
+    },
+    {
+      "name": "★2 事故+2 违章+低信用乘数 = 100+92+46+91 = 329",
+      "entry": "testCalculateRiskMultiplierHighRisk",
+      "input": [],
+      "expectedOutput": 329
+    },
+    {
+      "name": "★单次 at-fault 事故 +46%(ValuePenguin +49%/QuoteFii +44%)",
+      "entry": "calculateRiskMultiplier",
+      "input": [
+        {
+          "driverId": "D",
+          "age": 40,
+          "yearsLicensed": 20,
+          "accidentCount": 1,
+          "violationCount": 0,
+          "creditScore": 750
+        },
+        {
+          "vin": "V",
+          "year": 2020,
+          "make": "H",
+          "model": "A",
+          "value": 20000,
+          "safetyRating": 5
+        }
+      ],
+      "expectedOutput": 146
+    },
+    {
+      "name": "★单次超速违章 +23%(全国均值 +23%，Liberty Mutual ≈+25%)",
+      "entry": "calculateRiskMultiplier",
+      "input": [
+        {
+          "driverId": "D",
+          "age": 40,
+          "yearsLicensed": 20,
+          "accidentCount": 0,
+          "violationCount": 1,
+          "creditScore": 750
+        },
+        {
+          "vin": "V",
+          "year": 2020,
+          "make": "H",
+          "model": "A",
+          "value": 20000,
+          "safetyRating": 5
+        }
+      ],
+      "expectedOutput": 123
+    },
+    {
+      "name": "★低信用 +91%(III 权威口径；注意 CA/HI/MA/MI 禁用信用定价)",
+      "entry": "calculateRiskMultiplier",
+      "input": [
+        {
+          "driverId": "D",
+          "age": 40,
+          "yearsLicensed": 20,
+          "accidentCount": 0,
+          "violationCount": 0,
+          "creditScore": 550
+        },
+        {
+          "vin": "V",
+          "year": 2020,
+          "make": "H",
+          "model": "A",
+          "value": 20000,
+          "safetyRating": 5
+        }
+      ],
+      "expectedOutput": 191
+    },
+    {
+      "name": "★低安全评级车 +10",
+      "entry": "calculateRiskMultiplier",
+      "input": [
+        {
+          "driverId": "D",
+          "age": 40,
+          "yearsLicensed": 20,
+          "accidentCount": 0,
+          "violationCount": 0,
+          "creditScore": 750
+        },
+        {
+          "vin": "V",
+          "year": 2020,
+          "make": "H",
+          "model": "A",
+          "value": 20000,
+          "safetyRating": 2
+        }
+      ],
+      "expectedOutput": 110
+    },
+    {
+      "name": "premium+良好信用→$250 免赔额",
+      "entry": "testDetermineDeductiblePremiumHigh",
+      "input": [],
+      "expectedOutput": 250
+    },
+    {
+      "name": "★standard+低信用→$1000 免赔额",
+      "entry": "testDetermineDeductibleStandardLow",
+      "input": [],
+      "expectedOutput": 1000
+    },
+    {
+      "name": "premium+低信用→$500",
+      "entry": "determineDeductible",
+      "input": [
+        "premium",
+        600
+      ],
+      "expectedOutput": 500
+    },
+    {
+      "name": "basic 一律 $1000",
+      "entry": "determineDeductible",
+      "input": [
+        "basic",
+        800
+      ],
+      "expectedOutput": 1000
+    },
+    {
+      "name": "premium→$300k(III 推荐 100/300/100 档)",
+      "entry": "testDetermineCoverageLimitPremium",
+      "input": [],
+      "expectedOutput": 300000
+    },
+    {
+      "name": "★basic 高价车仍只给 $50k(限额不随车值走)",
+      "entry": "testDetermineCoverageLimitBasicHighValue",
+      "input": [],
+      "expectedOutput": 50000
+    },
+    {
+      "name": "standard→$100k",
+      "entry": "determineCoverageLimit",
+      "input": [
+        "standard",
+        30000
+      ],
+      "expectedOutput": 100000
+    },
+    {
+      "name": "★未满 18 岁→拒保",
+      "entry": "testDriverUnder18",
+      "input": [],
+      "expectedOutput": "Driver under minimum age"
+    },
+    {
+      "name": "★4 次事故→超核保阈值",
+      "entry": "testTooManyAccidents",
+      "input": [],
+      "expectedOutput": "Accident history exceeds underwriting threshold"
+    },
+    {
+      "name": "★5 次违章→超核保阈值",
+      "entry": "testTooManyViolations",
+      "input": [],
+      "expectedOutput": "Violation history exceeds underwriting threshold"
+    },
+    {
+      "name": "19 岁+新车+premium = $709/月",
+      "entry": "testYoungDriverPremiumCoverage",
+      "input": [],
+      "expectedOutput": 709
+    },
+    {
+      "name": "40 岁+8 年车+standard = $210/月",
+      "entry": "testMiddleAgedDriverStandardCoverage",
+      "input": [],
+      "expectedOutput": 210
+    },
+    {
+      "name": "★70 岁+8 年车+basic = $208/月(与 40 岁不同，验证年龄档未合并)",
+      "entry": "testSeniorDriverBasicCoverage",
+      "input": [],
+      "expectedOutput": 208
+    },
+    {
+      "name": "55 岁+新车+premium = $240/月",
+      "entry": "testPerfectDriverNewCar",
+      "input": [],
+      "expectedOutput": 240
+    },
+    {
+      "name": "★高风险司机+旧车 = $518/月(风险乘数 329 压倒车龄折扣)",
+      "entry": "testHighRiskDriverOldCar",
+      "input": [],
+      "expectedOutput": 518
+    },
+    {
+      "name": "低信用→免赔额升至 $1000",
+      "entry": "testLowCreditScore",
+      "input": [],
+      "expectedOutput": 1000
+    },
+    {
+      "name": "高价车 premium→$300k 限额",
+      "entry": "testHighValueVehicle",
+      "input": [],
+      "expectedOutput": 300000
     }
   ]
 }

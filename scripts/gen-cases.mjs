@@ -49,6 +49,12 @@
  *
  * Usage:
  *   node scripts/gen-cases.mjs <spec.json> [--write] [--only=NAME,NAME]
+ *   node scripts/gen-cases.mjs <spec.json> --write \\
+ *     --allow-drop=NAME --drop-reason="为何这些 golden 该弃"
+ *
+ *   ★--allow-drop 是**逐样本**授权且必须给理由：默认拒绝任何会抹掉既有
+ *   golden 的写入（含既有文件无法解析的情况——无法比对恰恰最需要人看一眼）。
+ *   仅用于「占位样本补真实现」这类有意替换；理由会打进日志供审计。
  *   (without --write it's a dry run: reports agreement, writes nothing)
  */
 import { spawnSync } from 'node:child_process';
@@ -56,6 +62,8 @@ import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync } from 'no
 import { dirname, resolve, join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
+import { detectGoldenLoss, FILE_ABSENT } from './lib/golden-overwrite.mjs';
+import { parseDropArgs, finalExitCode, DROP_ARG_ERRORS } from './lib/drop-authorization.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -69,6 +77,26 @@ const TS_RUNNER = join(TS_REPO, 'scripts', 'dual-engine-runner.mjs');
 const args = process.argv.slice(2);
 const specPath = args.find((a) => !a.startsWith('--'));
 const WRITE = args.includes('--write');
+// ★仅用于「占位样本补真实现」这类**有意替换**：旧 golden 断言的是占位返回值，
+//   保留它等于把占位值固化成正确答案。默认不开，且开了也会把弃用清单打进日志。
+// ★弃用既有 golden 必须**逐样本授权**并给出理由，而非一个全局开关：
+//   `--allow-drop=NAME[,NAME]` 指定允许弃用的 sample，`--drop-reason="..."` 说明为何该弃。
+//   全局布尔开关的问题是「批准了 A 的替换，顺手也放行了 B 的误覆盖」——
+//   而误覆盖恰恰是这道护栏要防的（我已因此丢过 38 条 golden）。
+//   理由会打进日志：日后回看「这些 golden 是被谁、以什么理由弃掉的」有据可查。
+// 参数解析抽到 lib/drop-authorization.mjs：内联在这里就没法为它写快测
+// （gen-cases 要真跑两个引擎），而这正是上一轮出过回归的地方。
+// 回归测试见 scripts/test-drop-authorization.mjs。
+const dropParse = parseDropArgs(args);
+if (!dropParse.ok) {
+  console.error(DROP_ARG_ERRORS[dropParse.error]);
+  process.exit(2);
+}
+const ALLOW_DROP_SAMPLES = dropParse.samples;
+const DROP_REASON = dropParse.reason;
+
+/** 该样本是否被显式授权弃用既有 golden。 */
+const allowDropFor = (name) => ALLOW_DROP_SAMPLES.has(name);
 const onlyArg = args.find((a) => a.startsWith('--only='));
 const ONLY = onlyArg ? new Set(onlyArg.slice('--only='.length).split(',')) : null;
 
@@ -157,10 +185,53 @@ function runJava(reqs) {
   return out;
 }
 
-console.error(`[gen-cases] ${requests.length} cases across ${samples.length} samples — running TS…`);
-const ts = runTs(requests);
-console.error('[gen-cases] running Java (gradle, ~1min)…');
-const java = runJava(requests);
+// ★零 case 时不启动任何引擎：跑两个引擎去验证 0 条用例纯属浪费
+//   （Gradle 冷启动分钟级）。这条捷径也让「声明清空」的护栏能被秒级测试覆盖
+//   ——否则一个 cases:[] 的 spec 要等 8 分钟才走到闸门。
+//   注意：短路的只是**求值**，下面的写入/护栏循环照常执行。
+// ★测试专用引擎注入（GEN_CASES_FAKE_ENGINE=<jsonl 路径>）。
+//
+//   为什么需要：护栏最关键的那段（partial 拦截、prev 解析分流、detectGoldenLoss、
+//   主拒绝块、writeFileSync）**只在有 case 通过验证时才执行**，而那要求真跑两个
+//   引擎（Gradle 分钟级）。结果是这段代码在 CLI 层零覆盖——变异审计实测：
+//   把主护栏条件整个反转（真丢失被写入、安全写入被拒），**75 条测试仍全绿**。
+//   这正是「单测证明不了入口照它接线」的同一个病，只是换了条分支。
+//
+//   ★安全边界（这个注入点不得成为绕过护栏的后门）：
+//     · 只替换**引擎求值结果**（ts/java 两个 Map），护栏逻辑一行不碰；
+//     · 不改变 WRITE/allow-drop/丢失检测的任何判定；
+//     · 未设该环境变量时代码路径与生产完全一致（下面 else 分支原样保留）。
+//   即：它能让「引擎算出了什么」可控，但不能让「该不该写」可控。
+const FAKE_ENGINE = process.env.GEN_CASES_FAKE_ENGINE;
+let ts, java;
+if (FAKE_ENGINE) {
+  // jsonl 每行 {gIndex, value} 或 {gIndex, error}：两引擎给同一结果，
+  // 因为本注入点服务于**写入路径**的测试，不是引擎分歧的测试。
+  console.error(`[gen-cases] ★FAKE ENGINE（仅供测试）：${FAKE_ENGINE}`);
+  ts = new Map();
+  java = new Map();
+  for (const line of readFileSync(FAKE_ENGINE, 'utf8').split('\n').filter(Boolean)) {
+    const rec = JSON.parse(line);
+    const r = requests.find((x) => x.gIndex === rec.gIndex);
+    if (!r) continue;
+    if ('error' in rec) {
+      ts.set(rec.gIndex, { success: false, error: rec.error });
+      java.set(javaKey(r), { ok: false, error: rec.error });
+    } else {
+      ts.set(rec.gIndex, { success: true, value: rec.value });
+      java.set(javaKey(r), { ok: true, value: rec.value });
+    }
+  }
+} else if (requests.length === 0) {
+  console.error('[gen-cases] 0 cases — 跳过引擎启动');
+  ts = new Map();
+  java = new Map();
+} else {
+  console.error(`[gen-cases] ${requests.length} cases across ${samples.length} samples — running TS…`);
+  ts = runTs(requests);
+  console.error('[gen-cases] running Java (gradle, ~1min)…');
+  java = runJava(requests);
+}
 
 // ---- compare + decide ----
 const J = (v) => JSON.stringify(v);
@@ -210,7 +281,33 @@ if (problems.length) {
 let written = 0;
 for (const s of samples) {
   const cases = bySample.get(s.name);
-  if (!cases || cases.length === 0) continue;
+  // ★这里必须区分两种「没有 case」，它们此前共用一个 continue：
+  //   (a) 本次运行没有任何 case 通过双引擎验证 → 跳过是对的，不能拿空结果覆盖；
+  //   (b) spec 里**显式声明** cases: [] → 这是「把该样本清空」的意图，
+  //       是真实事故的最极端形态（38 条 → 0 条）。此前它在抵达护栏之前就被
+  //       continue 掉，于是 detectGoldenLoss 从未被调用——helper 单测绿着，
+  //       集成路径却整条绕过。文件没被清空纯属侥幸（写入循环压根没进）。
+  //   现在把 (b) 显式拦下：声明清空必须走与其它丢失同一道授权闸门。
+  if (!cases || cases.length === 0) {
+    const declaredEmpty = Array.isArray(s.cases) && s.cases.length === 0;
+    const outPathEmpty = join(INPUTS, `${s.name}.cases.json`);
+    // ★只在 --write 时拒绝：dry-run 是预演，不落盘就没有丢失，
+    //   让它失败会把「预演一下看看」变成红灯，属误伤。
+    if (WRITE && declaredEmpty && existsSync(outPathEmpty) && !allowDropFor(s.name)) {
+      let prevCount = '未知';
+      try {
+        const prevDoc = JSON.parse(readFileSync(outPathEmpty, 'utf8'));
+        if (Array.isArray(prevDoc?.cases)) prevCount = String(prevDoc.cases.length);
+      } catch { /* 计数仅用于提示，解析失败不影响拒绝 */ }
+      console.error(
+        `  ✗ ${s.name}: spec 声明 cases 为空，将清空既有 ${prevCount} 条 golden，拒绝写入。` +
+          `\n    这是最严重的丢失形态（整体清零）。确认可弃后加` +
+          ` --allow-drop=${s.name} --drop-reason="..." 重跑。`,
+      );
+      process.exitCode = 1;
+    }
+    continue;
+  }
   if (cases.length !== s.cases.length) {
     console.log(`  ~ ${s.name}: only ${cases.length}/${s.cases.length} cases verified — NOT writing (partial)`);
     continue;
@@ -224,24 +321,82 @@ for (const s of samples) {
   // （patient-record 丢 8 条、enterprise 丢 4 条），都是靠 coverage 报告
   // 「已清零的 policy 又冒出未执行规则」才发现的。
   // 这里主动比对并拒绝写入，把静默数据丢失变成响亮失败。
-  if (existsSync(outPath)) {
+  {
+    // ★丢失检测抽到 lib/golden-overwrite.mjs：内联在这里就没法为它写快测
+    //   （gen-cases 要真跑两个引擎，分钟级），而这恰恰是最该被锁住的分支——
+    //   我因此把 38 条已验证 golden 覆盖成了 1 条。
+    //   回归测试见 scripts/test-golden-overwrite.mjs。
+    //
+    // ★这里**不再用 existsSync 预检**，改由 readFileSync 的 ENOENT 直接判定：
+    //   原先「existsSync 为真才进来」使 FILE_ABSENT 哨兵永远传不进去——
+    //   它被 import 了却从不使用，是「注释声称已接线、实际是死导入」
+    //   （Codex 第四轮抓出）。顺带消除了 exists 与 read 之间的 TOCTOU 窗口：
+    //   文件若在两步之间被删，旧写法会抛错，新写法正确地按"不存在"放行。
+    let prev;
     try {
-      const prev = JSON.parse(readFileSync(outPath, 'utf8'));
-      const keyOf = (c, defEntry) => `${c.entry ?? defEntry} ${c.name}`;
-      const now = new Set(cases.map((c) => keyOf(c, s.entry)));
-      const lost = (prev.cases ?? []).filter((c) => !now.has(keyOf(c, prev.entry))).map((c) => `${c.entry ?? prev.entry}/${c.name}`);
-      if (lost.length > 0) {
-        console.error(
-          `  ✗ ${s.name}: 拒绝写入——会抹掉既有 ${lost.length} 条 golden：\n` +
-          lost.map((x) => `      - ${x}`).join('\n') +
-          `\n    修法：把它们并入本 spec（同一 policy 的 case 必须写在同一个 spec 里）。`,
-        );
-        process.exitCode = 1;
-        continue;
+      prev = JSON.parse(readFileSync(outPath, 'utf8'));
+    } catch (err) {
+      if (err?.code === 'ENOENT') {
+        prev = FILE_ABSENT; // 首次生成：无既有 golden 可丢，放行
+      } else if (err instanceof SyntaxError) {
+        // 只把**真正的 JSON 解析失败**转成 unparseable；其它异常（护栏自身的
+        // ReferenceError、文件权限错误等）必须响亮抛出——把 bug 伪装成
+        // 「文件损坏」是这类兜底 catch 最危险的失效模式。
+        prev = undefined;
+      } else {
+        throw err;
       }
-    } catch {
-      // 既有文件不可解析：不阻塞写入（等价于重建），但提示一声。
-      console.error(`  ~ ${s.name}: 既有 cases 文件无法解析，将整体重建`);
+    }
+    const verdict = detectGoldenLoss(prev, cases, s.entry);
+    if (!verdict.ok && !allowDropFor(s.name)) {
+      if (verdict.reason === 'unparseable') {
+        // ★无法解析**不等于**可以随便覆盖：无法比对恰恰最需要人看一眼。
+        console.error(
+          `  \u2717 ${s.name}: 既有 cases 文件无法解析，拒绝覆盖。` +
+            `\n    无法解析就无法确认会丢失哪些 golden——请先人工查看该文件；` +
+            `\n    确认可弃后加 --allow-drop=${s.name} --drop-reason="..." 重建。`,
+        );
+      } else if (verdict.reason === 'rewritten') {
+        // ★键（entry+name）没变、**断言内容**被改写。这同样是「既有 golden
+        //   不再成立」，必须与整条丢失走同一道闸门——否则可以把一条名为
+        //   「未成年 premium = 100」的 golden 静默改成 expectedOutput: 999。
+        console.error(
+          `  \u2717 ${s.name}: 拒绝写入——${verdict.rewritten.length} 条 golden 的断言被改写：\n` +
+            verdict.rewritten.map((x) => `      - ${x}`).join('\n') +
+            `\n    键（entry+name）没变但输入/期望变了，等于把旧断言悄悄换掉。` +
+            `\n    若确实要**修正期望**（如实现补真后旧期望已不正确），` +
+            `\n    加 --allow-drop=${s.name} --drop-reason="..."。`,
+        );
+      } else {
+        console.error(
+          `  \u2717 ${s.name}: 拒绝写入——会抹掉既有 ${verdict.lost.length} 条 golden：\n` +
+            verdict.lost.map((x) => `      - ${x}`).join('\n') +
+            `\n    修法：把它们并入本 spec（同一 policy 的 case 必须写在同一个 spec 里）。` +
+            `\n    若确实要**替换**（如占位样本补真实现后，旧 golden 断言的是占位` +
+            `\n    返回值、已不再正确），加 --allow-drop=${s.name} --drop-reason="..."。`,
+        );
+      }
+      process.exitCode = 1;
+      continue;
+    }
+    if (!verdict.ok) {
+      // 显式放行：仍把弃掉的内容打进日志，让「丢了什么」可审。
+      // ★丢失与改写要分别列出：两者都是「旧断言不再成立」，
+      //   但改写更隐蔽（键还在，只是内容变了），审计时必须看得见。
+      const parts = [];
+      if (verdict.lost?.length) {
+        parts.push(`弃用既有 ${verdict.lost.length} 条 golden：\n` +
+          verdict.lost.map((x) => `      - ${x}`).join('\n'));
+      }
+      if (verdict.rewritten?.length) {
+        parts.push(`改写 ${verdict.rewritten.length} 条 golden 的断言：\n` +
+          verdict.rewritten.map((x) => `      - ${x}`).join('\n'));
+      }
+      console.warn(
+        verdict.reason === 'unparseable'
+          ? `  ! ${s.name}: 既有文件无法解析，--allow-drop 生效，整体重建（理由：${DROP_REASON}）`
+          : `  ! ${s.name}: --allow-drop 生效（理由：${DROP_REASON}），` + parts.join('；'),
+      );
     }
   }
 
@@ -251,4 +406,8 @@ for (const s of samples) {
   }
 }
 console.log(WRITE ? `\n✅ wrote ${written} verified .cases.json file(s).` : `\n(dry run — pass --write to persist ${bySample.size} fully-verified sample(s))`);
-process.exit(problems.length > 0 ? 1 : 0);
+// ★不要写成 `process.exit(problems.length > 0 ? 1 : 0)`：那会**覆盖**上面
+//   护栏设的 `process.exitCode = 1`，让「拒绝写入」在 CI 里被读成成功。
+//   （Codex 复审抓出：护栏正确打印了拒绝，进程却 exit 0。）
+//   保留已设的失败码；仅在尚未失败时才按 problems 决定。
+process.exit(finalExitCode(process.exitCode, problems.length));

@@ -143,6 +143,12 @@ jobs:
               - 'scripts/equivalence-nightly.mjs'
               - 'scripts/lib/eval-cases.mjs'
               - 'scripts/test-eval-guard.mjs'
+              - 'scripts/lib/golden-overwrite.mjs'
+              - 'scripts/lib/drop-authorization.mjs'
+              - 'scripts/test-drop-authorization.mjs'
+              - 'scripts/test-wipe-guard.mjs'
+              - 'scripts/test-golden-overwrite.mjs'
+              - 'scripts/gen-cases.mjs'
               - '.github/workflows/ci.yml'
 
       # Shared version catalog (aster-lang-platform, ADR 0012). aster-lang-core
@@ -298,6 +304,34 @@ jobs:
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         run: node scripts/test-eval-guard.mjs
+
+      # golden 覆盖护栏（gen-cases 的写入判定）。它决定「会不会静默抹掉已验证的
+      # golden」——曾因该逻辑失守把 38 条 case 覆盖成 1 条。逻辑抽在
+      # lib/golden-overwrite.mjs 就是为了能在这里秒级跑到（gen-cases 本身要真跑
+      # 两个引擎，分钟级，不适合当门禁）。
+      - name: Run golden-overwrite guard regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-golden-overwrite.mjs
+
+      # drop 授权参数解析 + 最终退出码合并。★上一轮真实回归过：护栏正确打印
+      # 「拒绝写入」，进程却 exit 0（末行 process.exit 覆盖了 exitCode=1），
+      # CI 把拒绝读成成功。逻辑抽成纯函数就是为了能在这里秒级守住。
+      - name: Run drop-authorization guard regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-drop-authorization.mjs
+
+      # ★入口级集成护栏。单测只能证明「函数被调用时行为正确」，证不了
+      # 「入口真的照它接线」——Codex 第四轮实证：把入口两根线同时改坏
+      # （绕过 parseDropArgs + 恢复旧 process.exit），66 条单测仍全绿。
+      # 本测试直接跑真实 CLI 观测退出码与文件字节（现 17 条）。
+      # red/green 实证：入口双破坏报红；主写入路径 7 个变异亦全部报红；
+      # 同键改写断言（无授权把 100 改成 999）报红。
+      - name: Run wipe-guard integration tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-wipe-guard.mjs
 
       # audit #95：豁免锈蚀守门 —— meta.json 盖章的 evalExempt 与实时分类漂移即失败
       # （陈旧豁免会让 parity-tier1 守卫静默跳过已可 eval 的样本，分母漂移）。

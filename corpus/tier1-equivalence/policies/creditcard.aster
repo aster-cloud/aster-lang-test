@@ -1,5 +1,29 @@
 Module aster.finance.creditcard.
 
+# 合成示例策略——数值取自公开权威来源（2026-08 检索），非真实发卡行核保政策。
+#   · FICO 五档 300-579/580-669/670-739/740-799/800-850：myFICO 官网
+#   · 使用率分档：Experian Q3 2024 各 FICO 档实测均值 7.1/15.2/38.6/61.4/80.7%
+#     ★FICO 官方否认「30% 悬崖」——分数是连续函数。本策略的分档罚分是
+#     工程简化，不代表 FICO 行为。
+#   · 硬查询：myFICO（单次通常 <5 分；≥6 次破产概率达 8 倍）
+#     ★只应统计 12 个月内查询（影响分数 1 年，留存报告 2 年，两者不同）
+#   · APR 分档：CFPB《2025 消费信用卡市场报告》Figure 85（2024 新账户）
+#     760+ 25.8% / 740-759 27.3% / ... / <620 30.0%（以基点存储避免浮点）
+#   · 21 岁以下需独立还款能力或共签：Reg Z 12 CFR §1026.51(b)
+#     ★§1026.51 不设任何数字门槛；36%/43% DTI 均属房贷惯例（43% 已于 2021 废止），
+#     故本策略用「可支配收入」而非 DTI 比率。
+#   · 担保卡押金：Discover it Secured（$200 起、1:1）、Capital One（分层 $49/$99/$200）
+#   · 年费：CFPB 2024 通用卡平均 $127/年；中端 $95、高端 $550-895
+#   · ★评分点值（信用分档 50/40/30/15/0、历史 35/20/10/0、使用率罚 30/22/14/6/0、
+#     查询罚 20/8/3/0、就业 25/20/15/10/5/0、基础 +15）：**无权威出处**。
+#     FICO 官方只公布**因子权重**（支付历史 35%/欠款 30%/账龄 15%/新开户 10%/
+#     组合 10%）且明说是「人群平均、个体浮动」，不公布任何可加总的点值表；
+#     真实发卡行的评分卡是专有的。这些点值是为让样本可执行而设的工程取值，
+#     **相对大小**参照 FICO 权重（支付历史 35 最高、查询影响最小），
+#     但绝对值不可引用。case 断言的是分档关系与边界，不是具体分数。
+#   · ★担保卡触发线（分数<580 / 风险分<40）与额度上限公式（可支配收入÷2、
+#     (风险分+就业分)×100）同为工程取值，无监管或行业出处。
+
 Define ApplicantInfo has applicantId, age, annualIncome, creditScore, existingCreditCards, monthlyRent, employmentStatus, yearsAtCurrentJob.
 
 Define FinancialHistory has bankruptcyCount, latePayments, utilization, accountAge, hardInquiries.
@@ -12,29 +36,147 @@ Define RiskScore has score, category, factors.
 
 Define IncomeValidation has sufficient, ratio, recommendation.
 
-Rule evaluateCreditCardApplication given applicant, history, offer, produce:
-  Return 0.
-Rule calculateComprehensiveRiskScore given applicant, history, produce:
-  Return 0.
 Rule calculateCreditScorePoints given creditScore, produce:
+  If creditScore at least 800
+    Return 50.
+  If creditScore at least 740
+    Return 40.
+  If creditScore at least 670
+    Return 30.
+  If creditScore at least 580
+    Return 15.
   Return 0.
 Rule calculateHistoryPoints given history, produce:
+  If history.bankruptcyCount at least 1
+    Return 0.
+  If history.latePayments equals to 0
+    Return 35.
+  If history.latePayments at most 2
+    Return 20.
+  If history.latePayments at most 5
+    Return 10.
   Return 0.
 Rule calculateUtilizationPenalty given utilization, produce:
+  If utilization at least 81
+    Return 30.
+  If utilization at least 61
+    Return 22.
+  If utilization at least 39
+    Return 14.
+  If utilization at least 16
+    Return 6.
   Return 0.
 Rule calculateInquiryPenalty given inquiries, produce:
+  If inquiries at least 6
+    Return 20.
+  If inquiries at least 3
+    Return 8.
+  If inquiries at least 1
+    Return 3.
   Return 0.
-Rule validateIncomeRequirements given applicant, requestedLimit, produce:
-  Return 0.
+Rule calculateComprehensiveRiskScore given applicant, history, produce:
+  Let scorePoints be calculateCreditScorePoints(applicant.creditScore).
+  Let historyPoints be calculateHistoryPoints(history).
+  Let utilPenalty be calculateUtilizationPenalty(history.utilization).
+  Let inquiryPenalty be calculateInquiryPenalty(history.hardInquiries).
+  Return ((scorePoints plus historyPoints) plus 15) minus (utilPenalty plus inquiryPenalty).
 Rule assessEmploymentStability given applicant, produce:
-  Return 0.
+  If applicant.employmentStatus equals to "unemployed"
+    Return 0.
+  If applicant.employmentStatus equals to "self-employed"
+    If applicant.yearsAtCurrentJob at least 2
+      Return 15.
+    Return 5.
+  If applicant.yearsAtCurrentJob at least 5
+    Return 25.
+  If applicant.yearsAtCurrentJob at least 2
+    Return 20.
+  Return 10.
+Rule validateIncomeRequirements given applicant, requestedLimit, produce:
+  Let annualRent be applicant.monthlyRent times 12.
+  Let disposable be applicant.annualIncome minus annualRent.
+  If disposable at most 0
+    Return false.
+  If requestedLimit at most (disposable divided by 2)
+    Return true.
+  Return false.
 Rule determineFinalCreditLimit given requestedLimit, applicant, history, riskScore, employmentScore, produce:
-  Return 0.
+  If riskScore less than 30
+    Return 0.
+  Let annualRent be applicant.monthlyRent times 12.
+  Let disposable be applicant.annualIncome minus annualRent.
+  If disposable at most 0
+    Return 0.
+  Let affordCap be disposable divided by 2.
+  Let riskCap be (riskScore plus employmentScore) times 100.
+  Let cap be affordCap.
+  If riskCap less than cap
+    Let cap be riskCap.
+  If requestedLimit less than cap
+    Return requestedLimit.
+  Return cap.
 Rule calculateAPR given creditScore, riskScore, history, produce:
-  Return 0.
+  Let base be 3000.
+  If creditScore at least 760
+    Let base be 2580.
+  If creditScore at least 740
+    If creditScore less than 760
+      Let base be 2730.
+  If creditScore at least 720
+    If creditScore less than 740
+      Let base be 2820.
+  If creditScore at least 700
+    If creditScore less than 720
+      Let base be 2870.
+  If creditScore at least 680
+    If creditScore less than 700
+      Let base be 2900.
+  If creditScore at least 660
+    If creditScore less than 680
+      Let base be 2920.
+  If creditScore at least 640
+    If creditScore less than 660
+      Let base be 2940.
+  If creditScore at least 620
+    If creditScore less than 640
+      Let base be 2990.
+  If history.bankruptcyCount at least 1
+    Return base plus 200.
+  If riskScore at least 70
+    Return base minus 100.
+  Return base.
 Rule shouldRequireSecuredCard given applicant, history, riskScore, produce:
-  Return 0.
+  If history.bankruptcyCount at least 1
+    Return true.
+  If applicant.creditScore less than 580
+    Return true.
+  If riskScore less than 40
+    Return true.
+  Return false.
 Rule calculateRequiredDeposit given requiresSecured, creditLimit, produce:
-  Return 0.
+  If requiresSecured equals to false
+    Return 0.
+  If creditLimit at most 200
+    Return 200.
+  Return creditLimit.
 Rule determineMonthlyFee given productType, isSecured, creditScore, produce:
+  If isSecured equals to true
+    Return 0.
+  If productType equals to "premium"
+    Return 74.
+  If productType equals to "rewards"
+    Return 8.
   Return 0.
+Rule evaluateCreditCardApplication given applicant, history, offer, produce:
+  If applicant.age less than 21
+    Return ApprovalDecision with approved set to false, reason set to "Applicant under 21 requires independent ability to pay or cosigner", approvedLimit set to 0, interestRateAPR set to 0, monthlyFee set to 0, creditLine set to 0, requiresDeposit set to false, depositAmount set to 0.
+  Let riskScore be calculateComprehensiveRiskScore(applicant, history).
+  Let employmentScore be assessEmploymentStability(applicant).
+  Let secured be shouldRequireSecuredCard(applicant, history, riskScore).
+  Let limit be determineFinalCreditLimit(offer.requestedLimit, applicant, history, riskScore, employmentScore).
+  If limit at most 0
+    Return ApprovalDecision with approved set to false, reason set to "Insufficient ability to pay", approvedLimit set to 0, interestRateAPR set to 0, monthlyFee set to 0, creditLine set to 0, requiresDeposit set to false, depositAmount set to 0.
+  Let apr be calculateAPR(applicant.creditScore, riskScore, history).
+  Let deposit be calculateRequiredDeposit(secured, limit).
+  Let fee be determineMonthlyFee(offer.productType, secured, applicant.creditScore).
+  Return ApprovalDecision with approved set to true, reason set to "Approved", approvedLimit set to limit, interestRateAPR set to apr, monthlyFee set to fee, creditLine set to limit, requiresDeposit set to secured, depositAmount set to deposit.

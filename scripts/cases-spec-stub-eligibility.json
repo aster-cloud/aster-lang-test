@@ -1,0 +1,430 @@
+{
+  "_comment": "#104 方向 A：把 test_eligibility 的 18 条占位规则（原本全是 `Return 0.`）补成真实现。★这是**人为设计的合成示例策略**，不是取自真实保险产品——写清楚这一点很重要：\n  · 规则名蕴含的是**分档结构**：按年龄段分 minor/senior/standard 三档，每档内按 insuranceType 再分；testStandardPremiumHighChronic 这类名字指明「哪一档 × 慢病多少」。\n  · 但**具体数值由我选定**：覆盖百分比（100/90/85/…）、年龄阈值 18 与 65、慢病阈值 2、未知档的兜底值、以及「无保险即不合格」这条兜底行为——这些名字都没规定，是为让样本可执行而做的设计选择。\n  · 因此 case 主要锁的是**关系与边界**（premium ≥ standard ≥ basic、慢病多的覆盖更高、恰好落在阈值上的那一格），而不是把某个百分比当成业务真值。若将来接入真实费率表，改数值即可，关系断言仍然成立。 ★旧 cases 文件里有一条 `stub 0` golden（determineMinorCoverage(\"basic\",…) → 0），那是占位实现的返回值。补真实现后该格应为 80——故**替换**而非保留：保留它等于把占位值固化成正确答案，正是 #104 要消除的东西。防覆盖护栏（本仓 gen-cases）正确拦下了这次写入，确认语义后才以同输入的新期望覆盖。",
+  "samples": [
+    {
+      "name": "test_eligibility",
+      "entry": "determineMinorCoverage",
+      "cases": [
+        {
+          "name": "未成年 premium = 100",
+          "input": [
+            "premium",
+            0
+          ],
+          "expectedOutput": 100
+        },
+        {
+          "name": "未成年 standard = 90",
+          "input": [
+            "standard",
+            0
+          ],
+          "expectedOutput": 90
+        },
+        {
+          "name": "未成年 未知档落兜底 80",
+          "input": [
+            "gold",
+            0
+          ],
+          "expectedOutput": 80
+        },
+        {
+          "name": "★原 stub golden 同输入：现返回 80（旧 golden 断言 0，那是占位值）",
+          "input": [
+            "basic",
+            {
+              "basePrice": 100
+            }
+          ],
+          "expectedOutput": 80
+        },
+        {
+          "name": "老年 medicare = 95（最高）",
+          "entry": "determineSeniorCoverage",
+          "input": [
+            "medicare",
+            0
+          ],
+          "expectedOutput": 95
+        },
+        {
+          "name": "老年 premium = 90",
+          "entry": "determineSeniorCoverage",
+          "input": [
+            "premium",
+            0
+          ],
+          "expectedOutput": 90
+        },
+        {
+          "name": "老年 standard = 80",
+          "entry": "determineSeniorCoverage",
+          "input": [
+            "standard",
+            0
+          ],
+          "expectedOutput": 80
+        },
+        {
+          "name": "老年 未知档落兜底 70",
+          "entry": "determineSeniorCoverage",
+          "input": [
+            "basic",
+            0
+          ],
+          "expectedOutput": 70
+        },
+        {
+          "name": "★标准 premium 慢病≥2 = 90（慢病加保）",
+          "entry": "determineStandardCoverage",
+          "input": [
+            "premium",
+            0,
+            2
+          ],
+          "expectedOutput": 90
+        },
+        {
+          "name": "★标准 premium 慢病=1 = 85（恰在边界下方）",
+          "entry": "determineStandardCoverage",
+          "input": [
+            "premium",
+            0,
+            1
+          ],
+          "expectedOutput": 85
+        },
+        {
+          "name": "标准 standard 慢病≥2 = 80",
+          "entry": "determineStandardCoverage",
+          "input": [
+            "standard",
+            0,
+            3
+          ],
+          "expectedOutput": 80
+        },
+        {
+          "name": "标准 standard 慢病=0 = 70",
+          "entry": "determineStandardCoverage",
+          "input": [
+            "standard",
+            0,
+            0
+          ],
+          "expectedOutput": 70
+        },
+        {
+          "name": "标准 basic = 60（不受慢病影响）",
+          "entry": "determineStandardCoverage",
+          "input": [
+            "basic",
+            0,
+            5
+          ],
+          "expectedOutput": 60
+        },
+        {
+          "name": "标准 未知档落兜底 50",
+          "entry": "determineStandardCoverage",
+          "input": [
+            "gold",
+            0,
+            0
+          ],
+          "expectedOutput": 50
+        },
+        {
+          "name": "自付额 200×80% → 40",
+          "entry": "calculatePatientCost",
+          "input": [
+            200,
+            80
+          ],
+          "expectedOutput": 40
+        },
+        {
+          "name": "★零覆盖 → 全额自付 200",
+          "entry": "calculatePatientCost",
+          "input": [
+            200,
+            0
+          ],
+          "expectedOutput": 200
+        },
+        {
+          "name": "★全覆盖 → 自付 0",
+          "entry": "calculatePatientCost",
+          "input": [
+            200,
+            100
+          ],
+          "expectedOutput": 0
+        },
+        {
+          "name": "★非整除：150×85% → 22.5（divided by 是真除法）",
+          "entry": "calculatePatientCost",
+          "input": [
+            150,
+            85
+          ],
+          "expectedOutput": 22.5
+        },
+        {
+          "name": "★无保险：不合格、覆盖 0、全额自付",
+          "entry": "checkServiceEligibility",
+          "input": [
+            {
+              "patientId": "P-1",
+              "age": 40,
+              "hasInsurance": false,
+              "insuranceType": "none",
+              "chronicConditions": 0
+            },
+            {
+              "serviceCode": "S-1",
+              "serviceName": "Consult",
+              "basePrice": 200,
+              "requiresPreAuth": false
+            }
+          ],
+          "expectedOutput": {
+            "__type": "EligibilityCheck",
+            "eligible": false,
+            "reason": "No insurance on file",
+            "coveragePercent": 0,
+            "estimatedCost": 200,
+            "requiresPreAuth": false
+          }
+        },
+        {
+          "name": "未成年走 minor 档（17 岁）",
+          "entry": "checkServiceEligibility",
+          "input": [
+            {
+              "patientId": "P-2",
+              "age": 17,
+              "hasInsurance": true,
+              "insuranceType": "premium",
+              "chronicConditions": 0
+            },
+            {
+              "serviceCode": "S-1",
+              "serviceName": "Consult",
+              "basePrice": 200,
+              "requiresPreAuth": false
+            }
+          ],
+          "expectedOutput": {
+            "__type": "EligibilityCheck",
+            "eligible": true,
+            "reason": "Minor coverage",
+            "coveragePercent": 100,
+            "estimatedCost": 0,
+            "requiresPreAuth": false
+          }
+        },
+        {
+          "name": "★恰 18 岁走 standard 档（不再是 minor）",
+          "entry": "checkServiceEligibility",
+          "input": [
+            {
+              "patientId": "P-3",
+              "age": 18,
+              "hasInsurance": true,
+              "insuranceType": "premium",
+              "chronicConditions": 0
+            },
+            {
+              "serviceCode": "S-1",
+              "serviceName": "Consult",
+              "basePrice": 200,
+              "requiresPreAuth": false
+            }
+          ],
+          "expectedOutput": {
+            "__type": "EligibilityCheck",
+            "eligible": true,
+            "reason": "Standard coverage",
+            "coveragePercent": 85,
+            "estimatedCost": 30,
+            "requiresPreAuth": false
+          }
+        },
+        {
+          "name": "★恰 65 岁走 senior 档",
+          "entry": "checkServiceEligibility",
+          "input": [
+            {
+              "patientId": "P-4",
+              "age": 65,
+              "hasInsurance": true,
+              "insuranceType": "medicare",
+              "chronicConditions": 0
+            },
+            {
+              "serviceCode": "S-2",
+              "serviceName": "Imaging",
+              "basePrice": 400,
+              "requiresPreAuth": true
+            }
+          ],
+          "expectedOutput": {
+            "__type": "EligibilityCheck",
+            "eligible": true,
+            "reason": "Senior coverage",
+            "coveragePercent": 95,
+            "estimatedCost": 20,
+            "requiresPreAuth": true
+          }
+        },
+        {
+          "name": "★64 岁仍走 standard（senior 边界下方）",
+          "entry": "checkServiceEligibility",
+          "input": [
+            {
+              "patientId": "P-5",
+              "age": 64,
+              "hasInsurance": true,
+              "insuranceType": "standard",
+              "chronicConditions": 2
+            },
+            {
+              "serviceCode": "S-1",
+              "serviceName": "Consult",
+              "basePrice": 200,
+              "requiresPreAuth": false
+            }
+          ],
+          "expectedOutput": {
+            "__type": "EligibilityCheck",
+            "eligible": true,
+            "reason": "Standard coverage",
+            "coveragePercent": 80,
+            "estimatedCost": 40,
+            "requiresPreAuth": false
+          }
+        },
+        {
+          "name": "★requiresPreAuth 原样透传（不因覆盖率改变）",
+          "entry": "checkServiceEligibility",
+          "input": [
+            {
+              "patientId": "P-6",
+              "age": 30,
+              "hasInsurance": true,
+              "insuranceType": "basic",
+              "chronicConditions": 0
+            },
+            {
+              "serviceCode": "S-3",
+              "serviceName": "Surgery",
+              "basePrice": 1000,
+              "requiresPreAuth": true
+            }
+          ],
+          "expectedOutput": {
+            "__type": "EligibilityCheck",
+            "eligible": true,
+            "reason": "Standard coverage",
+            "coveragePercent": 60,
+            "estimatedCost": 400,
+            "requiresPreAuth": true
+          }
+        },
+        {
+          "name": "demo: testNoInsurance 零参打通全链",
+          "entry": "testNoInsurance",
+          "input": [],
+          "expectedOutput": {
+            "__type": "EligibilityCheck",
+            "eligible": false,
+            "reason": "No insurance on file",
+            "coveragePercent": 0,
+            "estimatedCost": 200,
+            "requiresPreAuth": false
+          }
+        },
+        {
+          "name": "demo: testMinorPremiumCoverage",
+          "entry": "testMinorPremiumCoverage",
+          "input": [],
+          "expectedOutput": 100
+        },
+        {
+          "name": "demo: testMinorStandardCoverage",
+          "entry": "testMinorStandardCoverage",
+          "input": [],
+          "expectedOutput": 90
+        },
+        {
+          "name": "demo: testMinorBasicCoverage",
+          "entry": "testMinorBasicCoverage",
+          "input": [],
+          "expectedOutput": 80
+        },
+        {
+          "name": "demo: testSeniorMedicareCoverage",
+          "entry": "testSeniorMedicareCoverage",
+          "input": [],
+          "expectedOutput": 95
+        },
+        {
+          "name": "demo: testSeniorPremiumCoverage",
+          "entry": "testSeniorPremiumCoverage",
+          "input": [],
+          "expectedOutput": 90
+        },
+        {
+          "name": "demo: testSeniorStandardCoverage",
+          "entry": "testSeniorStandardCoverage",
+          "input": [],
+          "expectedOutput": 80
+        },
+        {
+          "name": "demo: testStandardPremiumHighChronic",
+          "entry": "testStandardPremiumHighChronic",
+          "input": [],
+          "expectedOutput": 90
+        },
+        {
+          "name": "demo: testStandardPremiumLowChronic",
+          "entry": "testStandardPremiumLowChronic",
+          "input": [],
+          "expectedOutput": 85
+        },
+        {
+          "name": "demo: testStandardStandardHighChronic",
+          "entry": "testStandardStandardHighChronic",
+          "input": [],
+          "expectedOutput": 80
+        },
+        {
+          "name": "demo: testStandardStandardLowChronic",
+          "entry": "testStandardStandardLowChronic",
+          "input": [],
+          "expectedOutput": 70
+        },
+        {
+          "name": "demo: testStandardBasicCoverage",
+          "entry": "testStandardBasicCoverage",
+          "input": [],
+          "expectedOutput": 60
+        },
+        {
+          "name": "demo: testStandardUnknownInsurance",
+          "entry": "testStandardUnknownInsurance",
+          "input": [],
+          "expectedOutput": 50
+        },
+        {
+          "name": "demo: testCalculatePatientCost",
+          "entry": "testCalculatePatientCost",
+          "input": [],
+          "expectedOutput": 40
+        }
+      ]
+    }
+  ]
+}

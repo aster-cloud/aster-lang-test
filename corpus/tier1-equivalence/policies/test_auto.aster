@@ -1,5 +1,32 @@
 Module test.insurance.auto.
 
+# 合成示例策略——数值取自公开权威来源（2026-08 检索），非真实保险公司费率表。
+#   · 年龄因子：CarInsurance.com / Quadrant Information Services 2026-07 全险年保费
+#     （100/300/100 限额、$500 免赔、2025 Honda Accord LX、清白记录）
+#     以 60 岁 $2312（全表最低）为基准 100。
+#     ★可直接核对的三档（单龄价 ÷ 2312）：40 岁 $2578→112(实现 109)、
+#       70 岁 $2498→108(实现 108)、75 岁 $2742→119(实现 119)。
+#     ★年轻两档**不是**单龄价换算，而是**档内取值**且经人为收敛：
+#       16-19 档单龄价 $10387/$8614/$7498/$5718（档均 $8054→348），实现取 320；
+#       20-24 档档均 $4050→175，实现取 155。
+#       收敛理由：单龄极值（16 岁 449）会让样本保费脱离量级可读范围。
+#       故这两档是**工程取值**，不可直接引用为费率。
+#   · 车龄因子：The Zebra（每增 1 年降约 3.4%，8 年车龄比新车便宜约 25%）
+#     ★实现的 125/115/100/84/75 是**分档近似**：新车→4-8 年档为 100/125 = 便宜 20%，
+#       与来源的「8 年便宜 25%」差 5pp（分档必然损失连续曲线的精度）。
+#       断言锁的是「越旧越便宜」的单调关系，不是具体折扣率。
+#   · 事故加费 +46%：ValuePenguin +49% 与 QuoteFii +44% 的中值
+#   · 违章加费 +23%：全国均值 +23%（Liberty Mutual ≈+25%；州际 NY +7% 至 NC +49%）
+#   · 低信用 +91%：III（保险信息研究所）口径
+#     ★加州/夏威夷/马萨诸塞/密歇根禁止用信用分定价——真实系统须按州禁用此因子
+#   · 免赔额档位：CarInsurance.com / Quadrant 2026-04（$250/$500/$1000）
+#   · 责任限额：III 推荐 100/300/100（= 每人伤害 $100k / 每次事故 $300k /
+#     财产损失 $100k，**三个独立限额**）。
+#     ★实现把三段**折叠成单一 `coverageLimit`**（premium 300000 / standard
+#     100000 / basic 50000）——PolicyQuote 只有一个限额字段，样本不建模
+#     per-person / per-accident / property 的区分。故这三个数**不是**
+#     100/300/100 中的任何一段，只是借其量级做的分档，不可对号入座。
+
 Define Driver has driverId, age, yearsLicensed, accidentCount, violationCount, creditScore.
 
 Define Vehicle has vin, year, make, model, value, safetyRating.
@@ -7,60 +34,153 @@ Define Vehicle has vin, year, make, model, value, safetyRating.
 Define PolicyQuote has approved, reason, monthlyPremium, deductible, coverageLimit.
 
 Rule calculateAgeFactor given age, produce:
-  Return 0.
+  If age less than 20
+    Return 320.
+  If age less than 25
+    Return 155.
+  If age less than 30
+    Return 118.
+  If age less than 50
+    Return 109.
+  If age less than 65
+    Return 100.
+  If age less than 75
+    Return 108.
+  Return 119.
 Rule calculateVehicleFactor given vehicle, produce:
-  Return 0.
-Rule calculateBasePremium given driver, vehicle, produce:
-  Return 0.
+  Let vehicleAge be 2026 minus vehicle.year.
+  If vehicleAge at most 0
+    Return 125.
+  If vehicleAge at most 3
+    Return 115.
+  If vehicleAge at most 8
+    Return 100.
+  If vehicleAge at most 15
+    Return 84.
+  Return 75.
 Rule calculateRiskMultiplier given driver, vehicle, produce:
-  Return 0.
+  Let base be 100.
+  If driver.accidentCount at least 1
+    Let base be base plus (driver.accidentCount times 46).
+  If driver.violationCount at least 1
+    Let base be base plus (driver.violationCount times 23).
+  If driver.creditScore less than 580
+    Let base be base plus 91.
+  If vehicle.safetyRating at most 2
+    Let base be base plus 10.
+  Return base.
+Rule calculateBasePremium given driver, vehicle, produce:
+  Let ageFactor be calculateAgeFactor(driver.age).
+  Let vehicleFactor be calculateVehicleFactor(vehicle).
+  Return ((2312 times ageFactor) times vehicleFactor) divided by 10000.
 Rule determineDeductible given coverageType, creditScore, produce:
-  Return 0.
+  If coverageType equals to "premium"
+    If creditScore at least 670
+      Return 250.
+    Return 500.
+  If coverageType equals to "standard"
+    If creditScore at least 670
+      Return 500.
+    Return 1000.
+  Return 1000.
 Rule determineCoverageLimit given coverageType, vehicleValue, produce:
-  Return 0.
+  If coverageType equals to "premium"
+    Return 300000.
+  If coverageType equals to "standard"
+    Return 100000.
+  Return 50000.
 Rule generateAutoQuote given driver, vehicle, coverageType, produce:
-  Return 0.
+  If driver.age less than 18
+    Return PolicyQuote with approved set to false, reason set to "Driver under minimum age", monthlyPremium set to 0, deductible set to 0, coverageLimit set to 0.
+  If driver.accidentCount at least 4
+    Return PolicyQuote with approved set to false, reason set to "Accident history exceeds underwriting threshold", monthlyPremium set to 0, deductible set to 0, coverageLimit set to 0.
+  If driver.violationCount at least 5
+    Return PolicyQuote with approved set to false, reason set to "Violation history exceeds underwriting threshold", monthlyPremium set to 0, deductible set to 0, coverageLimit set to 0.
+  Let basePremium be calculateBasePremium(driver, vehicle).
+  Let multiplier be calculateRiskMultiplier(driver, vehicle).
+  Let annual be (basePremium times multiplier) divided by 100.
+  Let monthly be (annual times 100) integer divided by 1200.
+  Let deductible be determineDeductible(coverageType, driver.creditScore).
+  Let limit be determineCoverageLimit(coverageType, vehicle.value).
+  Return PolicyQuote with approved set to true, reason set to "Approved", monthlyPremium set to monthly, deductible set to deductible, coverageLimit set to limit.
 Rule testDriverUnder18, produce:
-  Return 0.
+  Let driver be Driver with driverId set to "D1", age set to 17, yearsLicensed set to 1, accidentCount set to 0, violationCount set to 0, creditScore set to 700.
+  Let vehicle be Vehicle with vin set to "V1", year set to 2020, make set to "Honda", model set to "Accord", value set to 20000, safetyRating set to 5.
+  Let quote be generateAutoQuote(driver, vehicle, "standard").
+  Return quote.reason.
 Rule testTooManyAccidents, produce:
-  Return 0.
+  Let driver be Driver with driverId set to "D2", age set to 30, yearsLicensed set to 12, accidentCount set to 4, violationCount set to 0, creditScore set to 700.
+  Let vehicle be Vehicle with vin set to "V2", year set to 2020, make set to "Honda", model set to "Accord", value set to 20000, safetyRating set to 5.
+  Let quote be generateAutoQuote(driver, vehicle, "standard").
+  Return quote.reason.
 Rule testTooManyViolations, produce:
-  Return 0.
+  Let driver be Driver with driverId set to "D3", age set to 30, yearsLicensed set to 12, accidentCount set to 0, violationCount set to 5, creditScore set to 700.
+  Let vehicle be Vehicle with vin set to "V3", year set to 2020, make set to "Honda", model set to "Accord", value set to 20000, safetyRating set to 5.
+  Let quote be generateAutoQuote(driver, vehicle, "standard").
+  Return quote.reason.
 Rule testYoungDriverPremiumCoverage, produce:
-  Return 0.
+  Let driver be Driver with driverId set to "D4", age set to 19, yearsLicensed set to 2, accidentCount set to 0, violationCount set to 0, creditScore set to 700.
+  Let vehicle be Vehicle with vin set to "V4", year set to 2024, make set to "Honda", model set to "Civic", value set to 25000, safetyRating set to 5.
+  Let quote be generateAutoQuote(driver, vehicle, "premium").
+  Return quote.monthlyPremium.
 Rule testMiddleAgedDriverStandardCoverage, produce:
-  Return 0.
+  Let driver be Driver with driverId set to "D5", age set to 40, yearsLicensed set to 22, accidentCount set to 0, violationCount set to 0, creditScore set to 720.
+  Let vehicle be Vehicle with vin set to "V5", year set to 2020, make set to "Honda", model set to "Accord", value set to 20000, safetyRating set to 5.
+  Let quote be generateAutoQuote(driver, vehicle, "standard").
+  Return quote.monthlyPremium.
 Rule testSeniorDriverBasicCoverage, produce:
-  Return 0.
+  Let driver be Driver with driverId set to "D6", age set to 70, yearsLicensed set to 50, accidentCount set to 0, violationCount set to 0, creditScore set to 750.
+  Let vehicle be Vehicle with vin set to "V6", year set to 2018, make set to "Toyota", model set to "Camry", value set to 15000, safetyRating set to 5.
+  Let quote be generateAutoQuote(driver, vehicle, "basic").
+  Return quote.monthlyPremium.
 Rule testPerfectDriverNewCar, produce:
-  Return 0.
+  Let driver be Driver with driverId set to "D7", age set to 55, yearsLicensed set to 37, accidentCount set to 0, violationCount set to 0, creditScore set to 800.
+  Let vehicle be Vehicle with vin set to "V7", year set to 2026, make set to "Subaru", model set to "Outback", value set to 35000, safetyRating set to 5.
+  Let quote be generateAutoQuote(driver, vehicle, "premium").
+  Return quote.monthlyPremium.
 Rule testHighRiskDriverOldCar, produce:
-  Return 0.
+  Let driver be Driver with driverId set to "D8", age set to 30, yearsLicensed set to 12, accidentCount set to 2, violationCount set to 2, creditScore set to 550.
+  Let vehicle be Vehicle with vin set to "V8", year set to 2008, make set to "Ford", model set to "Focus", value set to 4000, safetyRating set to 3.
+  Let quote be generateAutoQuote(driver, vehicle, "basic").
+  Return quote.monthlyPremium.
 Rule testLowCreditScore, produce:
-  Return 0.
+  Let driver be Driver with driverId set to "D9", age set to 40, yearsLicensed set to 22, accidentCount set to 0, violationCount set to 0, creditScore set to 550.
+  Let vehicle be Vehicle with vin set to "V9", year set to 2020, make set to "Honda", model set to "Accord", value set to 20000, safetyRating set to 5.
+  Let quote be generateAutoQuote(driver, vehicle, "standard").
+  Return quote.deductible.
 Rule testHighValueVehicle, produce:
-  Return 0.
+  Let driver be Driver with driverId set to "D10", age set to 45, yearsLicensed set to 27, accidentCount set to 0, violationCount set to 0, creditScore set to 780.
+  Let vehicle be Vehicle with vin set to "V10", year set to 2026, make set to "BMW", model set to "M5", value set to 120000, safetyRating set to 4.
+  Let quote be generateAutoQuote(driver, vehicle, "premium").
+  Return quote.coverageLimit.
 Rule testOldVehicle, produce:
-  Return 0.
+  Let vehicle be Vehicle with vin set to "V11", year set to 2005, make set to "Ford", model set to "Taurus", value set to 2500, safetyRating set to 3.
+  Return calculateVehicleFactor(vehicle).
 Rule testCalculateAgeFactorYoung, produce:
-  Return 0.
+  Return calculateAgeFactor(19).
 Rule testCalculateAgeFactorMiddle, produce:
-  Return 0.
+  Return calculateAgeFactor(40).
 Rule testCalculateAgeFactorSenior, produce:
-  Return 0.
+  Return calculateAgeFactor(70).
 Rule testCalculateVehicleFactorNew, produce:
-  Return 0.
+  Let vehicle be Vehicle with vin set to "V12", year set to 2026, make set to "Honda", model set to "Accord", value set to 30000, safetyRating set to 5.
+  Return calculateVehicleFactor(vehicle).
 Rule testCalculateVehicleFactorOld, produce:
-  Return 0.
+  Let vehicle be Vehicle with vin set to "V13", year set to 2010, make set to "Honda", model set to "Accord", value set to 6000, safetyRating set to 4.
+  Return calculateVehicleFactor(vehicle).
 Rule testCalculateRiskMultiplierClean, produce:
-  Return 0.
+  Let driver be Driver with driverId set to "D11", age set to 40, yearsLicensed set to 22, accidentCount set to 0, violationCount set to 0, creditScore set to 750.
+  Let vehicle be Vehicle with vin set to "V14", year set to 2020, make set to "Honda", model set to "Accord", value set to 20000, safetyRating set to 5.
+  Return calculateRiskMultiplier(driver, vehicle).
 Rule testCalculateRiskMultiplierHighRisk, produce:
-  Return 0.
+  Let driver be Driver with driverId set to "D12", age set to 30, yearsLicensed set to 12, accidentCount set to 2, violationCount set to 2, creditScore set to 550.
+  Let vehicle be Vehicle with vin set to "V15", year set to 2008, make set to "Ford", model set to "Focus", value set to 4000, safetyRating set to 3.
+  Return calculateRiskMultiplier(driver, vehicle).
 Rule testDetermineDeductiblePremiumHigh, produce:
-  Return 0.
+  Return determineDeductible("premium", 750).
 Rule testDetermineDeductibleStandardLow, produce:
-  Return 0.
+  Return determineDeductible("standard", 600).
 Rule testDetermineCoverageLimitPremium, produce:
-  Return 0.
+  Return determineCoverageLimit("premium", 50000).
 Rule testDetermineCoverageLimitBasicHighValue, produce:
-  Return 0.
+  Return determineCoverageLimit("basic", 120000).

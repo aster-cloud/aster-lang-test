@@ -1,5 +1,31 @@
 Module test.insurance.life.
 
+# 合成示例策略——数值取自公开权威来源（2026-08 检索），非真实保险公司费率表。
+#   · 基准费率：NerdWallet（费率由 LifeStein 提供，数据截至 2026-08-01）
+#     $500k/20 年期/Preferred/男性非吸烟：20 岁 $210、30 岁 $213、40 岁 $321、
+#     50 岁 $810、60 岁 $2331、70 岁 $9702（年保费）
+#     ★保费随年龄非线性：20→30 仅 +1.4%，40→50 +152%，60→70 +316%
+#   · 吸烟倍数 3.62x：由上表实算（60 岁 8435/2331）；ValuePenguin +215%、
+#     U.S.News +146%、Policygenius +217%——行业区间 2.5-4.5x，无单一权威值
+#   · BMI 分档：InsuranceGeek（Preferred Plus ≤25 / Preferred 26-28 /
+#     Standard Plus 29-30 / Standard 31-35 / Table Rating 36-40 / >40-42 拒保）
+#     ★该表为「典型 carrier 代表性限值」，未指名具体公司，各家 build chart 差异可达数十磅
+#   · 健康倍数按 **BMI 档**取值（88/100/121/177/250），★注意它**不等于**
+#     LifeStein 的核保等级费率差（40 岁男 Pref+ $321 / Pref $405 / Std $631
+#     = 100/126/197）——真实核保里 BMI 只是决定等级的因素之一，此处为让样本
+#     可执行而把两者合并成单一维度。121/177 取自等级差 126/197 的量级但**经过
+#     人为调整**以拉开与 BMI 档的对应关系，不是可直接引用的费率。
+#   · 职业倍数：BLS《2024 年致命职业伤害普查》（2026-02-19 发布）
+#     全国基准 3.3/10万 FTE；伐木 110.4(33.5x)、渔猎 88.8(26.9x)、屋顶 48.7(14.8x)、
+#     飞行员 36.7(11.1x)、卡车司机 25.7(7.8x，绝对死亡数 950 全美最高)、建筑 15.8(4.8x)
+#     ★真实核保用 flat extra（每千保额加 $2.50-5.00）而非乘数，此处简化为乘数
+#   · 最高投保年龄 75：★无行业统一上限，按产品条款而定，此为示例产品设定
+#   · ★期限系数（10 年 62% / 15 年 80% / 20 年 100% / 30 年 138%）：**无权威出处**。
+#     检索到的费率表都以 20 年期为口径，未找到公开的跨期限系数表。
+#     这四个数是为让样本覆盖期限维度而设的工程取值，仅保证单调递增，
+#     不可引用为费率。若接入真实费率表，改这四个数即可，case 断言的
+#     是「期限越长越贵」这个关系，不是具体百分比。
+
 Define Applicant has applicantId, age, gender, smoker, bmi, occupation, healthScore.
 
 Define PolicyRequest has coverageAmount, termYears, policyType.
@@ -7,74 +33,193 @@ Define PolicyRequest has coverageAmount, termYears, policyType.
 Define LifeQuote has approved, reason, monthlyPremium, coverageAmount, termYears.
 
 Rule calculateBaseRate given age, termYears, produce:
-  Return 0.
+  Let rate be 210.
+  If age at least 30
+    Let rate be 213.
+  If age at least 40
+    Let rate be 321.
+  If age at least 50
+    Let rate be 810.
+  If age at least 60
+    Let rate be 2331.
+  If age at least 70
+    Let rate be 9702.
+  If termYears at most 10
+    Return (rate times 62) integer divided by 100.
+  If termYears at most 15
+    Return (rate times 80) integer divided by 100.
+  If termYears at most 20
+    Return rate.
+  Return (rate times 138) integer divided by 100.
 Rule calculateHealthMultiplier given applicant, produce:
-  Return 0.
+  Let multiplier be 100.
+  If applicant.bmi at least 29
+    Let multiplier be 121.
+  If applicant.bmi at least 31
+    Let multiplier be 177.
+  If applicant.bmi at least 36
+    Let multiplier be 250.
+  If applicant.healthScore at least 90
+    If applicant.bmi less than 29
+      Let multiplier be 88.
+  If applicant.smoker equals to true
+    Return (multiplier times 362) integer divided by 100.
+  Return multiplier.
 Rule calculateOccupationMultiplier given occupation, produce:
-  Return 0.
+  If occupation equals to "logging"
+    Return 3350.
+  If occupation equals to "fishing"
+    Return 2690.
+  If occupation equals to "roofing"
+    Return 1480.
+  If occupation equals to "pilot"
+    Return 1110.
+  If occupation equals to "truck-driver"
+    Return 780.
+  If occupation equals to "construction"
+    Return 480.
+  If occupation equals to "office"
+    Return 100.
+  Return 100.
 Rule calculateRiskScore given applicant, produce:
-  Return 0.
+  Let score be 100.
+  If applicant.smoker equals to true
+    Let score be score minus 30.
+  If applicant.bmi at least 31
+    Let score be score minus 20.
+  If applicant.bmi at least 36
+    Let score be score minus 15.
+  If applicant.healthScore at least 90
+    Let score be score plus 10.
+  If applicant.age at least 60
+    Let score be score minus 15.
+  Return score.
 Rule generateLifeQuote given applicant, request, produce:
-  Return 0.
+  If applicant.age less than 18
+    Return LifeQuote with approved set to false, reason set to "Applicant below minimum issue age", monthlyPremium set to 0, coverageAmount set to 0, termYears set to 0.
+  If applicant.age at least 76
+    Return LifeQuote with approved set to false, reason set to "Applicant above maximum issue age", monthlyPremium set to 0, coverageAmount set to 0, termYears set to 0.
+  If applicant.healthScore less than 40
+    Return LifeQuote with approved set to false, reason set to "Health score below underwriting threshold", monthlyPremium set to 0, coverageAmount set to 0, termYears set to 0.
+  If applicant.bmi at least 41
+    Return LifeQuote with approved set to false, reason set to "Build outside underwriting limits", monthlyPremium set to 0, coverageAmount set to 0, termYears set to 0.
+  If request.coverageAmount at least 5000001
+    Return LifeQuote with approved set to false, reason set to "Coverage exceeds maximum", monthlyPremium set to 0, coverageAmount set to 0, termYears set to 0.
+  Let baseRate be calculateBaseRate(applicant.age, request.termYears).
+  Let healthMult be calculateHealthMultiplier(applicant).
+  Let occMult be calculateOccupationMultiplier(applicant.occupation).
+  Let scaled be (baseRate times request.coverageAmount) integer divided by 500000.
+  Let withHealth be (scaled times healthMult) integer divided by 100.
+  Let annual be (withHealth times occMult) integer divided by 100.
+  Let monthly be annual integer divided by 12.
+  Return LifeQuote with approved set to true, reason set to "Approved", monthlyPremium set to monthly, coverageAmount set to request.coverageAmount, termYears set to request.termYears.
 Rule testApplicantTooYoung, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L1", age set to 17, gender set to "M", smoker set to false, bmi set to 22, occupation set to "office", healthScore set to 90.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.reason.
 Rule testApplicantTooOld, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L2", age set to 80, gender set to "M", smoker set to false, bmi set to 24, occupation set to "office", healthScore set to 80.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.reason.
 Rule testHealthScoreTooLow, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L3", age set to 45, gender set to "M", smoker set to false, bmi set to 24, occupation set to "office", healthScore set to 30.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.reason.
 Rule testCoverageExceedsMaximum, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L4", age set to 40, gender set to "M", smoker set to false, bmi set to 24, occupation set to "office", healthScore set to 85.
+  Let request be PolicyRequest with coverageAmount set to 6000000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.reason.
 Rule testYoungHealthyNonSmokerShortTerm, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L5", age set to 25, gender set to "M", smoker set to false, bmi set to 23, occupation set to "office", healthScore set to 85.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 10, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.monthlyPremium.
 Rule testYoungHealthyNonSmokerLongTerm, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L6", age set to 30, gender set to "M", smoker set to false, bmi set to 23, occupation set to "office", healthScore set to 85.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.monthlyPremium.
 Rule testMiddleAgedSmokerHighBMI, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L7", age set to 45, gender set to "M", smoker set to true, bmi set to 32, occupation set to "office", healthScore set to 60.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.monthlyPremium.
 Rule testMiddleAgedNonSmokerLowBMI, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L8", age set to 45, gender set to "M", smoker set to false, bmi set to 23, occupation set to "office", healthScore set to 85.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.monthlyPremium.
 Rule testOlderApplicantHealthy, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L9", age set to 60, gender set to "M", smoker set to false, bmi set to 24, occupation set to "office", healthScore set to 85.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.monthlyPremium.
 Rule testHighRiskOccupation, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L10", age set to 40, gender set to "M", smoker set to false, bmi set to 24, occupation set to "logging", healthScore set to 85.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.monthlyPremium.
 Rule testModerateRiskOccupation, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L11", age set to 40, gender set to "M", smoker set to false, bmi set to 24, occupation set to "construction", healthScore set to 85.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.monthlyPremium.
 Rule testOfficeWorkerLowRisk, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L12", age set to 40, gender set to "M", smoker set to false, bmi set to 24, occupation set to "office", healthScore set to 85.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.monthlyPremium.
 Rule testSmokerVeryHighBMI, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L13", age set to 50, gender set to "M", smoker set to true, bmi set to 37, occupation set to "office", healthScore set to 50.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.monthlyPremium.
 Rule testExcellentHealthHighScore, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L14", age set to 40, gender set to "F", smoker set to false, bmi set to 22, occupation set to "office", healthScore set to 95.
+  Let request be PolicyRequest with coverageAmount set to 500000, termYears set to 20, policyType set to "term".
+  Let quote be generateLifeQuote(applicant, request).
+  Return quote.monthlyPremium.
 Rule testCalculateBaseRateYoungShort, produce:
-  Return 0.
+  Return calculateBaseRate(25, 10).
 Rule testCalculateBaseRateYoungLong, produce:
-  Return 0.
+  Return calculateBaseRate(25, 30).
 Rule testCalculateBaseRateMiddleShort, produce:
-  Return 0.
+  Return calculateBaseRate(40, 10).
 Rule testCalculateBaseRateMiddleLong, produce:
-  Return 0.
+  Return calculateBaseRate(40, 30).
 Rule testCalculateBaseRateOlderShort, produce:
-  Return 0.
+  Return calculateBaseRate(50, 10).
 Rule testCalculateBaseRateOlderLong, produce:
-  Return 0.
+  Return calculateBaseRate(50, 30).
 Rule testCalculateBaseRateSeniorShort, produce:
-  Return 0.
+  Return calculateBaseRate(60, 10).
 Rule testCalculateHealthMultiplierClean, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L15", age set to 40, gender set to "M", smoker set to false, bmi set to 23, occupation set to "office", healthScore set to 75.
+  Return calculateHealthMultiplier(applicant).
 Rule testCalculateHealthMultiplierSmoker, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L16", age set to 40, gender set to "M", smoker set to true, bmi set to 23, occupation set to "office", healthScore set to 75.
+  Return calculateHealthMultiplier(applicant).
 Rule testCalculateHealthMultiplierHighBMI, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L17", age set to 40, gender set to "M", smoker set to false, bmi set to 32, occupation set to "office", healthScore set to 75.
+  Return calculateHealthMultiplier(applicant).
 Rule testCalculateHealthMultiplierExcellent, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L18", age set to 40, gender set to "F", smoker set to false, bmi set to 22, occupation set to "office", healthScore set to 95.
+  Return calculateHealthMultiplier(applicant).
 Rule testCalculateOccupationMultiplierHighRisk, produce:
-  Return 0.
+  Return calculateOccupationMultiplier("logging").
 Rule testCalculateOccupationMultiplierModerate, produce:
-  Return 0.
+  Return calculateOccupationMultiplier("construction").
 Rule testCalculateOccupationMultiplierOffice, produce:
-  Return 0.
+  Return calculateOccupationMultiplier("office").
 Rule testCalculateOccupationMultiplierUnknown, produce:
-  Return 0.
+  Return calculateOccupationMultiplier("librarian").
 Rule testCalculateRiskScoreLowRisk, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L19", age set to 35, gender set to "F", smoker set to false, bmi set to 22, occupation set to "office", healthScore set to 95.
+  Return calculateRiskScore(applicant).
 Rule testCalculateRiskScoreHighRisk, produce:
-  Return 0.
+  Let applicant be Applicant with applicantId set to "L20", age set to 62, gender set to "M", smoker set to true, bmi set to 37, occupation set to "roofing", healthScore set to 45.
+  Return calculateRiskScore(applicant).

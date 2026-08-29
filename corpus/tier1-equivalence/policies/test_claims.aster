@@ -1,5 +1,29 @@
 Module test.healthcare.claims.
 
+# 合成示例策略——数值取自公开权威来源（2026-08 检索），非真实保险产品条款。
+#   · 网内/网外：KFF《ACA Marketplace 2024 拒付分析》网内拒付 19%、网外 37%
+#   · coinsurance 80%：KFF 2025 雇主健康福利调查（住院 20% coinsurance）
+#   · 提供者质量评分沿用 CMS Medicare Advantage Star Ratings 的 1-5 星量纲。
+#     ★但**拒付门槛是本策略自设的 `< 3`（3.0 星通过），不是 CMS 的 3.5 星
+#     质量奖金线**——奖金线决定的是「计划能否拿奖金」，与「理赔是否受理」
+#     是两回事，不可混为一谈。此处只借量纲，门槛值无权威出处。
+#   · 预授权金额阈值 1000：★KFF 明示预授权按服务类型而非金额触发，
+#     此阈值是为让样本可执行而做的工程简化，无权威出处。
+#   · 拒付理由枚举参考 KFF 2024 六分类（缺预授权/转诊占 9%）
+#   · ★`divided by` 是**真除法**（非取整）：金额不整除时会产生小数
+#     （如 333×80% = 266.4）。这是金额该有的语义（有分位），故保留；
+#     但既有 case 全都恰好整除属**侥幸**，一旦有人加个不整除的金额，
+#     golden 就会是浮点数。testCalculateClaimApprovalFractional 专门
+#     钉住这条路径，让「会产生小数」成为被断言的性质而非意外。
+#   · ★自动裁定金额上限 $100,000：**无权威出处**。KFF 只统计「高额理赔
+#     （>$10万/年）占成员 1.2%、占支出约 33%」（全国医保采购联盟 2024），
+#     那是**年度累计**口径，不是单笔自动裁定阈值。此处借其量级设为单笔阈值，
+#     属工程取值。
+#   · ★专科/手术各降 5/10 个百分点：**无权威出处**。KFF 按服务类型统计的
+#     coinsurance（初级保健 19%、专科 19%、住院 20%）**并未**显示专科比初级
+#     保健报销更低——实测两者都是 19%。此处的递减是为制造可区分的分支，
+#     不反映真实报销结构。
+
 Define Claim has claimId, patientId, providerId, serviceDate, amount, diagnosisCode.
 
 Define Provider has providerId, inNetwork, specialtyType, qualityScore.
@@ -7,38 +31,84 @@ Define Provider has providerId, inNetwork, specialtyType, qualityScore.
 Define ClaimDecision has approved, reason, approvedAmount, denialCode, requiresReview.
 
 Rule calculateClaimApproval given claimAmount, coverage, specialty, produce:
-  Return 0.
-Rule processClaim given claim, provider, patientCoverage, produce:
-  Return 0.
+  If specialty equals to "surgery"
+    Return (claimAmount times (coverage minus 10)) divided by 100.
+  If specialty equals to "specialist"
+    Return (claimAmount times (coverage minus 5)) divided by 100.
+  Return (claimAmount times coverage) divided by 100.
 Rule validateClaimDocumentation given claim, hasPreAuth, hasReferral, produce:
-  Return 0.
+  If claim.amount at least 1000
+    If hasPreAuth equals to false
+      Return false.
+  If hasReferral equals to false
+    Return false.
+  Return true.
+Rule processClaim given claim, provider, patientCoverage, produce:
+  If provider.inNetwork equals to false
+    Return ClaimDecision with approved set to false, reason set to "Out-of-network provider", approvedAmount set to 0, denialCode set to "OON", requiresReview set to true.
+  If claim.amount at least 100000
+    Return ClaimDecision with approved set to false, reason set to "Amount exceeds automatic adjudication limit", approvedAmount set to 0, denialCode set to "LIMIT", requiresReview set to true.
+  If provider.qualityScore less than 3
+    Return ClaimDecision with approved set to false, reason set to "Provider below quality threshold", denialCode set to "QUALITY", approvedAmount set to 0, requiresReview set to true.
+  Let paid be calculateClaimApproval(claim.amount, patientCoverage, provider.specialtyType).
+  Return ClaimDecision with approved set to true, reason set to "Approved", approvedAmount set to paid, denialCode set to "NONE", requiresReview set to false.
 Rule testOutOfNetworkProvider, produce:
-  Return 0.
+  Let claim be Claim with claimId set to "C1", patientId set to "P1", providerId set to "PR1", serviceDate set to "2026-01-15", amount set to 500, diagnosisCode set to "J06".
+  Let provider be Provider with providerId set to "PR1", inNetwork set to false, specialtyType set to "general", qualityScore set to 4.
+  Let decision be processClaim(claim, provider, 80).
+  Return decision.denialCode.
 Rule testAmountExceedsLimit, produce:
-  Return 0.
+  Let claim be Claim with claimId set to "C2", patientId set to "P1", providerId set to "PR2", serviceDate set to "2026-01-15", amount set to 120000, diagnosisCode set to "I21".
+  Let provider be Provider with providerId set to "PR2", inNetwork set to true, specialtyType set to "surgery", qualityScore set to 5.
+  Let decision be processClaim(claim, provider, 80).
+  Return decision.denialCode.
 Rule testLowQualityProvider, produce:
-  Return 0.
+  Let claim be Claim with claimId set to "C3", patientId set to "P1", providerId set to "PR3", serviceDate set to "2026-01-15", amount set to 500, diagnosisCode set to "J06".
+  Let provider be Provider with providerId set to "PR3", inNetwork set to true, specialtyType set to "general", qualityScore set to 2.
+  Let decision be processClaim(claim, provider, 80).
+  Return decision.denialCode.
 Rule testGeneralProviderNormalClaim, produce:
-  Return 0.
+  Let claim be Claim with claimId set to "C4", patientId set to "P1", providerId set to "PR4", serviceDate set to "2026-01-15", amount set to 500, diagnosisCode set to "J06".
+  Let provider be Provider with providerId set to "PR4", inNetwork set to true, specialtyType set to "general", qualityScore set to 4.
+  Let decision be processClaim(claim, provider, 80).
+  Return decision.approvedAmount.
 Rule testSpecialistProvider, produce:
-  Return 0.
+  Let claim be Claim with claimId set to "C5", patientId set to "P1", providerId set to "PR5", serviceDate set to "2026-01-15", amount set to 500, diagnosisCode set to "M54".
+  Let provider be Provider with providerId set to "PR5", inNetwork set to true, specialtyType set to "specialist", qualityScore set to 4.
+  Let decision be processClaim(claim, provider, 80).
+  Return decision.approvedAmount.
 Rule testSurgeryProvider, produce:
-  Return 0.
+  Let claim be Claim with claimId set to "C6", patientId set to "P1", providerId set to "PR6", serviceDate set to "2026-01-15", amount set to 500, diagnosisCode set to "K35".
+  Let provider be Provider with providerId set to "PR6", inNetwork set to true, specialtyType set to "surgery", qualityScore set to 5.
+  Let decision be processClaim(claim, provider, 80).
+  Return decision.approvedAmount.
 Rule testHighAmountInNetworkClaim, produce:
-  Return 0.
+  Let claim be Claim with claimId set to "C7", patientId set to "P1", providerId set to "PR7", serviceDate set to "2026-01-15", amount set to 99000, diagnosisCode set to "K35".
+  Let provider be Provider with providerId set to "PR7", inNetwork set to true, specialtyType set to "surgery", qualityScore set to 5.
+  Let decision be processClaim(claim, provider, 80).
+  Return decision.approvedAmount.
 Rule testMinimalAmountClaim, produce:
-  Return 0.
+  Let claim be Claim with claimId set to "C8", patientId set to "P1", providerId set to "PR8", serviceDate set to "2026-01-15", amount set to 100, diagnosisCode set to "Z00".
+  Let provider be Provider with providerId set to "PR8", inNetwork set to true, specialtyType set to "general", qualityScore set to 4.
+  Let decision be processClaim(claim, provider, 80).
+  Return decision.approvedAmount.
 Rule testValidDocumentationWithPreAuth, produce:
-  Return 0.
+  Let claim be Claim with claimId set to "C9", patientId set to "P1", providerId set to "PR9", serviceDate set to "2026-01-15", amount set to 5000, diagnosisCode set to "K35".
+  Return validateClaimDocumentation(claim, true, true).
 Rule testInvalidDocumentationNoPreAuth, produce:
-  Return 0.
+  Let claim be Claim with claimId set to "C10", patientId set to "P1", providerId set to "PR10", serviceDate set to "2026-01-15", amount set to 5000, diagnosisCode set to "K35".
+  Return validateClaimDocumentation(claim, false, true).
 Rule testInvalidDocumentationNoReferral, produce:
-  Return 0.
+  Let claim be Claim with claimId set to "C11", patientId set to "P1", providerId set to "PR11", serviceDate set to "2026-01-15", amount set to 5000, diagnosisCode set to "K35".
+  Return validateClaimDocumentation(claim, true, false).
 Rule testLowAmountNoPreAuthRequired, produce:
-  Return 0.
+  Let claim be Claim with claimId set to "C12", patientId set to "P1", providerId set to "PR12", serviceDate set to "2026-01-15", amount set to 200, diagnosisCode set to "Z00".
+  Return validateClaimDocumentation(claim, false, true).
+Rule testCalculateClaimApprovalFractional, produce:
+  Return calculateClaimApproval(333, 80, "general").
 Rule testCalculateClaimApprovalGeneral, produce:
-  Return 0.
+  Return calculateClaimApproval(1000, 80, "general").
 Rule testCalculateClaimApprovalSpecialist, produce:
-  Return 0.
+  Return calculateClaimApproval(1000, 80, "specialist").
 Rule testCalculateClaimApprovalSurgery, produce:
-  Return 0.
+  Return calculateClaimApproval(1000, 80, "surgery").
