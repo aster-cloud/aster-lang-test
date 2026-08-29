@@ -14,6 +14,46 @@
         "__type": "Ok",
         "value": 7
       }
+    },
+    {
+      "name": "Maybe.map(Some(7), inc) → Some(7)（inc 是恒等；#97 最初记录的未执行规则）",
+      "input": [
+        {
+          "__type": "Some",
+          "value": 7
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Some",
+        "value": 7
+      },
+      "entry": "mapMaybe"
+    },
+    {
+      "name": "Maybe.withDefault(Some(7), 0) → 7（宿主传入的变体，aster-lang-ts#138 修复后两引擎一致）",
+      "input": [
+        {
+          "__type": "Some",
+          "value": 7
+        },
+        0
+      ],
+      "expectedOutput": 7,
+      "entry": "maybeWithDefault"
+    },
+    {
+      "name": "Result.tapError(Err(7), logErr) → 原样返回 Err(7)",
+      "input": [
+        {
+          "__type": "Err",
+          "value": 7
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Err",
+        "value": 7
+      },
+      "entry": "tapError"
     }
   ]
 }

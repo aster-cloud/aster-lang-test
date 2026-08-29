@@ -17,6 +17,213 @@
         3
       ],
       "expectedOutput": false
+    },
+    {
+      "name": "x=7, y=3 → true",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": true,
+      "entry": "kwAtLeast"
+    },
+    {
+      "name": "x=7, y=3 → false",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": false,
+      "entry": "kwAtMost"
+    },
+    {
+      "name": "x=7, y=3 → 2.3333333333333335",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": 2.3333333333333335,
+      "entry": "kwDividedBy"
+    },
+    {
+      "name": "x=7, y=3 → false",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": false,
+      "entry": "kwEqualsTo"
+    },
+    {
+      "name": "x=7, y=3 → true",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": true,
+      "entry": "kwGreaterThan"
+    },
+    {
+      "name": "x=7, y=3 → 4",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": 4,
+      "entry": "kwMinus"
+    },
+    {
+      "name": "x=7, y=3 → true",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": true,
+      "entry": "kwNotEqualTo"
+    },
+    {
+      "name": "x=7, y=3 → 10",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": 10,
+      "entry": "kwPlus"
+    },
+    {
+      "name": "x=7, y=3 → 21",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": 21,
+      "entry": "kwTimes"
+    },
+    {
+      "name": "x=7, y=3 → 10",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": 10,
+      "entry": "symAdd"
+    },
+    {
+      "name": "x=7, y=3 → 2.3333333333333335",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": 2.3333333333333335,
+      "entry": "symDiv"
+    },
+    {
+      "name": "x=7, y=3 → false",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": false,
+      "entry": "symEqEq"
+    },
+    {
+      "name": "x=7, y=3 → false",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": false,
+      "entry": "symEqSingle"
+    },
+    {
+      "name": "x=7, y=3 → true",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": true,
+      "entry": "symGe"
+    },
+    {
+      "name": "x=7, y=3 → true",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": true,
+      "entry": "symGt"
+    },
+    {
+      "name": "x=7, y=3 → false",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": false,
+      "entry": "symLe"
+    },
+    {
+      "name": "x=7, y=3 → false",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": false,
+      "entry": "symLt"
+    },
+    {
+      "name": "x=7, y=3 → 21",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": 21,
+      "entry": "symMul"
+    },
+    {
+      "name": "x=7, y=3 → true",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": true,
+      "entry": "symNe"
+    },
+    {
+      "name": "x=7, y=3 → 4",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": 4,
+      "entry": "symSub"
+    },
+    {
+      "name": "x=7, y=3 → true",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": true,
+      "entry": "synMoreThan"
+    },
+    {
+      "name": "x=7, y=3 → true",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": true,
+      "entry": "synOver"
+    },
+    {
+      "name": "x=7, y=3 → false",
+      "input": [
+        7,
+        3
+      ],
+      "expectedOutput": false,
+      "entry": "synUnder"
     }
   ]
 }

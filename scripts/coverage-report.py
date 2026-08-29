@@ -124,9 +124,16 @@ def main() -> int:
             # ★`{name}*` 是**前缀**匹配：policy `loan` 会吞掉 `loan_fixed.cases.json`,
             #   `lambda_cnl` 会吞掉 7 个 `lambda_cnl_match_*`——把别人的 entry 当成自己的，
             #   于是本该不可达的规则被算成可达（实测 28 处跨 policy 污染，真缺口被低估 55 条）。
-            #   不能改用严格文件名相等：`21-comparison-is-prefix_greater_check.cases.json`
-            #   等 56 个文件是**同一 policy 的多 entry 拆分**，自称归属正是本 policy，必须保留。
             #   唯一可靠的判据是每个 cases 文件自带的 `policy` 字段（自证归属）。
+            #
+            #   ★历史背景（已消解）：此处原先必须容忍前缀匹配，因为
+            #   `21-comparison-is-prefix_greater_check.cases.json` 等 57 个文件是
+            #   「同一 policy 的多 entry 拆分」。但那些文件**从未被 eval 门执行**——
+            #   门查 golden 用的是精确文件名，拆分文件永远匹配不上，而本脚本却靠
+            #   前缀 glob 把它们计入「已覆盖」：度量说已覆盖、门禁实际没跑。
+            #   现已全部用 case 级 `entry` 覆盖合并回基文件并删除，且
+            #   parity-tier1.mjs 增加了 assertNoOrphanCaseFiles 守卫禁止再次出现。
+            #   前缀 glob 与 policy 字段校验一并保留，作为纵深防御。
             owner = os.path.basename(data.get('policy', '') or '')
             if owner and owner[:-6] != name:
                 continue
