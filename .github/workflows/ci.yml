@@ -143,6 +143,14 @@ jobs:
               - 'scripts/equivalence-nightly.mjs'
               - 'scripts/lib/eval-cases.mjs'
               - 'scripts/test-eval-guard.mjs'
+              # ★守门脚本**自身**必须在清单里，否则「只改守门脚本」的 PR 会整体
+              #   跳过 parity job——包括那条守卫对自己改动的验证。回归要等合入 main
+              #   的 push run（恒跑）才变红，PR 阶段的绿灯是误导（issue #121）。
+              #   tag-eval-exempt.mjs 由本 workflow 第 342 行执行（豁免锈蚀门）；
+              #   lib/history.mjs 被 parity-tier1 / tag-eval-exempt / equivalence-nightly
+              #   三处 import，此前**一次都没出现**在本清单中。
+              - 'scripts/tag-eval-exempt.mjs'
+              - 'scripts/lib/history.mjs'
               - 'scripts/lib/golden-overwrite.mjs'
               - 'scripts/lib/drop-authorization.mjs'
               - 'scripts/test-drop-authorization.mjs'

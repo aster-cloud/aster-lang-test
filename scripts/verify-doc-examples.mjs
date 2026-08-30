@@ -58,6 +58,39 @@ async function loadCompiler() {
   return mod;
 }
 
+/**
+ * 按 locale 加载 TS 侧词法表**对象**。
+ *
+ * ★与 parity-tier1.mjs 的 loadTsLexicons 同源：canonicalize / lex / parseWithLexicon
+ * 三处都必须拿到词法表**对象**，缺任何一处都会在第一个非 ASCII 字符上炸
+ * （实测 `Unexpected character '模'`）。此前本脚本三处全没传、且把字符串
+ * `'zh'` 当对象传给 parseWithLexicon —— zh/de 文档跑批**系统性假红**。
+ */
+const LEXICON_SPECS = {
+  zh: ['config/lexicons/zh-CN.js', 'ZH_CN'],
+  de: ['config/lexicons/de-DE.js', 'DE_DE'],
+  hi: ['config/lexicons/hi-IN.js', 'HI_IN'],
+};
+
+async function loadLexicon(locale) {
+  if (locale === 'en') return null;
+  const spec = LEXICON_SPECS[locale];
+  if (!spec) {
+    fail(`unknown locale "${locale}" (supported: en, ${Object.keys(LEXICON_SPECS).join(', ')})`);
+  }
+  const [rel, exportName] = spec;
+  let m;
+  try {
+    m = await import(join(TS_REPO, 'dist', 'src', rel));
+  } catch (e) {
+    fail(`locale "${locale}" 的词法表无法从 aster-lang-ts 加载（${rel}）：${e?.message ?? e}`);
+  }
+  if (!m[exportName]) {
+    fail(`locale "${locale}" 的词法表模块缺少导出 ${exportName}（${rel}）`);
+  }
+  return m[exportName];
+}
+
 /** Recursively collect markdown/mdx files under a dir. */
 function walk(dir, exts, out = []) {
   if (!existsSync(dir)) return out;
@@ -103,17 +136,16 @@ function extractAsterBlocks(text) {
   return blocks;
 }
 
-function parseBlock(mod, code, locale) {
+function parseBlock(mod, code, lexObj) {
   try {
-    const canonical = mod.canonicalize(code);
-    const tokens = mod.lex(canonical);
-    let result;
-    if (locale !== 'en' && mod.parseWithLexicon) {
-      // best-effort multi-lexicon; falls back to parse if unsupported
-      result = mod.parseWithLexicon(tokens, locale);
-    } else {
-      result = mod.parse(tokens);
-    }
+    // ★词法表对象必须贯穿三处（canonicalize / lex / parseWithLexicon）。
+    //   少传任何一处都会在第一个非 ASCII 关键词上抛 `Unexpected character`，
+    //   使整批非 en 文档系统性假红。调用形态与 parity-tier1.mjs 保持一致。
+    const canonical = lexObj ? mod.canonicalize(code, lexObj) : mod.canonicalize(code);
+    const tokens = lexObj ? mod.lex(canonical, lexObj) : mod.lex(canonical);
+    const result = lexObj && mod.parseWithLexicon
+      ? mod.parseWithLexicon(tokens, lexObj)
+      : mod.parse(tokens);
     const diags = result.diagnostics || [];
     const errs = diags.filter((d) => d.severity === 'error');
     return { ok: errs.length === 0 && !!result.ast, error: errs[0]?.message || (result.ast ? null : 'no AST') };
@@ -124,6 +156,7 @@ function parseBlock(mod, code, locale) {
 
 async function main() {
   const mod = await loadCompiler();
+  const lexObj = await loadLexicon(LOCALE);
 
   // Gather doc files for the requested locale.
   const files = [];
@@ -160,7 +193,7 @@ async function main() {
       if (!b.code.trim()) continue;
       total++;
       const expectError = b.flags.includes('expect-error');
-      const res = parseBlock(mod, b.code, LOCALE);
+      const res = parseBlock(mod, b.code, lexObj);
       if (expectError) {
         if (res.ok) {
           failures.push({ file, line: b.startLine, message: 'expected parse error but block parsed cleanly' });
