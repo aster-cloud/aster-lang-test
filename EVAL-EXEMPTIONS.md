@@ -12,18 +12,24 @@
 > `.meta.json`. The nightly records the coverage trend row into
 > `eval-coverage-history.csv` via `scripts/tag-eval-exempt.mjs --history=…`.
 
-## Current state (2026-07-28, 复核于 not-precedence 合并后)
+## Current state (2026-08-30, 复核于 None 表示统一 aster-lang-ts#137 合并后)
 
 | Metric | Count |
 |---|---:|
-| Total tier1-equivalence samples | 218 |
+| Total tier1-equivalence samples | 223 |
 | Eval-exempt (no meaningful pure-eval golden) | 73 |
-| **Eval-able** (denominator) | **145** |
-| Covered by a `*.cases.json` golden | 145 |
-| **Coverage** | **145 / 145 = 100.0 %** |
+| **Eval-able** (denominator) | **150** |
+| Covered by a `*.cases.json` golden | 150 |
+| **Coverage** | **150 / 150 = 100.0 %** |
 | Eval-able but NOT yet covered (backlog) | 0 |
 
-`--mode=eval` 实测 **298/298 identical**（双引擎一致且匹配 golden，0 divergent）。
+`--mode=eval` 实测 **713/713 identical**（双引擎一致且匹配 golden，0 divergent）。
+
+> **本表的数字必须与 `node scripts/tag-eval-exempt.mjs` 的实时输出一致。**
+> 上一版（2026-07-28）记的是 218 / 145 / 298，而实时已是 223 / 150 / 713——
+> 样本与 case 都在增长而文档没跟上（audit #95 点名的「doc counts drifted」）。
+> 豁免**数**（73）由 `--check` 锈蚀门守着，但**总数/分母/case 数**没有门禁，
+> 只能靠改动时顺手更新。抄之前先跑一次上面那条命令。
 
 > **2026-07 审计修复（P4 度量诚实化）。** 审计发现 `tag-eval-exempt.mjs` 的
 > `STDLIB_NAMESPACES` 静态白名单漏了 `Date` / `Decimal` 两个已实现命名空间。

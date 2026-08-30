@@ -253,4 +253,38 @@ if (CHECK) {
     process.exit(1);
   }
   console.log('[tag-eval-exempt --check] 豁免章与实时分类一致 ✓');
+
+  // ★EVAL-EXEMPTIONS.md 的数字必须与实时输出一致（audit #95 的 "doc counts drifted"）。
+  //
+  //   豁免**数**由上面的漂移检查守着，但**总样本数 / 分母 / 覆盖数**此前**无人守**：
+  //   文档记 218 / 145，实时已是 223 / 150——样本在长、文档没跟上，
+  //   而「100.0%」那行看起来永远正确，掩盖了分母已经变了这件事。
+  //
+  //   只校验能机械比对的三个数；叙述性段落不管（那是人写给人看的）。
+  const docPath = join(ROOT, 'EVAL-EXEMPTIONS.md');
+  if (existsSync(docPath)) {
+    const doc = readFileSync(docPath, 'utf8');
+    const pick = (label) => {
+      const m = doc.match(new RegExp(`\\|\\s*\\*{0,2}${label}[^|]*\\|\\s*\\*{0,2}(\\d+)`, 'i'));
+      return m ? Number(m[1]) : null;
+    };
+    const expected = [
+      ['Total tier1-equivalence samples', total],
+      ['Eval-exempt', exemptCount],
+      ['Eval-able', evalable],
+    ];
+    const docDrift = [];
+    for (const [label, live] of expected) {
+      const got = pick(label);
+      if (got === null) docDrift.push(`EVAL-EXEMPTIONS.md 缺少「${label}」行`);
+      else if (got !== live) docDrift.push(`EVAL-EXEMPTIONS.md「${label}」记 ${got}，实时为 ${live}`);
+    }
+    if (docDrift.length > 0) {
+      console.error(`\n[tag-eval-exempt --check] ${docDrift.length} 处文档计数漂移：`);
+      for (const d of docDrift) console.error(`  - ${d}`);
+      console.error('修复：按 node scripts/tag-eval-exempt.mjs 的实时输出更新 EVAL-EXEMPTIONS.md 的表格。');
+      process.exit(1);
+    }
+    console.log('[tag-eval-exempt --check] EVAL-EXEMPTIONS.md 计数与实时一致 ✓');
+  }
 }
