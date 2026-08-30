@@ -138,6 +138,20 @@
         ]
       ],
       "expectedOutput": 0
+    },
+    {
+      "name": "head returns None",
+      "entry": "head",
+      "input": [
+        [
+          1,
+          2,
+          3
+        ]
+      ],
+      "expectedOutput": {
+        "__type": "None"
+      }
     }
   ]
 }
