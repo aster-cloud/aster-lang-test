@@ -25,6 +25,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync, appendFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, resolve, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -83,38 +84,39 @@ async function runTsParse(samples) {
 }
 
 function runJavaParse(samples) {
-  // Invoke aster-lang-core's TsSampleParseInventoryTest. The test only emits
-  // markdown rows for FAILING samples (lines starting with "| ... | ❌ | ...").
-  // Strategy: parse all corpus-relative paths from the failure rows, then
-  // default to "ok=true" for every sample NOT in the failure list.
+  // 调 aster-lang-core 的 TsSampleParseInventoryTest；输出解析与判定与 parity-tier1.mjs
+  // 共用 lib/java-inventory.mjs。
   const result = spawnSync(
     './gradlew',
     ['test', '--tests', 'TsSampleParseInventoryTest', '--rerun-tasks', '-i'],
     { cwd: CORE_REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
   );
   const output = (result.stdout || '') + (result.stderr || '');
-  if (result.status !== 0 && !output.includes('=== TS-engine sample → Java parser inventory ===')) {
-    throw new Error('aster-lang-core inventory test failed:\n' + output.slice(-2000));
-  }
+  const problem = inventoryOutputProblem(result.status, output);
+  if (problem) throw new Error(problem);
 
-  // Confirm the test actually ran (line "Discovered N samples")
-  if (!output.includes('Discovered ') || !output.includes('Pass-rate:')) {
-    throw new Error('aster-lang-core inventory test output incomplete:\n' + output.slice(-2000));
+  // ★逐样本「已观测」判定（issue #132）。此前 nightly 只有「不在失败清单即通过」，
+  //   连 Discovered 计数都不比：陈旧 Maven 语料缺样本、或 core 根本不扫描的目录
+  //   （tier2-divergent/java-only 的 engines=["java"] 样本不在 core 的扫描范围内）
+  //   都会被无条件判为 Java-pass。
+  //   nightly 覆盖的集合比 manifest 宽，故未观测不直接中止（那会让 java-only 目录
+  //   一有样本就整晚报错），而是记为 Java 失败进入统计——rate 回退会让门变红，
+  //   同时把清单打到 stderr 让人看得见。core 完全没输出 OBSERVED 行则是老版本或
+  //   测试没真跑，拒绝给出任何结论。
+  const inventory = parseInventoryOutput(output);
+  if (inventory.observed.size === 0) {
+    throw new Error(
+      'Java inventory did not emit any "OBSERVED <path>" line — aster-lang-core is older\n' +
+      'than the observed-list change or the test did not actually run. Refusing to report.',
+    );
   }
-
-  // Collect explicit failures. Row format:
-  //   | corpus/<path> | ❌ | <first-error> |
-  const failed = new Set();
-  for (const line of output.split('\n')) {
-    const m = line.match(/^\s*\|\s*(corpus\/[^|]+?\.aster)\s*\|\s*❌\s*\|/);
-    if (m) failed.add(m[1].trim().replace(/^corpus\//, ''));
-  }
-
-  // Build per-sample result: ok=true unless explicitly listed as failed.
-  const results = {};
-  for (const abs of samples) {
-    const rel = relative(CORPUS, abs);
-    results[rel] = { ok: !failed.has(rel) };
+  const rels = samples.map((abs) => relative(CORPUS, abs));
+  const { results, unobserved } = judgeSamples(rels, inventory);
+  if (unobserved.length > 0) {
+    console.error(
+      `[nightly] ⚠ Java inventory did not observe ${unobserved.length} sample(s); ` +
+      'counted as Java-fail, NOT pass:\n' + unobserved.map((r) => `  - ${r}`).join('\n'),
+    );
   }
   return results;
 }

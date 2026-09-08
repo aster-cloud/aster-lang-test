@@ -45,6 +45,7 @@ import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { upsertDailyHistory } from './lib/history.mjs';
 import { collectEvalCaseProblem, entryForCase, expectsError } from './lib/eval-cases.mjs';
+import { inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -257,62 +258,38 @@ async function runTsParse(samples) {
 }
 
 function runJavaParse(samples) {
-  // Reuse aster-lang-core's TsSampleParseInventoryTest. It prints:
-  //   `Discovered N samples (tier1 + tier2/ts-only)`  — total Java saw
-  //   `| corpus/<path> | ❌ | err |`                   — failure rows only
-  //   `Total: T, Pass: P, Fail: F, Pass-rate: X%`     — summary
-  //
-  // The test only emits rows for FAILURES (see
-  // aster-lang-core/src/test/java/aster/core/dualengine/TsSampleParseInventoryTest.java).
-  // That's fine *if* Java actually observed every manifest sample —
-  // anything not on the failure list is genuinely passing.
+  // 调 aster-lang-core 的 TsSampleParseInventoryTest。输出解析与逐样本判定与
+  // equivalence-nightly.mjs 共用 lib/java-inventory.mjs（单一事实源，见该文件头注）。
   //
   // Stale-corpus blind spot (codex review R1): the inventory test
   // reads corpus from a Maven dependency `cloud.aster-lang:aster-lang-test`,
   // not the local checkout. A new sample added to the manifest in a
   // PR is NOT in that artifact, so the inventory test wouldn't see it
-  // at all — and the runner would silently mark it ok.
-  //
-  // Defense: assert `Discovered N` >= manifest size. If the Java side
-  // saw fewer samples than the manifest declares, it's reading a
-  // stale corpus and the gate is invalid. The CI workflow MUST also
-  // publish the local corpus to Maven Local before invoking gradle
-  // (see ./.github/workflows/ci.yml `Publish corpus to Maven Local`).
+  // at all — and "not in the failure list" would silently mark it ok.
+  // The CI workflow MUST publish the local corpus to Maven Local before
+  // invoking gradle (see ./.github/workflows/ci.yml `Publish corpus to Maven Local`).
   const result = spawnSync(
     './gradlew',
     ['test', '--tests', 'TsSampleParseInventoryTest', '--rerun-tasks', '-i'],
     { cwd: CORE_REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
   );
   const output = (result.stdout || '') + (result.stderr || '');
-  if (result.status !== 0 && !output.includes('=== TS-engine sample → Java parser inventory ===')) {
-    fail('aster-lang-core inventory test failed:\n' + output.slice(-2000));
-  }
-  if (!output.includes('Discovered ') || !output.includes('Pass-rate:')) {
-    fail('aster-lang-core inventory test output incomplete:\n' + output.slice(-2000));
-  }
+  const problem = inventoryOutputProblem(result.status, output);
+  if (problem) fail(problem);
 
-  // ★逐样本「已观测」判定（issue #119）——取代原先的 Discovered 计数比较。
-  //
-  //   原防线是 `Discovered N >= manifest size`。但 Discovered 统计的是
-  //   **tier1 全量 + tier2/ts-only**，是 manifest 的**超集**——陈旧 Maven 语料
-  //   缺少某个新增 manifest 样本时，计数照样够，那个新样本被静默判为 Java-pass。
-  //   超集比较对「缺了哪一个」这件事天然盲。
-  //
-  //   现在 core 的 inventory 测试逐条输出 `OBSERVED <path>`，这里按**集合**核对：
-  //   manifest 里任何一个样本没出现在观测清单中 → 拒绝给出结论。
-  const observed = new Set();
-  for (const line of output.split('\n')) {
-    const m = line.match(/^\s*OBSERVED\s+(\S+\.aster)\s*$/);
-    if (m) observed.add(m[1].replace(/^corpus\//, ''));
-  }
-  if (observed.size === 0) {
+  // ★逐样本「已观测」判定（issue #119 / #132）——取代原先的 Discovered 计数比较。
+  //   Discovered 统计的是 tier1 全量 + tier2/ts-only，是 manifest 的超集，
+  //   陈旧语料缺少某个新增 manifest 样本时计数照样够。这里按集合核对：
+  //   manifest 里任何一个样本没出现在 OBSERVED 清单中 → 拒绝给出结论。
+  const inventory = parseInventoryOutput(output);
+  if (inventory.observed.size === 0) {
     fail(
       'Java inventory did not emit any "OBSERVED <path>" line.\n' +
       'Either aster-lang-core is older than the observed-list change (issue #119),\n' +
       'or the test did not actually run. Refusing to report a verdict.',
     );
   }
-  const unobserved = samples.map((x) => x.rel).filter((rel) => !observed.has(rel));
+  const { results, unobserved } = judgeSamples(samples.map((x) => x.rel), inventory);
   if (unobserved.length > 0) {
     fail(
       `Java inventory did not observe ${unobserved.length} manifest sample(s):\n` +
@@ -323,18 +300,6 @@ function runJavaParse(samples) {
       `Refusing to report a verdict — "not in the failure list" would wrongly count\n` +
       `these as passing.`,
     );
-  }
-
-  // Failure rows only. Anything OBSERVED and not listed here is a genuine pass.
-  const failed = new Set();
-  for (const line of output.split('\n')) {
-    const m = line.match(/^\s*\|\s*(corpus\/[^|]+?\.aster)\s*\|\s*❌\s*\|/);
-    if (m) failed.add(m[1].trim().replace(/^corpus\//, ''));
-  }
-
-  const results = {};
-  for (const { rel } of samples) {
-    results[rel] = { ok: !failed.has(rel) };
   }
   return results;
 }
