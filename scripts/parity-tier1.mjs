@@ -558,10 +558,71 @@ function diffFingerprints(tsFp, javaFp) {
 // ADR 0016 — field-level (normalized) Core IR parity (--mode=ir --full)
 // ============================================================================
 
-// Fields ignored on every node: pure position/diagnostic data that carries no
-// evaluation semantics and legitimately differs between engines (e.g. line/col
-// numbering conventions). Stripped recursively before comparison.
-const IR_IGNORE_FIELDS = new Set(['origin']);
+// Fields ignored on every node. Kept empty on purpose — see IR_ORIGIN_MODE below
+// for how `origin` is handled now.
+const IR_IGNORE_FIELDS = new Set([]);
+
+// ─────────────────────────────────────────────────────────────────────────────
+// `origin` (source spans) — staged tightening. ADR 0037 §2.2.1.
+//
+// ★History: `origin` used to be stripped wholesale (`IR_IGNORE_FIELDS =
+//   {'origin'}`) with the stated reason "line/col numbering conventions
+//   legitimately differ between engines". That reason is FALSE — both engines
+//   are 1-based (Java Lexer.java:69-70, TS frontend/lexer.ts:203-204). The
+//   exemption dated back to the very first field-level parity commit and was
+//   never a considered decision.
+//
+// ★What it was hiding (measured 2026-09-12 by emptying the set and re-running):
+//   150/223 samples diverge, 1325 field diffs, broken down as:
+//     origin.file        736  pure representation: ts=undefined vs java="null"
+//     origin.end.col     450  REAL divergence
+//     origin.start.col   115  REAL divergence
+//     origin.*.line       24  REAL but small
+//
+// ★Root cause of the col gap (two prior hypotheses were disproven):
+//   NOT a fixed offset — deltas are scattered (-8, +3, +4, +8, +11 …).
+//   NOT the Canonicalizer — greet.aster canonicalizes byte-identically.
+//   It is that TS emits PLACEHOLDER end positions: `end.col` is frequently 1
+//   (e.g. Module and Rule nodes in greet.aster) where Java reports the real
+//   end column (6 and 9). TS is not using a different convention — it is not
+//   computing the end position at all.
+//
+// ★Why stage it instead of keeping the blanket strip: "wait until everything
+//   aligns, then enable" leaves the field unguarded indefinitely — the failure
+//   mode this repo keeps hitting (a gate that cannot go red). Each stage we
+//   tighten is one more thing the gate actually holds.
+//
+//   stage 'file+line' (current): normalize file (undefined == "null"), COMPARE
+//                                line, still tolerate col.
+//   stage 'strict'   (target):   compare everything, once TS computes real end
+//                                positions (ADR 0037 step 3).
+//
+// Override for experiments: ASTER_IR_ORIGIN_MODE=strict|file+line|off
+const IR_ORIGIN_MODE = process.env.ASTER_IR_ORIGIN_MODE || 'file+line';
+
+/**
+ * Normalize one `origin` object according to IR_ORIGIN_MODE.
+ * Returns undefined when origin should be dropped entirely.
+ */
+function normalizeOrigin(origin) {
+  if (IR_ORIGIN_MODE === 'off') return undefined;
+  if (origin === null || typeof origin !== 'object') return origin;
+  const out = {};
+  // file: TS omits it, Java emits the string "null". Same information ("no file
+  // attached") in two representations — fold to a single canonical absence.
+  const file = origin.file;
+  out.file = file === undefined || file === null || file === 'null' ? null : file;
+  for (const endpoint of ['start', 'end']) {
+    const p = origin[endpoint];
+    if (p === null || typeof p !== 'object') continue;
+    const norm = { line: p.line };
+    // col is compared only in strict mode — TS placeholder end positions make it
+    // noisy today. Dropping it here keeps `line` genuinely guarded meanwhile.
+    if (IR_ORIGIN_MODE === 'strict') norm.col = p.col;
+    out[endpoint] = norm;
+  }
+  return out;
+}
 
 // Type-inference + per-engine metadata layer. The two engines run DIFFERENT type
 // inference (TS leaves unannotated params/returns as TypeVar 'Unknown'/omitted;
@@ -611,6 +672,11 @@ function normalizeIr(node, kind) {
   for (const [key, val] of Object.entries(node)) {
     if (IR_IGNORE_FIELDS.has(key)) continue;
     if (IR_INFERENCE_FIELDS.has(key)) continue; // derived analysis state — out of scope
+    if (key === 'origin') {
+      const norm = normalizeOrigin(val);
+      if (norm !== undefined) out.origin = norm;
+      continue;
+    }
     const aliased = IR_FIELD_ALIASES[`${k}.${key}`] || key;
     out[aliased] = normalizeIr(val, k);
   }
@@ -783,7 +849,37 @@ function classifyIr(tsRes, javaRes, samples) {
       verdict = 'one-side-failed';
     } else if (IR_FULL) {
       diffs = diffIr(t.ir, j.ir);
-      verdict = diffs.length === 0 ? 'identical' : (exempt ? 'divergent-exempt' : 'divergent');
+      // ★Residual: `origin.end.line` only (15 diffs, 4 samples). Two sub-cases
+      //   with DIFFERENT correct answers — do not "fix" them as one:
+      //
+      //   (b1) Declaration tails — 12 diffs (hipaa-validation-demo, patient-record,
+      //        prescription-workflow). **TS is correct, Java is wrong.** Verified on
+      //        hipaa `Define AccessLevel`: it occupies canonical lines 9–14; TS says
+      //        end.line=14, Java says 17. Java's `spanFrom(ctx)` uses
+      //        `ctx.getStop()`, which for a declaration is the trailing layout
+      //        (NEWLINE/DEDENT) token sitting on a later line, so the span swallows
+      //        the blank/comment lines that follow.
+      //        ⚠️ Not fixed here: `spanFrom(ctx)` has **66 call sites** in
+      //           AstBuilder; narrowing it is a Java-wide span-semantics change that
+      //           needs its own PR and its own regression pass.
+      //
+      //   (b2) Multi-line expression continuations — 3 diffs
+      //        (multiline_continuation). `Return "Hello, " plus name plus "!"`
+      //        spans lines 4–6; TS says end.line=5, Java says 6. Which is right
+      //        depends on whether `args[0]` denotes the whole `plus` chain (Java
+      //        right) or the first literal (then BOTH are wrong). That is a
+      //        **language-design question about what a span means**, not a bug to
+      //        patch blind.
+      //
+      //   Carved out — NOT re-stripped: only `origin.end.line` qualifies, so
+      //   `origin.file` and `origin.start.line` stay fully guarded and any new
+      //   divergence in any other field still turns the gate red.
+      const residualEndLineOnly = diffs.length > 0
+        && diffs.every((d) => /\.origin\.end\.line$/.test(d.path || ''));
+      verdict = diffs.length === 0
+        ? 'identical'
+        : (exempt ? 'divergent-exempt'
+          : (residualEndLineOnly ? 'divergent-known-end-line' : 'divergent'));
     } else {
       diffs = diffFingerprints(t.fingerprint, j.fingerprint);
       verdict = diffs.length === 0 ? 'identical' : 'divergent';
@@ -1309,7 +1405,13 @@ async function main() {
 
     // `divergent-exempt` (effect/workflow/interop derived-analysis differences)
     // is informational only — never a structural-parity failure (ADR 0016).
-    const bad = rows.filter((r) => r.verdict !== 'identical' && r.verdict !== 'divergent-exempt');
+    //
+    // `divergent-known-end-line`: see the verdict site — two open end.line
+    // sub-cases (Java swallows declaration tails; multi-line continuation
+    // semantics undecided). Narrow: only origin.end.line qualifies.
+    const bad = rows.filter((r) => r.verdict !== 'identical'
+      && r.verdict !== 'divergent-exempt'
+      && r.verdict !== 'divergent-known-end-line');
     if (bad.length > 0) {
       const msg = `tier1-parity (ir ${IR_FULL ? 'field-level' : 'fingerprint'}) divergence: ${bad.length}/${rows.length} sample(s) not identical`;
       if (REPORT_ONLY) {
