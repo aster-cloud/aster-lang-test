@@ -849,32 +849,37 @@ function classifyIr(tsRes, javaRes, samples) {
       verdict = 'one-side-failed';
     } else if (IR_FULL) {
       diffs = diffIr(t.ir, j.ir);
-      // ★Residual TS span defects, narrowed after the comment/blank-line fix
-      //   (aster-lang-ts: `/^\s+$/gm` → `/^[^\S\n]+$/gm`). That fix removed the
-      //   large class — origin.*.line divergence went 150 samples → 0 for the
-      //   whole-file offset case. What remains is TWO much smaller, unrelated
-      //   TS bugs, still open:
+      // ★Residual: `origin.end.line` only (15 diffs, 4 samples). Two sub-cases
+      //   with DIFFERENT correct answers — do not "fix" them as one:
       //
-      //   (a) `ts=0` on synthesized inline-if blocks (10 diffs, g2a-inline-if):
-      //       line 0 is not a valid 1-based line number at all — TS emits a
-      //       default-initialised span for blocks it synthesises rather than
-      //       parses.
-      //   (b) `end.line` short by 1–4 on multi-line declarations (15 diffs,
-      //       4 samples): TS closes the span at the last consumed token instead
-      //       of the declaration's真实 end.
+      //   (b1) Declaration tails — 12 diffs (hipaa-validation-demo, patient-record,
+      //        prescription-workflow). **TS is correct, Java is wrong.** Verified on
+      //        hipaa `Define AccessLevel`: it occupies canonical lines 9–14; TS says
+      //        end.line=14, Java says 17. Java's `spanFrom(ctx)` uses
+      //        `ctx.getStop()`, which for a declaration is the trailing layout
+      //        (NEWLINE/DEDENT) token sitting on a later line, so the span swallows
+      //        the blank/comment lines that follow.
+      //        ⚠️ Not fixed here: `spanFrom(ctx)` has **66 call sites** in
+      //           AstBuilder; narrowing it is a Java-wide span-semantics change that
+      //           needs its own PR and its own regression pass.
       //
-      //   Both are TS-side and Java is correct in every case. They are carved
-      //   out — NOT re-stripped — so `start.line` stays fully guarded and any
-      //   NEW divergence in any other field still turns the gate red.
+      //   (b2) Multi-line expression continuations — 3 diffs
+      //        (multiline_continuation). `Return "Hello, " plus name plus "!"`
+      //        spans lines 4–6; TS says end.line=5, Java says 6. Which is right
+      //        depends on whether `args[0]` denotes the whole `plus` chain (Java
+      //        right) or the first literal (then BOTH are wrong). That is a
+      //        **language-design question about what a span means**, not a bug to
+      //        patch blind.
       //
-      //   ⚠️ Delete this branch once (a) and (b) are fixed. Verify by checking
-      //      that `--mode=ir --full` stays green without it.
-      const residualOriginLineOnly = diffs.length > 0
-        && diffs.every((d) => /\.origin\.(start|end)\.line$/.test(d.path || ''));
+      //   Carved out — NOT re-stripped: only `origin.end.line` qualifies, so
+      //   `origin.file` and `origin.start.line` stay fully guarded and any new
+      //   divergence in any other field still turns the gate red.
+      const residualEndLineOnly = diffs.length > 0
+        && diffs.every((d) => /\.origin\.end\.line$/.test(d.path || ''));
       verdict = diffs.length === 0
         ? 'identical'
         : (exempt ? 'divergent-exempt'
-          : (residualOriginLineOnly ? 'divergent-known-ts-span' : 'divergent'));
+          : (residualEndLineOnly ? 'divergent-known-end-line' : 'divergent'));
     } else {
       diffs = diffFingerprints(t.fingerprint, j.fingerprint);
       verdict = diffs.length === 0 ? 'identical' : 'divergent';
@@ -1401,12 +1406,12 @@ async function main() {
     // `divergent-exempt` (effect/workflow/interop derived-analysis differences)
     // is informational only — never a structural-parity failure (ADR 0016).
     //
-    // `divergent-known-ts-span`: two open TS span bugs (line 0 on synthesized
-    // blocks; end.line short on multi-line decls). Narrow by construction — only
-    // origin.*.line diffs qualify. See the comment at the verdict site.
+    // `divergent-known-end-line`: see the verdict site — two open end.line
+    // sub-cases (Java swallows declaration tails; multi-line continuation
+    // semantics undecided). Narrow: only origin.end.line qualifies.
     const bad = rows.filter((r) => r.verdict !== 'identical'
       && r.verdict !== 'divergent-exempt'
-      && r.verdict !== 'divergent-known-ts-span');
+      && r.verdict !== 'divergent-known-end-line');
     if (bad.length > 0) {
       const msg = `tier1-parity (ir ${IR_FULL ? 'field-level' : 'fingerprint'}) divergence: ${bad.length}/${rows.length} sample(s) not identical`;
       if (REPORT_ONLY) {

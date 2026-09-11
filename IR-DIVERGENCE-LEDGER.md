@@ -42,28 +42,59 @@ whitespace-only lines but is line-count preserving.
 **Result: whole-file origin.line offset is gone.** The gate now compares
 `origin.file` + `origin.*.line` across the corpus with 0 divergence from this cause.
 
-## 🔴 Open — two residual TS span bugs (exposed by the fix above)
+## ✅ Resolved — synthesized inline-if blocks had `line: 0`
 
-Removing the old carve-out surfaced two much smaller, unrelated TS defects.
-Java is correct in both; 5 samples affected.
+**Fixed 2026-09-12** (`aster-lang-ts#170`). `Node.Block` initialises with
+`createEmptySpan()` (line 0). `parseInlineIf` assigned spans to the inner
+`Return` nodes but never to the synthesized `thenBlock` / `elseBlock` / `If`,
+so they reached Core IR with `line: 0` — not a valid 1-based line at all.
+Fixed by deriving each from its children via the existing `spanFromSources`.
+`origin.*.line` divergence from this cause: 10 → 0.
 
-**(a) `ts=0` on synthesized blocks** — 10 diffs, `g2a-inline-if.aster`.
-TS emits `line: 0` for inline-if `thenBlock`/`elseBlock`. Line 0 is not a valid
-1-based line at all: TS is emitting a default-initialised span for blocks it
-*synthesises* rather than parses.
+## 🔴 Open — `origin.end.line`: two sub-cases with DIFFERENT correct answers
 
-**(b) `end.line` short by 1–4** — 15 diffs across `hipaa-validation-demo`,
-`multiline_continuation`, `patient-record`, `prescription-workflow`.
-On multi-line declarations TS closes the span at the last consumed token instead
-of the declaration's real end.
+15 diffs across 4 samples. **Do not "fix" these as one issue** — they disagree
+about which engine is right.
 
-Carved out as `divergent-known-ts-span` (see `parity-tier1.mjs`). The carve-out is
-narrow by construction — **only** `origin.*.line` diffs qualify, so `origin.file`
-stays guarded and any new divergence in any other field still fails the gate
-(verified by mutation: injecting a non-origin diff turns it red; `strict` mode,
-which also compares `col`, reports 150/223).
+### (b1) Declaration tails — 12 diffs. **TS correct, Java wrong.**
 
-⚠️ Delete that branch once (a) and (b) are fixed.
+`hipaa-validation-demo`, `patient-record`, `prescription-workflow`.
+
+Verified on hipaa `Define AccessLevel`: it occupies **canonical lines 9–14**
+(confirmed by printing Java's own canonicalized text). TS reports `end.line=14`
+✅; Java reports **17** ❌.
+
+Cause: Java's `AstBuilder.spanFrom(ctx)` uses `ctx.getStop()`, which for a
+declaration is the trailing layout (NEWLINE/DEDENT) token sitting on a later
+line — so the span swallows the blank/comment lines that follow the declaration.
+
+⚠️ **Not fixed**: `spanFrom(ctx)` has **66 call sites** in `AstBuilder`.
+Narrowing it changes span semantics for every Java node and needs its own PR
+with its own regression pass. It is not a one-line change.
+
+### (b2) Multi-line expression continuations — 3 diffs. **Undecided.**
+
+`multiline_continuation.aster`:
+
+```
+Rule greet given name as Text, produce Text:
+  Return "Hello, "      ← line 4
+  plus name             ← line 5
+  plus "!".             ← line 6
+```
+
+For `…expr.args[0]`: TS says `end.line=5`, Java says `6`.
+
+Which is correct depends on what `args[0]` denotes — the whole `plus` chain
+(then Java is right) or the first literal `"Hello, "` (then **both** are wrong,
+the answer being 4). That is a **language-design question about what a span
+means for a continued expression**, not a bug to patch blind.
+
+Both carved out as `divergent-known-end-line` (see `parity-tier1.mjs`). Narrow
+by construction: only `origin.end.line` qualifies, so `origin.file` and
+`origin.start.line` stay fully guarded and any new divergence in any other field
+still fails the gate (verified by mutation: injecting a non-`end.line` diff turns
+it red at 150/223).
 
 ## Resolved — normalization rules (ADR 0016 §A/§B)
 
