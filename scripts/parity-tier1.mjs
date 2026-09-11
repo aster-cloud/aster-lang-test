@@ -849,34 +849,7 @@ function classifyIr(tsRes, javaRes, samples) {
       verdict = 'one-side-failed';
     } else if (IR_FULL) {
       diffs = diffIr(t.ir, j.ir);
-      // ★Residual (last one): multi-line expression continuations only.
-      //   Both engines' "swallows trailing layout token" defects are now fixed
-      //   (Java: AstBuilder.lastNonLayoutToken; TS: span-utils.lastNonLayoutToken
-      //   applied to decl + statement sites). That took end.line divergence from
-      //   40 samples down to 1.
-      //
-      //   What is left is NOT a bug to patch — it is an undecided semantic:
-      //
-      //     Rule greet given name as Text, produce Text:
-      //       Return "Hello, "      <- line 4
-      //       plus name             <- line 5
-      //       plus "!".             <- line 6
-      //
-      //   For `…expr.args[0]`: TS says end.line=5, Java says 6. Which is correct
-      //   depends on what `args[0]` DENOTES — the whole `plus` chain (Java right)
-      //   or the first literal "Hello, " (then BOTH are wrong; the answer is 4).
-      //   That is a language-design question about what a span means for a
-      //   continued expression, and it needs a decision before either engine
-      //   changes. See ADR 0037 step 3b-b2.
-      //
-      //   Narrow by construction: only `origin.end.line` qualifies, so
-      //   `origin.file` and `origin.start.line` stay fully guarded.
-      const residualEndLineOnly = diffs.length > 0
-        && diffs.every((d) => /\.origin\.end\.line$/.test(d.path || ''));
-      verdict = diffs.length === 0
-        ? 'identical'
-        : (exempt ? 'divergent-exempt'
-          : (residualEndLineOnly ? 'divergent-known-end-line' : 'divergent'));
+      verdict = diffs.length === 0 ? 'identical' : (exempt ? 'divergent-exempt' : 'divergent');
     } else {
       diffs = diffFingerprints(t.fingerprint, j.fingerprint);
       verdict = diffs.length === 0 ? 'identical' : 'divergent';
@@ -1403,12 +1376,7 @@ async function main() {
     // `divergent-exempt` (effect/workflow/interop derived-analysis differences)
     // is informational only — never a structural-parity failure (ADR 0016).
     //
-    // `divergent-known-end-line`: see the verdict site — two open end.line
-    // sub-cases (Java swallows declaration tails; multi-line continuation
-    // semantics undecided). Narrow: only origin.end.line qualifies.
-    const bad = rows.filter((r) => r.verdict !== 'identical'
-      && r.verdict !== 'divergent-exempt'
-      && r.verdict !== 'divergent-known-end-line');
+    const bad = rows.filter((r) => r.verdict !== 'identical' && r.verdict !== 'divergent-exempt');
     if (bad.length > 0) {
       const msg = `tier1-parity (ir ${IR_FULL ? 'field-level' : 'fingerprint'}) divergence: ${bad.length}/${rows.length} sample(s) not identical`;
       if (REPORT_ONLY) {
