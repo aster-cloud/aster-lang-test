@@ -849,28 +849,32 @@ function classifyIr(tsRes, javaRes, samples) {
       verdict = 'one-side-failed';
     } else if (IR_FULL) {
       diffs = diffIr(t.ir, j.ir);
-      // ★Known-defect carve-out (ADR 0037 §2.2.1 / IR-DIVERGENCE-LEDGER):
-      //   TS numbers source lines as if comment lines were removed, so every
-      //   node in a file with a comment header is off by a constant delta
-      //   (verified: test_claims.aster, 24-line header → TS reports line 3 where
-      //   source, canonical text and Java all say 27 — Java is correct).
+      // ★Residual TS span defects, narrowed after the comment/blank-line fix
+      //   (aster-lang-ts: `/^\s+$/gm` → `/^[^\S\n]+$/gm`). That fix removed the
+      //   large class — origin.*.line divergence went 150 samples → 0 for the
+      //   whole-file offset case. What remains is TWO much smaller, unrelated
+      //   TS bugs, still open:
       //
-      //   This predates the gate ever comparing `origin` at all, so failing the
-      //   build on it would block unrelated PRs for a defect they did not
-      //   introduce. It is registered here rather than hidden by re-stripping
-      //   `origin`: the carve-out is narrow — ONLY `origin.*.line` diffs are
-      //   absorbed. Any other field, and any NEW divergence, still turns the
-      //   gate red.
+      //   (a) `ts=0` on synthesized inline-if blocks (10 diffs, g2a-inline-if):
+      //       line 0 is not a valid 1-based line number at all — TS emits a
+      //       default-initialised span for blocks it synthesises rather than
+      //       parses.
+      //   (b) `end.line` short by 1–4 on multi-line declarations (15 diffs,
+      //       4 samples): TS closes the span at the last consumed token instead
+      //       of the declaration's真实 end.
       //
-      //   ⚠️ Remove this the moment the TS frontend counts lines correctly
-      //      (ADR 0037 step 3). It is technical debt with a named owner, not a
-      //      permanent rule.
-      const nonOriginLineDiffs = diffs.filter((d) => !/\.origin\.(start|end)\.line$/.test(d.path || String(d)));
-      const onlyKnownOriginLineDefect = diffs.length > 0 && nonOriginLineDiffs.length === 0;
+      //   Both are TS-side and Java is correct in every case. They are carved
+      //   out — NOT re-stripped — so `start.line` stays fully guarded and any
+      //   NEW divergence in any other field still turns the gate red.
+      //
+      //   ⚠️ Delete this branch once (a) and (b) are fixed. Verify by checking
+      //      that `--mode=ir --full` stays green without it.
+      const residualOriginLineOnly = diffs.length > 0
+        && diffs.every((d) => /\.origin\.(start|end)\.line$/.test(d.path || ''));
       verdict = diffs.length === 0
         ? 'identical'
         : (exempt ? 'divergent-exempt'
-          : (onlyKnownOriginLineDefect ? 'divergent-known-origin-line' : 'divergent'));
+          : (residualOriginLineOnly ? 'divergent-known-ts-span' : 'divergent'));
     } else {
       diffs = diffFingerprints(t.fingerprint, j.fingerprint);
       verdict = diffs.length === 0 ? 'identical' : 'divergent';
@@ -1397,13 +1401,12 @@ async function main() {
     // `divergent-exempt` (effect/workflow/interop derived-analysis differences)
     // is informational only — never a structural-parity failure (ADR 0016).
     //
-    // `divergent-known-origin-line` is the ADR 0037 §2.2.1 carve-out: TS numbers
-    // source lines as if comments were stripped (verified defect, ledger entry
-    // filed). Pre-existing and narrow — ONLY `origin.*.line` diffs qualify, so a
-    // new divergence in any other field still fails. Remove once TS is fixed.
+    // `divergent-known-ts-span`: two open TS span bugs (line 0 on synthesized
+    // blocks; end.line short on multi-line decls). Narrow by construction — only
+    // origin.*.line diffs qualify. See the comment at the verdict site.
     const bad = rows.filter((r) => r.verdict !== 'identical'
       && r.verdict !== 'divergent-exempt'
-      && r.verdict !== 'divergent-known-origin-line');
+      && r.verdict !== 'divergent-known-ts-span');
     if (bad.length > 0) {
       const msg = `tier1-parity (ir ${IR_FULL ? 'field-level' : 'fingerprint'}) divergence: ${bad.length}/${rows.length} sample(s) not identical`;
       if (REPORT_ONLY) {

@@ -17,53 +17,53 @@ remaining are eval-exempt effect/workflow/interop samples whose derived-analysis
 structure is out of scope for structural IR parity (reported as
 `divergent-exempt`, not failures). `--mode=ir --full` is now **PR-blocking**.
 
-## 🔴 Open — `origin` line divergence: TS drops comment lines (ADR 0037 §2.2.1)
+## ✅ Resolved — `origin` line divergence: TS collapsed blank/comment lines (ADR 0037)
 
-**Status (2026-09-12): 9/223 samples diverge on `origin.*.line`.** The gate now
-COMPARES origin line numbers (it previously stripped `origin` wholesale); these 9
-are the real divergences that exemption was hiding.
+**Fixed 2026-09-12** in `aster-lang-ts` (`aster-lang-ts#170`).
 
-**Root cause — a genuine TS defect, not a convention difference.** Verified on
-`test_claims.aster` (24-line comment header):
-
-| | first declaration |
-|---|---|
-| source text | line **27** |
-| after `Canonicalizer.canonicalize()` | line **27** (line count unchanged, 115 → 115) |
-| Java `origin.start.line` | **27** ✅ |
-| TS `origin.start.line` | **3** ❌ |
-
-The offset is a constant **+24** across every node in the file — exactly the
-number of leading comment lines.
-
-**Mechanism (traced to a minimal repro, 2026-09-12).** It is not that TS "skips
-comments" — it is that the TS canonicalizer **collapses runs of consecutive blank
-lines into one**, and comments are blanked before that step:
+The TS canonicalizer cleared whitespace-only lines with `/^\s+$/gm`. Because
+`\s` **includes `\n`**, a run of blank lines matched as one block and collapsed
+to a single empty string — despite the adjacent comment reading "Do not collapse
+newlines globally". Comments are blanked earlier in the same function, so any
+run of ≥2 comment/blank lines shifted every following line:
 
 ```
-canonicalize('# a\n# b\n# c\nModule x.\n')  →  '\nModule x.\n'   5 lines → 3
-canonicalize('A.\n\n\n\n\nB.\n')            →  'A.\n\nB.\n'     7 lines → 4
-canonicalize('A.\n\nB.\n')                  →  'A.\n\nB.\n'     4 lines → 4  (unchanged)
+'A.\n\n\n\n\nB.\n'  (7 lines)  →  'A.\n\nB.\n'  (4 lines)
 ```
 
-So ANY run of ≥2 consecutive blank-or-comment lines shifts every following line.
-A 24-line comment header collapses to a single blank line → +24 for the rest of
-the file. Java's canonicalizer blanks comments but **preserves line count**
-(verified: `test_claims.aster` 115 → 115), which is why Java stays correct.
+Measured on `test_claims.aster` (24-line comment header): TS canonicalize took it
+from 115 lines to **91**, moving the first declaration from line 27 to line 3.
+Java blanks comments but preserves line count (115 → 115), so Java was correct
+throughout.
 
-This also means the defect is **not limited to comment headers** — a source file
-with a double blank line between declarations is enough to desynchronise TS spans
-from the real source.
-7 of the 9 divergent samples carry comment headers, consistent with this cause.
+Fix: `/^[^\S\n]+$/gm` — whitespace excluding newlines, so it still clears
+whitespace-only lines but is line-count preserving.
 
-**Why this matters beyond parity:** ADR 0032 anchors execution traces to source
-positions, and ADR 0037 builds OriginMap/MappingIR on them. A span that points
-24 lines off the real statement makes "click the trace step, jump to the source
-line" land on the wrong line — silently.
+**Result: whole-file origin.line offset is gone.** The gate now compares
+`origin.file` + `origin.*.line` across the corpus with 0 divergence from this cause.
 
-**Not fixed here.** This entry records it; the fix belongs in the TS frontend
-(ADR 0037 step 3). Until then the gate compares `file` + `line` and tolerates
-`col` (see `IR_ORIGIN_MODE` in `scripts/parity-tier1.mjs`).
+## 🔴 Open — two residual TS span bugs (exposed by the fix above)
+
+Removing the old carve-out surfaced two much smaller, unrelated TS defects.
+Java is correct in both; 5 samples affected.
+
+**(a) `ts=0` on synthesized blocks** — 10 diffs, `g2a-inline-if.aster`.
+TS emits `line: 0` for inline-if `thenBlock`/`elseBlock`. Line 0 is not a valid
+1-based line at all: TS is emitting a default-initialised span for blocks it
+*synthesises* rather than parses.
+
+**(b) `end.line` short by 1–4** — 15 diffs across `hipaa-validation-demo`,
+`multiline_continuation`, `patient-record`, `prescription-workflow`.
+On multi-line declarations TS closes the span at the last consumed token instead
+of the declaration's real end.
+
+Carved out as `divergent-known-ts-span` (see `parity-tier1.mjs`). The carve-out is
+narrow by construction — **only** `origin.*.line` diffs qualify, so `origin.file`
+stays guarded and any new divergence in any other field still fails the gate
+(verified by mutation: injecting a non-origin diff turns it red; `strict` mode,
+which also compares `col`, reports 150/223).
+
+⚠️ Delete that branch once (a) and (b) are fixed.
 
 ## Resolved — normalization rules (ADR 0016 §A/§B)
 
