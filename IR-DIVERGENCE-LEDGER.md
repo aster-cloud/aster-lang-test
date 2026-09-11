@@ -34,8 +34,26 @@ are the real divergences that exemption was hiding.
 | TS `origin.start.line` | **3** ❌ |
 
 The offset is a constant **+24** across every node in the file — exactly the
-number of leading comment lines. TS is numbering lines as if comments had been
-removed; Java (and the actual canonical text) numbers them as they appear.
+number of leading comment lines.
+
+**Mechanism (traced to a minimal repro, 2026-09-12).** It is not that TS "skips
+comments" — it is that the TS canonicalizer **collapses runs of consecutive blank
+lines into one**, and comments are blanked before that step:
+
+```
+canonicalize('# a\n# b\n# c\nModule x.\n')  →  '\nModule x.\n'   5 lines → 3
+canonicalize('A.\n\n\n\n\nB.\n')            →  'A.\n\nB.\n'     7 lines → 4
+canonicalize('A.\n\nB.\n')                  →  'A.\n\nB.\n'     4 lines → 4  (unchanged)
+```
+
+So ANY run of ≥2 consecutive blank-or-comment lines shifts every following line.
+A 24-line comment header collapses to a single blank line → +24 for the rest of
+the file. Java's canonicalizer blanks comments but **preserves line count**
+(verified: `test_claims.aster` 115 → 115), which is why Java stays correct.
+
+This also means the defect is **not limited to comment headers** — a source file
+with a double blank line between declarations is enough to desynchronise TS spans
+from the real source.
 7 of the 9 divergent samples carry comment headers, consistent with this cause.
 
 **Why this matters beyond parity:** ADR 0032 anchors execution traces to source
