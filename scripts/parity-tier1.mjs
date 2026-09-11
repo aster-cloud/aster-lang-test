@@ -849,47 +849,28 @@ function classifyIr(tsRes, javaRes, samples) {
       verdict = 'one-side-failed';
     } else if (IR_FULL) {
       diffs = diffIr(t.ir, j.ir);
-      // ★Residual: `origin.end.line` only. Ownership FLIPPED on 2026-09-12 —
-      //   read this before "fixing" either side.
+      // ★Residual (last one): multi-line expression continuations only.
+      //   Both engines' "swallows trailing layout token" defects are now fixed
+      //   (Java: AstBuilder.lastNonLayoutToken; TS: span-utils.lastNonLayoutToken
+      //   applied to decl + statement sites). That took end.line divergence from
+      //   40 samples down to 1.
       //
-      //   Java used to swallow trailing layout tokens (NEWLINE/DEDENT), so a
-      //   declaration's span ran to the START of the next declaration — adjacent
-      //   spans overlapped. Fixed in aster-lang-core (`lastNonLayoutToken`).
+      //   What is left is NOT a bug to patch — it is an undecided semantic:
       //
-      //   ★That fix revealed TS has the SAME defect, and that the two used to
-      //     cancel out: both were long, so they agreed. Verified on
-      //     comparison_operators.aster — `Rule testGreaterThanOrEqual` occupies
-      //     source lines 3–4; Java (fixed) now reports 4 ✅, TS reports 5 ❌,
-      //     which is the NEXT declaration's start line.
+      //     Rule greet given name as Text, produce Text:
+      //       Return "Hello, "      <- line 4
+      //       plus name             <- line 5
+      //       plus "!".             <- line 6
       //
-      //   So the remaining diffs (ts−java = +1 or +2) are **TS being long**, not
-      //   Java being short. Fix belongs in the TS parser, mirroring
-      //   `lastNonLayoutToken`.
+      //   For `…expr.args[0]`: TS says end.line=5, Java says 6. Which is correct
+      //   depends on what `args[0]` DENOTES — the whole `plus` chain (Java right)
+      //   or the first literal "Hello, " (then BOTH are wrong; the answer is 4).
+      //   That is a language-design question about what a span means for a
+      //   continued expression, and it needs a decision before either engine
+      //   changes. See ADR 0037 step 3b-b2.
       //
-      //   Historical note on the earlier sub-case split:
-      //
-      //   (b1) Declaration tails — 12 diffs (hipaa-validation-demo, patient-record,
-      //        prescription-workflow). **TS is correct, Java is wrong.** Verified on
-      //        hipaa `Define AccessLevel`: it occupies canonical lines 9–14; TS says
-      //        end.line=14, Java says 17. Java's `spanFrom(ctx)` uses
-      //        `ctx.getStop()`, which for a declaration is the trailing layout
-      //        (NEWLINE/DEDENT) token sitting on a later line, so the span swallows
-      //        the blank/comment lines that follow.
-      //        ⚠️ Not fixed here: `spanFrom(ctx)` has **66 call sites** in
-      //           AstBuilder; narrowing it is a Java-wide span-semantics change that
-      //           needs its own PR and its own regression pass.
-      //
-      //   (b2) Multi-line expression continuations — 3 diffs
-      //        (multiline_continuation). `Return "Hello, " plus name plus "!"`
-      //        spans lines 4–6; TS says end.line=5, Java says 6. Which is right
-      //        depends on whether `args[0]` denotes the whole `plus` chain (Java
-      //        right) or the first literal (then BOTH are wrong). That is a
-      //        **language-design question about what a span means**, not a bug to
-      //        patch blind.
-      //
-      //   Carved out — NOT re-stripped: only `origin.end.line` qualifies, so
-      //   `origin.file` and `origin.start.line` stay fully guarded and any new
-      //   divergence in any other field still turns the gate red.
+      //   Narrow by construction: only `origin.end.line` qualifies, so
+      //   `origin.file` and `origin.start.line` stay fully guarded.
       const residualEndLineOnly = diffs.length > 0
         && diffs.every((d) => /\.origin\.end\.line$/.test(d.path || ''));
       verdict = diffs.length === 0
