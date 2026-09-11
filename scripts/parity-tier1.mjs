@@ -849,8 +849,24 @@ function classifyIr(tsRes, javaRes, samples) {
       verdict = 'one-side-failed';
     } else if (IR_FULL) {
       diffs = diffIr(t.ir, j.ir);
-      // ★Residual: `origin.end.line` only (15 diffs, 4 samples). Two sub-cases
-      //   with DIFFERENT correct answers — do not "fix" them as one:
+      // ★Residual: `origin.end.line` only. Ownership FLIPPED on 2026-09-12 —
+      //   read this before "fixing" either side.
+      //
+      //   Java used to swallow trailing layout tokens (NEWLINE/DEDENT), so a
+      //   declaration's span ran to the START of the next declaration — adjacent
+      //   spans overlapped. Fixed in aster-lang-core (`lastNonLayoutToken`).
+      //
+      //   ★That fix revealed TS has the SAME defect, and that the two used to
+      //     cancel out: both were long, so they agreed. Verified on
+      //     comparison_operators.aster — `Rule testGreaterThanOrEqual` occupies
+      //     source lines 3–4; Java (fixed) now reports 4 ✅, TS reports 5 ❌,
+      //     which is the NEXT declaration's start line.
+      //
+      //   So the remaining diffs (ts−java = +1 or +2) are **TS being long**, not
+      //   Java being short. Fix belongs in the TS parser, mirroring
+      //   `lastNonLayoutToken`.
+      //
+      //   Historical note on the earlier sub-case split:
       //
       //   (b1) Declaration tails — 12 diffs (hipaa-validation-demo, patient-record,
       //        prescription-workflow). **TS is correct, Java is wrong.** Verified on
