@@ -1190,10 +1190,31 @@ async function main() {
       appendHistory('ir', denom, identical, denom - identical);
     }
 
-    // `divergent-exempt` (effect/workflow/interop derived-analysis differences)
-    // is informational only — never a structural-parity failure (ADR 0016).
+    // ★`divergent-exempt` 不再被豁免——它必须能让门禁变红。
     //
-    const bad = rows.filter((r) => r.verdict !== 'identical' && r.verdict !== 'divergent-exempt');
+    //   原逻辑把 `divergent-exempt` 排除在失败集合之外，注释称其为
+    //   「effect/workflow/interop 的推导分析层差异，仅供参考」。实测**不成立**：
+    //   该标记并非来自「确认过是合法差异」，而是**自动**由样本元数据里的
+    //   `evalExempt` 推导而来（见 classifyIr）。`evalExempt` 的本意是
+    //   「这个样本不参与 eval-parity（不执行）」，与「它的 IR 分歧可以接受」
+    //   是**两件毫不相干的事**，此处却被混为一谈。
+    //
+    //   后果（2026-09-12 逐个排查证实）：5 个长期标着 divergent-exempt 的样本，
+    //   **全部**是真缺陷，没有一个是合法引擎差异：
+    //     interop_sum/interop_overload  Long 序列化成 JSON number → JS 侧精度静默丢失；
+    //                                   且超范围 Long 让 canonicalHash 抛错，
+    //                                   Stable Node ID 完全不可用
+    //     eff_valid_all_caps            裸表达式语句被降成 Return → **函数提前返回**，
+    //                                   其后的写文件/写库永不执行且不报错
+    //     login                         TS 缺 UFCS → 两引擎实际传参个数不同（2 vs 3）
+    //     fetch_dashboard               `as async` 被当成函数调用，而运行时没有该函数
+    //
+    //   这些缺陷在门禁全绿的情况下存活了很久——因为门禁**结构上就不会因它们变红**。
+    //
+    //   现状：73 个带 evalExempt 的样本**全部 identical**，故移除该豁免不会让
+    //   门禁立刻变红；它只是把「下一个同类缺陷」的发现时机从「有人碰巧去查」
+    //   提前到「CI 当场报红」。
+    const bad = rows.filter((r) => r.verdict !== 'identical');
     if (bad.length > 0) {
       const msg = `tier1-parity (ir ${IR_FULL ? 'field-level' : 'fingerprint'}) divergence: ${bad.length}/${rows.length} sample(s) not identical`;
       if (REPORT_ONLY) {
