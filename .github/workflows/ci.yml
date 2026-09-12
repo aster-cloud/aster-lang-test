@@ -151,6 +151,11 @@ jobs:
               #   三处 import，此前**一次都没出现**在本清单中。
               - 'scripts/tag-eval-exempt.mjs'
               - 'scripts/lib/history.mjs'
+              # Java 侧 inventory 输出的解析/逐样本判定（parity-tier1 与 nightly 共用）。
+              - 'scripts/lib/java-inventory.mjs'
+              - 'scripts/test-java-inventory.mjs'
+              - 'scripts/coverage-report.py'
+              - 'scripts/test-coverage-report.mjs'
               - 'scripts/lib/golden-overwrite.mjs'
               - 'scripts/lib/drop-authorization.mjs'
               - 'scripts/test-drop-authorization.mjs'
@@ -312,6 +317,20 @@ jobs:
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         run: node scripts/test-eval-guard.mjs
+
+      # Java 侧 inventory 判定（issue #132）：「不在失败清单即通过」只对已观测样本成立。
+      # 该逻辑一旦回归，parse 门与 nightly 会把陈旧语料里缺失的样本静默判为 Java-pass。
+      - name: Run java-inventory guard regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-java-inventory.mjs
+
+      # 覆盖率统计的 cases 归属必须与 eval 门同判据（精确文件名，issue #130），
+      # 否则「度量说已覆盖、门禁没跑」会再次出现。
+      - name: Run coverage-report attribution regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-coverage-report.mjs
 
       # golden 覆盖护栏（gen-cases 的写入判定）。它决定「会不会静默抹掉已验证的
       # golden」——曾因该逻辑失守把 38 条 case 覆盖成 1 条。逻辑抽在
