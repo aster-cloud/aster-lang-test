@@ -10,6 +10,10 @@
     ".": {
       "import": "./dist/loader.js",
       "types": "./dist/loader.d.ts"
+    },
+    "./ir-normalize": {
+      "import": "./dist/ir-normalize.js",
+      "types": "./dist/ir-normalize.d.ts"
     }
   },
   "files": [
