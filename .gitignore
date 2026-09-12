@@ -26,3 +26,10 @@ ir-field-parity-report.md
 
 # Python 工具脚本的字节码缓存
 __pycache__/
+
+# tsc 就地产出的构建产物（packages/js 的 tsconfig 未设 outDir 时会落在 src/ 旁）
+# ★这些是编译产物而非源码，误入库会造成「改了源码但仓库里还是旧产物」的漂移
+packages/js/src/**/*.js
+packages/js/src/**/*.js.map
+packages/js/src/**/*.d.ts
+packages/js/src/**/*.d.ts.map
