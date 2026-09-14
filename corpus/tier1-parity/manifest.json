@@ -3,7 +3,7 @@
   "version": 1,
   "description": "Strict bidirectional parity subset. PR-blocking.",
   "basedOnEquivalence": {
-    "history": "2026-09-13T07:15:54.784Z",
+    "history": "2026-09-14T07:39:52.100Z",
     "total": 223,
     "equivalent": 223,
     "divergent": 0,
