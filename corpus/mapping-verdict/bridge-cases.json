@@ -1,0 +1,41 @@
+{
+  "_doc": [
+    "双引擎**主链路**输出一致性语料（ADR 0037 §7 扩展）。",
+    "",
+    "★与 cases.json 的区别：那个钉的是 verifier 对**单条候选**的判定，",
+    "  这个钉的是**整条主链路**（SourceIR + QuantityIR + 候选 + 验证）的输出。",
+    "",
+    "★为什么需要它：§7 只要求 verifier 判定一致，但**能力**是另一回事——",
+    "  只用 Java 引擎的用户同样需要语义桥。两侧都接线后，就必须证明",
+    "  '同一份文档，两个引擎给出同样的结构、同样的数量、同样的候选与判定'。",
+    "",
+    "★expect 里只钉**可确定**的部分（kind/text/span/value/verdict/nodeId），",
+    "  不钉 reason（自然语言，两侧措辞允许不同）。"
+  ],
+  "cases": [
+    {
+      "name": "可编译源码 → 字面量候选全 VERIFIED",
+      "source": "Module policy.payment.\n\nRule approve_payment, produce:\n  Return 10000.\n\nRule threshold_pct, produce:\n  Return 15.\n",
+      "expectSummary": { "verified": 2, "reviewRequired": 0, "rejected": 0 },
+      "expectCandidates": [
+        { "verdict": "VERIFIED", "text": "10000", "nodeId": "$.decls{approve_payment}.body.statements[0].expr", "start": 64, "end": 69 },
+        { "verdict": "VERIFIED", "text": "15", "nodeId": "$.decls{threshold_pct}.body.statements[0].expr", "start": 110, "end": 112 }
+      ],
+      "expectQuantities": []
+    },
+    {
+      "name": "★纯人类文档 → 分层降级（前两层有结果，第 3 层如实跳过）",
+      "_why": "这是「任意文字可执行化」的现实形态：不是任意文字都能编译，而是分层地给出能给的部分。",
+      "source": "# 付款审批政策\n\n单笔付款超过 $10,000 时需要财务经理审批。\n审批须在 3 天内完成，逾期率不得超过 15%。\n\n## 例外\n\n2026-01-01 之后，低于该额度由部门主管批准。\n",
+      "expectSummary": { "verified": 0, "reviewRequired": 0, "rejected": 0 },
+      "expectCandidates": [],
+      "expectQuantities": [
+        { "kind": "MONEY", "text": "$10,000", "start": 17, "end": 24, "value": "10000" },
+        { "kind": "DURATION", "text": "3 天", "start": 41, "end": 44, "value": "3" },
+        { "kind": "PERCENT", "text": "15%", "start": 56, "end": 59, "value": "15" },
+        { "kind": "DATE", "text": "2026-01-01", "start": 69, "end": 79, "value": "2026-01-01" }
+      ],
+      "expectDiagnosticContains": "无法编译"
+    }
+  ]
+}
