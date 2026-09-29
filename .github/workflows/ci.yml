@@ -162,6 +162,11 @@ jobs:
               - 'scripts/test-wipe-guard.mjs'
               - 'scripts/test-golden-overwrite.mjs'
               - 'scripts/gen-cases.mjs'
+              # ★守门脚本 import 的本仓库共享库同样必须在清单里：parity-tier1.mjs 的
+              #   IR 比对语义整体来自 packages/js/src/ir-normalize.ts（「什么算分歧」由它
+              #   定义），此前清单零条 packages/js 项，只放宽归一化规则的 PR 会整体跳过
+              #   parity job（issue #146）。用目录通配而非单文件，避免再抽共享库时重蹈。
+              - 'packages/js/src/**'
               - '.github/workflows/ci.yml'
 
       # Shared version catalog (aster-lang-platform, ADR 0012). aster-lang-core
