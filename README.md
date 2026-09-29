@@ -94,9 +94,13 @@ for (Sample s : CorpusLoader.listTier("tier1-equivalence")) {
 
 | 层级 | 含义 | 当前 |
 |---|---|---|
-| **Parse parity** | 两引擎都*接受*同一份源码（PR-blocking, `parity-tier1.mjs --mode=parse`） | 206 / 206 |
-| **Eval parity** | 两引擎对相同输入产生*相同输出*（黄金用例, `--mode=eval`） | 131 / 131 identical |
+| **Parse parity** | 两引擎都*接受*同一份源码（PR-blocking, `parity-tier1.mjs --mode=parse`） | 见 `equivalence-history.csv` 最新行 |
+| **IR parity** | 两引擎降低出的 Core IR 字段级一致（PR-blocking, `--mode=ir --full`） | 见 `ir-history.csv` 最新行 |
+| **Eval parity** | 两引擎对相同输入产生*相同输出*（黄金用例, PR-blocking, `--mode=eval`） | 见 `eval-history.csv` 最新行 |
 | **Eval 覆盖率** | 有黄金用例的样本 / 可 eval 样本（排除 IO/effect/PII/bad，见 meta 的 `evalExempt`） | 见 `node scripts/tag-eval-exempt.mjs` |
+
+本表不内联数字：每次内联的快照都在几周内过期（issue #149），
+`scripts/tag-eval-exempt.mjs --check` 会在本节出现 `N/N` 计数时让 CI 失败。
 
 - **Parse parity ≠ Eval parity**：前者只验证「能解析」，后者验证「运行时输出一致」（更强）。
 - `evalExempt` 样本（调 IO/Http/Db、声明 effect、PII 流、`bad_*` 类型检查失败）不计入 eval 覆盖率分母——它们的存在是为测试编译期语义，不是运行时输出。

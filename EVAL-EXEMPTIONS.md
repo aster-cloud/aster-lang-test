@@ -83,8 +83,9 @@ denominator, not counted as failures. Do not add goldens for them.
 
 ## Backlog
 
-None — all 144 eval-able samples have a golden and participate in the parity
-comparison. When a new eval-able sample is added without a golden, the
+None — every eval-able sample (the **Eval-able** row of the table above, which
+`--check` keeps identical to the live count) has a golden and participates in
+the parity comparison. When a new eval-able sample is added without a golden, the
 `collectEvalRequests` guard in `parity-tier1.mjs` fails loudly (rather than
 silently shrinking the denominator), so this section cannot silently regress.
 

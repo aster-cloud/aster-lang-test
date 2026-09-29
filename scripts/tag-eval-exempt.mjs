@@ -15,12 +15,15 @@
  * Usage:
  *   node scripts/tag-eval-exempt.mjs            # report coverage only (dry)
  *   node scripts/tag-eval-exempt.mjs --write    # write evalExempt into meta.json
- *   node scripts/tag-eval-exempt.mjs --check    # exit 1 if stamped flags drift from live classification (CI rot gate, audit #95)
+ *   node scripts/tag-eval-exempt.mjs --check    # exit 1 if stamped flags drift from live classification (CI rot gate, audit #95),
+ *                                               # if EVAL-EXEMPTIONS.md counts drift, or if DIVERGENT-MANIFEST.md / README.md
+ *                                               # inline a live N/N count instead of pointing at the history CSVs (issues #147, #149)
  */
 import { readFileSync, writeFileSync, readdirSync, existsSync } from 'node:fs';
 import { dirname, resolve, join } from 'node:path';
 import { collectEvalCaseProblem } from './lib/eval-cases.mjs';
 import { upsertDailyHistory } from './lib/history.mjs';
+import { findInlineCounts } from './lib/doc-rot.mjs';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -287,4 +290,32 @@ if (CHECK) {
     }
     console.log('[tag-eval-exempt --check] EVAL-EXEMPTIONS.md 计数与实时一致 ✓');
   }
+
+  // ★DIVERGENT-MANIFEST.md / README.md **不得内联**实时计数（issues #147、#149）。
+  //
+  //   parse/ir/eval 的实时值只存在于 history CSV 最新行，上面那种「文档数字 vs 实时
+  //   数字」的比对只对 EVAL-EXEMPTIONS.md 做过，其余两份文件手抄的 217/217、206/206、
+  //   131/131 无人守，几周内全部过期且互相矛盾。与其再抄一份来比，不如禁止抄：
+  //   受检区间里出现任何 N/N 或 = 1.0000 字面量即失败，文档只能指向单一事实源。
+  //   受检区间限于「现状」段：DIVERGENT-MANIFEST.md 的 Historical baseline 之前、
+  //   README.md 的「一致率」节——历史小节记的是当年的数字，本就不该随实时变化。
+  const noInlineRegions = [
+    ['DIVERGENT-MANIFEST.md', { until: /^## Historical baseline/m }],
+    ['README.md', { from: /^## 一致率/m, until: /^## (?!一致率)/m }],
+  ];
+  const inlineDrift = [];
+  for (const [file, region] of noInlineRegions) {
+    const p = join(ROOT, file);
+    if (!existsSync(p)) continue;
+    for (const { line, match } of findInlineCounts(readFileSync(p, 'utf8'), region)) {
+      inlineDrift.push(`${file}:${line} 内联了实时计数「${match}」`);
+    }
+  }
+  if (inlineDrift.length > 0) {
+    console.error(`\n[tag-eval-exempt --check] ${inlineDrift.length} 处文档内联了实时计数（必然过期）：`);
+    for (const d of inlineDrift) console.error(`  - ${d}`);
+    console.error('修复：删掉数字，改为指向 equivalence-history.csv / ir-history.csv / eval-history.csv 最新行或 node scripts/tag-eval-exempt.mjs 的实时输出。');
+    process.exit(1);
+  }
+  console.log('[tag-eval-exempt --check] DIVERGENT-MANIFEST.md / README.md 未内联实时计数 ✓');
 }

@@ -159,6 +159,12 @@ jobs:
               - 'scripts/lib/golden-overwrite.mjs'
               - 'scripts/lib/drop-authorization.mjs'
               - 'scripts/test-drop-authorization.mjs'
+              # 文档内联计数锈蚀门（tag-eval-exempt --check 的一部分）及其快测。
+              - 'scripts/lib/doc-rot.mjs'
+              - 'scripts/test-doc-rot.mjs'
+              - 'DIVERGENT-MANIFEST.md'
+              - 'README.md'
+              - 'EVAL-EXEMPTIONS.md'
               - 'scripts/test-wipe-guard.mjs'
               - 'scripts/test-golden-overwrite.mjs'
               - 'scripts/gen-cases.mjs'
@@ -353,6 +359,13 @@ jobs:
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         run: node scripts/test-drop-authorization.mjs
+
+      # 文档内联计数检测（tag-eval-exempt --check 的一部分）读的是真实文档，全绿时
+      # 看不出检测是否在工作；这里用构造文本证明内联计数会被抓到、历史区间不受波及。
+      - name: Run doc-rot guard regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-doc-rot.mjs
 
       # ★入口级集成护栏。单测只能证明「函数被调用时行为正确」，证不了
       # 「入口真的照它接线」——Codex 第四轮实证：把入口两根线同时改坏
