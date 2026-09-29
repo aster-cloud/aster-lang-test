@@ -453,6 +453,11 @@ jobs:
               - 'corpus/**'
               - 'packages/js/src/loader.ts'
               - 'packages/jvm/src/main/java/cloud/aster/test/CorpusLoader.java'
+              # 下游消费的是 npm 产物：内容由 package.json 的 files 字段圈定、由 prepack
+              # 调用 sync-corpus.mjs 生成。改这两处会实质改变消费方收到的语料，却不属
+              # corpus/**，此前不会派发 corpus-changed（issue #148）。
+              - 'packages/js/scripts/sync-corpus.mjs'
+              - 'packages/js/package.json'
 
       - name: Dispatch to aster-lang-ts
         if: steps.changed.outputs.corpus == 'true'
