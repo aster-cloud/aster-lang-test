@@ -1,18 +1,19 @@
 # Equivalence Divergent Manifest
 
-> **Authoritative parity (note added 2026-06-16; citation refreshed 2026-07-04).**
-> The current source of truth for the live parse-equivalence rate is the
-> **latest row of `equivalence-history.csv`** (2026-07-03: **217 total / 217
-> equivalent / 0 divergent = 1.0000**). The static `equivalence-report.json`
-> snapshot and the current-state summary below now agree with it (0 divergent).
-> The historical **2026-05-21 baseline** (197 total / 183 equivalent / 14
-> divergent) is retained only in the "Historical baseline" section for
-> provenance — those counts are NOT regenerated on every change and are NOT
-> `equivalence-report.json` (and the appended CSV trend row) are produced by the
-> nightly job `.github/workflows/nightly-equivalence.yml`
-> (`scripts/equivalence-nightly.mjs`). Treat the historical counts in this file
-> and in `corpus/tier1-parity/manifest.json`'s `basedOnEquivalenceReport`
-> field as dated baselines, not current numbers.
+> **Authoritative parity (note added 2026-06-16).**
+> The source of truth for every live rate is the **latest row of the
+> corresponding history CSV** — `equivalence-history.csv` (parse),
+> `ir-history.csv` (ir), `eval-history.csv` (eval) — appended by the nightly
+> job `.github/workflows/nightly-equivalence.yml`. This file deliberately
+> inlines **no** live counts: the sections above "Historical baseline" are
+> checked by `scripts/tag-eval-exempt.mjs --check` (PR-blocking) and fail CI if
+> a `N/N` count or a four-decimal rate literal is pasted in, because every such
+> snapshot drifted within weeks (issues #95, #147, #149). The historical
+> **2026-05-21 baseline** is retained only in the "Historical baseline"
+> section for provenance — those counts are NOT regenerated on every change.
+> Treat the historical counts in this file and in
+> `corpus/tier1-parity/manifest.json`'s `basedOnEquivalenceReport` field as
+> dated baselines, not current numbers.
 >
 > **Freshness guard.** `scripts/check-equivalence-freshness.mjs` (npm:
 > `check:equivalence-freshness`, wired PR-blocking in `ci.yml`) keeps these
@@ -22,28 +23,30 @@
 > baseline disagrees with the report. The nightly job runs it with
 > `--require-fresh` after regenerating the report.
 
-## Current state (refreshed 2026-07-04)
+## Current state
 
-**Live divergent count: 0.** The latest `equivalence-history.csv` row
-(2026-07-03) is **217 total / 217 equivalent / 0 divergent = 1.0000**, and
+**Live divergent count: see the `divergent` column of the latest
+`equivalence-history.csv` row** (`tail -1 equivalence-history.csv`), and
 `tier2-divergent/` is empty — every case listed in the historical baseline
 below has since been fixed or reconciled. There is no open per-case divergence
 backlog. The stale 14-case tables that used to live here (2026-05-21 baseline)
 have been retired; they are preserved only as counts in the "Historical
 baseline" section for provenance.
 
-Nightly parity is now gated on all three modes (audit #58):
+All three modes are gated in both PR CI and the nightly (audit #58 promoted
+the nightly; the PR eval gate was promoted on 2026-07-15, see `ci.yml`):
 
-| Mode | Latest nightly | Gate |
+| Mode | Live rate (single source of truth) | Gate |
 |---|---|---|
-| parse (`equivalence-nightly.mjs`) | 217/217 = 1.0000 | **Gating** (nightly + PR) |
-| ir (`parity-tier1.mjs --mode=ir --full`) | 212/212 = 1.0000 | **Gating** (nightly + PR) |
-| eval (`parity-tier1.mjs --mode=eval`) | 255/255 = 1.0000 | **Gating** (nightly); report-only in PR CI |
+| parse (`equivalence-nightly.mjs`) | latest row of `equivalence-history.csv` | **PR-blocking + nightly-gating** |
+| ir (`parity-tier1.mjs --mode=ir --full`) | latest row of `ir-history.csv` | **PR-blocking + nightly-gating** |
+| eval (`parity-tier1.mjs --mode=eval`) | latest row of `eval-history.csv` | **PR-blocking + nightly-gating** |
 
 Eval-parity coverage and the exemption denominator are tracked in
-**`EVAL-EXEMPTIONS.md`** (137/143 eval-able = 95.8%; 6-sample backlog + 74
-exempt). If a new divergence ever appears, re-add a per-case row here and file
-the corresponding engine issue.
+**`EVAL-EXEMPTIONS.md`**, whose table is kept identical to the live output of
+`node scripts/tag-eval-exempt.mjs` by the same `--check` gate. If a new
+divergence ever appears, re-add a per-case row here and file the
+corresponding engine issue.
 
 ⚠️ **Scope**: The parse runner (`scripts/equivalence-nightly.mjs`) is a
 **parse-equivalence** check only — it compares whether each engine ACCEPTS
@@ -54,7 +57,7 @@ gating `parity-tier1.mjs` modes above.
 
 | Tier | What it asserts | CI gate |
 |---|---|---|
-| **tier1-parity** | Curated subset of tier1 where both engines must accept. Source of truth: `corpus/tier1-parity/manifest.json`. | **PR-blocking (parse)** in `aster-lang-test`, `aster-lang-core`, `aster-lang-ts` via `scripts/parity-tier1.mjs --mode=parse`. **PR-blocking (IR field-level)** alongside via `--mode=ir --full`. Eval (`--mode=eval`) gates in the nightly (audit #58); report-only in PR CI. |
+| **tier1-parity** | Curated subset of tier1 where both engines must accept. Source of truth: `corpus/tier1-parity/manifest.json`. | **PR-blocking (parse)** in `aster-lang-test`, `aster-lang-core`, `aster-lang-ts` via `scripts/parity-tier1.mjs --mode=parse`. **PR-blocking (IR field-level)** alongside via `--mode=ir --full`. **PR-blocking (eval)** via `--mode=eval`, nightly-gating as well (audit #58). |
 | tier1-equivalence | Full set of samples that *should* be bidirectionally accepted; tier1-parity is a subset of this. | Nightly (`equivalence-nightly.mjs`), regression on rate vs. last-recorded baseline. |
 | tier2-divergent | Known one-engine-only samples; drives the divergence backlog. | Nightly only; cases catalogued in this file. |
 | tier3-fixtures | Single-engine specialty fixtures (golden AST/Core, lossless, lsp, runtime-retry, type-checker). | Each consumer runs its own subset. |
@@ -73,31 +76,19 @@ below.
 Mode | Status | History
 ---|---|---
 `--mode=parse` | **PR-blocking + nightly-gating** | Promoted in the Phase A landing PR.
-`--mode=ir --full` (field-level) | **PR-blocking + nightly-gating** | Promoted to PR-blocking after the normalizing comparator landed (both conditions met: baseline divergence reached zero; field-level normalized JSON parity replaced fingerprint comparison). Nightly promoted from report-only to gating in audit #58 (212/212 = 1.0000 for 4+ consecutive nights).
-`--mode=eval` (evaluator output) | **nightly-gating** (report-only in PR CI) | The Truffle multi-argument NPE and the eval divergences catalogued below are all resolved; eval-parity held 255/255 = 1.0000 for 4+ consecutive nights, so the nightly step was promoted from report-only to gating in audit #58. PR CI keeps it report-only (`continue-on-error`) because it runs a smaller changed-files subset. Phase C compares each side's evaluator output against the other engine's output AND the golden `expectedOutput`.
-
-The Phase B fingerprint is structural — it compares `moduleName`, `declCount`,
-the `kind → count` histogram, and the sorted list of declared symbol names —
-not the full lowered Core IR. Field-level alignment is deferred until field-
-name parity is settled. The initial run as of the Phase B landing shows
-~55/162 tier1 samples where Java fails to lower (NPE in AstBuilder for `eff_caps_*`
-files); those are the first targets for the follow-up.
+`--mode=ir --full` (field-level) | **PR-blocking + nightly-gating** | Promoted to PR-blocking after the normalizing comparator landed (both conditions met: baseline divergence reached zero; field-level normalized JSON parity replaced fingerprint comparison). Nightly promoted from report-only to gating in audit #58 after a full rate held for 4+ consecutive nights.
+`--mode=eval` (evaluator output) | **PR-blocking + nightly-gating** | The Truffle multi-argument NPE and the eval divergences catalogued below are all resolved. Nightly promoted from report-only to gating in audit #58 after a full rate held for 4+ consecutive nights. PR CI was promoted from report-only (`continue-on-error` + `--report-only`) to blocking on 2026-07-15 once the multi-argument NPE blocker was fixed upstream (see the step comment in `.github/workflows/ci.yml`); do **not** re-add `continue-on-error` to that step. Phase C compares each side's evaluator output against the other engine's output AND the golden `expectedOutput`.
 
 The Phase C eval scope is the subset of tier1-parity samples that have a
-sibling `corpus/tier1-equivalence/inputs/<name>.cases.json` (15 samples /
-~45 cases as of the Phase C landing). Initial baseline:
-3 identical / 42 Java-side `NullPointerException` ("arg2Value is null") in
-multi-argument `Value.execute(args)` calls. The TS evaluator runs every
-case to completion. The Java-side NPE is a Truffle codegen regression
-that has to be fixed in `aster-lang-truffle/src/main/java/aster/truffle/nodes/`
-before Phase C can be promoted to PR-blocking.
+sibling `corpus/tier1-equivalence/inputs/<name>.cases.json`; the eval-able
+denominator and its exemptions are defined in `EVAL-EXEMPTIONS.md`.
 
 ## Cases
 
 **None open.** `tier2-divergent/` is empty and the live parse-equivalence rate
-is 1.0000 (217/217). When a divergence reappears, catalogue it here with a
-root-cause category and a corresponding engine issue, mirroring the historical
-format retired below.
+is the `rate` column of the latest `equivalence-history.csv` row. When a
+divergence reappears, catalogue it here with a root-cause category and a
+corresponding engine issue, mirroring the historical format retired below.
 
 ## Regression Guard
 
@@ -107,8 +98,12 @@ Regression is now caught automatically, not by manual review of this file:
   `aster-lang-test`, `aster-lang-core`, `aster-lang-ts`, and nightly-gating.
 - **ir (field-level)** — `scripts/parity-tier1.mjs --mode=ir --full`,
   PR-blocking and nightly-gating.
-- **eval** — `scripts/parity-tier1.mjs --mode=eval`, nightly-gating
-  (report-only in PR CI). Coverage/exemptions in `EVAL-EXEMPTIONS.md`.
+- **eval** — `scripts/parity-tier1.mjs --mode=eval`, PR-blocking and
+  nightly-gating. Coverage/exemptions in `EVAL-EXEMPTIONS.md`.
+- **doc rot** — `scripts/tag-eval-exempt.mjs --check`, PR-blocking and
+  nightly-gating: the `EVAL-EXEMPTIONS.md` table must match the live
+  classification, and neither this file (above "Historical baseline") nor the
+  README rate table may inline a `N/N` count or rate literal.
 
 A rate drop on any mode now fails the nightly job, which blocks the
 `if: success()` "Append history to main" step so a regressed CSV/report can't be
@@ -128,6 +123,22 @@ Phase A/B/C landings and the follow-up grammar work; the per-case tables and
 sequencing plan that tracked them were removed on 2026-07-04 (audit #58) once
 the backlog reached zero. The detailed resolution notes for the runtime/eval
 layer are retained in the sections below.
+
+### Phase B / Phase C landing-time notes (retired)
+
+The original Phase B fingerprint was structural — it compared `moduleName`,
+`declCount`, the `kind → count` histogram, and the sorted list of declared
+symbol names — not the full lowered Core IR; it has since been replaced by the
+field-level normalized comparator (`--mode=ir --full`). The initial run at the
+Phase B landing showed ~55/162 tier1 samples where Java failed to lower (NPE in
+AstBuilder for `eff_caps_*` files).
+
+At the Phase C landing the eval scope was 15 samples / ~45 cases with an
+initial baseline of 3 identical / 42 Java-side `NullPointerException`
+("arg2Value is null") in multi-argument `Value.execute(args)` calls — a Truffle
+codegen regression that was fixed upstream in
+`aster-lang-truffle/src/main/java/aster/truffle/nodes/` before Phase C was
+promoted to PR-blocking on 2026-07-15.
 
 ## Runtime (eval) divergences revealed after Phase B/C fixes (2026-06-05)
 
