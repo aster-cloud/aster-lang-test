@@ -1,5 +1,8 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { existsSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   CORPUS_ROOT,
   listSamples,
@@ -8,9 +11,23 @@ import {
   readSample,
 } from '../loader.js';
 
+// 本文件位于 <pkg>/{src,dist}/test，仓库 corpus 为 <pkg>/../../corpus。
+const __dirname = dirname(fileURLToPath(import.meta.url));
+const PKG = resolve(__dirname, '..', '..');
+const REPO_CORPUS = resolve(PKG, '..', '..', 'corpus');
+const SNAPSHOT_CORPUS = resolve(PKG, 'corpus');
+
 describe('CorpusLoader', () => {
   it('resolves CORPUS_ROOT to an existing directory', () => {
     assert.ok(CORPUS_ROOT.endsWith('corpus'), `got ${CORPUS_ROOT}`);
+  });
+
+  it('prefers the repo corpus over the prepack snapshot inside the monorepo (issue #151)', (t) => {
+    if (!existsSync(REPO_CORPUS)) {
+      return t.skip(`no repo corpus at ${REPO_CORPUS} (installed tarball)`);
+    }
+    assert.equal(CORPUS_ROOT, REPO_CORPUS);
+    assert.notEqual(CORPUS_ROOT, SNAPSHOT_CORPUS);
   });
 
   it('listSamples returns the full corpus (≥ 300 samples after dedup)', () => {

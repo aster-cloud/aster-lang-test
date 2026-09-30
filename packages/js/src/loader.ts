@@ -6,7 +6,7 @@
  * filesystem.
  */
 import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
-import { join, dirname, resolve, relative } from 'node:path';
+import { join, dirname, resolve, relative, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -16,16 +16,24 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
  * stable whether the package is consumed via `node_modules`, a workspace
  * symlink, or a local checkout.
  *
+ * `__dirname` is `<pkg>/src` or `<pkg>/dist`, so `<pkg>` is one level up.
  * Layout searched, in order:
- *   - <pkg>/corpus           (post-prepack: bundled into the tarball)
- *   - <pkg>/../../../corpus  (dev: monorepo root)
+ *   - <pkg>/../../corpus  (dev: monorepo root; only when this module is not
+ *                          under node_modules, i.e. a repo checkout or a
+ *                          workspace link into it)
+ *   - <pkg>/corpus        (installed tarball: snapshot bundled by prepack)
+ *
+ * 仓库内必须优先取 monorepo 根：<pkg>/corpus 是 prepack 生成的快照，从不提交也
+ * 从不刷新，一旦存在就会长期遮蔽仓库 corpus，让本地测试与工具静默读到陈旧样本
+ * （issue #151）。装进 node_modules 后 <pkg>/../../corpus 指向宿主项目，故只在
+ * 仓库内启用该候选。
  */
 function resolveCorpusRoot(): string {
-  const candidates = [
-    resolve(__dirname, '..', 'corpus'),
-    resolve(__dirname, '..', '..', '..', '..', 'corpus'),
-    resolve(__dirname, '..', '..', '..', 'corpus'),
-  ];
+  const pkg = resolve(__dirname, '..');
+  const snapshot = resolve(pkg, 'corpus');
+  const monorepo = resolve(pkg, '..', '..', 'corpus');
+  const inNodeModules = __dirname.split(sep).includes('node_modules');
+  const candidates = inNodeModules ? [snapshot] : [monorepo, snapshot];
   for (const c of candidates) {
     if (existsSync(c)) return c;
   }
