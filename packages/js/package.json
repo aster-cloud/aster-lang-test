@@ -24,7 +24,8 @@
     "build": "tsc",
     "test": "pnpm run build && node --test 'dist/test/**/*.test.js'",
     "check:equivalence-freshness": "node ../../scripts/check-equivalence-freshness.mjs",
-    "prepack": "node scripts/sync-corpus.mjs && pnpm run build"
+    "prepack": "node scripts/sync-corpus.mjs && pnpm run build",
+    "postpack": "node scripts/sync-corpus.mjs --clean"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",
