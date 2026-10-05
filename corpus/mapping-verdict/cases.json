@@ -1,0 +1,217 @@
+{
+  "_doc": [
+    "双引擎 verifier 判定一致性语料（ADR 0037 §7）。",
+    "",
+    "★§7 对一致性的要求是**有区分**的：",
+    "  LLM 生成的 candidate  → 不要求一致",
+    "  Verifier 的结果       → **必须一致**",
+    "",
+    "故本语料只钉 verdict，不钉 reason（后者含自然语言，两侧措辞允许不同）。",
+    "",
+    "★每个用例必须能**区分**至少一种实现差异，否则它只是装饰。",
+    "  加用例时问一句：'如果某一侧写错了这一条，它会红吗？'",
+    "",
+    "★变异验证记录（2026-09-14）：",
+    "  真变异「Java 侧从 EXACT_VALUE_KINDS 移除 Bool」→ 门禁**变红**（failures=1），",
+    "  报出「Bool 字面量匹配 → VERIFIED」判定不符。门禁有效。",
+    "",
+    "  ★但「给 Java 加 Text」是 **no-op**，不能用来验证本门禁：",
+    "  加进 kind 列表后仍会卡在 parseLiteralFromText（它不认识 Text）而返回 null，",
+    "  最终仍判 REVIEW_REQUIRED。我第一次正是用它做变异，误以为门禁失效。",
+    "  ——变异必须能真正改变行为，否则'门禁没红'证明不了任何事。"
+  ],
+  "cases": [
+    {
+      "name": "精确值字面量匹配 → VERIFIED",
+      "mapping": {
+        "span": {
+          "start": 0,
+          "end": 5
+        },
+        "text": "10000",
+        "nodeId": "$.a"
+      },
+      "node": {
+        "kind": "Int",
+        "value": 10000
+      },
+      "expect": "VERIFIED"
+    },
+    {
+      "name": "值不匹配 → REJECTED",
+      "mapping": {
+        "span": {
+          "start": 0,
+          "end": 5
+        },
+        "text": "10000",
+        "nodeId": "$.a"
+      },
+      "node": {
+        "kind": "Int",
+        "value": 99999
+      },
+      "expect": "REJECTED"
+    },
+    {
+      "name": "节点不存在 → REJECTED",
+      "mapping": {
+        "span": {
+          "start": 0,
+          "end": 5
+        },
+        "text": "10000",
+        "nodeId": "$.missing"
+      },
+      "node": null,
+      "expect": "REJECTED"
+    },
+    {
+      "name": "区间非法（end <= start）→ REJECTED",
+      "mapping": {
+        "span": {
+          "start": 5,
+          "end": 5
+        },
+        "text": "",
+        "nodeId": "$.a"
+      },
+      "node": {
+        "kind": "Int",
+        "value": 1
+      },
+      "expect": "REJECTED"
+    },
+    {
+      "name": "区间负数 → REJECTED",
+      "mapping": {
+        "span": {
+          "start": -1,
+          "end": 3
+        },
+        "text": "abc",
+        "nodeId": "$.a"
+      },
+      "node": {
+        "kind": "Int",
+        "value": 1
+      },
+      "expect": "REJECTED"
+    },
+    {
+      "name": "text 长度与区间宽度不符 → REJECTED",
+      "mapping": {
+        "span": {
+          "start": 0,
+          "end": 3
+        },
+        "text": "10000",
+        "nodeId": "$.a"
+      },
+      "node": {
+        "kind": "Int",
+        "value": 10000
+      },
+      "expect": "REJECTED"
+    },
+    {
+      "name": "★Double 不可机械证明 → REVIEW_REQUIRED（不是 VERIFIED 也不是 REJECTED）",
+      "_why": "Double 在 IR 里用浮点承载，源码文本与 IR 值不可逆（1.0→1、1e3→1000）。机器证不了就交人，不得用近似规则假装能证。",
+      "mapping": {
+        "span": {
+          "start": 0,
+          "end": 3
+        },
+        "text": "1.0",
+        "nodeId": "$.a"
+      },
+      "node": {
+        "kind": "Double",
+        "value": 1.0
+      },
+      "expect": "REVIEW_REQUIRED"
+    },
+    {
+      "name": "★非字面量节点（Call）→ REVIEW_REQUIRED",
+      "_why": "ADR §3：Human reviews only what machines cannot prove。这不是失败。",
+      "mapping": {
+        "span": {
+          "start": 0,
+          "end": 6
+        },
+        "text": "f(1,2)",
+        "nodeId": "$.a"
+      },
+      "node": {
+        "kind": "Call"
+      },
+      "expect": "REVIEW_REQUIRED"
+    },
+    {
+      "name": "String 字面量匹配 → VERIFIED",
+      "mapping": {
+        "span": {
+          "start": 0,
+          "end": 7
+        },
+        "text": "\"hello\"",
+        "nodeId": "$.a"
+      },
+      "node": {
+        "kind": "String",
+        "value": "hello"
+      },
+      "expect": "VERIFIED",
+      "_why": "★两侧 EXACT_VALUE_KINDS 均为 Int/Long/Decimal/String/Bool/PatInt——**没有 Text**。我第一版语料写了 Text，测试直接红（判 REVIEW_REQUIRED）。语料必须对着实现写，不能凭印象。"
+    },
+    {
+      "name": "Bool 字面量匹配 → VERIFIED",
+      "mapping": {
+        "span": {
+          "start": 0,
+          "end": 4
+        },
+        "text": "true",
+        "nodeId": "$.a"
+      },
+      "node": {
+        "kind": "Bool",
+        "value": true
+      },
+      "expect": "VERIFIED"
+    },
+    {
+      "name": "Bool 值相反 → REJECTED",
+      "mapping": {
+        "span": {
+          "start": 0,
+          "end": 4
+        },
+        "text": "true",
+        "nodeId": "$.a"
+      },
+      "node": {
+        "kind": "Bool",
+        "value": false
+      },
+      "expect": "REJECTED"
+    },
+    {
+      "name": "★Text 不在精确值列表 → REVIEW_REQUIRED（易被误以为可证）",
+      "_why": "两侧 EXACT_VALUE_KINDS 都不含 Text。这条钉住该边界，防止某一侧擅自加进去。",
+      "mapping": {
+        "span": {
+          "start": 0,
+          "end": 5
+        },
+        "text": "hello",
+        "nodeId": "$.a"
+      },
+      "node": {
+        "kind": "Text",
+        "value": "hello"
+      },
+      "expect": "REVIEW_REQUIRED"
+    }
+  ]
+}
