@@ -1,0 +1,29 @@
+{
+  "policy": "tier1-equivalence/policies/verdict-fields.aster",
+  "entry": "deny_with",
+  "cases": [
+    {
+      "name": "deny with Text input",
+      "input": [
+        "no consent"
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "DENY",
+        "reason": "no consent"
+      }
+    },
+    {
+      "name": "outcome field",
+      "entry": "approval_outcome",
+      "input": [],
+      "expectedOutput": "REQUIRE_APPROVAL"
+    },
+    {
+      "name": "role field",
+      "entry": "approval_role",
+      "input": [],
+      "expectedOutput": "Senior Underwriter"
+    }
+  ]
+}

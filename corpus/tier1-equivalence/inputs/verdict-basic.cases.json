@@ -1,0 +1,62 @@
+{
+  "policy": "tier1-equivalence/policies/verdict-basic.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "allow",
+      "input": [
+        500
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    },
+    {
+      "name": "require approval",
+      "input": [
+        250000
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "REQUIRE_APPROVAL",
+        "role": "Senior Underwriter",
+        "reason": "amount over cap"
+      }
+    },
+    {
+      "name": "deny",
+      "input": [
+        -1
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "DENY",
+        "reason": "negative amount"
+      }
+    },
+    {
+      "name": "escalate",
+      "entry": "escalate_low",
+      "input": [
+        40
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ESCALATE",
+        "reason": "confidence below threshold"
+      }
+    },
+    {
+      "name": "escalate path allow",
+      "entry": "escalate_low",
+      "input": [
+        90
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

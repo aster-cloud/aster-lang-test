@@ -124,6 +124,22 @@ const IR_FIELD_ALIASES: Record<string, string> = {
 };
 
 /**
+ * 注解参数容器形状归一（ADR 0039 §10）：TS 把带参注解降级为
+ * `{name, args: [{name, value}, …]}`，Java 为 `{name, params: {name: value}}`。
+ * 这里只把 TS 的有序数组按原顺序折叠成 Java 的映射形状并去掉 `args`——
+ * 仅归一容器形状，绝不改动任何参数值；真正统一两引擎的 IR 形状推迟到 §10 的后续工作。
+ * 在递归之前做折叠，使两侧随后走完全相同的归一路径。
+ */
+function foldAnnotationArgs(node: any): any {
+  if (node.kind !== undefined || typeof node.name !== 'string' || node.params !== undefined) return node;
+  if (!Array.isArray(node.args) || node.args.length === 0) return node;
+  const isNamedArg = (a: any) => a !== null && typeof a === 'object' && typeof a.name === 'string' && 'value' in a;
+  if (!node.args.every(isNamedArg)) return node;
+  const { args, ...rest } = node;
+  return { ...rest, params: Object.fromEntries(args.map((a: any) => [a.name, a.value])) };
+}
+
+/**
  * Recursively normalize a Core IR node so the two engines' trees become
  * field-comparable: drop ignored fields, apply the alias table, treat a missing
  * field as an empty array/false default, and sort order-insensitive collections.
@@ -131,6 +147,7 @@ const IR_FIELD_ALIASES: Record<string, string> = {
 function normalizeIr(node: any, kind?: string, originMode: string = DEFAULT_ORIGIN_MODE): any {
   if (Array.isArray(node)) return node.map((n) => normalizeIr(n, kind, originMode));
   if (node === null || typeof node !== 'object') return node;
+  node = foldAnnotationArgs(node);
 
   const k = typeof node.kind === 'string' ? node.kind : kind;
   const out: Record<string, any> = {};
