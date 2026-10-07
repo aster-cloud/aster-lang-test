@@ -1,0 +1,13 @@
+Module verdict.fields.
+
+@id("VF-001")
+Rule deny_with given reason as Text, produce Verdict:
+  Return Verdict.deny(reason).
+
+Rule approval_outcome produce Text:
+  Let d be Verdict.require_approval("Senior Underwriter", "over cap").
+  Return d.outcome.
+
+Rule approval_role produce Text:
+  Let d be Verdict.require_approval("Senior Underwriter", "over cap").
+  Return d.role.

@@ -16,14 +16,14 @@
 
 | Metric | Count |
 |---|---:|
-| Total tier1-equivalence samples | 224 |
+| Total tier1-equivalence samples | 225 |
 | Eval-exempt (no meaningful pure-eval golden) | 73 |
-| **Eval-able** (denominator) | **151** |
-| Covered by a `*.cases.json` golden | 151 |
-| **Coverage** | **151 / 151 = 100.0 %** |
+| **Eval-able** (denominator) | **152** |
+| Covered by a `*.cases.json` golden | 152 |
+| **Coverage** | **152 / 152 = 100.0 %** |
 | Eval-able but NOT yet covered (backlog) | 0 |
 
-`--mode=eval` 实测 **718/718 identical**（双引擎一致且匹配 golden，0 divergent）。
+`--mode=eval` 实测 **721/721 identical**（双引擎一致且匹配 golden，0 divergent）。
 
 > **本表的数字必须与 `node scripts/tag-eval-exempt.mjs` 的实时输出一致。**
 > 上一版（2026-07-28）记的是 218 / 145 / 298，而实时已是 223 / 150 / 713——

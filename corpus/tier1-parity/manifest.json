@@ -233,6 +233,7 @@
     "tier1-equivalence/policies/test_two_statements.aster",
     "tier1-equivalence/policies/text_ops.aster",
     "tier1-equivalence/policies/type_alias.aster",
-    "tier1-equivalence/policies/verdict-basic.aster"
+    "tier1-equivalence/policies/verdict-basic.aster",
+    "tier1-equivalence/policies/verdict-fields.aster"
   ]
 }

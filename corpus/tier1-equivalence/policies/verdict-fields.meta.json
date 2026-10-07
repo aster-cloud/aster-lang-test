@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0039 Verdict 字段读取与 Text 形参",
+  "capabilities": [
+    "cases-golden"
+  ]
+}
