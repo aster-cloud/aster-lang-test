@@ -1,0 +1,19 @@
+Module verdict.basic.
+
+@id("VB-001")
+@control("EU_AI_ACT:ART14")
+Rule decide given amount, produce Verdict:
+  If amount at least 100000:
+    Return Verdict.require_approval("Senior Underwriter", "amount over cap").
+  Otherwise:
+    If amount at least 0:
+      Return Verdict.allow().
+    Otherwise:
+      Return Verdict.deny("negative amount").
+
+@id("VB-002")
+Rule escalate_low given confidence, produce Verdict:
+  If confidence at least 85:
+    Return Verdict.allow().
+  Otherwise:
+    Return Verdict.escalate("confidence below threshold").

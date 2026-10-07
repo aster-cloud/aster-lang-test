@@ -90,7 +90,7 @@ function exemptReason(name, src) {
 //    → unsupported"而被误剔出 eval 分母（143/143 隐藏 date 的"伪 100%"）。
 //  - `Decimal` 仅补齐白名单声明；`stdlib_decimal` 自 PR #52 起就有 `compute` golden，按
 //    "有 cases 即 eval-able"规则一直在分母内，其覆盖状态不因本次改动而变。
-const STDLIB_NAMESPACES = new Set(['Text', 'List', 'Map', 'Maybe', 'Option', 'Result', 'Date', 'Decimal']);
+const STDLIB_NAMESPACES = new Set(['Text', 'List', 'Map', 'Maybe', 'Option', 'Result', 'Date', 'Decimal', 'Verdict']);
 
 /** Returns a reason string if the source uses a construction/dispatch form that
  *  fails in both pure evaluators, else null. */

@@ -81,6 +81,31 @@ describe('ir-normalize：跨引擎归一化', () => {
       'parity-tier1.mjs 里又出现了一份 IR_INFERENCE_FIELDS 定义 —— 规则已分叉成两套。');
   });
 
+  it('注解参数容器形状：TS args 数组与 Java params 映射归一为同一对象（ADR 0039 §10）', () => {
+    const decl = (annotations: unknown[]) => ({
+      kind: 'Func', name: 'decide', annotations,
+      body: { kind: 'Block', statements: [] },
+    });
+    const tsSide = decl([
+      { name: 'id', args: [{ name: '$0', value: 'VB-001' }] },
+      { name: 'control', args: [{ name: '$0', value: 'EU_AI_ACT:ART14' }] },
+    ]);
+    const javaSide = decl([
+      { name: 'id', params: { $0: 'VB-001' } },
+      { name: 'control', params: { $0: 'EU_AI_ACT:ART14' } },
+    ]);
+    assert.deepStrictEqual(normalizeIr(tsSide), normalizeIr(javaSide),
+      '两引擎只在注解参数的容器形状上不同，归一化后应完全相等。');
+
+    // 反向守卫：只归一形状，不抹平取值差异。
+    const tsOther = decl([
+      { name: 'id', args: [{ name: '$0', value: 'VB-999' }] },
+      { name: 'control', args: [{ name: '$0', value: 'EU_AI_ACT:ART14' }] },
+    ]);
+    assert.notDeepStrictEqual(normalizeIr(tsOther), normalizeIr(javaSide),
+      '注解参数值不同却被判为相等 —— 归一化越界改动了取值。');
+  });
+
   it('推导字段清单非空（防止规则被整体清空后测试仍全绿）', () => {
     assert.ok(IR_INFERENCE_FIELDS.size > 0, 'IR_INFERENCE_FIELDS 为空，归一化形同虚设。');
     for (const f of ['piiLevel', 'retTypeInferred', 'typeInferred', 'constraints']) {
