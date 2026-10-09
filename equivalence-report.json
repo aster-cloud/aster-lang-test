@@ -1,11 +1,11 @@
 {
   "summary": {
-    "total": 223,
-    "equivalent": 223,
+    "total": 225,
+    "equivalent": 225,
     "divergent": 0,
     "bothFail": 0,
     "rate": 1,
-    "basedOnHistory": "2026-10-08T08:32:00.857Z"
+    "basedOnHistory": "2026-10-09T08:35:05.143Z"
   },
   "rows": [
     {
@@ -1564,6 +1564,20 @@
     },
     {
       "path": "tier1-equivalence/policies/type_alias.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/verdict-basic.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/verdict-fields.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
