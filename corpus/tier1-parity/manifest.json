@@ -60,6 +60,7 @@
     "tier1-equivalence/policies/claims.aster",
     "tier1-equivalence/policies/cli_tool.aster",
     "tier1-equivalence/policies/comparison_operators.aster",
+    "tier1-equivalence/policies/credit-pilot.aster",
     "tier1-equivalence/policies/creditcard.aster",
     "tier1-equivalence/policies/cross_compiler_ops.aster",
     "tier1-equivalence/policies/eff_alias_import.aster",

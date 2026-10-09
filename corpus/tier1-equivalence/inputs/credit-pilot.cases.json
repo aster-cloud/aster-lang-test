@@ -1,0 +1,107 @@
+{
+  "policy": "tier1-equivalence/policies/credit-pilot.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "allow",
+      "input": [
+        {
+          "creditScore": 760,
+          "monthlyIncome": 9000,
+          "monthlyDebt": 2000,
+          "requestedAmount": 20000,
+          "activeDefaults": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    },
+    {
+      "name": "deny active default",
+      "input": [
+        {
+          "creditScore": 760,
+          "monthlyIncome": 9000,
+          "monthlyDebt": 2000,
+          "requestedAmount": 20000,
+          "activeDefaults": 1
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "DENY",
+        "reason": "active_default"
+      }
+    },
+    {
+      "name": "deny dti",
+      "input": [
+        {
+          "creditScore": 760,
+          "monthlyIncome": 5000,
+          "monthlyDebt": 2400,
+          "requestedAmount": 20000,
+          "activeDefaults": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "DENY",
+        "reason": "dti_exceeds_limit"
+      }
+    },
+    {
+      "name": "require approval large amount",
+      "input": [
+        {
+          "creditScore": 760,
+          "monthlyIncome": 9000,
+          "monthlyDebt": 2000,
+          "requestedAmount": 60000,
+          "activeDefaults": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "REQUIRE_APPROVAL",
+        "role": "Credit Officer",
+        "reason": "large_exposure"
+      }
+    },
+    {
+      "name": "escalate borderline score",
+      "input": [
+        {
+          "creditScore": 650,
+          "monthlyIncome": 9000,
+          "monthlyDebt": 2000,
+          "requestedAmount": 20000,
+          "activeDefaults": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ESCALATE",
+        "reason": "borderline_credit_score"
+      }
+    },
+    {
+      "name": "dti exactly at limit allows",
+      "input": [
+        {
+          "creditScore": 760,
+          "monthlyIncome": 10000,
+          "monthlyDebt": 4500,
+          "requestedAmount": 20000,
+          "activeDefaults": 0
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}
