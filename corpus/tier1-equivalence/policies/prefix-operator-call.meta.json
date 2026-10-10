@@ -1,0 +1,7 @@
+{
+  "tier": 1,
+  "engines": ["java", "ts"],
+  "lexicon": "en-US",
+  "source": "前缀运算符调用 <op>(a, b)，= 规范为 ==（与 aster-lang-core operatorCall 对齐）",
+  "capabilities": ["cases-golden"]
+}

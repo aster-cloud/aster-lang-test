@@ -1,0 +1,136 @@
+{
+ "samples": [
+  {
+   "name": "prefix-operator-call",
+   "entry": "atLeast",
+   "cases": [
+    {
+     "name": ">=(5, 5) is true",
+     "entry": "atLeast",
+     "input": [
+      5,
+      5
+     ],
+     "expectedOutput": true
+    },
+    {
+     "name": ">=(4, 5) is false",
+     "entry": "atLeast",
+     "input": [
+      4,
+      5
+     ],
+     "expectedOutput": false
+    },
+    {
+     "name": "=(3, 3) is true",
+     "entry": "singleEquals",
+     "input": [
+      3,
+      3
+     ],
+     "expectedOutput": true
+    },
+    {
+     "name": "=(3, 4) is false",
+     "entry": "singleEquals",
+     "input": [
+      3,
+      4
+     ],
+     "expectedOutput": false
+    },
+    {
+     "name": "!=(3, 4) is true",
+     "entry": "notEqual",
+     "input": [
+      3,
+      4
+     ],
+     "expectedOutput": true
+    },
+    {
+     "name": "!=(3, 3) is false",
+     "entry": "notEqual",
+     "input": [
+      3,
+      3
+     ],
+     "expectedOutput": false
+    },
+    {
+     "name": "<(2, 9) is true",
+     "entry": "lessThan",
+     "input": [
+      2,
+      9
+     ],
+     "expectedOutput": true
+    },
+    {
+     "name": "<(9, 2) is false",
+     "entry": "lessThan",
+     "input": [
+      9,
+      2
+     ],
+     "expectedOutput": false
+    },
+    {
+     "name": "*(+(7, 3), -(7, 3)) = 40",
+     "entry": "product",
+     "input": [
+      7,
+      3
+     ],
+     "expectedOutput": 40
+    },
+    {
+     "name": "*(+(2, 5), -(2, 5)) = -21",
+     "entry": "product",
+     "input": [
+      2,
+      5
+     ],
+     "expectedOutput": -21
+    },
+    {
+     "name": "/(12, 3) = 4",
+     "entry": "quotient",
+     "input": [
+      12,
+      3
+     ],
+     "expectedOutput": 4
+    },
+    {
+     "name": ">=(2 plus 1, 3) and =(2, 2) is true",
+     "entry": "mixed",
+     "input": [
+      2,
+      3
+     ],
+     "expectedOutput": true
+    },
+    {
+     "name": ">=(2 plus 1, 4) and =(2, 2) is false",
+     "entry": "mixed",
+     "input": [
+      2,
+      4
+     ],
+     "expectedOutput": false
+    },
+    {
+     "name": ">=(5 plus 1, 3) and =(5, 2) is false",
+     "entry": "mixed",
+     "input": [
+      5,
+      3
+     ],
+     "expectedOutput": false
+    }
+   ]
+  }
+ ]
+}

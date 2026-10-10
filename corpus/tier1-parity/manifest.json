@@ -189,6 +189,7 @@
     "tier1-equivalence/policies/pii_type_ssn.aster",
     "tier1-equivalence/policies/policy_demo.aster",
     "tier1-equivalence/policies/policy_engine.aster",
+    "tier1-equivalence/policies/prefix-operator-call.aster",
     "tier1-equivalence/policies/prescription-workflow.aster",
     "tier1-equivalence/policies/rest_service.aster",
     "tier1-equivalence/policies/result_trycatch.aster",
