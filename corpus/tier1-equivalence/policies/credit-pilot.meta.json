@@ -1,0 +1,7 @@
+{
+  "tier": 1,
+  "engines": ["java", "ts"],
+  "lexicon": "en-US",
+  "source": "ADR 0044 Annex III 信贷试点",
+  "capabilities": ["cases-golden"]
+}

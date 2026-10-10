@@ -1,0 +1,17 @@
+Module   demo.messy.mixed .   
+
+
+Define Status as one of   Active ,  Closed .  
+
+Define Account has   id as Text ,   balance as Int ,  status as Status .
+
+
+@id("ACC-1")   
+Rule   check   given   acct as Account ,  produce   Bool  :  
+
+    // 余额检查  .
+    If  acct.balance   at least  0 :
+        Return   true .   
+    Return false  .
+
+

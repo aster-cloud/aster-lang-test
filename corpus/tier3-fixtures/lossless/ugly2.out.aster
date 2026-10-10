@@ -1,4 +1,4 @@
-Module demo.
+Module test.lossless.golden.ugly2.in.
 
-Rule sum given x, y, produce:
+Rule main, produce:
   Return 0.

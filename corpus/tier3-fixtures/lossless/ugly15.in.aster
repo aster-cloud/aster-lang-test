@@ -1,0 +1,7 @@
+Module   demo.messy.spacing .
+
+Rule   score   given  amount as Int ,  rate as Int ,  produce   Int  :   
+  Let  base   be  amount   times  rate  .   
+  If   base  at least   100  :  
+    Return   base  minus  10 .
+  Return  base .  

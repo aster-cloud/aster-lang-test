@@ -1,0 +1,104 @@
+{
+ "samples": [
+  {
+   "name": "governance-sugar",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "require approval at 150",
+     "input": [
+      150
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "REQUIRE_APPROVAL",
+      "role": "Officer",
+      "reason": "large"
+     }
+    },
+    {
+     "name": "deny at -1",
+     "input": [
+      -1
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "DENY",
+      "reason": "negative"
+     }
+    },
+    {
+     "name": "escalate at 60",
+     "input": [
+      60
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ESCALATE",
+      "reason": "review"
+     }
+    },
+    {
+     "name": "allow at 10",
+     "input": [
+      10
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-sugar-long",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "require approval at 150",
+     "input": [
+      150
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "REQUIRE_APPROVAL",
+      "role": "Officer",
+      "reason": "large"
+     }
+    },
+    {
+     "name": "deny at -1",
+     "input": [
+      -1
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "DENY",
+      "reason": "negative"
+     }
+    },
+    {
+     "name": "escalate at 60",
+     "input": [
+      60
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ESCALATE",
+      "reason": "review"
+     }
+    },
+    {
+     "name": "allow at 10",
+     "input": [
+      10
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
+  }
+ ]
+}

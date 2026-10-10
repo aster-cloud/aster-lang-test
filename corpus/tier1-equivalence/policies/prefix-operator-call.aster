@@ -1,0 +1,22 @@
+Module prefix.operator.call.
+
+Rule atLeast given x as Int, y as Int, produce Bool:
+  Return >=(x, y).
+
+Rule singleEquals given x as Int, y as Int, produce Bool:
+  Return =(x, y).
+
+Rule notEqual given x as Int, y as Int, produce Bool:
+  Return !=(x, y).
+
+Rule lessThan given x as Int, y as Int, produce Bool:
+  Return <(x, y).
+
+Rule product given x as Int, y as Int, produce Int:
+  Return *(+(x, y), -(x, y)).
+
+Rule quotient given x as Int, y as Int, produce Int:
+  Return /(x, y).
+
+Rule mixed given x as Int, y as Int, produce Bool:
+  Return >=(x plus 1, y) and =(x, 2).

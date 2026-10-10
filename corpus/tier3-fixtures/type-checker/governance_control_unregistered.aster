@@ -1,0 +1,9 @@
+Module governance.control.unregistered.
+
+@id("GC-001")
+@control("EU_AI_ACT:ART14")
+@control("ACME:ART1")
+Rule decide given amount, produce Verdict:
+  If amount at least 100:
+    Return Verdict.require_approval("Reviewer", "large").
+  Return Verdict.allow().
