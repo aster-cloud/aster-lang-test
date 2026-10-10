@@ -1,0 +1,22 @@
+
+
+Module demo.messy.blanks.
+
+
+
+Define Point has x as Int, y as Int.
+
+
+
+Rule origin, produce Point:
+
+  Let p be Point with x set to 0, y set to 0.
+
+
+  Return p.
+
+
+
+
+Rule one, produce Int:
+  Return 1.

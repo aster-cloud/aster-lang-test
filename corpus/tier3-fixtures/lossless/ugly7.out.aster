@@ -1,4 +1,4 @@
-Module demo.space.
+Module test.lossless.golden.ugly7.in.
 
-Rule id, produce:
+Rule main, produce:
   Return 0.

@@ -1,0 +1,7 @@
+Module demo.messy.longlines.
+
+Rule eligible given age as Int, income as Int, debt as Int, score as Int, years as Int, produce Bool:
+  Return age at least 18 and age at most 75 and income greater than debt times 3 and score at least 620 and years at least 2 and not (debt greater than income).
+
+Rule total given a as Int, b as Int, c as Int, produce Int:
+  Return a plus b plus c plus a times b plus b times c plus a times c plus a plus b plus c plus 1000000.

@@ -1,6 +1,4 @@
-Module demo.types.
+Module test.lossless.golden.ugly14.in.
 
-Define Box has items.
-
-Rule headMap given b, produce:
+Rule main, produce:
   Return 0.

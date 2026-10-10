@@ -1,0 +1,12 @@
+Module demo.messy.indent.
+
+Rule classify given n as Int, produce Text:
+    If n less than 0:
+        Return "negative".
+    If n equals to 0:
+            Return "zero".
+    Match n:
+      When 1, Return "one".
+      When 2,
+          Return "two".
+    Return "many".

@@ -1,0 +1,9 @@
+// 顶部注释 , 带空格 .
+Module demo.messy.comments.   // 模块头后注释
+
+# 井号注释
+Rule greet given name as Text, produce Text:   // 规则头注释
+  // 块内注释 :
+  Let msg be Text.concat("Hi , ", name).   // 行尾注释
+  Return msg.
+// 末尾注释
