@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "and/or 短路求值：右操作数仅在左操作数不足以决定结果时求值；左侧守卫可保护右侧越界下标（扑克 isWheel 形态）",
+  "capabilities": [
+    "cases-golden"
+  ]
+}

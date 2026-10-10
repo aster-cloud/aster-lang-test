@@ -50,6 +50,7 @@
     "tier1-equivalence/policies/31-arithmetic-intdiv.aster",
     "tier1-equivalence/policies/32-arithmetic-modulo-op.aster",
     "tier1-equivalence/policies/45-text-equals.aster",
+    "tier1-equivalence/policies/and-or-short-circuit.aster",
     "tier1-equivalence/policies/arith_compare.aster",
     "tier1-equivalence/policies/auto.aster",
     "tier1-equivalence/policies/bad_generic.aster",
