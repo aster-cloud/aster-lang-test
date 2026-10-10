@@ -1,0 +1,164 @@
+{
+ "samples": [
+  {
+   "name": "and-or-short-circuit",
+   "entry": "isWheel",
+   "cases": [
+    {
+     "name": "isWheel: 4 元素 → 左侧守卫为假，右侧越界下标不求值",
+     "entry": "isWheel",
+     "input": [
+      [
+       2,
+       3,
+       4,
+       5
+      ]
+     ],
+     "expectedOutput": false
+    },
+    {
+     "name": "isWheel: 5 元素且第五个为 14 → true",
+     "entry": "isWheel",
+     "input": [
+      [
+       2,
+       3,
+       4,
+       5,
+       14
+      ]
+     ],
+     "expectedOutput": true
+    },
+    {
+     "name": "isWheel: 5 元素但第五个不是 14 → false",
+     "entry": "isWheel",
+     "input": [
+      [
+       2,
+       3,
+       4,
+       5,
+       6
+      ]
+     ],
+     "expectedOutput": false
+    },
+    {
+     "name": "hasNoFifthOrPositive: 4 元素 → 左侧为真，右侧越界下标不求值",
+     "entry": "hasNoFifthOrPositive",
+     "input": [
+      [
+       2,
+       3,
+       4,
+       5
+      ]
+     ],
+     "expectedOutput": true
+    },
+    {
+     "name": "hasNoFifthOrPositive: 5 元素 → 求值右侧",
+     "entry": "hasNoFifthOrPositive",
+     "input": [
+      [
+       2,
+       3,
+       4,
+       5,
+       6
+      ]
+     ],
+     "expectedOutput": true
+    },
+    {
+     "name": "guardedAnd: flag=false → 不求值右侧，返回 false",
+     "entry": "guardedAnd",
+     "input": [
+      false,
+      [
+       2,
+       3,
+       4,
+       5
+      ]
+     ],
+     "expectedOutput": false
+    },
+    {
+     "name": "guardedAnd: flag=true 且 4 元素 → 右侧被求值并越界，两引擎都必须拒绝",
+     "entry": "guardedAnd",
+     "input": [
+      true,
+      [
+       2,
+       3,
+       4,
+       5
+      ]
+     ],
+     "expectError": true
+    },
+    {
+     "name": "guardedAnd: flag=true 且第五个为 14 → true",
+     "entry": "guardedAnd",
+     "input": [
+      true,
+      [
+       2,
+       3,
+       4,
+       5,
+       14
+      ]
+     ],
+     "expectedOutput": true
+    },
+    {
+     "name": "guardedOr: flag=true → 不求值右侧，返回 true",
+     "entry": "guardedOr",
+     "input": [
+      true,
+      [
+       2,
+       3,
+       4,
+       5
+      ]
+     ],
+     "expectedOutput": true
+    },
+    {
+     "name": "guardedOr: flag=false 且 4 元素 → 右侧被求值并越界，两引擎都必须拒绝",
+     "entry": "guardedOr",
+     "input": [
+      false,
+      [
+       2,
+       3,
+       4,
+       5
+      ]
+     ],
+     "expectError": true
+    },
+    {
+     "name": "guardedOr: flag=false 且第五个不是 14 → false",
+     "entry": "guardedOr",
+     "input": [
+      false,
+      [
+       2,
+       3,
+       4,
+       5,
+       6
+      ]
+     ],
+     "expectedOutput": false
+    }
+   ]
+  }
+ ]
+}

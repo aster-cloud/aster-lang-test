@@ -1,0 +1,13 @@
+Module demo.logic.shortcircuit.
+
+Rule isWheel given xs, produce:
+  Return List.length(xs) equals to 5 and List.get(xs, 4) equals to 14.
+
+Rule hasNoFifthOrPositive given xs, produce:
+  Return List.length(xs) less than 5 or List.get(xs, 4) greater than 0.
+
+Rule guardedAnd given flag, xs, produce:
+  Return flag and List.get(xs, 4) equals to 14.
+
+Rule guardedOr given flag, xs, produce:
+  Return flag or List.get(xs, 4) equals to 14.
