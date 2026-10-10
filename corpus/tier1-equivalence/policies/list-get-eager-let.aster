@@ -1,0 +1,13 @@
+Module demo.list.eagerlet.
+
+Rule fifthEager given xs, produce:
+  Let fifth be List.get(xs, 4).
+  If List.length(xs) equals to 5:
+    Return fifth.
+  Return 0.
+
+Rule highSafe given xs, produce:
+  Let high be List.max(xs).
+  If List.length(xs) equals to 5:
+    Return high.
+  Return 0.
