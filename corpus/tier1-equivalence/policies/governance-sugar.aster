@@ -1,0 +1,10 @@
+Module governance.sugar.
+Profile "governed".
+
+@id("GS-1")
+@control("EU_AI_ACT:ART14")
+Rule decide given amount, produce Verdict:
+  When amount at least 100, require approval by "Officer" because "large".
+  When amount at most 0, deny "negative".
+  When amount at least 50, escalate "review".
+  Otherwise allow.

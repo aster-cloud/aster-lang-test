@@ -125,6 +125,8 @@
     "tier1-equivalence/policies/g2a-inline-if.aster",
     "tier1-equivalence/policies/g2b-if-expression.aster",
     "tier1-equivalence/policies/g3-apply-call.aster",
+    "tier1-equivalence/policies/governance-sugar-long.aster",
+    "tier1-equivalence/policies/governance-sugar.aster",
     "tier1-equivalence/policies/greet.aster",
     "tier1-equivalence/policies/hello.aster",
     "tier1-equivalence/policies/hipaa-validation-demo.aster",

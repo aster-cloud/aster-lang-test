@@ -1,0 +1,13 @@
+Module governance.sugar.long.
+Profile "governed".
+
+@id("GS-1")
+@control("EU_AI_ACT:ART14")
+Rule decide given amount, produce Verdict:
+  If amount at least 100:
+    Return Verdict.require_approval("Officer", "large").
+  If amount at most 0:
+    Return Verdict.deny("negative").
+  If amount at least 50:
+    Return Verdict.escalate("review").
+  Return Verdict.allow().
