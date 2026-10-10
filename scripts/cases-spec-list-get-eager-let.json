@@ -1,0 +1,64 @@
+{
+ "samples": [
+  {
+   "name": "list-get-eager-let",
+   "entry": "fifthEager",
+   "cases": [
+    {
+     "name": "fifthEager: 5 元素返回第五个",
+     "entry": "fifthEager",
+     "input": [
+      [
+       2,
+       3,
+       4,
+       5,
+       9
+      ]
+     ],
+     "expectedOutput": 9
+    },
+    {
+     "name": "fifthEager: 4 元素 → Let 立即求值越界，两引擎都必须拒绝",
+     "entry": "fifthEager",
+     "input": [
+      [
+       2,
+       3,
+       4,
+       5
+      ]
+     ],
+     "expectError": true
+    },
+    {
+     "name": "highSafe: 4 元素不越界",
+     "entry": "highSafe",
+     "input": [
+      [
+       2,
+       3,
+       4,
+       5
+      ]
+     ],
+     "expectedOutput": 0
+    },
+    {
+     "name": "highSafe: 5 元素返回最大值",
+     "entry": "highSafe",
+     "input": [
+      [
+       2,
+       3,
+       4,
+       5,
+       9
+      ]
+     ],
+     "expectedOutput": 9
+    }
+   ]
+  }
+ ]
+}

@@ -157,6 +157,7 @@
     "tier1-equivalence/policies/lambda_gte_test.aster",
     "tier1-equivalence/policies/lambda_lte_test.aster",
     "tier1-equivalence/policies/life.aster",
+    "tier1-equivalence/policies/list-get-eager-let.aster",
     "tier1-equivalence/policies/list_ops.aster",
     "tier1-equivalence/policies/loan.aster",
     "tier1-equivalence/policies/loan_fixed.aster",

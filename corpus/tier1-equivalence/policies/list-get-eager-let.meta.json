@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "Let 绑定按序立即求值：后续分支未用到的越界 List.get 照样抛错；改用 List.max 不越界",
+  "capabilities": [
+    "cases-golden"
+  ]
+}
