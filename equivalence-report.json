@@ -1,11 +1,11 @@
 {
   "summary": {
-    "total": 225,
-    "equivalent": 225,
+    "total": 231,
+    "equivalent": 231,
     "divergent": 0,
     "bothFail": 0,
     "rate": 1,
-    "basedOnHistory": "2026-10-10T08:12:17.146Z"
+    "basedOnHistory": "2026-10-11T08:24:26.185Z"
   },
   "rows": [
     {
@@ -289,6 +289,13 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/and-or-short-circuit.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/arith_compare.aster",
       "ts": true,
       "java": true,
@@ -353,6 +360,13 @@
     },
     {
       "path": "tier1-equivalence/policies/comparison_operators.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/credit-pilot.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -807,6 +821,20 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/governance-sugar-long.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/governance-sugar.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/greet.aster",
       "ts": true,
       "java": true,
@@ -1011,6 +1039,13 @@
     },
     {
       "path": "tier1-equivalence/policies/life.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/list-get-eager-let.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -1235,6 +1270,13 @@
     },
     {
       "path": "tier1-equivalence/policies/policy_engine.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/prefix-operator-call.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
