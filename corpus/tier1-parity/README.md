@@ -35,3 +35,23 @@
 3. PR 标签 `parity-regression`，需要 lang owner review
 
 宁可让 manifest 短，也不要让 manifest 撒谎。
+
+## 必拒样本（`mustReject`）
+
+`samples` 是「两端都必须接受」的契约；`mustReject` 是它的反面：两端都**必须以解析错误拒绝**的输入，
+例如运算符词前缀调用 `and(a, b)`、`plus(x, y)`、zh 的 `并且(真值，假值)`（Java `operatorCall` 只接受符号运算符）。
+
+- 样本放在 `corpus/tier1-reject/`，meta 写 `"expect": "reject"`，可选 `"expectErrorLine": N`
+  （声明后两端的首个错误都必须落在第 N 行，防止「因为别处写错而被拒绝」的假通过）。
+- 只参与 `--mode=parse`：两端都报解析错误才算通过。只有一端拒绝（`ts-accepted` / `java-accepted`）、
+  两端都接受（`both-accepted`）、引擎崩溃而非报解析错误（`ts-crashed` / `java-crashed`）、
+  错误行号不符（`line-mismatch`）都会让门禁变红，并在报告的 Must-reject 一节点名。
+- 不参与 `--mode=ir` / `--mode=eval`，也不计入 `EVAL-EXEMPTIONS.md` 的样本数与豁免数
+  （`tag-eval-exempt.mjs` 只扫描 `tier1-equivalence/policies/`）。
+- `tier1-reject/` 下的每个 `.aster` 都必须登记在 `mustReject` 中，否则 parity 门直接报错（不得静默跳过）。
+- Java 侧判定来自 aster-lang-core 的 `TsSampleParseInventoryTest`：它照常扫描并打印这些样本的失败行，
+  但按 `corpus/tier1-reject/` 前缀把它们排除在已知失败数棘轮之外。
+- 判定逻辑在 `scripts/lib/must-reject.mjs`，回归测试 `node scripts/test-must-reject.mjs`。
+
+新增必拒样本时，PR 描述须说明「为什么这是语言规定的非法输入」，而不只是「某个引擎目前拒绝它」——
+后者属于 `tier2-divergent`。

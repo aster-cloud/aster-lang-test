@@ -58,6 +58,7 @@ gating `parity-tier1.mjs` modes above.
 | Tier | What it asserts | CI gate |
 |---|---|---|
 | **tier1-parity** | Curated subset of tier1 where both engines must accept. Source of truth: `corpus/tier1-parity/manifest.json`. | **PR-blocking (parse)** in `aster-lang-test`, `aster-lang-core`, `aster-lang-ts` via `scripts/parity-tier1.mjs --mode=parse`. **PR-blocking (IR field-level)** alongside via `--mode=ir --full`. **PR-blocking (eval)** via `--mode=eval`, nightly-gating as well (audit #58). |
+| tier1-reject | Inverse contract: inputs both engines must reject with a parse error (`manifest.json` → `mustReject`, files under `corpus/tier1-reject/`). A one-sided acceptance, a crash, or an error on the wrong line (`meta.expectErrorLine`) fails the gate. See `corpus/tier1-parity/README.md`. | **PR-blocking (parse only)** via the same `--mode=parse` run; excluded from ir/eval and from the eval-exemption counts. |
 | tier1-equivalence | Full set of samples that *should* be bidirectionally accepted; tier1-parity is a subset of this. | Nightly (`equivalence-nightly.mjs`), regression on rate vs. last-recorded baseline. |
 | tier2-divergent | Known one-engine-only samples; drives the divergence backlog. | Nightly only; cases catalogued in this file. |
 | tier3-fixtures | Single-engine specialty fixtures (golden AST/Core, lossless, lsp, runtime-retry, type-checker). | Each consumer runs its own subset. |

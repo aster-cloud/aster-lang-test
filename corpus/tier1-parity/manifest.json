@@ -241,5 +241,32 @@
     "tier1-equivalence/policies/type_alias.aster",
     "tier1-equivalence/policies/verdict-basic.aster",
     "tier1-equivalence/policies/verdict-fields.aster"
+  ],
+  "_mustRejectComment": "Inverse contract: samples under tier1-reject/ that BOTH engines must reject with a parse error (meta.expect=reject, optional meta.expectErrorLine). Parse mode only; excluded from ir/eval and from the eval-exemption counts. See corpus/tier1-parity/README.md.",
+  "mustReject": [
+    "tier1-reject/reject-prefix-and.aster",
+    "tier1-reject/reject-prefix-at-least.aster",
+    "tier1-reject/reject-prefix-at-most.aster",
+    "tier1-reject/reject-prefix-divided-by.aster",
+    "tier1-reject/reject-prefix-equals-to.aster",
+    "tier1-reject/reject-prefix-greater-than.aster",
+    "tier1-reject/reject-prefix-integer-divided-by.aster",
+    "tier1-reject/reject-prefix-is-less-than.aster",
+    "tier1-reject/reject-prefix-less-than-or-equal-to.aster",
+    "tier1-reject/reject-prefix-less-than.aster",
+    "tier1-reject/reject-prefix-minus.aster",
+    "tier1-reject/reject-prefix-modulo.aster",
+    "tier1-reject/reject-prefix-more-than.aster",
+    "tier1-reject/reject-prefix-not-binary.aster",
+    "tier1-reject/reject-prefix-not-equal-to.aster",
+    "tier1-reject/reject-prefix-or.aster",
+    "tier1-reject/reject-prefix-plus.aster",
+    "tier1-reject/reject-prefix-times.aster",
+    "tier1-reject/reject-prefix-zh-and.aster",
+    "tier1-reject/reject-prefix-zh-en-and.aster",
+    "tier1-reject/reject-prefix-zh-en-modulo.aster",
+    "tier1-reject/reject-prefix-zh-integer-divide.aster",
+    "tier1-reject/reject-prefix-zh-modulo.aster",
+    "tier1-reject/reject-prefix-zh-or.aster"
   ]
 }

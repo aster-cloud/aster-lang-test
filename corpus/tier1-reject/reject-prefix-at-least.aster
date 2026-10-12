@@ -1,0 +1,4 @@
+Module reject.prefixAtLeast.
+
+Rule r given a as Bool, b as Bool, x as Int, y as Int, produce Bool:
+  Return at least(x, y).

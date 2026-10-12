@@ -1,0 +1,4 @@
+Module reject.prefixLessThanOrEqualTo.
+
+Rule r given a as Bool, b as Bool, x as Int, y as Int, produce Bool:
+  Return less than or equal to(x, y).

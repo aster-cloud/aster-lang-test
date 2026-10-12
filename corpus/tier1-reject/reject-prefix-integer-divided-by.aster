@@ -1,0 +1,4 @@
+Module reject.prefixIntegerDividedBy.
+
+Rule r given a as Bool, b as Bool, x as Int, y as Int, produce Bool:
+  Return integer divided by(x, y) > 0.
