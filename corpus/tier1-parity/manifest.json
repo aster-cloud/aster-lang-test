@@ -244,6 +244,7 @@
   ],
   "_mustRejectComment": "Inverse contract: samples under tier1-reject/ that BOTH engines must reject with a parse error (meta.expect=reject, optional meta.expectErrorLine). Parse mode only; excluded from ir/eval and from the eval-exemption counts. See corpus/tier1-parity/README.md.",
   "mustReject": [
+    "tier1-reject/reject-prefix-and-unary.aster",
     "tier1-reject/reject-prefix-and.aster",
     "tier1-reject/reject-prefix-at-least.aster",
     "tier1-reject/reject-prefix-at-most.aster",
@@ -259,6 +260,7 @@
     "tier1-reject/reject-prefix-more-than.aster",
     "tier1-reject/reject-prefix-not-binary.aster",
     "tier1-reject/reject-prefix-not-equal-to.aster",
+    "tier1-reject/reject-prefix-or-unary.aster",
     "tier1-reject/reject-prefix-or.aster",
     "tier1-reject/reject-prefix-plus.aster",
     "tier1-reject/reject-prefix-times.aster",

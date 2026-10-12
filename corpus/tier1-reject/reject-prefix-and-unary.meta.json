@@ -1,0 +1,8 @@
+{
+  "tier": 1,
+  "engines": ["java", "ts"],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "运算符词单参前缀调用 and(a)：Java 曾把 Return 当变量名、整行解析为表达式语句 Return and (a)；语句头关键词开头的行只能是对应语句，两引擎都必须拒绝"
+}
