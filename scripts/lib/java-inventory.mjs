@@ -36,17 +36,24 @@ export function inventoryOutputProblem(status, output) {
   return null;
 }
 
-/** 从输出中提取已观测集合与失败集合，路径均为相对 corpus/ 的形式。 */
+/**
+ * 从输出中提取已观测集合、失败集合与失败样本的首个错误文本，路径均为相对 corpus/ 的形式。
+ * 错误文本供 must-reject 门取行号（`L4:9 ...`）并区分崩溃（`THROWN: ...`）。
+ */
 export function parseInventoryOutput(output) {
   const observed = new Set();
   const failed = new Set();
+  const errors = new Map();
   for (const line of output.split('\n')) {
     const o = line.match(/^\s*OBSERVED\s+(\S+\.aster)\s*$/);
     if (o) observed.add(o[1].replace(/^corpus\//, ''));
-    const f = line.match(/^\s*\|\s*(corpus\/[^|]+?\.aster)\s*\|\s*❌\s*\|/);
-    if (f) failed.add(f[1].trim().replace(/^corpus\//, ''));
+    const f = line.match(/^\s*\|\s*(corpus\/[^|]+?\.aster)\s*\|\s*❌\s*\|(.*)\|\s*$/);
+    if (!f) continue;
+    const rel = f[1].trim().replace(/^corpus\//, '');
+    failed.add(rel);
+    errors.set(rel, f[2].trim());
   }
-  return { observed, failed };
+  return { observed, failed, errors };
 }
 
 /**
@@ -54,7 +61,7 @@ export function parseInventoryOutput(output) {
  * 已观测：ok = 不在失败清单；未观测：ok=false 并写明原因，同时汇总到 unobserved，
  * 由调用方决定是拒绝给出结论（PR 门）还是记为失败进入统计（nightly）。
  */
-export function judgeSamples(rels, { observed, failed }) {
+export function judgeSamples(rels, { observed, failed, errors = new Map() }) {
   const results = {};
   const unobserved = [];
   for (const rel of rels) {
@@ -62,7 +69,7 @@ export function judgeSamples(rels, { observed, failed }) {
       unobserved.push(rel);
       results[rel] = { ok: false, err: 'not observed by Java inventory (stale corpus artifact or not scanned)' };
     } else {
-      results[rel] = { ok: !failed.has(rel) };
+      results[rel] = failed.has(rel) ? { ok: false, err: errors.get(rel) ?? null } : { ok: true };
     }
   }
   return { results, unobserved };
