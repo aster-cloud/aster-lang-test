@@ -106,5 +106,12 @@ check('★旧版 core（无 OBSERVED 行）→ 全部样本判为未观测，而
   assert.strictEqual(unobserved.length, 1);
 });
 
+check('失败行的首个错误文本随判定结果返回（must-reject 门据此取行号、区分崩溃）', () => {
+  const out = OUTPUT.replace('| mismatched input |', "| L4:9 mismatched input 'and' |");
+  const { results } = judgeSamples(['tier1-equivalence/policies/b.aster'], parseInventoryOutput(out));
+  assert.strictEqual(results['tier1-equivalence/policies/b.aster'].ok, false);
+  assert.strictEqual(results['tier1-equivalence/policies/b.aster'].err, "L4:9 mismatched input 'and'");
+});
+
 console.log(`\njava-inventory guard: ${pass} passed, ${fail} failed`);
 process.exit(fail > 0 ? 1 : 0);
