@@ -4,6 +4,10 @@
  *
  * Reads `corpus/tier1-parity/manifest.json` — the explicit, reviewed list
  * of samples both engines must accept — and runs each through TS + Java.
+ * The manifest's `mustReject` list (samples under `corpus/tier1-reject/`) is
+ * the inverse contract: parse mode passes them only when BOTH engines report a
+ * parse error (optionally on `meta.expectErrorLine`); a one-sided acceptance or
+ * a crash fails the gate. They are parse-only — skipped by ir/eval modes.
  *
  * Intentional contrast with `equivalence-nightly.mjs`:
  *   - that script walks ALL tier1 + tier2 and tracks a *rate*, regressing
@@ -46,6 +50,7 @@ import { fileURLToPath } from 'node:url';
 import { upsertDailyHistory } from './lib/history.mjs';
 import { collectEvalCaseProblem, entryForCase, expectsError } from './lib/eval-cases.mjs';
 import { inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
+import { MUST_REJECT_DIR, judgeMustReject, javaRejection, checkMustRejectManifest } from './lib/must-reject.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -105,10 +110,10 @@ function loadManifest() {
   return manifest;
 }
 
-function resolveSamples(manifest) {
+function resolveSamples(rels) {
   const out = [];
   const missing = [];
-  for (const rel of manifest.samples) {
+  for (const rel of rels) {
     const abs = join(CORPUS, rel);
     if (existsSync(abs)) {
       out.push({ rel, abs });
@@ -192,6 +197,36 @@ function assertNoOrphanCaseFiles(manifest) {
   }
 }
 
+/**
+ * 守卫三：must-reject 清单与 tier1-reject/ 目录、样本 meta 一致（判定见 lib/must-reject.mjs）。
+ * 与守卫一同理：目录里有样本却不在清单中，parse 门就会静默跳过它。
+ */
+function assertMustRejectManifest(manifest) {
+  const dir = join(CORPUS, MUST_REJECT_DIR);
+  const onDisk = existsSync(dir)
+    ? readdirSync(dir).filter((f) => f.endsWith('.aster')).map((f) => `${MUST_REJECT_DIR}/${f}`)
+    : [];
+  const problems = checkMustRejectManifest({
+    mustReject: manifest.mustReject,
+    samples: manifest.samples,
+    onDisk,
+    metaOf: (rel) => readMeta(join(CORPUS, rel)),
+  });
+  if (problems.length > 0) {
+    fail(`manifest.mustReject is inconsistent:\n  - ${problems.join('\n  - ')}`);
+  }
+}
+
+function readMeta(abs) {
+  const metaPath = abs.replace(/\.aster$/, '.meta.json');
+  if (!existsSync(metaPath)) return null;
+  try {
+    return JSON.parse(readFileSync(metaPath, 'utf8'));
+  } catch {
+    return null;
+  }
+}
+
 // 加载 TS 侧的词法表对象（en-US 用 undefined 走默认路径，保持既有行为逐字节不变）。
 async function loadTsLexicons(mod) {
   const out = {};
@@ -217,7 +252,7 @@ async function runTsParse(samples) {
     fail(`aster-lang-ts not built. Run: cd ${TS_REPO} && pnpm build`);
   }
   const mod = await import(distIndex);
-  const { canonicalize, lex, parse, parseWithLexicon } = mod;
+  const { canonicalize, lex, parse } = mod;
   if (!canonicalize || !lex || !parse) {
     fail('aster-lang-ts is missing expected exports (canonicalize/lex/parse)');
   }
@@ -228,33 +263,37 @@ async function runTsParse(samples) {
 
   const results = {};
   for (const { rel, abs } of samples) {
-    let ok = false;
-    let err = null;
-    try {
-      const src = readFileSync(abs, 'utf8');
-      const lexName = lexiconOf(abs);
-      const lexObj = lexicons[lexName];
-      if (!lexObj && lexName !== 'en-US') {
-        fail(`sample ${rel} declares lexicon "${lexName}" but it could not be loaded from aster-lang-ts`);
-      }
-      const canonical = lexObj ? canonicalize(src, lexObj) : canonicalize(src);
-      const tokens = lexObj ? lex(canonical, lexObj) : lex(canonical);
-      const { ast, diagnostics } = lexObj && parseWithLexicon
-        ? parseWithLexicon(tokens, lexObj)
-        : parse(tokens);
-      if (diagnostics && diagnostics.some((d) => d.severity === 'error')) {
-        err = diagnostics.find((d) => d.severity === 'error').message;
-      } else if (!ast) {
-        err = 'parse returned no AST';
-      } else {
-        ok = true;
-      }
-    } catch (e) {
-      err = e && e.message ? e.message : String(e);
+    const lexName = lexiconOf(abs);
+    const lexObj = lexicons[lexName];
+    if (!lexObj && lexName !== 'en-US') {
+      fail(`sample ${rel} declares lexicon "${lexName}" but it could not be loaded from aster-lang-ts`);
     }
-    results[rel] = { ok, err };
+    results[rel] = tsParseOne(mod, readFileSync(abs, 'utf8'), lexObj);
   }
   return results;
+}
+
+/**
+ * 单个样本的 TS 解析结果 { ok, err, line, crash }。
+ * 错误诊断与 DiagnosticError 都是「解析错误」（带行号）；其余异常是崩溃，
+ * must-reject 门不把崩溃当成拒绝。
+ */
+function tsParseOne({ canonicalize, lex, parse, parseWithLexicon }, src, lexObj) {
+  try {
+    const canonical = lexObj ? canonicalize(src, lexObj) : canonicalize(src);
+    const tokens = lexObj ? lex(canonical, lexObj) : lex(canonical);
+    const { ast, diagnostics } = lexObj && parseWithLexicon
+      ? parseWithLexicon(tokens, lexObj)
+      : parse(tokens);
+    const diag = (diagnostics || []).find((d) => d.severity === 'error');
+    if (diag) return { ok: false, err: diag.message, line: diag.span?.start?.line ?? null, crash: false };
+    if (!ast) return { ok: false, err: 'parse returned no AST', line: null, crash: true };
+    return { ok: true, err: null };
+  } catch (e) {
+    const err = e && e.message ? e.message : String(e);
+    const line = e?.diagnostic?.span?.start?.line ?? null;
+    return { ok: false, err, line, crash: !e?.diagnostic };
+  }
 }
 
 function runJavaParse(samples) {
@@ -316,6 +355,36 @@ function classify(tsRes, javaRes, samples) {
     rows.push({ path: rel, ts: t.ok, java: j.ok, verdict, tsErr: t.err || null });
   }
   return rows;
+}
+
+/** must-reject 样本逐个判定；verdict 为 'rejected' 才算通过（见 lib/must-reject.mjs）。 */
+function classifyMustReject(tsRes, javaRes, rejects) {
+  return rejects.map(({ rel, abs }) => {
+    const ts = tsRes[rel] || { ok: false, crash: true, err: 'missing in ts result' };
+    const java = javaRejection(javaRes[rel] || { ok: false, err: 'THROWN: missing in java result' });
+    const expectLine = readMeta(abs)?.expectErrorLine ?? null;
+    const { verdict, reason } = judgeMustReject({ ts, java, expectLine });
+    return {
+      path: rel, verdict, reason, expectLine,
+      ts: ts.ok, tsLine: ts.line ?? null, tsErr: ts.err || null,
+      java: java.ok, javaLine: java.line ?? null, javaErr: java.err || null,
+    };
+  });
+}
+
+function printMustReject(rows) {
+  const bad = rows.filter((r) => r.verdict !== 'rejected');
+  console.log(`## Must-reject samples (both engines must report a parse error)\n`);
+  console.log(`- total: ${rows.length}`);
+  console.log(`- rejected by both: ${rows.length - bad.length}`);
+  console.log(`- failing: ${bad.length}\n`);
+  if (bad.length === 0) return;
+  console.log('| path | verdict | reason |');
+  console.log('|------|---------|--------|');
+  for (const r of bad) {
+    console.log(`| ${r.path} | ${r.verdict} | ${(r.reason || '').slice(0, 120)} |`);
+  }
+  console.log('');
 }
 
 // ============================================================================
@@ -1103,26 +1172,35 @@ async function main() {
   //   而不是静默跳过（跳过看起来跟通过一模一样）。
   assertAllPoliciesInManifest(manifest);
   assertNoOrphanCaseFiles(manifest);
-  const samples = resolveSamples(manifest);
+  assertMustRejectManifest(manifest);
+  const samples = resolveSamples(manifest.samples);
+  // must-reject 样本只参与 parse 门：它们没有 IR、也没有可求值的输出
+  const rejects = resolveSamples(manifest.mustReject || []);
   console.error(
-    `[parity-tier1] manifest declares ${samples.length} samples (mode=${MODE}` +
-      (REPORT_ONLY ? ', report-only' : '') + ')',
+    `[parity-tier1] manifest declares ${samples.length} samples + ${rejects.length} must-reject (mode=${MODE}` +
+      (REPORT_ONLY ? ', report-only' : '') + ')' +
+      (MODE === 'parse' ? '' : '; must-reject samples are parse-only and skipped here'),
   );
 
   if (MODE === 'parse') {
     console.error('[parity-tier1] running TS engine ...');
-    const tsRes = await runTsParse(samples);
+    const tsRes = await runTsParse([...samples, ...rejects]);
 
     console.error('[parity-tier1] running Java engine (gradle, may take ~30s) ...');
-    const javaRes = runJavaParse(samples);
+    const javaRes = runJavaParse([...samples, ...rejects]);
 
     const rows = classify(tsRes, javaRes, samples);
-    writeFileSync(REPORT_FILE, JSON.stringify({ mode: MODE, total: rows.length, rows }, null, 2));
+    const rejectRows = classifyMustReject(tsRes, javaRes, rejects);
+    writeFileSync(REPORT_FILE, JSON.stringify(
+      { mode: MODE, total: rows.length, rows, mustReject: rejectRows }, null, 2));
     printMarkdown(rows, MODE);
+    printMustReject(rejectRows);
 
     const bad = rows.filter((r) => r.verdict !== 'pass');
-    if (bad.length > 0) {
-      const msg = `tier1-parity (parse) broken: ${bad.length}/${rows.length} sample(s) did not pass both engines`;
+    const badReject = rejectRows.filter((r) => r.verdict !== 'rejected');
+    if (bad.length + badReject.length > 0) {
+      const msg = `tier1-parity (parse) broken: ${bad.length}/${rows.length} sample(s) did not pass both engines, ` +
+        `${badReject.length}/${rejectRows.length} must-reject sample(s) not rejected by both`;
       if (REPORT_ONLY) {
         console.error(`::warning::${msg}`);
         process.exit(0);

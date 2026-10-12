@@ -139,6 +139,7 @@ jobs:
             parity:
               - 'corpus/tier1-equivalence/**'
               - 'corpus/tier1-parity/**'
+              - 'corpus/tier1-reject/**'
               - 'scripts/parity-tier1.mjs'
               - 'scripts/equivalence-nightly.mjs'
               - 'scripts/lib/eval-cases.mjs'
@@ -154,6 +155,9 @@ jobs:
               # Java 侧 inventory 输出的解析/逐样本判定（parity-tier1 与 nightly 共用）。
               - 'scripts/lib/java-inventory.mjs'
               - 'scripts/test-java-inventory.mjs'
+              # must-reject（双引擎都必须拒绝）判定与 manifest 守卫及其快测。
+              - 'scripts/lib/must-reject.mjs'
+              - 'scripts/test-must-reject.mjs'
               - 'scripts/coverage-report.py'
               - 'scripts/test-coverage-report.mjs'
               - 'scripts/lib/golden-overwrite.mjs'
@@ -335,6 +339,13 @@ jobs:
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         run: node scripts/test-java-inventory.mjs
+
+      # must-reject 判定：只有两侧都报解析错误才算通过，
+      # 一侧接受、崩溃或错误行号不符都必须变红。逻辑回归会让「该拒绝的输入」静默放行。
+      - name: Run must-reject guard regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-must-reject.mjs
 
       # 覆盖率统计的 cases 归属必须与 eval 门同判据（精确文件名，issue #130），
       # 否则「度量说已覆盖、门禁没跑」会再次出现。

@@ -19,6 +19,7 @@ corpus/
 ├── tier1-parity/              # 严格双引擎契约（PR-blocking）
 │   ├── README.md              # 政策说明
 │   └── manifest.json          # 显式允许列表 → samples 引用 tier1-equivalence 路径
+├── tier1-reject/              # 双引擎都必须拒绝（manifest.mustReject，仅 parse 门）
 ├── tier1-equivalence/         # 双引擎都能解析且语义等价
 │   ├── policies/*.aster
 │   └── inputs/*.cases.json    # 黄金期望（input → expectedOutput）
@@ -36,6 +37,7 @@ corpus/
 | Tier | 作用 | 强度 |
 |---|---|---|
 | **tier1-parity** | 显式、评审过的双引擎契约 — 每个样本两端都必须接受 | **PR-blocking** （`scripts/parity-tier1.mjs --mode=parse`） |
+| tier1-reject | 两端都必须以解析错误拒绝的输入（`manifest.mustReject`） | **PR-blocking**（同一 parse 门；不参与 ir/eval） |
 | tier1-equivalence | 两端"应该"等价的全集 | Nightly trend（`equivalence-nightly.mjs`） |
 | tier2-divergent | 已知一边拒绝的样本 — 驱动改进 | Nightly only |
 | tier3-fixtures | 单端专属 | 各 consumer 自跑 |

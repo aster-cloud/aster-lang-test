@@ -1,0 +1,4 @@
+Module reject.prefixMoreThan.
+
+Rule r given a as Bool, b as Bool, x as Int, y as Int, produce Bool:
+  Return more than(x, y).

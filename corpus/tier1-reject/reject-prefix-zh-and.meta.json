@@ -1,0 +1,8 @@
+{
+  "tier": 1,
+  "engines": ["java", "ts"],
+  "lexicon": "zh-CN",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "运算符词前缀调用 并且(真值，假值)：Java operatorCall 只接受符号运算符，两引擎都必须拒绝"
+}

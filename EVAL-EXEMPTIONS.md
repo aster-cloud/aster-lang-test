@@ -31,6 +31,11 @@
 > 豁免**数**（73）由 `--check` 锈蚀门守着，但**总数/分母/case 数**没有门禁，
 > 只能靠改动时顺手更新。抄之前先跑一次上面那条命令。
 
+> **必拒样本不在本表中。** `corpus/tier1-reject/`（tier1-parity manifest 的 `mustReject`）是
+> 「两引擎都必须以解析错误拒绝」的独立类别：没有可求值的输出，只参与 parse 门，
+> 不计入上表的样本总数、豁免数或分母（`tag-eval-exempt.mjs` 只扫描 `tier1-equivalence/policies/`）。
+> 规则见 `corpus/tier1-parity/README.md`。
+
 > **2026-07 审计修复（P4 度量诚实化）。** 审计发现 `tag-eval-exempt.mjs` 的
 > `STDLIB_NAMESPACES` 静态白名单漏了 `Date` / `Decimal` 两个已实现命名空间。
 > 分类规则是「**有 `.cases.json` 即视为 eval-able，否则才走 `exemptReason`（含白名单）**」，

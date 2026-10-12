@@ -1,0 +1,4 @@
+Module reject.prefixOr.
+
+Rule r given a as Bool, b as Bool, x as Int, y as Int, produce Bool:
+  Return or(a, b).

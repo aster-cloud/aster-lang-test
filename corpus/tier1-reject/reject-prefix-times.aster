@@ -1,0 +1,4 @@
+Module reject.prefixTimes.
+
+Rule r given a as Bool, b as Bool, x as Int, y as Int, produce Bool:
+  Return times(x, y) > 0.

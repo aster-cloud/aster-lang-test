@@ -1,0 +1,8 @@
+{
+  "tier": 1,
+  "engines": ["java", "ts"],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "运算符词前缀调用 less than or equal to(x, y)：Java operatorCall 只接受符号运算符，两引擎都必须拒绝"
+}
