@@ -240,7 +240,8 @@
     "tier1-equivalence/policies/text_ops.aster",
     "tier1-equivalence/policies/type_alias.aster",
     "tier1-equivalence/policies/verdict-basic.aster",
-    "tier1-equivalence/policies/verdict-fields.aster"
+    "tier1-equivalence/policies/verdict-fields.aster",
+    "tier1-equivalence/policies/context-map-access.aster"
   ],
   "_mustRejectComment": "Inverse contract: samples under tier1-reject/ that BOTH engines must reject with a parse error (meta.expect=reject, optional meta.expectErrorLine). Parse mode only; excluded from ir/eval and from the eval-exemption counts. See corpus/tier1-parity/README.md.",
   "mustReject": [

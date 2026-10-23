@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "未标类型的 context 字段推断为 Map<Text, Unknown>，点访问动态键不报 E011（2026-10-23 服务端类型检查接入前置）",
+  "capabilities": [
+    "cases-golden"
+  ]
+}
