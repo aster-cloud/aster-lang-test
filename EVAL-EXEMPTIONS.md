@@ -16,8 +16,8 @@
 
 | Metric | Count |
 |---|---:|
-| Total tier1-equivalence samples | 231 |
-| Eval-exempt (no meaningful pure-eval golden) | 73 |
+| Total tier1-equivalence samples | 232 |
+| Eval-exempt (no meaningful pure-eval golden) | 74 |
 | **Eval-able** (denominator) | **158** |
 | Covered by a `*.cases.json` golden | 158 |
 | **Coverage** | **158 / 158 = 100.0 %** |
