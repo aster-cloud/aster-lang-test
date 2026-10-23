@@ -1,0 +1,15 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "无类型 context 字段的成员访问按动态值处理，点访问动态键不报 E011（aster-lang-ts#227 / aster-lang-core#208，2026-10-23 服务端类型检查接入前置）",
+  "capabilities": [
+    "cases-golden"
+  ],
+  "evalExempt": true,
+  "evalExemptReason": "undefined-call",
+  "evalExemptDetail": "calls a function never defined in the module; fails in both engines (parser-only fixture)"
+}

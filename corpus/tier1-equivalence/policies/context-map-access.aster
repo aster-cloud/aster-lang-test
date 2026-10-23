@@ -1,0 +1,10 @@
+Module guard.context.access.
+
+Define GuardRequest has principal_id, action, context, agent_model.
+
+@id("CTX-001")
+Rule decide given req as GuardRequest, produce Verdict:
+  Let large be req.context.amount at least 10000.
+  If req.action equals to "refund" and large:
+    Return Verdict.escalate("large refund").
+  Return Verdict.allow().
