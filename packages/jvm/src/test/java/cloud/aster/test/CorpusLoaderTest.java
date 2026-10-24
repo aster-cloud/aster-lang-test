@@ -59,4 +59,32 @@ class CorpusLoaderTest {
         JsonNode cases = s.readCases();
         assertThat(cases.get("cases").size()).isGreaterThan(0);
     }
+
+    @Test
+    @DisplayName("SOC2 demo keeps explicit parameter and timestamp type declarations")
+    void soc2AuditDemoTypes() {
+        CorpusLoader.Sample sample = CorpusLoader.listTier(CorpusLoader.Tier.TIER1).stream()
+            .filter(x -> x.resourcePath.endsWith("/soc2-audit-demo.aster"))
+            .findFirst().orElseThrow();
+        String source = sample.readSource();
+
+        assertThat(source).contains("timestamp as Text,");
+        for (String signature : List.of(
+            "Rule verify_one_record given state as ChainState, record as AuditRecord, produce. It performs cpu:",
+            "Rule verify_three_records given r1 as AuditRecord, r2 as AuditRecord, r3 as AuditRecord, produce. It performs cpu:",
+            "Rule compute_hash given record as AuditRecord, produce. It performs cpu:",
+            "Rule verify_record_integrity given record as AuditRecord, produce. It performs cpu:",
+            "Rule verify_chain_link given record as AuditRecord, expected_prev_hash as Text, produce:",
+            "Rule verify_two_records given r1 as AuditRecord, r2 as AuditRecord, produce. It performs cpu:",
+            "Rule verify_audit_chain given record as AuditRecord, produce. It performs cpu:",
+            "Rule generate_soc2_report given tenant_id as Text, verification as ChainVerificationResult, produce:",
+            "Rule create_genesis_record given tenant_id as Text, produce. It performs cpu:",
+            "Rule append_audit_record given prev as AuditRecord, event_type as Text, policy_func as Text, success as Bool, produce. It performs cpu:"
+        )) {
+            assertThat(source).contains(signature);
+        }
+        assertThat(source).contains("Let msg be \"Hash integrity failed at record \" plus record.record_number.");
+        assertThat(source).contains("Let linkMsg be \"Chain link broken at record \" plus record.record_number.");
+        assertThat(source).doesNotContain("Let msg be \"Chain link broken at record \"");
+    }
 }
