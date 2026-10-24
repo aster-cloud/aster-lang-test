@@ -1,11 +1,11 @@
 {
   "summary": {
-    "total": 231,
-    "equivalent": 231,
+    "total": 232,
+    "equivalent": 232,
     "divergent": 0,
     "bothFail": 0,
     "rate": 1,
-    "basedOnHistory": "2026-10-23T07:05:43.307Z"
+    "basedOnHistory": "2026-10-24T06:57:27.318Z"
   },
   "rows": [
     {
@@ -360,6 +360,13 @@
     },
     {
       "path": "tier1-equivalence/policies/comparison_operators.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/context-map-access.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
