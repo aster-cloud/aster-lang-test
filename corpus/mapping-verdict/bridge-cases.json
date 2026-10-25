@@ -36,6 +36,25 @@
         { "kind": "DATE", "text": "2026-01-01", "start": 69, "end": 79, "value": "2026-01-01" }
       ],
       "expectDiagnosticContains": "无法编译"
+    },
+    {
+      "name": "★英文冠词被 canonicalize 删除 → 候选区间仍是原文坐标（aster-lang-ts#238）",
+      "_why": "canonical 删掉 the 后行内变短；候选若用 canonical 偏移会指向原文的 \" b\"。区间必须指回原文里的 42。",
+      "source": "Module m.\n\nRule f, produce Int:\n  Let the total be 42.\n  Return the total.\n",
+      "expectSummary": { "verified": 1, "reviewRequired": 0, "rejected": 0 },
+      "expectCandidates": [
+        { "verdict": "VERIFIED", "text": "42", "nodeId": "$.decls{f}.body.statements{total}.expr", "start": 51, "end": 53 }
+      ],
+      "expectQuantities": []
+    },
+    {
+      "name": "★语法错误 → 不在残缺树上生成候选（aster-lang-ts#238）",
+      "_why": "两引擎的解析器都带错误恢复，残缺树上的候选不可信；第 3 层整体跳过并报告语法错误。",
+      "source": "Module m.\n\nRule f, produce Int:\n  Return 42 +.\n",
+      "expectSummary": { "verified": 0, "reviewRequired": 0, "rejected": 0 },
+      "expectCandidates": [],
+      "expectQuantities": [],
+      "expectDiagnosticContains": "源码有语法错误"
     }
   ]
 }
