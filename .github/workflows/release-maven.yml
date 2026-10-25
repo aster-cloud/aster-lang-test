@@ -2,15 +2,16 @@ name: Release Maven (GitHub Packages)
 
 on:
   push:
+    # 只监听生态号 v*。npm 制品用独立前缀 npm-v*（见 release-npm.yml），glob 'v*'
+    # 从 tag 名首字符开始匹配，npm-v1.0.4 不会触发本 workflow（aster-lang-test#168）。
     tags:
       - 'v*'
   # orchestrator（aster-lang-platform/release-train.yml）入口：dispatch 只创建并 push
   # tag（用 CROSS_REPO_TOKEN/PAT，GITHUB_TOKEN 推的 tag 不会再触发 workflow）。真正
   # publish 仍只走下面的 tag-push 路径。本仓双制品（packages/jvm Maven / packages/js
   # npm 版本独立），release-maven.yml 与 release-npm.yml 各自「同文件双触发」：dispatch
-  # 创建自己版本的 tag、tag-push 走自己的 publish；非目标 artifact 的 publish 在
-  # skip-on-mismatch gate 跳过。orchestrator 的 wait_publish_run 只查本 workflow 的
-  # push run，旁路触发的另一 workflow（skip）不影响判定。详见 ADR 0023 阶段2/§9 复盘。
+  # 创建自己版本的 tag（本文件 v*、npm 为 npm-v*）、tag-push 走自己的 publish。
+  # orchestrator 的 wait_publish_run 只查本 workflow 的 push run。详见 ADR 0023 阶段2/§9 复盘。
   workflow_dispatch:
     inputs:
       version:
@@ -92,7 +93,7 @@ jobs:
       - uses: actions/checkout@v6
       # 共享版本目录（ADR 0012/0023 §9）：packages/jvm version=catalog-derived，须先把
       # platform publishToMavenLocal 才能用 Gradle 解析 corpus 版本（skip-on-mismatch gate
-      # 也要解析，故 bootstrap 必须在 gate 之前——即使本 tag 是给 npm 的会 skip）。
+      # 也要解析，故 bootstrap 必须在 gate 之前——即使本 tag 版本不符会 skip）。
       - uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
         with:
           repository: aster-cloud/aster-lang-platform
@@ -105,11 +106,9 @@ jobs:
       - uses: gradle/actions/setup-gradle@v6
       - name: Bootstrap version catalog to Maven Local
         run: cd aster-lang-platform && ./gradlew publishToMavenLocal
-      # 本仓双制品：JVM(packages/jvm) 与 npm(packages/js) 版本独立（如 jvm 1.0.6 /
-      # npm 1.0.3），但两个 release workflow 都监听 v*。推 v1.0.6 会同时触发本
-      # workflow 和 release-npm.yml——若 tag 版本不等于本 artifact 版本，**skip 而非
-      # fail**（否则非目标 workflow 永远红）。version 已是 catalog-derived，故用 Gradle 解析
-      # 而非 sed 字面量；bootstrap 已在前完成，skip 路径也能解析。
+      # tag 前缀已与 npm 分离（v* / npm-v*），本 gate 只防手工推了与 catalog 派生版本
+      # 不符的 v tag：不符时 skip 而非 fail，不发布错误版本。version 是 catalog-derived，
+      # 故用 Gradle 解析而非 sed 字面量；bootstrap 已在前完成，skip 路径也能解析。
       - name: Resolve publish gate (tag == this artifact's version?)
         id: gate
         run: |
@@ -120,7 +119,7 @@ jobs:
             echo "tag v$TAG_VERSION matches JVM package version $PKG_VERSION → publish"
           else
             echo "match=false" >> "$GITHUB_OUTPUT"
-            echo "::notice::tag v$TAG_VERSION != JVM package version $PKG_VERSION → skip Maven publish (this tag is for another artifact)"
+            echo "::notice::tag v$TAG_VERSION != JVM package version $PKG_VERSION → skip Maven publish"
           fi
       - if: steps.gate.outputs.match == 'true'
         working-directory: packages/jvm
