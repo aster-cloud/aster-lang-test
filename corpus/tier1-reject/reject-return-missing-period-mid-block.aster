@@ -1,0 +1,5 @@
+Module reject.returnNoPeriodMid.
+
+Rule f, produce Int:
+  Return 7
+  Return 8.

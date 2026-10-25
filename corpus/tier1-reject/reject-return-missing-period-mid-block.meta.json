@@ -1,0 +1,8 @@
+{
+  "tier": 1,
+  "engines": ["java", "ts"],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "Return 语句缺句点、后面还有语句（aster-lang-ts#240）：换行不能代替句点，两引擎都必须拒绝"
+}

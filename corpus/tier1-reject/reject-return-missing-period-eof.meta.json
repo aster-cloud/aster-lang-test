@@ -1,0 +1,8 @@
+{
+  "tier": 1,
+  "engines": ["java", "ts"],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "Return 语句缺句点、位于文件末且无结尾换行（aster-lang-ts#240）：EOF 不能代替句点，两引擎都必须拒绝"
+}

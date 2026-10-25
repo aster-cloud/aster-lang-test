@@ -1,0 +1,8 @@
+{
+  "tier": 1,
+  "engines": ["java", "ts"],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "Return 语句缺句点、位于块末（aster-lang-ts#240 原样例）：语言规定语句以句点收尾，Java returnStmt 为 RETURN expr DOT，换行/块末不能代替句点，两引擎都必须拒绝"
+}

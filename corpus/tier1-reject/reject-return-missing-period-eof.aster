@@ -1,0 +1,4 @@
+Module reject.returnNoPeriodEof.
+
+Rule f, produce Int:
+  Return 7

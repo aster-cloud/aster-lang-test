@@ -1,0 +1,8 @@
+{
+  "tier": 1,
+  "engines": ["java", "ts"],
+  "lexicon": "zh-CN",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "zh-CN Return（返回）缺句号（aster-lang-ts#240）：语句以句号收尾，两引擎都必须拒绝"
+}
