@@ -1,0 +1,8 @@
+{
+  "tier": 1,
+  "engines": ["java", "ts"],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 5,
+  "source": "If 块内 Return 缺句点（aster-lang-ts#240）：块结束（DEDENT）不能代替句点，两引擎都必须拒绝"
+}

@@ -1,0 +1,4 @@
+Module m.
+
+Rule f, produce:
+  Return 7

@@ -1,0 +1,6 @@
+Module reject.returnNoPeriodIf.
+
+Rule f given a as Bool, produce Int:
+  If a:
+    Return 1
+  Return 2.

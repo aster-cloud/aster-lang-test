@@ -270,6 +270,11 @@
     "tier1-reject/reject-prefix-zh-en-modulo.aster",
     "tier1-reject/reject-prefix-zh-integer-divide.aster",
     "tier1-reject/reject-prefix-zh-modulo.aster",
-    "tier1-reject/reject-prefix-zh-or.aster"
+    "tier1-reject/reject-prefix-zh-or.aster",
+    "tier1-reject/reject-return-missing-period-block-end.aster",
+    "tier1-reject/reject-return-missing-period-eof.aster",
+    "tier1-reject/reject-return-missing-period-if-block.aster",
+    "tier1-reject/reject-return-missing-period-mid-block.aster",
+    "tier1-reject/reject-return-missing-period-zh.aster"
   ]
 }
