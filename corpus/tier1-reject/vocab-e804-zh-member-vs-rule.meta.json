@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "expect": "reject",
+  "expectCode": "E804",
+  "source": "ADR 0051 §6.2 / §14 第 1 条（中文）：期望类型为 等级 的裸名 高 同时命中规则 高 与成员 高 → E804"
+}

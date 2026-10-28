@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "expect": "reject",
+  "expectCode": "E807",
+  "source": "ADR 0051 §6.1：Fahrer（经词汇）与 Driver（规范名直写）两个 TYPE_DECL 解析到同一规范名 Driver → E807（DUPLICATE_DECLARATION）"
+}

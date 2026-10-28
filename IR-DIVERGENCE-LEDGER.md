@@ -96,6 +96,34 @@ by construction: only `origin.end.line` qualifies, so `origin.file` and
 still fails the gate (verified by mutation: injecting a non-`end.line` diff turns
 it red at 150/223).
 
+## 🔴 Open — `workflow` 语句：Java 语法只接受单步，且单步 IR 多出显式 `null`（2026-10-29，ADR 0051 Task 13 发现）
+
+为 ADR 0051 写「workflow 步骤名与词条同名」语料时发现，两处差异都与名称解析无关（英文、无词汇同样复现），
+tier1 目前没有任何含 `workflow` 语句的样本，故此前从未被门禁看到。该语料因此**未进入** manifest。
+
+1. **Java 语法拒绝多元素 workflow。** 第一个 step 之后再跟 step / compensate / retry / timeout 都报
+   `mismatched input 'step' expecting {NEWLINE, DEDENT}`（`block` 已吞掉 `NEWLINE* DEDENT`，`workflowBody` 却要求
+   `NEWLINE+` 才能接下一项）。TS 接受。最小输入：
+
+   ```
+   Module m.
+
+   Rule flow given x as Int, produce Int:
+     workflow:
+       step a:
+         Return x.
+       step b depends on ["a"]:
+         Return x.
+     .
+   ```
+
+2. **单步 workflow 的 IR：Java 输出 `retry: null`、`timeout: null`、`steps[i].compensate: null`，TS 省略这三个键。**
+   语义相同（都表示未设置），但 `normalizeIr()` 目前只对 `Import.version` 做了同类折叠，故字段级比较报 3 处差异。
+   不在本次折叠：`normalizeIr()` 也是 contentHash 的输入，加折叠会改变 TS 端既有 workflow 策略的 contentHash，需单独决定。
+   最小输入：上例去掉 `step b` 两行。
+
+修复后应把「步骤名与词条同名」的带词汇语料（`tier1-parity/vocab-de/`，步骤名 `gesamt` + 词汇函数 `gesamt`→`total`）补回 manifest。
+
 ## Resolved — normalization rules (ADR 0016 §A/§B)
 
 Representation differences that were folded to a canonical form in `normalizeIr`:

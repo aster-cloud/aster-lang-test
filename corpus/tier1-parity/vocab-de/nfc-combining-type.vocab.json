@@ -1,0 +1,24 @@
+{
+  "id": "parity.vocab.nfc-combining-type",
+  "name": "NFC 组合字符",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Cafe",
+      "localized": "Café",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "price",
+      "localized": "preis",
+      "kind": "field",
+      "parent": "Cafe"
+    }
+  ],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}

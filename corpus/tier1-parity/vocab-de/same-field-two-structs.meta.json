@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "ADR 0051 §1 复现 4：同一本地化字段名 alter 在 Fahrer / Fahrzeug 中按所属 struct 解析为 age / vehicleAge"
+}

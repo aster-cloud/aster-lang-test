@@ -241,8 +241,65 @@
     "tier1-equivalence/policies/type_alias.aster",
     "tier1-equivalence/policies/verdict-basic.aster",
     "tier1-equivalence/policies/verdict-fields.aster",
-    "tier1-equivalence/policies/context-map-access.aster"
+    "tier1-equivalence/policies/context-map-access.aster",
+    {
+      "path": "tier1-parity/vocab-de/case-only-fields.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-de/enum-member-vs-rule.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-de/import-alias-qualified.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-de/level-type-and-field.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-de/nested-type-params.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-de/nfc-combining-type.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-de/pattern-constructor.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-de/same-field-two-structs.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-de/shadowed-vocabulary.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-de/type-alias-localized.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-hi/param-equals-field.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-zh/same-field-two-structs.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-zh/synonyms.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-zh/type-equals-field.aster",
+      "vocab": true
+    }
   ],
+  "_vocabComment": "ADR 0051 §8: entries written as {\"path\", \"vocab\": true} carry a sibling <case>.vocab.json (DomainVocabulary JSON) passed to BOTH engines in parse/ir/eval. Vocabulary samples live under tier1-parity/vocab-<locale>/ with their .cases.json beside them; vocabulary must-reject samples live in tier1-reject/ and declare meta.expectCode (both engines must reject in name resolution with the same error codes). See scripts/lib/vocab-corpus.mjs.",
   "_mustRejectComment": "Inverse contract: samples under tier1-reject/ that BOTH engines must reject with a parse error (meta.expect=reject, optional meta.expectErrorLine). Parse mode only; excluded from ir/eval and from the eval-exemption counts. See corpus/tier1-parity/README.md.",
   "mustReject": [
     "tier1-reject/reject-prefix-and-unary.aster",
@@ -275,6 +332,30 @@
     "tier1-reject/reject-return-missing-period-eof.aster",
     "tier1-reject/reject-return-missing-period-if-block.aster",
     "tier1-reject/reject-return-missing-period-mid-block.aster",
-    "tier1-reject/reject-return-missing-period-zh.aster"
+    "tier1-reject/reject-return-missing-period-zh.aster",
+    {
+      "path": "tier1-reject/vocab-e801-hi-unknown-field.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-reject/vocab-e804-bare-member-vs-rule.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-reject/vocab-e804-zh-member-vs-rule.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-reject/vocab-e805-ambiguous-field.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-reject/vocab-e806-ambiguous-pattern.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-reject/vocab-e807-duplicate-declaration.aster",
+      "vocab": true
+    }
   ]
 }

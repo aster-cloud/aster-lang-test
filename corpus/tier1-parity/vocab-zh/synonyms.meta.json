@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "词条同义词（aliases）：声明用同义词 顾客 / 积分，引用用主词 客户 与同义词 分数，均解析为 Customer / points（ADR 0051 §7 Candidate.source=synonym）"
+}

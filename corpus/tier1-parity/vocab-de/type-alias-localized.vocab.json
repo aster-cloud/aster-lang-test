@@ -1,0 +1,17 @@
+{
+  "id": "parity.vocab.type-alias-localized",
+  "name": "本地化类型别名名",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Score",
+      "localized": "Punkte",
+      "kind": "struct"
+    }
+  ],
+  "fields": [],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}

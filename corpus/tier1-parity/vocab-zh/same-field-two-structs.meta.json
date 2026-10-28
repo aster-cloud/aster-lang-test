@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "同一中文字段名 年龄 在 客户 / 车辆 中按接收者类型解析为 age / vehicleAge（ADR 0051 §3 目标 2）"
+}

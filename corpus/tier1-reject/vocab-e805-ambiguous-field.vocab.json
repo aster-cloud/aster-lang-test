@@ -1,0 +1,35 @@
+{
+  "id": "parity.vocab.e805-ambiguous-field",
+  "name": "未知接收者类型的同名字段",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Driver",
+      "localized": "Fahrer",
+      "kind": "struct"
+    },
+    {
+      "canonical": "Vehicle",
+      "localized": "Fahrzeug",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "age",
+      "localized": "alter",
+      "kind": "field",
+      "parent": "Driver"
+    },
+    {
+      "canonical": "vehicleAge",
+      "localized": "alter",
+      "kind": "field",
+      "parent": "Vehicle"
+    }
+  ],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}

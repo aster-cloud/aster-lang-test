@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "TypeAlias 名 Punkte 按 TYPE_DECL 解析为 Score，签名中的引用随之解析（ADR 0051 §5 TypeAlias 行）；两引擎 Core IR 均不含别名声明"
+}

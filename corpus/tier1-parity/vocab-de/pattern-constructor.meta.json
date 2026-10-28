@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "模式中的枚举成员（主语为直接调用结果，类型取被调函数声明返回类型）与 Data 构造器 Fahrer(n, a) 按主语类型解析（ADR 0051 §4 R2 类型来源、§5 PatternCtor 行）"
+}

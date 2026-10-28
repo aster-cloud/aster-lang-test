@@ -1,0 +1,14 @@
+{
+  "entry": "读取",
+  "cases": [
+    {
+      "name": "积分加一",
+      "input": [
+        {
+          "points": 9
+        }
+      ],
+      "expectedOutput": 10
+    }
+  ]
+}

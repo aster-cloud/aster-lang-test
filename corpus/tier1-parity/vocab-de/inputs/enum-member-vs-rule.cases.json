@@ -1,0 +1,39 @@
+{
+  "entry": "einstufen",
+  "cases": [
+    {
+      "name": "groesser-10-hoch",
+      "input": [
+        11
+      ],
+      "expectedOutput": {
+        "__type": "?",
+        "_enum": "Level",
+        "value": "High",
+        "variant": "High",
+        "args": []
+      }
+    },
+    {
+      "name": "sonst-niedrig",
+      "input": [
+        3
+      ],
+      "expectedOutput": {
+        "__type": "?",
+        "_enum": "Level",
+        "value": "Low",
+        "variant": "Low",
+        "args": []
+      }
+    },
+    {
+      "name": "regel-hoch",
+      "entry": "high",
+      "input": [
+        7
+      ],
+      "expectedOutput": 7
+    }
+  ]
+}

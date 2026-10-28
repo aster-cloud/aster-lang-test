@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "hi-IN",
+  "source": "印地语：参数 स्तर 与字段 स्तर 同词（参数为 LOCAL 不改写，点分后续段按 Customer 解析为 level），规则名 मूल्यांकन 解析为 evaluate。类型名用拉丁写法：Java 词法器把天城文标识符一律归 IDENT，不能出现在类型声明位置（既有引擎差异，与 ADR 0051 无关）"
+}

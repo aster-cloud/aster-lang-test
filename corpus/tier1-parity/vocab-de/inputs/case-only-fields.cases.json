@@ -1,0 +1,15 @@
+{
+  "entry": "kennzahl",
+  "cases": [
+    {
+      "name": "alter-gruppe-und-alter",
+      "input": [
+        {
+          "ageGroup": 4,
+          "age": 42
+        }
+      ],
+      "expectedOutput": 442
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "id": "parity.vocab.pattern-constructor",
+  "name": "模式构造器",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Level",
+      "localized": "Stufe",
+      "kind": "struct"
+    },
+    {
+      "canonical": "Driver",
+      "localized": "Fahrer",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "name",
+      "localized": "name",
+      "kind": "field",
+      "parent": "Driver"
+    },
+    {
+      "canonical": "age",
+      "localized": "alter",
+      "kind": "field",
+      "parent": "Driver"
+    }
+  ],
+  "functions": [],
+  "enumValues": [
+    {
+      "canonical": "High",
+      "localized": "Hoch",
+      "kind": "enum_value",
+      "parent": "Level"
+    },
+    {
+      "canonical": "Low",
+      "localized": "Niedrig",
+      "kind": "enum_value",
+      "parent": "Level"
+    }
+  ],
+  "literals": []
+}

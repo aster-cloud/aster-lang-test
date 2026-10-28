@@ -1,0 +1,41 @@
+{
+  "id": "parity.vocab.nested-type-params",
+  "name": "嵌套类型参数",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Level",
+      "localized": "Stufe",
+      "kind": "struct"
+    },
+    {
+      "canonical": "Driver",
+      "localized": "Fahrer",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "points",
+      "localized": "punkte",
+      "kind": "field",
+      "parent": "Level"
+    },
+    {
+      "canonical": "levels",
+      "localized": "stufen",
+      "kind": "field",
+      "parent": "Driver"
+    },
+    {
+      "canonical": "levelByName",
+      "localized": "karte",
+      "kind": "field",
+      "parent": "Driver"
+    }
+  ],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}

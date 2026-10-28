@@ -1,0 +1,22 @@
+{
+  "entry": "anzahl",
+  "cases": [
+    {
+      "name": "zwei-stufen",
+      "input": [
+        {
+          "levels": [
+            {
+              "points": 1
+            },
+            {
+              "points": 2
+            }
+          ],
+          "levelByName": {}
+        }
+      ],
+      "expectedOutput": 2
+    }
+  ]
+}

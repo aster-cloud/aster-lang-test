@@ -1,0 +1,24 @@
+{
+  "id": "parity.vocab.e801-hi-unknown-field",
+  "name": "हिन्दी 未知字段",
+  "locale": "hi-IN",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Customer",
+      "localized": "Customer",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "level",
+      "localized": "स्तर",
+      "kind": "field",
+      "parent": "Customer"
+    }
+  ],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}

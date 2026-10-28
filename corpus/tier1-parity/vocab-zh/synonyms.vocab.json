@@ -1,0 +1,30 @@
+{
+  "id": "parity.vocab.zh-synonyms",
+  "name": "中文同义词",
+  "locale": "zh-CN",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Customer",
+      "localized": "客户",
+      "kind": "struct",
+      "aliases": [
+        "顾客"
+      ]
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "points",
+      "localized": "积分",
+      "kind": "field",
+      "parent": "Customer",
+      "aliases": [
+        "分数"
+      ]
+    }
+  ],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}

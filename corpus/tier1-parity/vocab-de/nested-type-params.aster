@@ -1,0 +1,8 @@
+Modul versicherung.liste.
+
+Definiere Stufe hat punkte als Ganzzahl.
+
+Definiere Fahrer hat stufen als List of Stufe, karte als Map Text to Stufe.
+
+Regel anzahl gegeben fahrer als Fahrer, liefert Ganzzahl:
+  gib zurueck List.length(fahrer.stufen).

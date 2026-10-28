@@ -1,0 +1,8 @@
+Modul versicherung.stufe.
+
+Definiere Stufe hat punkte als Ganzzahl.
+
+Definiere Fahrer hat stufe als Stufe, alter als Ganzzahl.
+
+Regel bewerten gegeben fahrer als Fahrer, liefert Ganzzahl:
+  gib zurueck fahrer.stufe.punkte plus fahrer.alter.

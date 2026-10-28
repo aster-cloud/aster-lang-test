@@ -1,0 +1,17 @@
+{
+  "id": "parity.vocab.e807-duplicate-declaration",
+  "name": "两个声明解析到同一规范名",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Driver",
+      "localized": "Fahrer",
+      "kind": "struct"
+    }
+  ],
+  "fields": [],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}

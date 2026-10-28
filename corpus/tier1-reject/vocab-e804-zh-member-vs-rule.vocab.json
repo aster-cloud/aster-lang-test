@@ -1,0 +1,36 @@
+{
+  "id": "parity.vocab.e804-zh-member-vs-rule",
+  "name": "中文函数 / 成员冲突",
+  "locale": "zh-CN",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Level",
+      "localized": "等级",
+      "kind": "struct"
+    }
+  ],
+  "fields": [],
+  "functions": [
+    {
+      "canonical": "high",
+      "localized": "高",
+      "kind": "function"
+    }
+  ],
+  "enumValues": [
+    {
+      "canonical": "High",
+      "localized": "高",
+      "kind": "enum_value",
+      "parent": "Level"
+    },
+    {
+      "canonical": "Low",
+      "localized": "低",
+      "kind": "enum_value",
+      "parent": "Level"
+    }
+  ],
+  "literals": []
+}

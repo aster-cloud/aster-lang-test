@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "expectWarnings": [
+    "W800"
+  ],
+  "source": "参数 gesamt 与词汇函数 gesamt 同写法：局部名胜出且不被改写，发 W800；规则声明 gesamt 解析为 total（ADR 0051 §6.2）"
+}

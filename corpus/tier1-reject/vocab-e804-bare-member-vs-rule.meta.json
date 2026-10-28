@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "expect": "reject",
+  "expectCode": "E804",
+  "source": "ADR 0051 §1 复现 2 / §14 第 1 条：期望类型为 Stufe 的裸名 Hoch 同时命中规则 hoch 与成员 Hoch → E804（AMBIGUOUS_NAME），须写 Stufe.Hoch 或 hoch()"
+}

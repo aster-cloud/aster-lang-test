@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "同一 struct 的两个词条 Alter / alter 仅大小写不同：引用 p.Alter 与 p.alter 按精确匹配优先分别解析为 ageGroup / age（ADR 0051 §6.3、§14 第 2 条）。TS 语法要求字段声明名小写开头，故 ageGroup 以规范名直写声明，大写写法只出现在引用位置"
+}

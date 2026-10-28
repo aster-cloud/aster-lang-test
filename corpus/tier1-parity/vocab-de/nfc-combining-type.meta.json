@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "源码写预组合 é（U+00E9），词汇写 e + U+0301：NFC 后精确匹配，解析为 Cafe（ADR 0051 §6.3）"
+}

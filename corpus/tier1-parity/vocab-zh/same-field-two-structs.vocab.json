@@ -1,0 +1,35 @@
+{
+  "id": "parity.vocab.zh-same-field-two-structs",
+  "name": "中文跨 struct 同名字段",
+  "locale": "zh-CN",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Customer",
+      "localized": "客户",
+      "kind": "struct"
+    },
+    {
+      "canonical": "Vehicle",
+      "localized": "车辆",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "age",
+      "localized": "年龄",
+      "kind": "field",
+      "parent": "Customer"
+    },
+    {
+      "canonical": "vehicleAge",
+      "localized": "年龄",
+      "kind": "field",
+      "parent": "Vehicle"
+    }
+  ],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}

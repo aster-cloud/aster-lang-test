@@ -135,9 +135,10 @@ const allSamples = readdirSync(POLICIES)
   .filter((f) => f.endsWith('.aster'))
   .map((f) => f.replace('.aster', ''));
 
+// 条目为路径字符串或 { path, vocab: true }（ADR 0051 语料自带词汇）
 const manifestSet = new Set(
   JSON.parse(readFileSync(MANIFEST, 'utf8')).samples.map(
-    (p) => p.replace(/^.*\//, '').replace('.aster', ''),
+    (e) => (typeof e === 'string' ? e : e.path).replace(/^.*\//, '').replace('.aster', ''),
   ),
 );
 

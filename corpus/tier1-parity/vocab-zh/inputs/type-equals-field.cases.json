@@ -1,0 +1,17 @@
+{
+  "entry": "评分",
+  "cases": [
+    {
+      "name": "积分加年龄",
+      "input": [
+        {
+          "level": {
+            "points": 5
+          },
+          "age": 30
+        }
+      ],
+      "expectedOutput": 35
+    }
+  ]
+}
