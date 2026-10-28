@@ -603,8 +603,10 @@ import { normalizeIr as normalizeIrShared } from '../packages/js/src/ir-normaliz
 // originMode 仍由本脚本从 env 读取（库不依赖进程环境），再显式传入。
 const IR_ORIGIN_MODE = process.env.ASTER_IR_ORIGIN_MODE || 'file+line';
 
-function normalizeIr(node, kind) {
-  return normalizeIrShared(node, kind, IR_ORIGIN_MODE);
+// ADR 0051 §4：parity 比较 origin.written/role（两引擎须在同一位置记录同一原写法与角色）；
+// contentHash 不经此处，保持默认 includeResolution=false。
+function normalizeIr(node) {
+  return normalizeIrShared(node, { originMode: IR_ORIGIN_MODE, includeResolution: true });
 }
 
 /**

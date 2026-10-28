@@ -113,3 +113,76 @@ describe('ir-normalize：跨引擎归一化', () => {
     }
   });
 });
+
+/**
+ * ADR 0051 §4：origin.written / role 是名称解析的旁路记录。
+ * parity 需要比较它们（两引擎须在同一位置记录同一原写法与角色），
+ * 而 ADR 0037 的 contentHash 只看语义，默认归一化必须与引入该字段前逐字节相同。
+ */
+describe('ir-normalize：includeResolution（ADR 0051）', () => {
+  const funcWith = (written?: string, role?: string) => ({
+    kind: 'Func', name: 'check',
+    origin: {
+      file: 'null', start: { line: 3, col: 1 }, end: { line: 4, col: 9 },
+      ...(written === undefined ? {} : { written, role }),
+    },
+    params: [{ name: 'd', type: { kind: 'TypeName', name: 'Driver' } }],
+    body: {
+      kind: 'Block',
+      statements: [{
+        kind: 'Return', origin: { start: { line: 4, col: 3 }, end: { line: 4, col: 9 } },
+        expr: {
+          kind: 'Name', name: 'd.age',
+          origin: { start: { line: 4, col: 10 }, end: { line: 4, col: 15 }, written: 'd.alter', role: 'FIELD_REF' },
+        },
+      }],
+    },
+  });
+
+  // 引入 includeResolution 之前默认归一化的逐字节输出（contentHash 基线）。
+  const BASELINE =
+    '{"kind":"Func","name":"check","origin":{"file":null,"start":{"line":3},"end":{"line":4}},' +
+    '"params":[{"name":"d","annotations":[],"retAnnotations":[],"effects":[]}],' +
+    '"body":{"kind":"Block","statements":[{"kind":"Return","origin":{"file":null,"start":{"line":4},"end":{"line":4}},' +
+    '"expr":{"kind":"Name","name":"d.age","origin":{"file":null,"start":{"line":4},"end":{"line":4}}}}]},' +
+    '"annotations":[],"retAnnotations":[],"effects":[]}';
+
+  it('默认（includeResolution=false）：输出与基线逐字节相同，written/role 不影响 contentHash', () => {
+    assert.strictEqual(JSON.stringify(normalizeIr(funcWith('bewerten', 'FUNC_DECL'))), BASELINE);
+    assert.strictEqual(JSON.stringify(normalizeIr(funcWith())), BASELINE);
+    assert.strictEqual(JSON.stringify(normalizeIr(funcWith('bewerten', 'FUNC_DECL'), { includeResolution: false })), BASELINE);
+  });
+
+  it('includeResolution=true：保留 written/role，原写法或角色不同即不等', () => {
+    const a = normalizeIr(funcWith('bewerten', 'FUNC_DECL'), { includeResolution: true });
+    assert.deepStrictEqual(a.origin, { file: null, start: { line: 3 }, end: { line: 4 }, written: 'bewerten', role: 'FUNC_DECL' });
+    assert.strictEqual(a.body.statements[0].expr.origin.written, 'd.alter');
+    assert.strictEqual(a.body.statements[0].expr.origin.role, 'FIELD_REF');
+    assert.notDeepStrictEqual(a, normalizeIr(funcWith(), { includeResolution: true }),
+      '一侧记录了原写法、另一侧没有 —— parity 必须报出。');
+    assert.notDeepStrictEqual(a, normalizeIr(funcWith('bewerten', 'FUNC_REF'), { includeResolution: true }),
+      '角色不同 —— parity 必须报出。');
+    assert.deepStrictEqual(a, normalizeIr(funcWith('bewerten', 'FUNC_DECL'), { includeResolution: true }));
+  });
+
+  it('includeResolution=true 对无 written/role 的 IR 不新增字段：无词汇语料结果不变', () => {
+    const plain = { kind: 'Return', origin: { start: { line: 1, col: 1 }, end: { line: 1, col: 5 } }, expr: { kind: 'Bool', value: true } };
+    assert.strictEqual(
+      JSON.stringify(normalizeIr(plain, { includeResolution: true })),
+      JSON.stringify(normalizeIr(plain)));
+  });
+
+  it('originMode 经选项对象传入；off 时 origin 连同 written/role 一并丢弃', () => {
+    const out = normalizeIr(funcWith('bewerten', 'FUNC_DECL'), { originMode: 'off', includeResolution: true });
+    assert.strictEqual(out.origin, undefined);
+    const strict = normalizeIr(funcWith(), { originMode: 'strict' });
+    assert.deepStrictEqual(strict.origin.start, { line: 3, col: 1 });
+  });
+
+  it('★parity 门禁比较 IR 时开启 includeResolution', () => {
+    const gate = readFileSync(
+      join(__dirname, '..', '..', '..', '..', 'scripts', 'parity-tier1.mjs'), 'utf8');
+    assert.match(gate, /includeResolution:\s*true/,
+      'parity-tier1.mjs 未以 includeResolution: true 比较 IR —— 两引擎的原写法 / 角色分岔不受门禁约束。');
+  });
+});
