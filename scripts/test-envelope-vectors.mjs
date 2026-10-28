@@ -6,15 +6,20 @@
  * 两端会一起「对齐到错误答案」。这里按 README 写明的规则独立重算每条 expectedSha256，
  * 并锁住 ADR 0051 §7 要求的场景（无词汇 / 单 struct / 同义词 + NFC 组合字符）。
  *
+ * 每条向量带源词汇 `vocabulary`（DomainVocabulary JSON；无词汇为 null），另用兄弟仓 aster-lang-ts 的构建产物
+ * 核对 canonicalScopesJson(buildVocabularyScopes(vocabulary)) === scopesJson（需先 `pnpm build`，缺失即失败）。
+ *
  * 用法：node scripts/test-envelope-vectors.mjs（退出码 0=全过，1=有失败）。
  */
 import assert from 'node:assert';
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const FILE = join(dirname(fileURLToPath(import.meta.url)), '..', 'corpus', 'shared-vectors', 'envelope-vectors.json');
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
+const FILE = join(ROOT, 'corpus', 'shared-vectors', 'envelope-vectors.json');
+const TS_INDEX = join(ROOT, '..', 'aster-lang-ts', 'dist', 'src', 'index.js');
 const FIELDS = ['content', 'aliasSetJson', 'locale', 'toolchainId', 'scopesJson'];
 
 let pass = 0;
@@ -44,11 +49,14 @@ function envelope(v) {
 
 const vectors = JSON.parse(readFileSync(FILE, 'utf8'));
 
-check('形状：数组，每条恰好 5 个字符串输入 + expectedSha256', () => {
+check('形状：数组，每条 5 个字符串输入 + vocabulary + expectedSha256', () => {
   assert.ok(Array.isArray(vectors) && vectors.length >= 3);
   for (const v of vectors) {
-    assert.deepStrictEqual(Object.keys(v).sort(), [...FIELDS, 'expectedSha256'].sort());
+    assert.deepStrictEqual(Object.keys(v).sort(), [...FIELDS, 'vocabulary', 'expectedSha256'].sort());
     for (const f of FIELDS) assert.strictEqual(typeof v[f], 'string', f);
+    assert.ok(v.vocabulary === null || typeof v.vocabulary === 'object');
+    // 无词汇 ⇔ scopesJson 为空串（不序列化空 scopes）
+    assert.strictEqual(v.vocabulary === null, v.scopesJson === '');
     assert.match(v.expectedSha256, /^[0-9a-f]{64}$/);
   }
 });
@@ -83,6 +91,19 @@ check('覆盖：同义词 + NFC 组合字符（scopes 中 written 已 NFC，cont
   assert.ok(written.includes('Café'), 'scopes 中 written 应为 NFC 形式');
   assert.ok(written.every((w) => w === w.normalize('NFC')));
 });
+
+if (!existsSync(TS_INDEX)) {
+  fail++;
+  console.error(`  ✗ scopesJson 与 TS canonicalScopesJson 一致: 缺少 ${TS_INDEX}（先在 aster-lang-ts 运行 pnpm build）`);
+} else {
+  const { buildVocabularyScopes, canonicalScopesJson } = await import(TS_INDEX);
+  check('scopesJson 与 TS canonicalScopesJson(buildVocabularyScopes(vocabulary)) 逐字节一致', () => {
+    for (const [i, v] of vectors.entries()) {
+      if (v.vocabulary === null) continue;
+      assert.strictEqual(canonicalScopesJson(buildVocabularyScopes(v.vocabulary)), v.scopesJson, `vector ${i}`);
+    }
+  });
+}
 
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

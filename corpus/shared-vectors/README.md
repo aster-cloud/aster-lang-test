@@ -5,7 +5,9 @@
 source envelope 的共享向量。aster-api（Java `PolicyVersion.computeSourceEnvelope`）与 aster-cloud
 （TS `computeSourceEnvelope`）必须对每条向量算出相同的 `expectedSha256`。
 
-形状：`[{ content, aliasSetJson, locale, toolchainId, scopesJson, expectedSha256 }]`，五个输入都是字符串。
+形状：`[{ content, aliasSetJson, locale, toolchainId, vocabulary, scopesJson, expectedSha256 }]`。五个哈希输入都是字符串；
+`vocabulary` 是生成 scopesJson 的源词汇（DomainVocabulary JSON，无词汇为 `null`），供各端同时核对自己的
+`canonicalScopesJson` 实现：`canonicalScopesJson(buildVocabularyScopes(vocabulary)) === scopesJson`。
 
 | # | 场景 | aliasSetJson | scopesJson |
 |---|---|---|---|
@@ -40,8 +42,8 @@ h.digest('hex');
 
 - 无词汇时为 `""`，不调用 `canonicalScopesJson()`，也不序列化空 scopes 与 `schemaVersion`。
 - 有词汇时为 aster-lang-ts `canonicalScopesJson(buildVocabularyScopes(vocabulary))`。生成本文件时（2026-10-29，
-  aster-lang-ts ec0111d、aster-lang-core 6062188）另用 Java `VocabularyScopes.build(vocabulary).canonicalJson()`
-  逐字节核对过向量 1、2 的 scopesJson，两引擎输出相同。
+  aster-lang-ts ec0111d、aster-lang-core 6062188）Java `VocabularyScopes.build(vocabulary).canonicalJson()`
+  的输出由 aster-lang-core `EnvelopeVectorsTest` 持续核对。
 
 ### toolchainId
 
@@ -50,4 +52,7 @@ h.digest('hex');
 
 ### 校验
 
-`node scripts/test-envelope-vectors.mjs` 按上述规则独立重算每条 `expectedSha256`，并检查向量覆盖的场景。
+- `node scripts/test-envelope-vectors.mjs`：按上述规则独立重算每条 `expectedSha256`，检查覆盖场景，
+  并用兄弟仓 aster-lang-ts 的构建产物核对 scopesJson（需先 `pnpm build`）。
+- aster-lang-core `EnvelopeVectorsTest`：同一份文件的副本（`src/test/resources/shared-vectors/`，sha256 钉住），
+  断言 Java `VocabularyScopes.build(vocabulary).canonicalJson()` 与 scopesJson 一致、envelope 哈希与 expectedSha256 一致。
