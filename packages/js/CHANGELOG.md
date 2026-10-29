@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+### Added
+
+- Tier-1 parity samples: multi-step `workflow` (depends on / retry / timeout /
+  compensate, plus a de-DE step name that collides with a vocabulary function),
+  function types `(T1, T2) -> R`, and Devanagari type / enum names (hi-IN).
+  They need aster-lang-core's workflow and Devanagari type-name fixes and
+  aster-lang-ts's function-type parser support.
+
 ### Changed
 
 - `normalizeIr(node, { includeResolution: true })` no longer discards the
