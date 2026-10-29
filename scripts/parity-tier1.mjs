@@ -718,15 +718,15 @@ function diffFingerprints(tsFp, javaFp) {
 //   因为它不止服务本门禁：ADR 0037 的 contentHash、未来的 MappingIR verifier
 //   都必须用**同一套**规则，否则会出现「门禁说一致、contentHash 说不一致」
 //   且两边都不报错的单源漂移。规则本身**原样未改**。
-import { normalizeIr as normalizeIrShared } from '../packages/js/src/ir-normalize.ts';
+import { normalizeForParity } from './lib/ir-normalize-parity.mjs';
 
 // originMode 仍由本脚本从 env 读取（库不依赖进程环境），再显式传入。
 const IR_ORIGIN_MODE = process.env.ASTER_IR_ORIGIN_MODE || 'file+line';
 
-// ADR 0051 §4：parity 比较 origin.written/role（两引擎须在同一位置记录同一原写法与角色）；
-// contentHash 不经此处，保持默认 includeResolution=false。
+// ADR 0051 §4：parity 比较 origin.written/role（两引擎须在同一位置记录同一原写法与角色，
+// 含签名与字段类型上的记录）；选项固定在 lib/ir-normalize-parity.mjs，contentHash 不经此处。
 function normalizeIr(node) {
-  return normalizeIrShared(node, { originMode: IR_ORIGIN_MODE, includeResolution: true });
+  return normalizeForParity(node, IR_ORIGIN_MODE);
 }
 
 /**

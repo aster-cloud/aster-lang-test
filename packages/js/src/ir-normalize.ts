@@ -130,6 +130,40 @@ const IR_FIELD_ALIASES: Record<string, string> = {
   'Import.asName': 'alias',
 };
 
+// 类型层的键整棵属于推导分析层，但其中名称解析写入的 origin.written / role 是源码级记录。
+// includeResolution 开启时，这些键不再整棵丢弃，而是折叠成 `<键>Resolutions`：
+// 先序收集的记录列表，只含规范名 / 原写法 / 角色 / 起始行，推导出的类型形状（Unknown、Quote、
+// typeInferred 等）一概不进入比较。
+const TYPE_LAYER_KEYS = new Set<string>(['type', 'ret', 'retType']);
+
+interface TypeResolutionRecord {
+  readonly name?: string;
+  readonly written: string;
+  readonly role?: string;
+  readonly line?: number;
+}
+
+function collectTypeResolutions(node: any, out: TypeResolutionRecord[] = []): TypeResolutionRecord[] {
+  if (Array.isArray(node)) {
+    for (const n of node) collectTypeResolutions(n, out);
+    return out;
+  }
+  if (node === null || typeof node !== 'object') return out;
+  const origin = node.origin;
+  if (origin !== null && typeof origin === 'object' && origin.written !== undefined) {
+    out.push({
+      ...(typeof node.name === 'string' ? { name: node.name } : {}),
+      written: origin.written,
+      ...(origin.role !== undefined ? { role: origin.role } : {}),
+      ...(origin.start?.line !== undefined ? { line: origin.start.line } : {}),
+    });
+  }
+  for (const [key, val] of Object.entries(node)) {
+    if (key !== 'origin') collectTypeResolutions(val, out);
+  }
+  return out;
+}
+
 /**
  * 注解参数容器形状归一（ADR 0039 §10）：TS 把带参注解降级为
  * `{name, args: [{name, value}, …]}`，Java 为 `{name, params: {name: value}}`。
@@ -147,11 +181,6 @@ function foldAnnotationArgs(node: any): any {
 }
 
 /**
- * Recursively normalize a Core IR node so the two engines' trees become
- * field-comparable: drop ignored fields, apply the alias table, treat a missing
- * field as an empty array/false default, and sort order-insensitive collections.
- */
-/**
  * 归一化选项。
  * - originMode：origin 的比较粒度，见上文分阶段收紧说明。
  * - includeResolution：是否保留 origin.written/role（ADR 0051）。parity 门禁传 true，
@@ -162,11 +191,20 @@ interface NormalizeOptions {
   readonly includeResolution?: boolean;
 }
 
+/**
+ * 跨引擎 Core IR 归一化入口：按选项归一整棵树，两引擎的树随之变得可逐字段比较。
+ * contentHash 走默认选项；parity 比较传 `includeResolution: true`。
+ */
 function normalizeIr(node: any, options: NormalizeOptions = {}): any {
   const { originMode = DEFAULT_ORIGIN_MODE, includeResolution = false } = options;
   return normalizeNode(node, undefined, { originMode, includeResolution });
 }
 
+/**
+ * Recursively normalize a Core IR node so the two engines' trees become
+ * field-comparable: drop ignored fields, apply the alias table, treat a missing
+ * field as an empty array/false default, and sort order-insensitive collections.
+ */
 function normalizeNode(node: any, kind: string | undefined, opts: Required<NormalizeOptions>): any {
   if (Array.isArray(node)) return node.map((n) => normalizeNode(n, kind, opts));
   if (node === null || typeof node !== 'object') return node;
@@ -176,7 +214,14 @@ function normalizeNode(node: any, kind: string | undefined, opts: Required<Norma
   const out: Record<string, any> = {};
   for (const [key, val] of Object.entries(node)) {
     if (IR_IGNORE_FIELDS.has(key)) continue;
-    if (IR_INFERENCE_FIELDS.has(key)) continue; // derived analysis state — out of scope
+    if (IR_INFERENCE_FIELDS.has(key)) {
+      // derived analysis state — out of scope；唯一例外是类型层里的 written / role 记录
+      if (opts.includeResolution && opts.originMode !== 'off' && TYPE_LAYER_KEYS.has(key)) {
+        const records = collectTypeResolutions(val);
+        if (records.length > 0) out[`${key}Resolutions`] = records;
+      }
+      continue;
+    }
     if (key === 'origin') {
       const norm = normalizeOrigin(val, opts.originMode, opts.includeResolution);
       if (norm !== undefined) out.origin = norm;
