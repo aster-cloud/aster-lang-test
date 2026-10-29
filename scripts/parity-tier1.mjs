@@ -346,8 +346,9 @@ function tsParseOne({ canonicalize, lex, parse, parseWithLexicon }, src, lexObj)
 }
 
 /**
- * 带词汇样本的 TS 侧（ADR 0051）：parseSource（关键词规范化 + 字面量宏）→ R1 → lower → R2，
- * 词汇与样本声明的词法表同时传入。返回 { rel → 结果 }，结果形状见 tsResolveOne。
+ * TS 侧经名称解析的编译（ADR 0051）：parseSource（关键词规范化 + 字面量宏）→ R1 → lower → R2，
+ * 词汇（若样本自带）与样本声明的词法表同时传入。返回 { rel → 结果 }，结果形状见 tsResolveOne。
+ * 只用包入口的带检查出口 resolveAndLowerChecked（原始 lowerModule 不是公开 API）。
  */
 async function runTsResolve(samples) {
   const distIndex = join(TS_REPO, 'dist', 'src', 'index.js');
@@ -355,8 +356,8 @@ async function runTsResolve(samples) {
     fail(`aster-lang-ts not built. Run: cd ${TS_REPO} && pnpm build`);
   }
   const mod = await import(distIndex);
-  if (!mod.parseSource || !mod.resolveAndLower || !mod.buildVocabularyScopes) {
-    fail('aster-lang-ts is missing expected exports (parseSource/resolveAndLower/buildVocabularyScopes)');
+  if (!mod.parseSource || !mod.resolveAndLowerChecked || !mod.NameResolutionError || !mod.buildVocabularyScopes) {
+    fail('aster-lang-ts is missing expected exports (parseSource/resolveAndLowerChecked/NameResolutionError/buildVocabularyScopes)');
   }
   const lexicons = await loadTsLexicons(mod);
   const results = {};
@@ -381,23 +382,22 @@ function tsLexiconFor(lexicons, { rel, abs }) {
  *   成功 { ok: true, warnings: [码], ir }；
  *   失败 { ok: false, stage: 'syntax' | 'resolve' | 'crash', codes?: [错误码], err, crash }。
  */
-function tsResolveOne({ parseSource, resolveAndLower, buildVocabularyScopes }, src, lexObj, vocab) {
+function tsResolveOne({ parseSource, resolveAndLowerChecked, NameResolutionError, buildVocabularyScopes }, src, lexObj, vocab) {
   try {
     const scopes = vocab ? buildVocabularyScopes(vocab) : undefined;
     const parsed = parseSource(src, lexObj, scopes);
     const syntax = parsed.diagnostics.find((d) => d.severity === 'error');
     if (syntax) return { ok: false, stage: 'syntax', err: syntax.message, crash: false };
-    const resolved = resolveAndLower(parsed.ast, scopes);
-    const errors = resolved.diagnostics.filter((d) => d.severity === 'error');
-    if (errors.length > 0) {
-      return {
-        ok: false, stage: 'resolve', crash: false,
-        codes: errors.map((d) => d.code),
-        err: errors.map((d) => `${d.code} ${d.message}`).join('; '),
-      };
-    }
+    const resolved = resolveAndLowerChecked(parsed.ast, scopes);
     return { ok: true, warnings: resolved.diagnostics.map((d) => d.code), ir: resolved.core };
   } catch (e) {
+    if (e instanceof NameResolutionError) {
+      return {
+        ok: false, stage: 'resolve', crash: false,
+        codes: e.diagnostics.map((d) => d.code),
+        err: e.diagnostics.map((d) => `${d.code} ${d.message}`).join('; '),
+      };
+    }
     const err = e && e.message ? e.message : String(e);
     return e?.diagnostic
       ? { ok: false, stage: 'syntax', err, crash: false }
@@ -558,54 +558,20 @@ function buildFingerprint(coreModule) {
 }
 
 /**
- * Run the TS pipeline through to lowering for every manifest sample,
- * and return a map { relPath → { ok, fingerprint?, error? } }.
+ * Run the TS pipeline through name resolution (R1 → lower → R2) for EVERY
+ * manifest sample — not only vocabulary samples — so English no-vocabulary
+ * regressions in name resolution are caught by the same gate as the Java
+ * side (CoreIrFingerprintCli also runs R1/R2 for every sample).
+ * Returns { relPath → { ok, fingerprint? | ir?, error? } }.
  */
 async function runTsIr(samples) {
-  const distIndex = join(TS_REPO, 'dist', 'src', 'index.js');
-  if (!existsSync(distIndex)) {
-    fail(`aster-lang-ts not built. Run: cd ${TS_REPO} && pnpm build`);
-  }
-  const mod = await import(distIndex);
-  const { canonicalize, lex, parse, lowerModule } = mod;
-  if (!canonicalize || !lex || !parse || !lowerModule) {
-    fail('aster-lang-ts missing exports (canonicalize/lex/parse/lowerModule)');
-  }
-
-  // 带词汇样本走名称解析流水线（词法表 + 词汇），其余样本保持原路径
-  const vocabResults = await runTsResolve(samples.filter((s) => s.vocabPath));
+  const resolved = await runTsResolve(samples);
   const results = {};
-  for (const { rel, abs, vocabPath } of samples) {
-    if (vocabPath) {
-      const r = vocabResults[rel];
-      results[rel] = !r.ok
-        ? { ok: false, error: r.err }
-        : IR_FULL ? { ok: true, ir: r.ir } : { ok: true, fingerprint: buildFingerprint(r.ir) };
-      continue;
-    }
-    try {
-      const src = readFileSync(abs, 'utf8');
-      const canonical = canonicalize(src);
-      const tokens = lex(canonical);
-      const { ast, diagnostics } = parse(tokens);
-      if (diagnostics && diagnostics.some((d) => d.severity === 'error')) {
-        results[rel] = {
-          ok: false,
-          error: diagnostics.find((d) => d.severity === 'error').message,
-        };
-        continue;
-      }
-      if (!ast) {
-        results[rel] = { ok: false, error: 'parse returned no AST' };
-        continue;
-      }
-      const core = lowerModule(ast);
-      results[rel] = IR_FULL
-        ? { ok: true, ir: core }
-        : { ok: true, fingerprint: buildFingerprint(core) };
-    } catch (e) {
-      results[rel] = { ok: false, error: e && e.message ? e.message : String(e) };
-    }
+  for (const { rel } of samples) {
+    const r = resolved[rel];
+    results[rel] = !r.ok
+      ? { ok: false, error: r.err }
+      : IR_FULL ? { ok: true, ir: r.ir } : { ok: true, fingerprint: buildFingerprint(r.ir) };
   }
   return results;
 }
@@ -1435,7 +1401,7 @@ async function main() {
   }
 
   if (MODE === 'ir') {
-    console.error('[parity-tier1] running TS engine (canonicalize→lex→parse→lower) ...');
+    console.error('[parity-tier1] running TS engine (parse→R1→lower→R2) ...');
     const tsRes = await runTsIr(samples);
 
     console.error('[parity-tier1] running Java engine (gradle CoreIrFingerprintCli, may take ~30s) ...');
