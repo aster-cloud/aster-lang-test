@@ -1,0 +1,17 @@
+{
+  "id": "parity.vocab.workflow-step-name",
+  "name": "workflow 步骤名与词汇函数同名",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [],
+  "fields": [],
+  "functions": [
+    {
+      "canonical": "total",
+      "localized": "gesamt",
+      "kind": "function"
+    }
+  ],
+  "enumValues": [],
+  "literals": []
+}

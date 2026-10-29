@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "workflow 步骤名 gesamt 与词汇函数 gesamt→total 同词：步骤名是声明，不得被改写为 total，规则名 gesamt 仍解析为 total（ADR 0051；原 Task 13 因 aster-lang-core#218/#219 撤下的用例）。依赖 aster-lang-core#218 / #219。eval 只覆盖规则 gesamt→total：TS 解释器不支持求值 workflow（Async operations (workflow) are not supported in the interpreter），workflow 本身只比 parse 与 IR"
+}

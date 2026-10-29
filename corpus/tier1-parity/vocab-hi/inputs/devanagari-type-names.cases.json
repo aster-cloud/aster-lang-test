@@ -1,0 +1,48 @@
+{
+  "entry": "classify",
+  "cases": [
+    {
+      "name": "大于10返回High",
+      "input": [
+        20
+      ],
+      "expectedOutput": {
+        "__type": "?",
+        "_enum": "Level",
+        "value": "High",
+        "variant": "High",
+        "args": []
+      }
+    },
+    {
+      "name": "不大于10返回Low",
+      "input": [
+        3
+      ],
+      "expectedOutput": {
+        "__type": "?",
+        "_enum": "Level",
+        "value": "Low",
+        "variant": "Low",
+        "args": []
+      }
+    },
+    {
+      "name": "字段年龄",
+      "entry": "ageOf",
+      "input": [
+        {
+          "tier": {
+            "__type": "?",
+            "_enum": "Level",
+            "value": "High",
+            "variant": "High",
+            "args": []
+          },
+          "age": 41
+        }
+      ],
+      "expectedOutput": 41
+    }
+  ]
+}

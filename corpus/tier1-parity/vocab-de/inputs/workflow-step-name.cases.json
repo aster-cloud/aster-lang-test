@@ -1,0 +1,12 @@
+{
+  "entry": "total",
+  "cases": [
+    {
+      "name": "gesamt-rule-resolved-to-total",
+      "input": [
+        5
+      ],
+      "expectedOutput": 5
+    }
+  ]
+}

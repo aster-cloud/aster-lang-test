@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "单步 workflow：retry / timeout / compensate 都未设置，两引擎的 IR 都不能出现这三个键（此前 Java 输出显式 null，aster-lang-core#219）",
+  "evalExempt": true,
+  "evalExemptReason": "effects",
+  "evalExemptDetail": "workflow 声明 It performs io：副作用推断 / 强制属编译期关注，运行时无确定性输出可作 golden"
+}

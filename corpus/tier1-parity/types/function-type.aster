@@ -1,0 +1,7 @@
+Module parity.types.functype.
+
+Rule applyTwice given f as (Int) -> Int and x as Int, produce Int:
+  Return x.
+
+Rule combine given f as (Int, Text) -> Bool and y as Int, produce Int:
+  Return y.

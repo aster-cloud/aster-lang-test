@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "hi-IN",
+  "source": "天城文类型名 स्तर / ग्राहक、枚举值 उच्च / निम्न 出现在类型声明、字段类型、参数类型、返回类型与限定枚举成员位置，按词汇解析为规范名 Level / Customer / High / Low（aster-lang-core#220：Java 语法此前要求 TYPE_IDENT，天城文无大小写只能归 IDENT）"
+}

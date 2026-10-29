@@ -66,18 +66,25 @@
   Java 走 aster-lang-core `CoreIrFingerprintCli`（JSON 输入行 `{path, lexicon, vocabulary}`）与 aster-lang-truffle `CoreIrEvalCli`
   （请求带 `lexicon` / `vocabulary`）。
 - parse 门对带词汇样本检查「解析 + 名称解析」：正例两侧都成功且警告码一致（`meta.expectWarnings` 声明时须相同，如 `["W800"]`）；
-  负例两侧都在名称解析阶段拒绝，错误码集合相同且包含 `meta.expectCode`。不比对诊断位置（字段声明、构造字段、枚举成员处
-  Java AST 无逐项 span，位置差异已登记）。
+  负例两侧都在名称解析阶段拒绝，错误码集合相同且包含 `meta.expectCode`。默认不比对诊断位置：字段声明、构造字段、枚举成员处
+  Java AST 曾无逐项 span，位置差异已登记。样本 meta 写 `"compareDiagnosticLines": true` 即对该样本比较两侧「码 + 起始行」
+  的多重集合（列号不比）。TS 侧位置取自诊断的 `span.start`；Java 侧要求 aster-lang-core 的 `CoreIrFingerprintCli`
+  在记录里输出 `locs: [{code, line, col}]`，缺失时判 `locs-missing`（不会静默通过）。逐项 span 落地并输出 `locs` 之前，
+  没有样本打开该开关。
 - eval golden 放在 `vocab-<locale>/inputs/<case>.cases.json`，不放在样本旁：JVM 包 `CorpusLoader.readCases()` 会把样本旁的
   `.cases.json` 交给不传词汇的消费方执行。
 - 守卫（`scripts/lib/vocab-corpus.mjs`，回归测试 `node scripts/test-vocab-corpus.mjs`）：词汇文件必须被 `vocab: true` 条目认领，
   `vocab: true` 条目必须有词汇文件，`tier1-parity/` 下的 `.aster` 与 `inputs/*.cases.json` 必须能被 manifest 加载到，
   带词汇负例必须声明 `expectCode`。
 
-当前未覆盖的位置及原因：
+非词汇样本同样放在 `tier1-parity/` 的子目录（字符串条目）：`workflow/`（多步 workflow、compensate、单步）与 `types/`（函数类型）。
+这类样本没有 `inputs/` golden（`<dir>/inputs/*.cases.json` 只给带词汇条目加载），因此在 meta 里标 `evalExempt` 并写明原因，
+只比较 parse 与 IR。依赖的兄弟仓修复：
 
-- FuncType：TS 解析器没有函数类型语法（`(T) -> R` 只有 Java 接受），无法写成双引擎样本。
-- workflow 步骤名：Java 语法只接受单步 workflow，单步时 IR 又多出显式 `null`，与名称解析无关；见 `IR-DIVERGENCE-LEDGER.md`。
-- 导入名遮蔽词条：CNL 中导入模块的声明只能经别名限定访问（`R.gesamt(x)`），限定前缀属于 MODULE 段、整体不参与词汇解析；
-  `vocab-de/import-alias-qualified` 锁定这一点，不存在未限定导入名与词条竞争的写法。
-- 天城文类型名：Java 词法器把天城文标识符一律归为 IDENT，不能出现在类型声明位置（既有差异），故印地语样本的类型名用拉丁写法。
+| 样本 | 依赖 |
+|---|---|
+| `workflow/*`、`vocab-de/workflow-step-name` | aster-lang-core#218（多元素 workflow 语法）、#219（未设置的 retry / timeout / compensate 不序列化为 null） |
+| `types/function-type` | aster-lang-ts#247（TS 解析器与降级支持 `(T1, T2) -> R`） |
+| `vocab-hi/devanagari-type-names` | aster-lang-core#220（天城文可作类型名 / 枚举值） |
+
+`workflow-step-name` 的 eval 只覆盖规则 `gesamt`→`total`：TS 解释器不支持求值 workflow，workflow 本身只比 parse 与 IR。

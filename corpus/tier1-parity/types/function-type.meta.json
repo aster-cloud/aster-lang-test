@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "函数类型 (T1, T2) -> R 出现在参数类型位置：单参数与多参数。依赖 aster-lang-ts#247（TS 解析器与降级支持 FuncType）",
+  "evalExempt": true,
+  "evalExemptReason": "unsupported-syntax",
+  "evalExemptDetail": "参数为函数类型，JSON golden 输入无法表示函数值；本样本只比较 parse 与 IR"
+}
