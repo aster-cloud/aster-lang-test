@@ -247,6 +247,10 @@
       "vocab": true
     },
     {
+      "path": "tier1-parity/vocab-de/comparison-enum-member.aster",
+      "vocab": true
+    },
+    {
       "path": "tier1-parity/vocab-de/enum-member-vs-rule.aster",
       "vocab": true
     },
@@ -339,6 +343,10 @@
     },
     {
       "path": "tier1-reject/vocab-e804-bare-member-vs-rule.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-reject/vocab-e804-comparison-member-vs-function.aster",
       "vocab": true
     },
     {

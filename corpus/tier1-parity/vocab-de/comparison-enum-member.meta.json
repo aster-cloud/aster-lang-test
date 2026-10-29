@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "ADR 0051 裁决 R49：相等比较一侧为已知枚举（d.stufe : Stufe）时另一侧裸名 Hoch / Niedrig 以该枚举为期望类型，解析为 Level.High / Level.Low（与规范名孪生 d.level equals to High 一致）"
+}

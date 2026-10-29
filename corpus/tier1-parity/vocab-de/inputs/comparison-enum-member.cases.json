@@ -1,0 +1,19 @@
+{
+  "entry": "zuschlag",
+  "cases": [
+    {
+      "name": "hoch-100",
+      "input": [
+        11
+      ],
+      "expectedOutput": 100
+    },
+    {
+      "name": "niedrig-1",
+      "input": [
+        3
+      ],
+      "expectedOutput": 1
+    }
+  ]
+}

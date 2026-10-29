@@ -1,0 +1,42 @@
+{
+  "id": "parity.vocab.comparison-enum-member",
+  "name": "ADR 0051 R49 比较操作数的期望枚举类型",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Level",
+      "localized": "Stufe",
+      "kind": "struct"
+    },
+    {
+      "canonical": "Driver",
+      "localized": "Fahrer",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "level",
+      "localized": "stufe",
+      "kind": "field",
+      "parent": "Driver"
+    }
+  ],
+  "functions": [],
+  "enumValues": [
+    {
+      "canonical": "High",
+      "localized": "Hoch",
+      "kind": "enum_value",
+      "parent": "Level"
+    },
+    {
+      "canonical": "Low",
+      "localized": "Niedrig",
+      "kind": "enum_value",
+      "parent": "Level"
+    }
+  ],
+  "literals": []
+}

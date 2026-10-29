@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "expect": "reject",
+  "expectCode": "E804",
+  "source": "ADR 0051 裁决 R49 / §14 第 1 条：比较 d.stufe entspricht Hoch 中 Hoch 的期望类型为 Stufe，同时命中枚举成员 Hoch 与词汇函数 hoch → E804（不静默解析为函数 high），须写 Stufe.Hoch"
+}
