@@ -377,6 +377,9 @@ function tsLexiconFor(lexicons, { rel, abs }) {
   return lexObj;
 }
 
+/** 诊断位置 [{ code, line, col }]；与 Java CoreIrFingerprintCli 记录里的 `locs` 同形。 */
+const locsOf = (diagnostics) => diagnostics.map((d) => ({ code: d.code, line: d.span?.start?.line ?? null, col: d.span?.start?.col ?? null }));
+
 /**
  * 单个样本经解析 + 名称解析的结果：
  *   成功 { ok: true, warnings: [码], ir }；
@@ -389,12 +392,13 @@ function tsResolveOne({ parseSource, resolveAndLowerChecked, NameResolutionError
     const syntax = parsed.diagnostics.find((d) => d.severity === 'error');
     if (syntax) return { ok: false, stage: 'syntax', err: syntax.message, crash: false };
     const resolved = resolveAndLowerChecked(parsed.ast, scopes);
-    return { ok: true, warnings: resolved.diagnostics.map((d) => d.code), ir: resolved.core };
+    return { ok: true, warnings: resolved.diagnostics.map((d) => d.code), locs: locsOf(resolved.diagnostics), ir: resolved.core };
   } catch (e) {
     if (e instanceof NameResolutionError) {
       return {
         ok: false, stage: 'resolve', crash: false,
         codes: e.diagnostics.map((d) => d.code),
+        locs: locsOf(e.diagnostics),
         err: e.diagnostics.map((d) => `${d.code} ${d.message}`).join('; '),
       };
     }
@@ -486,8 +490,9 @@ function classifyVocabSamples(tsRes, javaRes, samples) {
   return samples.map(({ rel, abs }) => {
     const ts = tsRes[rel] || { ok: false, err: 'missing in ts result' };
     const java = javaRes[rel] || { ok: false, err: 'missing in java result' };
-    const expectWarnings = readMeta(abs)?.expectWarnings ?? null;
-    const { verdict, reason } = judgeVocabSample({ ts, java, expectWarnings });
+    const meta = readMeta(abs);
+    const expectWarnings = meta?.expectWarnings ?? null;
+    const { verdict, reason } = judgeVocabSample({ ts, java, expectWarnings, compareLines: meta?.compareDiagnosticLines === true });
     return {
       path: rel, vocab: true, ts: ts.ok, java: java.ok, verdict, reason,
       tsWarnings: ts.warnings ?? null, javaWarnings: java.warnings ?? null,
@@ -501,8 +506,9 @@ function classifyVocabRejects(tsRes, javaRes, rejects) {
   return rejects.map(({ rel, abs }) => {
     const ts = tsRes[rel] || { ok: false, stage: 'crash', err: 'missing in ts result' };
     const java = javaRes[rel] || { ok: false, stage: 'crash', err: 'missing in java result' };
-    const expectCode = readMeta(abs)?.expectCode ?? null;
-    const { verdict, reason } = judgeVocabReject({ ts, java, expectCode });
+    const meta = readMeta(abs);
+    const expectCode = meta?.expectCode ?? null;
+    const { verdict, reason } = judgeVocabReject({ ts, java, expectCode, compareLines: meta?.compareDiagnosticLines === true });
     return {
       path: rel, vocab: true, verdict, reason, expectCode,
       ts: ts.ok, tsCodes: ts.codes ?? null, tsErr: ts.err || null,
@@ -649,11 +655,11 @@ function runJavaIr(samples, { full = IR_FULL } = {}) {
     } else if (!rec.ok) {
       const error = rec.error || 'unknown Java error';
       // stage/codes 供带词汇样本的 parse 门判定（语法错误 / 名称解析错误 / 其它异常）
-      results[rel] = { ok: false, stage: rec.stage || 'crash', codes: rec.codes, error, err: error };
+      results[rel] = { ok: false, stage: rec.stage || 'crash', codes: rec.codes, locs: rec.locs, error, err: error };
     } else {
       results[rel] = full
-        ? { ok: true, ir: rec.ir, warnings: rec.diagnostics || [] }
-        : { ok: true, fingerprint: rec.fingerprint, warnings: rec.diagnostics || [] };
+        ? { ok: true, ir: rec.ir, warnings: rec.diagnostics || [], locs: rec.locs }
+        : { ok: true, fingerprint: rec.fingerprint, warnings: rec.diagnostics || [], locs: rec.locs };
     }
   }
 
