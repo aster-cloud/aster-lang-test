@@ -1,0 +1,17 @@
+Module parity.workflow.compensate.
+
+Rule runSaga, produce. It performs io:
+  workflow:
+    step reserve:
+      Return ok of 1.
+    compensate:
+      Return ok of 10.
+
+    step charge depends on ["reserve"]:
+      Return ok of 2.
+    compensate:
+      Return ok of 20.
+
+    step ship depends on ["charge"]:
+      Return ok of 3.
+  .

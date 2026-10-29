@@ -1,0 +1,59 @@
+{
+  "id": "parity.vocab.hi-devanagari-type-names",
+  "name": "天城文类型名、枚举值、字段与规则名",
+  "locale": "hi-IN",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Level",
+      "localized": "स्तर",
+      "kind": "struct"
+    },
+    {
+      "canonical": "Customer",
+      "localized": "ग्राहक",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "tier",
+      "localized": "श्रेणी",
+      "kind": "field",
+      "parent": "Customer"
+    },
+    {
+      "canonical": "age",
+      "localized": "आयु",
+      "kind": "field",
+      "parent": "Customer"
+    }
+  ],
+  "functions": [
+    {
+      "canonical": "classify",
+      "localized": "वर्गीकृत",
+      "kind": "function"
+    },
+    {
+      "canonical": "ageOf",
+      "localized": "आयु_देखें",
+      "kind": "function"
+    }
+  ],
+  "enumValues": [
+    {
+      "canonical": "High",
+      "localized": "उच्च",
+      "kind": "enum_value",
+      "parent": "Level"
+    },
+    {
+      "canonical": "Low",
+      "localized": "निम्न",
+      "kind": "enum_value",
+      "parent": "Level"
+    }
+  ],
+  "literals": []
+}

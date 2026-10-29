@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "多步 workflow：三个 step（含 depends on 链）+ retry（max attempts / backoff）+ timeout。依赖 aster-lang-core#218（Java 语法接受多元素 workflow）与 #219（未设置的 retry/timeout/compensate 不再序列化为 null）",
+  "evalExempt": true,
+  "evalExemptReason": "effects",
+  "evalExemptDetail": "workflow 声明 It performs io：副作用推断 / 强制属编译期关注，运行时无确定性输出可作 golden"
+}

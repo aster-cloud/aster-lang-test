@@ -161,6 +161,9 @@ jobs:
               # 语料自带词汇（ADR 0051）的 manifest 形态 / 守卫 / 判定，与 envelope 共享向量及其快测。
               - 'scripts/lib/vocab-corpus.mjs'
               - 'scripts/test-vocab-corpus.mjs'
+              # parity 门禁的 IR 归一化入口及其接线回归测试。
+              - 'scripts/lib/ir-normalize-parity.mjs'
+              - 'scripts/test-ir-normalize-parity.mjs'
               - 'corpus/shared-vectors/**'
               - 'scripts/test-envelope-vectors.mjs'
               - 'scripts/coverage-report.py'
@@ -358,6 +361,13 @@ jobs:
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         run: node scripts/test-vocab-corpus.mjs
+
+      # parity 门禁的 IR 归一化接线：门禁必须经 lib/ir-normalize-parity.mjs 取得归一化，
+      # 且签名 / 字段类型上的 written/role 参与比较。直接测函数行为，而非对脚本源码做子串匹配。
+      - name: Run IR-normalize parity wiring regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-ir-normalize-parity.mjs
 
       # envelope 5 段共享向量（ADR 0051 §7）：独立重算哈希，并用已构建的 aster-lang-ts
       # 核对 canonicalScopesJson(buildVocabularyScopes(vocabulary)) === scopesJson。

@@ -1,12 +1,17 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { normalizeIr, IR_INFERENCE_FIELDS } from '../ir-normalize.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
+
+/** 去掉块注释与行注释，使源码文本检查不被注释里的字样欺骗。 */
+function stripComments(src: string): string {
+  return src.replace(/\/\*[\s\S]*?\*\//g, '').replace(/(^|[^:'"`])\/\/.*$/gm, '$1');
+}
 
 /**
  * 跨引擎 IR 归一化的契约测试。
@@ -68,17 +73,23 @@ describe('ir-normalize：跨引擎归一化', () => {
     }
   });
 
-  it('★与 parity 门禁共用同一份规则（单源，不得出现第二套）', () => {
+  it('★仓内脚本只有一个入口使用归一化规则（单源，不得出现第二套）', () => {
     // 本仓反复记录过单源漂移事故：两处规则各自演进后，门禁说「一致」而
     // contentHash 说「不一致」，**且两边都不报错**。
-    // 这条用例直接读门禁脚本，确认它是 import 本模块而非自己再定义一份。
-    const gate = readFileSync(
-      join(__dirname, '..', '..', '..', '..', 'scripts', 'parity-tier1.mjs'), 'utf8');
-
-    assert.ok(gate.includes("from '../packages/js/src/ir-normalize.ts'"),
-      'parity-tier1.mjs 未从本模块导入归一化规则 —— 单源已被打破。');
-    assert.ok(!/^const IR_INFERENCE_FIELDS = new Set\(\[/m.test(gate),
-      'parity-tier1.mjs 里又出现了一份 IR_INFERENCE_FIELDS 定义 —— 规则已分叉成两套。');
+    // 扫描 scripts/ 下全部脚本（去掉注释后）：导入归一化库的只能是 lib/ir-normalize-parity.mjs，
+    // 且任何文件都不得再定义自己的推导字段 / 别名表。门禁接线的行为级断言见 scripts/test-ir-normalize-parity.mjs。
+    const scriptsDir = join(__dirname, '..', '..', '..', '..', 'scripts');
+    const files = [
+      ...readdirSync(scriptsDir).filter((f) => f.endsWith('.mjs')).map((f) => join(scriptsDir, f)),
+      ...readdirSync(join(scriptsDir, 'lib')).filter((f) => f.endsWith('.mjs')).map((f) => join(scriptsDir, 'lib', f)),
+    ].filter((f) => !f.endsWith('test-ir-normalize-parity.mjs'));
+    const importers = files.filter((f) => /from\s*['"][^'"]*ir-normalize\.ts['"]/.test(stripComments(readFileSync(f, 'utf8'))));
+    assert.deepStrictEqual(importers.map((f) => f.slice(scriptsDir.length + 1)), ['lib/ir-normalize-parity.mjs'],
+      '只有 lib/ir-normalize-parity.mjs 可以导入归一化库 —— 出现了第二条归一化路径。');
+    for (const f of files) {
+      assert.ok(!/\b(const|let|var)\s+(IR_INFERENCE_FIELDS|IR_IGNORE_FIELDS|IR_FIELD_ALIASES)\b/.test(stripComments(readFileSync(f, 'utf8'))),
+        `${f} 里又出现了一份归一化规则定义 —— 规则已分叉成两套。`);
+    }
   });
 
   it('注解参数容器形状：TS args 数组与 Java params 映射归一为同一对象（ADR 0039 §10）', () => {
@@ -179,10 +190,105 @@ describe('ir-normalize：includeResolution（ADR 0051）', () => {
     assert.deepStrictEqual(strict.origin.start, { line: 3, col: 1 });
   });
 
-  it('★parity 门禁比较 IR 时开启 includeResolution', () => {
-    const gate = readFileSync(
-      join(__dirname, '..', '..', '..', '..', 'scripts', 'parity-tier1.mjs'), 'utf8');
-    assert.match(gate, /includeResolution:\s*true/,
-      'parity-tier1.mjs 未以 includeResolution: true 比较 IR —— 两引擎的原写法 / 角色分岔不受门禁约束。');
+  it('★parity 入口固定 includeResolution: true（去注释后检查；行为级断言见 scripts/test-ir-normalize-parity.mjs）', () => {
+    const lib = readFileSync(
+      join(__dirname, '..', '..', '..', '..', 'scripts', 'lib', 'ir-normalize-parity.mjs'), 'utf8');
+    assert.match(stripComments(lib), /includeResolution:\s*true/,
+      'lib/ir-normalize-parity.mjs 未以 includeResolution: true 归一化 —— 两引擎的原写法 / 角色分岔不受门禁约束。');
+  });
+});
+
+/**
+ * ADR 0051 R33：签名 / 字段类型上的 origin.written / role。
+ * `type` / `ret` / `retType` 整棵属于推导分析层（两引擎对未标注类型的推断不同，必须忽略），
+ * 但其中由名称解析写入的 written / role 是源码级记录，includeResolution 开启时必须参与比较。
+ */
+describe('ir-normalize：签名类型上的 written / role（includeResolution）', () => {
+  const typeName = (name: string, written?: string, line = 7, role = 'TYPE') => ({
+    kind: 'TypeName', name,
+    origin: {
+      start: { line, col: 35 }, end: { line, col: 41 },
+      ...(written === undefined ? {} : { written, role }),
+    },
+  });
+  const func = (paramType: unknown, ret?: unknown) => ({
+    kind: 'Func', name: 'bewerten',
+    params: [{ name: 'fahrer', type: paramType, constraints: [] }],
+    ...(ret === undefined ? {} : { ret }),
+    body: { kind: 'Block', statements: [] },
+  });
+  const on = { includeResolution: true };
+
+  it('参数类型的 written / role 不同即不等；相同则相等（行号变化也要报出）', () => {
+    const a = normalizeIr(func(typeName('Driver', 'Fahrer')), on);
+    assert.deepStrictEqual(a, normalizeIr(func(typeName('Driver', 'Fahrer')), on));
+    assert.notDeepStrictEqual(a, normalizeIr(func(typeName('Driver', 'Fuehrer')), on), 'written 不同必须报出');
+    assert.notDeepStrictEqual(a, normalizeIr(func(typeName('Driver', 'Fahrer', 7, 'TYPE_REF')), on), 'role 不同必须报出');
+    assert.notDeepStrictEqual(a, normalizeIr(func(typeName('Driver', 'Fahrer', 9)), on), '记录位置行不同必须报出');
+    assert.notDeepStrictEqual(a, normalizeIr(func(typeName('Driver')), on), '一侧没有记录必须报出');
+  });
+
+  it('规范名不同也要报出（解析到不同类型）', () => {
+    assert.notDeepStrictEqual(
+      normalizeIr(func(typeName('Driver', 'Fahrer')), on),
+      normalizeIr(func(typeName('Pilot', 'Fahrer')), on));
+  });
+
+  it('返回类型与字段类型同样参与比较', () => {
+    const ret = (w?: string) => func(typeName('Int'), typeName('Level', w, 7));
+    assert.notDeepStrictEqual(normalizeIr(ret('Stufe'), on), normalizeIr(ret('Rang'), on));
+    const data = (w: string) => ({ kind: 'Data', name: 'Driver', fields: [{ name: 'level', type: typeName('Level', w, 5) }] });
+    assert.notDeepStrictEqual(normalizeIr(data('Stufe'), on), normalizeIr(data('Rang'), on));
+    assert.deepStrictEqual(normalizeIr(data('Stufe'), on), normalizeIr(data('Stufe'), on));
+  });
+
+  it('嵌套泛型：按先序收集所有类型位置的记录', () => {
+    const nested = (inner: string, outer: string) => func({
+      kind: 'TypeApp', base: 'Map',
+      origin: { start: { line: 7, col: 30 }, end: { line: 7, col: 60 } },
+      args: [typeName('Text'), { kind: 'TypeApp', base: 'List', args: [typeName('Level', inner)] }],
+      ...{ outerWritten: outer },
+    });
+    const a = normalizeIr(nested('Stufe', 'x'), on);
+    assert.deepStrictEqual(a, normalizeIr(nested('Stufe', 'y'), on), '非记录字段不参与比较');
+    assert.notDeepStrictEqual(a, normalizeIr(nested('Rang', 'x'), on), '深层嵌套的 written 差异必须报出');
+    assert.deepStrictEqual(a.params[0].typeResolutions, [{ name: 'Level', written: 'Stufe', role: 'TYPE', line: 7 }]);
+  });
+
+  it('Option / Result 等包装类型：包装层名称与内层 written 都能到达', () => {
+    const opt = (w: string) => func({ kind: 'Option', type: typeName('Level', w) });
+    assert.notDeepStrictEqual(normalizeIr(opt('Stufe'), on), normalizeIr(opt('Rang'), on));
+  });
+
+  it('推导差异仍被忽略：无记录的类型节点（Unknown / 缺省 ret / 不同占位）不影响比较', () => {
+    const tsSide = func({ kind: 'TypeVar', name: 'Unknown' }, undefined);
+    const javaSide = func({ kind: 'TypeName', name: 'Quote', origin: { start: { line: 7, col: 1 }, end: { line: 7, col: 2 } } },
+      { kind: 'TypeName', name: 'Int', origin: { start: { line: 7, col: 47 }, end: { line: 7, col: 50 } } });
+    assert.deepStrictEqual(normalizeIr(tsSide, on), normalizeIr(javaSide, on));
+    assert.strictEqual(normalizeIr(tsSide, on).params[0].typeResolutions, undefined, '无记录时不新增字段');
+  });
+
+  it('written 缺省（等于规范名时两引擎都不写出）：与有记录的一侧不等，两侧都缺省则相等', () => {
+    assert.deepStrictEqual(normalizeIr(func(typeName('Int')), on), normalizeIr(func(typeName('Int')), on));
+    assert.strictEqual(normalizeIr(func(typeName('Int')), on).params[0].typeResolutions, undefined);
+  });
+
+  it('空 ret / null ret 不报错且不产生记录', () => {
+    assert.strictEqual(normalizeIr(func(typeName('Int'), null), on).retResolutions, undefined);
+    assert.strictEqual(normalizeIr({ kind: 'Func', name: 'f', ret: {} }, on).retResolutions, undefined);
+  });
+
+  it('默认路径（contentHash）不变：类型子树仍整棵丢弃，记录不泄漏', () => {
+    const out = normalizeIr(func(typeName('Driver', 'Fahrer')));
+    assert.strictEqual(out.params[0].type, undefined);
+    assert.strictEqual(out.params[0].typeResolutions, undefined);
+    assert.strictEqual(
+      JSON.stringify(normalizeIr(func(typeName('Driver', 'Fahrer')))),
+      JSON.stringify(normalizeIr(func(typeName('Pilot')))));
+  });
+
+  it('originMode=off：origin 整体丢弃，类型记录一并丢弃', () => {
+    const out = normalizeIr(func(typeName('Driver', 'Fahrer')), { includeResolution: true, originMode: 'off' });
+    assert.strictEqual(out.params[0].typeResolutions, undefined);
   });
 });

@@ -1,0 +1,19 @@
+Modul versicherung.ablauf.
+
+Regel gesamt gegeben x als Ganzzahl, liefert Ganzzahl:
+  gib zurueck x.
+
+Regel ablauf, liefert. fuehrt aus IO:
+  Arbeitsablauf:
+    Schritt gesamt:
+      gib zurueck ok von 1.
+
+    Schritt buchen haengt ab von ["gesamt"]:
+      gib zurueck ok von 2.
+
+    wiederhole:
+      maximale Versuche: 2.
+      Wartezeit: linear.
+
+    Zeitlimit: 10 seconds.
+  .

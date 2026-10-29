@@ -1,5 +1,26 @@
 # Changelog
 
+## Unreleased
+
+### Added
+
+- Tier-1 parity samples: multi-step `workflow` (depends on / retry / timeout /
+  compensate, plus a de-DE step name that collides with a vocabulary function),
+  function types `(T1, T2) -> R`, and Devanagari type / enum names (hi-IN).
+  They need aster-lang-core's workflow and Devanagari type-name fixes and
+  aster-lang-ts's function-type parser support.
+
+### Changed
+
+- `normalizeIr(node, { includeResolution: true })` no longer discards the
+  `type` / `ret` / `retType` subtrees wholesale: the `origin.written` / `role`
+  records inside them are kept as ordered `typeResolutions` / `retResolutions`
+  / `retTypeResolutions` lists (canonical name, written form, role, start line).
+  Inferred type shapes are still ignored. The default path (`contentHash`) is
+  byte-for-byte unchanged. Parity comparisons are therefore stricter: signature
+  and field types resolved through a vocabulary are now compared across engines
+  (minor bump for the next release).
+
 ## 1.1.0
 
 ### Breaking

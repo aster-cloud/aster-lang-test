@@ -10,8 +10,9 @@
  * 带词汇的样本在 parse 门里走「解析 + 名称解析（R1 → lower → R2）」：
  *   - samples：两侧都成功，且两侧的警告码（如 W800）一致；meta.expectWarnings 声明时须与之相同；
  *   - mustReject：两侧都在**名称解析阶段**拒绝，且错误码集合相同并包含 meta.expectCode。
- *     刻意不比对诊断位置：字段声明 / 构造字段 / 枚举成员处 Java AST 无逐项 span，
- *     两引擎位置不同是已登记的差异，契约是「拒绝且同码」。
+ *     诊断位置默认不比对（历史上 Java AST 无逐项 span，字段声明 / 构造字段 / 枚举成员处位置与 TS 不同）；
+ *     样本 meta 声明 `compareDiagnosticLines: true` 后，两侧的「码 + 起始行」多重集合必须相同。
+ *     列号不比对：两引擎的列基准与区间终点定义不同，行才是稳定契约。
  *
  * parity-tier1.mjs 与 test-vocab-corpus.mjs 共用本模块（单一事实源）。
  */
@@ -109,11 +110,19 @@ export function checkVocabCorpus({ samples, mustReject, vocabOnDisk, parityAster
     }
   }
   for (const e of mustReject) problems.push(...expectCodeProblems(e, metaOf(e.rel) || {}));
+  for (const e of samples) {
+    if (!e.vocab && (metaOf(e.rel) || {}).compareDiagnosticLines !== undefined) {
+      problems.push(`${e.rel}: compareDiagnosticLines is only checked for vocab entries`);
+    }
+  }
   return problems;
 }
 
 function expectCodeProblems(entry, meta) {
   const code = meta.expectCode;
+  if (!entry.vocab && meta.compareDiagnosticLines !== undefined) {
+    return [`${entry.rel}: compareDiagnosticLines is only checked for vocab entries`];
+  }
   if (!entry.vocab) {
     // 无词汇的必拒样本只在语法阶段判定，expectCode 不会被检查——写了也是谎言
     return code === undefined ? [] : [`${entry.rel}: expectCode is only checked for vocab entries`];
@@ -128,10 +137,25 @@ const uniqSorted = (codes) => [...new Set(codes || [])].sort();
 const sameList = (a, b) => a.length === b.length && a.every((x, i) => x === b[i]);
 
 /**
- * 带词汇正例的判定。ts / java 形如 { ok, stage?, codes?, warnings?, err?, crash? }。
- * 返回 { verdict, reason }，verdict 为 'pass' 才算通过。
+ * 诊断位置比较：两侧各自给出 locs（[{ code, line, col }]），按「码@起始行」的有序多重集合比较。
+ * 返回 null 表示通过，否则 { verdict, reason }。任一侧缺 locs 是 'locs-missing'——
+ * 声明了要比位置却拿不到位置，不能当作通过。
  */
-export function judgeVocabSample({ ts, java, expectWarnings = null }) {
+function compareLocs(ts, java) {
+  if (!Array.isArray(ts.locs)) return { verdict: 'locs-missing', reason: 'TS result carries no diagnostic locations' };
+  if (!Array.isArray(java.locs)) return { verdict: 'locs-missing', reason: 'Java result carries no diagnostic locations (engine/CLI too old?)' };
+  const keyOf = (locs) => locs.map((l) => `${l.code}@${l.line}`).sort();
+  const tk = keyOf(ts.locs);
+  const jk = keyOf(java.locs);
+  if (sameList(tk, jk)) return null;
+  return { verdict: 'line-mismatch', reason: `diagnostic lines differ: ts=[${tk}] java=[${jk}]` };
+}
+
+/**
+ * 带词汇正例的判定。ts / java 形如 { ok, stage?, codes?, warnings?, err?, crash? }。
+ * 返回 { verdict, reason }，verdict 为 'pass' 才算通过。compareLines 为真时另外比较诊断位置。
+ */
+export function judgeVocabSample({ ts, java, expectWarnings = null, compareLines = false }) {
   if (!ts.ok && !java.ok) return { verdict: 'both-fail', reason: `ts: ${ts.err}; java: ${java.err}` };
   if (!ts.ok) return { verdict: 'divergent', reason: `TS failed: ${ts.err}` };
   if (!java.ok) return { verdict: 'divergent', reason: `Java failed: ${java.err}` };
@@ -143,14 +167,15 @@ export function judgeVocabSample({ ts, java, expectWarnings = null }) {
   if (expectWarnings !== null && !sameList(tw, uniqSorted(expectWarnings))) {
     return { verdict: 'warning-mismatch', reason: `expected warnings [${uniqSorted(expectWarnings)}], both engines gave [${tw}]` };
   }
-  return { verdict: 'pass', reason: null };
+  const locProblem = compareLines ? compareLocs(ts, java) : null;
+  return locProblem ?? { verdict: 'pass', reason: null };
 }
 
 /**
  * 带词汇必拒样本的判定：两侧都在名称解析阶段拒绝，错误码集合相同且包含 expectCode。
  * 返回 { verdict, reason }，verdict 为 'rejected' 才算通过。
  */
-export function judgeVocabReject({ ts, java, expectCode }) {
+export function judgeVocabReject({ ts, java, expectCode, compareLines = false }) {
   if (ts.ok && java.ok) return { verdict: 'both-accepted', reason: 'TS accepted and Java accepted' };
   if (ts.ok) return { verdict: 'ts-accepted', reason: 'TS accepted (only Java rejects)' };
   if (java.ok) return { verdict: 'java-accepted', reason: 'Java accepted (only TS rejects)' };
@@ -161,5 +186,6 @@ export function judgeVocabReject({ ts, java, expectCode }) {
   const jc = uniqSorted(java.codes);
   if (!sameList(tc, jc)) return { verdict: 'code-mismatch', reason: `error codes differ: ts=[${tc}] java=[${jc}]` };
   if (!tc.includes(expectCode)) return { verdict: 'code-mismatch', reason: `expected ${expectCode}, both engines gave [${tc}]` };
-  return { verdict: 'rejected', reason: null };
+  const locProblem = compareLines ? compareLocs(ts, java) : null;
+  return locProblem ?? { verdict: 'rejected', reason: null };
 }

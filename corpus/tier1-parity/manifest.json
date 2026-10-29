@@ -242,6 +242,10 @@
     "tier1-equivalence/policies/verdict-basic.aster",
     "tier1-equivalence/policies/verdict-fields.aster",
     "tier1-equivalence/policies/context-map-access.aster",
+    "tier1-parity/types/function-type.aster",
+    "tier1-parity/workflow/workflow-compensate.aster",
+    "tier1-parity/workflow/workflow-multistep.aster",
+    "tier1-parity/workflow/workflow-single-step.aster",
     {
       "path": "tier1-parity/vocab-de/case-only-fields.aster",
       "vocab": true
@@ -284,6 +288,14 @@
     },
     {
       "path": "tier1-parity/vocab-de/type-alias-localized.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-de/workflow-step-name.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-hi/devanagari-type-names.aster",
       "vocab": true
     },
     {

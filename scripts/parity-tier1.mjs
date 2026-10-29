@@ -377,6 +377,9 @@ function tsLexiconFor(lexicons, { rel, abs }) {
   return lexObj;
 }
 
+/** 诊断位置 [{ code, line, col }]；与 Java CoreIrFingerprintCli 记录里的 `locs` 同形。 */
+const locsOf = (diagnostics) => diagnostics.map((d) => ({ code: d.code, line: d.span?.start?.line ?? null, col: d.span?.start?.col ?? null }));
+
 /**
  * 单个样本经解析 + 名称解析的结果：
  *   成功 { ok: true, warnings: [码], ir }；
@@ -389,12 +392,13 @@ function tsResolveOne({ parseSource, resolveAndLowerChecked, NameResolutionError
     const syntax = parsed.diagnostics.find((d) => d.severity === 'error');
     if (syntax) return { ok: false, stage: 'syntax', err: syntax.message, crash: false };
     const resolved = resolveAndLowerChecked(parsed.ast, scopes);
-    return { ok: true, warnings: resolved.diagnostics.map((d) => d.code), ir: resolved.core };
+    return { ok: true, warnings: resolved.diagnostics.map((d) => d.code), locs: locsOf(resolved.diagnostics), ir: resolved.core };
   } catch (e) {
     if (e instanceof NameResolutionError) {
       return {
         ok: false, stage: 'resolve', crash: false,
         codes: e.diagnostics.map((d) => d.code),
+        locs: locsOf(e.diagnostics),
         err: e.diagnostics.map((d) => `${d.code} ${d.message}`).join('; '),
       };
     }
@@ -486,8 +490,9 @@ function classifyVocabSamples(tsRes, javaRes, samples) {
   return samples.map(({ rel, abs }) => {
     const ts = tsRes[rel] || { ok: false, err: 'missing in ts result' };
     const java = javaRes[rel] || { ok: false, err: 'missing in java result' };
-    const expectWarnings = readMeta(abs)?.expectWarnings ?? null;
-    const { verdict, reason } = judgeVocabSample({ ts, java, expectWarnings });
+    const meta = readMeta(abs);
+    const expectWarnings = meta?.expectWarnings ?? null;
+    const { verdict, reason } = judgeVocabSample({ ts, java, expectWarnings, compareLines: meta?.compareDiagnosticLines === true });
     return {
       path: rel, vocab: true, ts: ts.ok, java: java.ok, verdict, reason,
       tsWarnings: ts.warnings ?? null, javaWarnings: java.warnings ?? null,
@@ -501,8 +506,9 @@ function classifyVocabRejects(tsRes, javaRes, rejects) {
   return rejects.map(({ rel, abs }) => {
     const ts = tsRes[rel] || { ok: false, stage: 'crash', err: 'missing in ts result' };
     const java = javaRes[rel] || { ok: false, stage: 'crash', err: 'missing in java result' };
-    const expectCode = readMeta(abs)?.expectCode ?? null;
-    const { verdict, reason } = judgeVocabReject({ ts, java, expectCode });
+    const meta = readMeta(abs);
+    const expectCode = meta?.expectCode ?? null;
+    const { verdict, reason } = judgeVocabReject({ ts, java, expectCode, compareLines: meta?.compareDiagnosticLines === true });
     return {
       path: rel, vocab: true, verdict, reason, expectCode,
       ts: ts.ok, tsCodes: ts.codes ?? null, tsErr: ts.err || null,
@@ -649,11 +655,11 @@ function runJavaIr(samples, { full = IR_FULL } = {}) {
     } else if (!rec.ok) {
       const error = rec.error || 'unknown Java error';
       // stage/codes 供带词汇样本的 parse 门判定（语法错误 / 名称解析错误 / 其它异常）
-      results[rel] = { ok: false, stage: rec.stage || 'crash', codes: rec.codes, error, err: error };
+      results[rel] = { ok: false, stage: rec.stage || 'crash', codes: rec.codes, locs: rec.locs, error, err: error };
     } else {
       results[rel] = full
-        ? { ok: true, ir: rec.ir, warnings: rec.diagnostics || [] }
-        : { ok: true, fingerprint: rec.fingerprint, warnings: rec.diagnostics || [] };
+        ? { ok: true, ir: rec.ir, warnings: rec.diagnostics || [], locs: rec.locs }
+        : { ok: true, fingerprint: rec.fingerprint, warnings: rec.diagnostics || [], locs: rec.locs };
     }
   }
 
@@ -718,15 +724,15 @@ function diffFingerprints(tsFp, javaFp) {
 //   因为它不止服务本门禁：ADR 0037 的 contentHash、未来的 MappingIR verifier
 //   都必须用**同一套**规则，否则会出现「门禁说一致、contentHash 说不一致」
 //   且两边都不报错的单源漂移。规则本身**原样未改**。
-import { normalizeIr as normalizeIrShared } from '../packages/js/src/ir-normalize.ts';
+import { normalizeForParity } from './lib/ir-normalize-parity.mjs';
 
 // originMode 仍由本脚本从 env 读取（库不依赖进程环境），再显式传入。
 const IR_ORIGIN_MODE = process.env.ASTER_IR_ORIGIN_MODE || 'file+line';
 
-// ADR 0051 §4：parity 比较 origin.written/role（两引擎须在同一位置记录同一原写法与角色）；
-// contentHash 不经此处，保持默认 includeResolution=false。
+// ADR 0051 §4：parity 比较 origin.written/role（两引擎须在同一位置记录同一原写法与角色，
+// 含签名与字段类型上的记录）；选项固定在 lib/ir-normalize-parity.mjs，contentHash 不经此处。
 function normalizeIr(node) {
-  return normalizeIrShared(node, { originMode: IR_ORIGIN_MODE, includeResolution: true });
+  return normalizeForParity(node, IR_ORIGIN_MODE);
 }
 
 /**

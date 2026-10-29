@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "workflow 的 compensate：前两个 step 带补偿块，最后一个没有（compensate 缺省时两引擎都不输出该键）。依赖 aster-lang-core#218 / #219",
+  "evalExempt": true,
+  "evalExemptReason": "effects",
+  "evalExemptDetail": "workflow 声明 It performs io：副作用推断 / 强制属编译期关注，运行时无确定性输出可作 golden"
+}
