@@ -1,0 +1,17 @@
+{
+  "entry": "summe",
+  "cases": [
+    {
+      "name": "age-plus-vehicle-age",
+      "input": [
+        {
+          "age": 30
+        },
+        {
+          "vehicleAge": 5
+        }
+      ],
+      "expectedOutput": 35
+    }
+  ]
+}

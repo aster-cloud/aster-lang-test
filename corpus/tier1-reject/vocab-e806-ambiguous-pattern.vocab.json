@@ -1,0 +1,47 @@
+{
+  "id": "parity.vocab.e806-ambiguous-pattern",
+  "name": "未知主语下的歧义成员模式",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Level",
+      "localized": "Stufe",
+      "kind": "struct"
+    },
+    {
+      "canonical": "Priority",
+      "localized": "Rang",
+      "kind": "struct"
+    }
+  ],
+  "fields": [],
+  "functions": [],
+  "enumValues": [
+    {
+      "canonical": "High",
+      "localized": "Hoch",
+      "kind": "enum_value",
+      "parent": "Level"
+    },
+    {
+      "canonical": "Low",
+      "localized": "Niedrig",
+      "kind": "enum_value",
+      "parent": "Level"
+    },
+    {
+      "canonical": "Top",
+      "localized": "Hoch",
+      "kind": "enum_value",
+      "parent": "Priority"
+    },
+    {
+      "canonical": "Normal",
+      "localized": "Normal",
+      "kind": "enum_value",
+      "parent": "Priority"
+    }
+  ],
+  "literals": []
+}

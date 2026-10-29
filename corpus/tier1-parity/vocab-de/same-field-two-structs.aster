@@ -1,0 +1,8 @@
+Modul versicherung.alter.
+
+Definiere Fahrer hat alter als Ganzzahl.
+
+Definiere Fahrzeug hat alter als Ganzzahl.
+
+Regel summe gegeben fahrer als Fahrer, wagen als Fahrzeug, liefert Ganzzahl:
+  gib zurueck fahrer.alter plus wagen.alter.

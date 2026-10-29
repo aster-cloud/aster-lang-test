@@ -1,0 +1,18 @@
+Modul versicherung.vergleich.
+
+Definiere Stufe als eines von Hoch, Niedrig.
+
+Definiere Fahrer hat stufe als Stufe.
+
+Regel einstufen gegeben x als Ganzzahl, liefert Stufe:
+  wenn x groesser als 10:
+    gib zurueck Stufe.Hoch.
+  gib zurueck Stufe.Niedrig.
+
+Regel zuschlag gegeben x als Ganzzahl, liefert Ganzzahl:
+  sei d gleich Fahrer mit stufe setze auf einstufen(x).
+  wenn d.stufe entspricht Hoch:
+    gib zurueck 100.
+  wenn Niedrig entspricht d.stufe:
+    gib zurueck 1.
+  gib zurueck 0.

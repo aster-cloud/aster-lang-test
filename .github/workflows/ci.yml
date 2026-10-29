@@ -158,6 +158,11 @@ jobs:
               # must-reject（双引擎都必须拒绝）判定与 manifest 守卫及其快测。
               - 'scripts/lib/must-reject.mjs'
               - 'scripts/test-must-reject.mjs'
+              # 语料自带词汇（ADR 0051）的 manifest 形态 / 守卫 / 判定，与 envelope 共享向量及其快测。
+              - 'scripts/lib/vocab-corpus.mjs'
+              - 'scripts/test-vocab-corpus.mjs'
+              - 'corpus/shared-vectors/**'
+              - 'scripts/test-envelope-vectors.mjs'
               - 'scripts/coverage-report.py'
               - 'scripts/test-coverage-report.mjs'
               - 'scripts/lib/golden-overwrite.mjs'
@@ -346,6 +351,20 @@ jobs:
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         run: node scripts/test-must-reject.mjs
+
+      # 语料自带词汇（ADR 0051 §8）：词汇文件须被认领、带词汇正例要求两侧警告码一致、
+      # 负例要求两侧在名称解析阶段以同码拒绝。判定回归会让「词汇没传到某一侧」静默变绿。
+      - name: Run vocabulary-corpus guard regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-vocab-corpus.mjs
+
+      # envelope 5 段共享向量（ADR 0051 §7）：独立重算哈希，并用已构建的 aster-lang-ts
+      # 核对 canonicalScopesJson(buildVocabularyScopes(vocabulary)) === scopesJson。
+      - name: Run envelope shared-vector self-check
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-envelope-vectors.mjs
 
       # 覆盖率统计的 cases 归属必须与 eval 门同判据（精确文件名，issue #130），
       # 否则「度量说已覆盖、门禁没跑」会再次出现。

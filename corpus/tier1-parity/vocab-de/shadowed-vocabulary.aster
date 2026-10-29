@@ -1,0 +1,7 @@
+Modul versicherung.schatten.
+
+Regel gesamt gegeben x als Ganzzahl, liefert Ganzzahl:
+  gib zurueck x mal 2.
+
+Regel rechnen gegeben gesamt als Ganzzahl, liefert Ganzzahl:
+  gib zurueck gesamt plus 1.

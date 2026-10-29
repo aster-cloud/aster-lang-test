@@ -1,0 +1,11 @@
+Modul versicherung.einstufung.
+
+Definiere Stufe als eines von Hoch, Niedrig.
+
+Regel hoch gegeben x als Ganzzahl, liefert Ganzzahl:
+  gib zurueck x.
+
+Regel einstufen gegeben x als Ganzzahl, liefert Stufe:
+  wenn x groesser als 10:
+    gib zurueck Stufe.Hoch.
+  gib zurueck Stufe.Niedrig.

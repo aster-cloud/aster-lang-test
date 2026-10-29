@@ -1,0 +1,6 @@
+Modul versicherung.import.
+
+verwende mock.remote als R.
+
+Regel rechnen gegeben x als Ganzzahl, liefert Ganzzahl:
+  gib zurueck R.gesamt(x).

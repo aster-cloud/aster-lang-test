@@ -1,0 +1,8 @@
+Modul versicherung.alter.
+
+Definiere Fahrer hat alter als Ganzzahl.
+
+Definiere Fahrzeug hat alter als Ganzzahl.
+
+Regel lesen gegeben x, liefert Ganzzahl:
+  gib zurueck x.alter.

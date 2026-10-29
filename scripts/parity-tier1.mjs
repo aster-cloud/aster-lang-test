@@ -51,6 +51,9 @@ import { upsertDailyHistory } from './lib/history.mjs';
 import { collectEvalCaseProblem, entryForCase, expectsError } from './lib/eval-cases.mjs';
 import { inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
 import { MUST_REJECT_DIR, judgeMustReject, javaRejection, checkMustRejectManifest } from './lib/must-reject.mjs';
+import {
+  VOCAB_SUFFIX, VOCAB_SAMPLE_DIR, vocabPathOf, casesPathOf, normalizeEntries, checkVocabCorpus, judgeVocabSample, judgeVocabReject,
+} from './lib/vocab-corpus.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -107,16 +110,23 @@ function loadManifest() {
   if (!Array.isArray(manifest.samples) || manifest.samples.length === 0) {
     fail('manifest.samples must be a non-empty array');
   }
-  return manifest;
+  // 条目为路径字符串或 { path, vocab: true }（ADR 0051 语料自带词汇，见 lib/vocab-corpus.mjs）
+  const samples = normalizeEntries(manifest.samples, 'samples');
+  const mustReject = normalizeEntries(manifest.mustReject, 'mustReject');
+  const problems = [...samples.problems, ...mustReject.problems];
+  if (problems.length > 0) fail(`manifest entries are malformed:\n  - ${problems.join('\n  - ')}`);
+  return { raw: manifest, samples: samples.entries, mustReject: mustReject.entries };
 }
 
-function resolveSamples(rels) {
+const relsOf = (entries) => entries.map((e) => e.rel);
+
+function resolveSamples(entries) {
   const out = [];
   const missing = [];
-  for (const rel of rels) {
+  for (const { rel, vocab } of entries) {
     const abs = join(CORPUS, rel);
     if (existsSync(abs)) {
-      out.push({ rel, abs });
+      out.push({ rel, abs, vocabPath: vocab ? vocabPathOf(abs) : null });
     } else {
       missing.push(rel);
     }
@@ -148,7 +158,7 @@ function assertAllPoliciesInManifest(manifest) {
   if (!existsSync(dir)) return;
   const onDisk = readdirSync(dir).filter((f) => f.endsWith('.aster'));
   const inManifest = new Set(
-    manifest.samples.map((rel) => basename(rel).replace(/\.aster$/, '')),
+    relsOf(manifest.samples).map((rel) => basename(rel).replace(/\.aster$/, '')),
   );
   const orphans = onDisk
     .map((f) => f.replace(/\.aster$/, ''))
@@ -181,7 +191,7 @@ function assertNoOrphanCaseFiles(manifest) {
   const dir = join(CORPUS, 'tier1-equivalence', 'inputs');
   if (!existsSync(dir)) return;
   const loadable = new Set(
-    manifest.samples.map((rel) => basename(rel).replace(/\.aster$/, '')),
+    relsOf(manifest.samples).map((rel) => basename(rel).replace(/\.aster$/, '')),
   );
   const orphans = readdirSync(dir)
     .filter((f) => f.endsWith('.cases.json'))
@@ -207,14 +217,53 @@ function assertMustRejectManifest(manifest) {
     ? readdirSync(dir).filter((f) => f.endsWith('.aster')).map((f) => `${MUST_REJECT_DIR}/${f}`)
     : [];
   const problems = checkMustRejectManifest({
-    mustReject: manifest.mustReject,
-    samples: manifest.samples,
+    mustReject: relsOf(manifest.mustReject),
+    samples: relsOf(manifest.samples),
     onDisk,
     metaOf: (rel) => readMeta(join(CORPUS, rel)),
   });
   if (problems.length > 0) {
     fail(`manifest.mustReject is inconsistent:\n  - ${problems.join('\n  - ')}`);
   }
+}
+
+/** 递归列出 corpus/<dir> 下以 suffix 结尾的文件（相对 corpus/）。 */
+function listCorpusFiles(dir, suffix) {
+  const root = join(CORPUS, dir);
+  if (!existsSync(root)) return [];
+  return readdirSync(root, { recursive: true })
+    .map(String)
+    .filter((f) => f.endsWith(suffix))
+    .map((f) => `${dir}/${f.split('\\').join('/')}`)
+    .sort();
+}
+
+/**
+ * 守卫四：语料自带词汇（ADR 0051 §8）。词汇文件必须被某个 `vocab: true` 条目认领，
+ * `vocab: true` 条目必须有词汇文件，tier1-parity/ 下的样本必须登记，带词汇的必拒样本须声明 expectCode。
+ * 与守卫一同理：没被认领的词汇文件意味着引擎从未见过它，门禁却照样全绿。
+ */
+function assertVocabCorpus(manifest) {
+  const problems = checkVocabCorpus({
+    samples: manifest.samples,
+    mustReject: manifest.mustReject,
+    vocabOnDisk: [
+      ...listCorpusFiles('tier1-equivalence', VOCAB_SUFFIX),
+      ...listCorpusFiles(VOCAB_SAMPLE_DIR, VOCAB_SUFFIX),
+      ...listCorpusFiles(MUST_REJECT_DIR, VOCAB_SUFFIX),
+    ],
+    parityAsterOnDisk: listCorpusFiles(VOCAB_SAMPLE_DIR, '.aster'),
+    parityCasesOnDisk: listCorpusFiles(VOCAB_SAMPLE_DIR, '.cases.json'),
+    metaOf: (rel) => readMeta(join(CORPUS, rel)),
+  });
+  if (problems.length > 0) {
+    fail(`vocabulary-carrying corpus is inconsistent:\n  - ${problems.join('\n  - ')}`);
+  }
+}
+
+/** 读取样本的词汇（DomainVocabulary JSON）；无词汇样本返回 undefined。 */
+function readVocab(sample) {
+  return sample.vocabPath ? JSON.parse(readFileSync(sample.vocabPath, 'utf8')) : undefined;
 }
 
 function readMeta(abs) {
@@ -296,6 +345,66 @@ function tsParseOne({ canonicalize, lex, parse, parseWithLexicon }, src, lexObj)
   }
 }
 
+/**
+ * TS 侧经名称解析的编译（ADR 0051）：parseSource（关键词规范化 + 字面量宏）→ R1 → lower → R2，
+ * 词汇（若样本自带）与样本声明的词法表同时传入。返回 { rel → 结果 }，结果形状见 tsResolveOne。
+ * 只用包入口的带检查出口 resolveAndLowerChecked（原始 lowerModule 不是公开 API）。
+ */
+async function runTsResolve(samples) {
+  const distIndex = join(TS_REPO, 'dist', 'src', 'index.js');
+  if (!existsSync(distIndex)) {
+    fail(`aster-lang-ts not built. Run: cd ${TS_REPO} && pnpm build`);
+  }
+  const mod = await import(distIndex);
+  if (!mod.parseSource || !mod.resolveAndLowerChecked || !mod.NameResolutionError || !mod.buildVocabularyScopes) {
+    fail('aster-lang-ts is missing expected exports (parseSource/resolveAndLowerChecked/NameResolutionError/buildVocabularyScopes)');
+  }
+  const lexicons = await loadTsLexicons(mod);
+  const results = {};
+  for (const sample of samples) {
+    results[sample.rel] = tsResolveOne(mod, readFileSync(sample.abs, 'utf8'), tsLexiconFor(lexicons, sample), readVocab(sample));
+  }
+  return results;
+}
+
+/** 样本声明的 TS 词法表对象；en-US 为 undefined（默认路径）。 */
+function tsLexiconFor(lexicons, { rel, abs }) {
+  const lexName = lexiconOf(abs);
+  const lexObj = lexicons[lexName];
+  if (!lexObj && lexName !== 'en-US') {
+    fail(`sample ${rel} declares lexicon "${lexName}" but it could not be loaded from aster-lang-ts`);
+  }
+  return lexObj;
+}
+
+/**
+ * 单个样本经解析 + 名称解析的结果：
+ *   成功 { ok: true, warnings: [码], ir }；
+ *   失败 { ok: false, stage: 'syntax' | 'resolve' | 'crash', codes?: [错误码], err, crash }。
+ */
+function tsResolveOne({ parseSource, resolveAndLowerChecked, NameResolutionError, buildVocabularyScopes }, src, lexObj, vocab) {
+  try {
+    const scopes = vocab ? buildVocabularyScopes(vocab) : undefined;
+    const parsed = parseSource(src, lexObj, scopes);
+    const syntax = parsed.diagnostics.find((d) => d.severity === 'error');
+    if (syntax) return { ok: false, stage: 'syntax', err: syntax.message, crash: false };
+    const resolved = resolveAndLowerChecked(parsed.ast, scopes);
+    return { ok: true, warnings: resolved.diagnostics.map((d) => d.code), ir: resolved.core };
+  } catch (e) {
+    if (e instanceof NameResolutionError) {
+      return {
+        ok: false, stage: 'resolve', crash: false,
+        codes: e.diagnostics.map((d) => d.code),
+        err: e.diagnostics.map((d) => `${d.code} ${d.message}`).join('; '),
+      };
+    }
+    const err = e && e.message ? e.message : String(e);
+    return e?.diagnostic
+      ? { ok: false, stage: 'syntax', err, crash: false }
+      : { ok: false, stage: 'crash', err, crash: true };
+  }
+}
+
 function runJavaParse(samples) {
   // 调 aster-lang-core 的 TsSampleParseInventoryTest。输出解析与逐样本判定与
   // equivalence-nightly.mjs 共用 lib/java-inventory.mjs（单一事实源，见该文件头注）。
@@ -372,6 +481,36 @@ function classifyMustReject(tsRes, javaRes, rejects) {
   });
 }
 
+/** 带词汇正例：两侧解析 + 名称解析都成功且警告码一致（见 lib/vocab-corpus.mjs）。 */
+function classifyVocabSamples(tsRes, javaRes, samples) {
+  return samples.map(({ rel, abs }) => {
+    const ts = tsRes[rel] || { ok: false, err: 'missing in ts result' };
+    const java = javaRes[rel] || { ok: false, err: 'missing in java result' };
+    const expectWarnings = readMeta(abs)?.expectWarnings ?? null;
+    const { verdict, reason } = judgeVocabSample({ ts, java, expectWarnings });
+    return {
+      path: rel, vocab: true, ts: ts.ok, java: java.ok, verdict, reason,
+      tsWarnings: ts.warnings ?? null, javaWarnings: java.warnings ?? null,
+      tsErr: ts.err || null, javaErr: java.err || null,
+    };
+  });
+}
+
+/** 带词汇必拒样本：两侧都在名称解析阶段以同一组错误码拒绝，且包含 meta.expectCode。 */
+function classifyVocabRejects(tsRes, javaRes, rejects) {
+  return rejects.map(({ rel, abs }) => {
+    const ts = tsRes[rel] || { ok: false, stage: 'crash', err: 'missing in ts result' };
+    const java = javaRes[rel] || { ok: false, stage: 'crash', err: 'missing in java result' };
+    const expectCode = readMeta(abs)?.expectCode ?? null;
+    const { verdict, reason } = judgeVocabReject({ ts, java, expectCode });
+    return {
+      path: rel, vocab: true, verdict, reason, expectCode,
+      ts: ts.ok, tsCodes: ts.codes ?? null, tsErr: ts.err || null,
+      java: java.ok, javaCodes: java.codes ?? null, javaErr: java.err || null,
+    };
+  });
+}
+
 function printMustReject(rows) {
   const bad = rows.filter((r) => r.verdict !== 'rejected');
   console.log(`## Must-reject samples (both engines must report a parse error)\n`);
@@ -419,45 +558,20 @@ function buildFingerprint(coreModule) {
 }
 
 /**
- * Run the TS pipeline through to lowering for every manifest sample,
- * and return a map { relPath → { ok, fingerprint?, error? } }.
+ * Run the TS pipeline through name resolution (R1 → lower → R2) for EVERY
+ * manifest sample — not only vocabulary samples — so English no-vocabulary
+ * regressions in name resolution are caught by the same gate as the Java
+ * side (CoreIrFingerprintCli also runs R1/R2 for every sample).
+ * Returns { relPath → { ok, fingerprint? | ir?, error? } }.
  */
 async function runTsIr(samples) {
-  const distIndex = join(TS_REPO, 'dist', 'src', 'index.js');
-  if (!existsSync(distIndex)) {
-    fail(`aster-lang-ts not built. Run: cd ${TS_REPO} && pnpm build`);
-  }
-  const mod = await import(distIndex);
-  const { canonicalize, lex, parse, lowerModule } = mod;
-  if (!canonicalize || !lex || !parse || !lowerModule) {
-    fail('aster-lang-ts missing exports (canonicalize/lex/parse/lowerModule)');
-  }
-
+  const resolved = await runTsResolve(samples);
   const results = {};
-  for (const { rel, abs } of samples) {
-    try {
-      const src = readFileSync(abs, 'utf8');
-      const canonical = canonicalize(src);
-      const tokens = lex(canonical);
-      const { ast, diagnostics } = parse(tokens);
-      if (diagnostics && diagnostics.some((d) => d.severity === 'error')) {
-        results[rel] = {
-          ok: false,
-          error: diagnostics.find((d) => d.severity === 'error').message,
-        };
-        continue;
-      }
-      if (!ast) {
-        results[rel] = { ok: false, error: 'parse returned no AST' };
-        continue;
-      }
-      const core = lowerModule(ast);
-      results[rel] = IR_FULL
-        ? { ok: true, ir: core }
-        : { ok: true, fingerprint: buildFingerprint(core) };
-    } catch (e) {
-      results[rel] = { ok: false, error: e && e.message ? e.message : String(e) };
-    }
+  for (const { rel } of samples) {
+    const r = resolved[rel];
+    results[rel] = !r.ok
+      ? { ok: false, error: r.err }
+      : IR_FULL ? { ok: true, ir: r.ir } : { ok: true, fingerprint: buildFingerprint(r.ir) };
   }
   return results;
 }
@@ -469,7 +583,7 @@ async function runTsIr(samples) {
  * circuits to a no-op when the system properties aren't set, so it
  * coexists with normal `./gradlew test` runs without side effects.
  */
-function runJavaIr(samples) {
+function runJavaIr(samples, { full = IR_FULL } = {}) {
   // Build the temp input/output paths. We use sample ABSOLUTE paths so
   // the Java side can read them without any corpus-resolution dance.
   const tmpRoot = mkdtempSync(join(tmpdir(), 'parity-ir-'));
@@ -479,7 +593,11 @@ function runJavaIr(samples) {
   // the local checkout. Use those absolute paths so Java reads exactly
   // the bytes the manifest declares, with no stale-Maven dependency
   // (the same blind spot the parse mode's coverage check defends).
-  writeFileSync(inputFile, samples.map((s) => s.abs).join('\n') + '\n');
+  // 带词汇样本写成 JSON 行（路径 + 词法表 + 词汇文件），CoreIrFingerprintCli 据此规范化关键词并做名称解析。
+  const lineOf = (s) => (s.vocabPath
+    ? JSON.stringify({ path: s.abs, lexicon: lexiconOf(s.abs), vocabulary: s.vocabPath })
+    : s.abs);
+  writeFileSync(inputFile, samples.map(lineOf).join('\n') + '\n');
 
   const result = spawnSync(
     './gradlew',
@@ -491,7 +609,7 @@ function runJavaIr(samples) {
       '-i',
       `-Dparity.ir.input=${inputFile}`,
       `-Dparity.ir.output=${outputFile}`,
-      ...(IR_FULL ? ['-Dparity.ir.full=true'] : []),
+      ...(full ? ['-Dparity.ir.full=true'] : []),
     ],
     { cwd: CORE_REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
   );
@@ -527,13 +645,15 @@ function runJavaIr(samples) {
   for (const { rel, abs } of samples) {
     const rec = byAbs.get(abs);
     if (!rec) {
-      results[rel] = { ok: false, error: 'no fingerprint record for sample' };
+      results[rel] = { ok: false, stage: 'crash', error: 'no fingerprint record for sample', err: 'no fingerprint record for sample' };
     } else if (!rec.ok) {
-      results[rel] = { ok: false, error: rec.error || 'unknown Java error' };
+      const error = rec.error || 'unknown Java error';
+      // stage/codes 供带词汇样本的 parse 门判定（语法错误 / 名称解析错误 / 其它异常）
+      results[rel] = { ok: false, stage: rec.stage || 'crash', codes: rec.codes, error, err: error };
     } else {
-      results[rel] = IR_FULL
-        ? { ok: true, ir: rec.ir }
-        : { ok: true, fingerprint: rec.fingerprint };
+      results[rel] = full
+        ? { ok: true, ir: rec.ir, warnings: rec.diagnostics || [] }
+        : { ok: true, fingerprint: rec.fingerprint, warnings: rec.diagnostics || [] };
     }
   }
 
@@ -603,8 +723,10 @@ import { normalizeIr as normalizeIrShared } from '../packages/js/src/ir-normaliz
 // originMode 仍由本脚本从 env 读取（库不依赖进程环境），再显式传入。
 const IR_ORIGIN_MODE = process.env.ASTER_IR_ORIGIN_MODE || 'file+line';
 
-function normalizeIr(node, kind) {
-  return normalizeIrShared(node, kind, IR_ORIGIN_MODE);
+// ADR 0051 §4：parity 比较 origin.written/role（两引擎须在同一位置记录同一原写法与角色）；
+// contentHash 不经此处，保持默认 includeResolution=false。
+function normalizeIr(node) {
+  return normalizeIrShared(node, { originMode: IR_ORIGIN_MODE, includeResolution: true });
 }
 
 /**
@@ -807,10 +929,13 @@ function collectEvalRequests(samples) {
   // scripts/lib/eval-cases.mjs（单一事实源，防漂移）。豁免样本（meta.evalExempt=true）本就
   // 不需要 golden（走 derived-analysis 结构比对），跳过合法。
   const problems = []; // { rel, why }
-  for (const { rel, abs } of samples) {
+  for (const { rel, abs, vocabPath } of samples) {
     const isExempt = exemptReasonOf(abs) !== null;
     const base = abs.split('/').pop().replace(/\.aster$/, '');
-    const casesPath = join(CORPUS, 'tier1-equivalence', 'inputs', `${base}.cases.json`);
+    // 带词汇样本的 golden 在样本目录的 inputs/ 下（见 lib/vocab-corpus.mjs casesPathOf），其余在 tier1-equivalence/inputs/
+    const casesPath = vocabPath
+      ? casesPathOf(abs)
+      : join(CORPUS, 'tier1-equivalence', 'inputs', `${base}.cases.json`);
     const exists = existsSync(casesPath);
     let doc = null;
     let parseError = null;
@@ -833,6 +958,7 @@ function collectEvalRequests(samples) {
       requests.push({
         rel,
         samplePath: abs,
+        vocabPath,
         entry: entryForCase(doc, c),
         input: Array.isArray(c.input) ? c.input : [],
         caseIndex: i,
@@ -859,13 +985,18 @@ function collectEvalRequests(samples) {
  * Each spawn is fresh per request because the runner is designed for
  * one-shot use.
  */
-function runTsEval(requests) {
+async function runTsEval(requests) {
   if (!existsSync(TS_DUAL_ENGINE_RUNNER)) {
     fail(`TS dual-engine runner not found at ${TS_DUAL_ENGINE_RUNNER}. ` +
       `Run: cd ${TS_REPO} && pnpm build`);
   }
+  const vocabEval = requests.some((r) => r.vocabPath) ? await loadTsVocabEval() : null;
   const results = [];
   for (const req of requests) {
+    if (req.vocabPath) {
+      results.push({ rel: req.rel, caseIndex: req.caseIndex, ...vocabEval(req) });
+      continue;
+    }
     const source = readFileSync(req.samplePath, 'utf8');
     const stdin = JSON.stringify({ source, entry: req.entry, input: req.input });
     const proc = spawnSync('node', [TS_DUAL_ENGINE_RUNNER], {
@@ -891,6 +1022,39 @@ function runTsEval(requests) {
 }
 
 /**
+ * 带词汇请求的 TS 求值（进程内）。dual-engine-runner 的 stdin 协议只有 {source, entry, input}，
+ * 没有词法表与词汇通道；这里复用同一份 dist（browser compile + interpreter），
+ * 步骤与该 runner 逐一对应：compile → 找入口 → 元数检查 → evaluate → serializeGuestValue。
+ */
+async function loadTsVocabEval() {
+  const { compile } = await import(join(TS_REPO, 'dist', 'src', 'browser.js'));
+  const { evaluate, serializeGuestValue } = await import(join(TS_REPO, 'dist', 'src', 'core', 'interpreter.js'));
+  const lexicons = await loadTsLexicons({});
+  return (req) => {
+    const sample = { rel: req.rel, abs: req.samplePath, vocabPath: req.vocabPath };
+    const compiled = compile(readFileSync(req.samplePath, 'utf8'), {
+      lexicon: tsLexiconFor(lexicons, sample),
+      vocabulary: readVocab(sample),
+    });
+    if (!compiled.success || !compiled.core) {
+      const errors = [...(compiled.parseErrors || []), ...(compiled.resolutionDiagnostics || [])];
+      return { ok: false, error: `Compile failed: ${errors.map((e) => e.message).join('; ')}` };
+    }
+    const fn = (compiled.core.decls || []).find((d) => d.kind === 'Func' && d.name === req.entry);
+    if (!fn) return { ok: false, error: `Function '${req.entry}' not found in module` };
+    const paramNames = (fn.params || []).map((p) => p.name);
+    if (req.input.length !== paramNames.length) {
+      return { ok: false, error: `Arity mismatch for '${req.entry}': expected ${paramNames.length}, got ${req.input.length}` };
+    }
+    const context = Object.fromEntries(paramNames.map((name, i) => [name, req.input[i]]));
+    const result = evaluate(compiled.core, req.entry, context);
+    if (!result.success) return { ok: false, error: result.error || null };
+    // 与 runner 一致：serializeGuestValue 按插入序输出，再按 JSON 读回
+    return { ok: true, value: JSON.parse(serializeGuestValue(result.value)), error: null };
+  };
+}
+
+/**
  * Invoke aster-lang-truffle's CoreIrEvalCli with a JSONL request file
  * and read back the per-case results. Like Phase B, this depends on
  * the gradle test task forwarding `parity.eval.*` system properties
@@ -906,6 +1070,8 @@ function runJavaEval(requests) {
       entry: req.entry,
       input: req.input,
       caseIndex: req.caseIndex,
+      // 带词汇请求：CoreIrEvalCli 按词法表规范化关键词，并以该词汇做名称解析
+      ...(req.vocabPath ? { lexicon: lexiconOf(req.samplePath), vocabulary: req.vocabPath } : {}),
     }),
   );
   writeFileSync(inputFile, lines.join('\n') + '\n');
@@ -1160,6 +1326,13 @@ function printMarkdown(rows, mode) {
     }
     console.log('');
   }
+  const vocabRows = rows.filter((r) => r.vocab);
+  const vocabBad = vocabRows.filter((r) => r.verdict !== 'pass');
+  if (vocabRows.length > 0) {
+    console.log(`## Vocabulary-carrying samples (parse + name resolution, ADR 0051): ${vocabRows.length - vocabBad.length}/${vocabRows.length} pass\n`);
+    for (const r of vocabBad) console.log(`- ${r.path} (${r.verdict}): ${(r.reason || '').slice(0, 160)}`);
+    if (vocabBad.length > 0) console.log('');
+  }
 }
 
 async function main() {
@@ -1173,6 +1346,7 @@ async function main() {
   assertAllPoliciesInManifest(manifest);
   assertNoOrphanCaseFiles(manifest);
   assertMustRejectManifest(manifest);
+  assertVocabCorpus(manifest);
   const samples = resolveSamples(manifest.samples);
   // must-reject 样本只参与 parse 门：它们没有 IR、也没有可求值的输出
   const rejects = resolveSamples(manifest.mustReject || []);
@@ -1183,14 +1357,28 @@ async function main() {
   );
 
   if (MODE === 'parse') {
+    // 带词汇样本（ADR 0051）的契约在名称解析阶段：单独走「解析 + R1/R2」两侧，见 lib/vocab-corpus.mjs
+    const plain = samples.filter((s) => !s.vocabPath);
+    const plainRejects = rejects.filter((s) => !s.vocabPath);
+    const vocabSamples = samples.filter((s) => s.vocabPath);
+    const vocabRejects = rejects.filter((s) => s.vocabPath);
+
     console.error('[parity-tier1] running TS engine ...');
-    const tsRes = await runTsParse([...samples, ...rejects]);
+    const tsRes = await runTsParse([...plain, ...plainRejects]);
 
     console.error('[parity-tier1] running Java engine (gradle, may take ~30s) ...');
-    const javaRes = runJavaParse([...samples, ...rejects]);
+    const javaRes = runJavaParse([...plain, ...plainRejects]);
 
-    const rows = classify(tsRes, javaRes, samples);
-    const rejectRows = classifyMustReject(tsRes, javaRes, rejects);
+    const rows = classify(tsRes, javaRes, plain);
+    const rejectRows = classifyMustReject(tsRes, javaRes, plainRejects);
+
+    if (vocabSamples.length + vocabRejects.length > 0) {
+      console.error(`[parity-tier1] resolving ${vocabSamples.length + vocabRejects.length} vocabulary-carrying sample(s) on both engines ...`);
+      const tsVocab = await runTsResolve([...vocabSamples, ...vocabRejects]);
+      const javaVocab = runJavaIr([...vocabSamples, ...vocabRejects], { full: false });
+      rows.push(...classifyVocabSamples(tsVocab, javaVocab, vocabSamples));
+      rejectRows.push(...classifyVocabRejects(tsVocab, javaVocab, vocabRejects));
+    }
     writeFileSync(REPORT_FILE, JSON.stringify(
       { mode: MODE, total: rows.length, rows, mustReject: rejectRows }, null, 2));
     printMarkdown(rows, MODE);
@@ -1213,7 +1401,7 @@ async function main() {
   }
 
   if (MODE === 'ir') {
-    console.error('[parity-tier1] running TS engine (canonicalize→lex→parse→lower) ...');
+    console.error('[parity-tier1] running TS engine (parse→R1→lower→R2) ...');
     const tsRes = await runTsIr(samples);
 
     console.error('[parity-tier1] running Java engine (gradle CoreIrFingerprintCli, may take ~30s) ...');
@@ -1283,7 +1471,7 @@ async function main() {
   }
 
   console.error('[parity-tier1] running TS evaluator (one subprocess per case)...');
-  const tsRes = runTsEval(requests);
+  const tsRes = await runTsEval(requests);
 
   console.error('[parity-tier1] running Java evaluator (gradle CoreIrEvalCli, may take ~1min)...');
   const javaRes = runJavaEval(requests);

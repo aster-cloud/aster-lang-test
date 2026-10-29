@@ -55,3 +55,29 @@
 
 新增必拒样本时，PR 描述须说明「为什么这是语言规定的非法输入」，而不只是「某个引擎目前拒绝它」——
 后者属于 `tier2-divergent`。
+
+## 语料自带词汇（ADR 0051 §8）
+
+领域词汇按位置解析后，同一份本地化源码的规范 IR 取决于词汇。带词汇的样本放在 `tier1-parity/vocab-<locale>/`，
+负例放在 `tier1-reject/vocab-*.aster`，每个样本旁有同名 `<case>.vocab.json`（DomainVocabulary JSON，两引擎共用的输入形态，
+每个 field / enum 值都带 parent）。manifest 条目写成 `{ "path": "...", "vocab": true }`。
+
+- 三个门都把词汇与 `meta.lexicon` 同时传给两个引擎：TS 走 `parseSource` → `resolveAndLower`（eval 用 `compile(source, { lexicon, vocabulary })`），
+  Java 走 aster-lang-core `CoreIrFingerprintCli`（JSON 输入行 `{path, lexicon, vocabulary}`）与 aster-lang-truffle `CoreIrEvalCli`
+  （请求带 `lexicon` / `vocabulary`）。
+- parse 门对带词汇样本检查「解析 + 名称解析」：正例两侧都成功且警告码一致（`meta.expectWarnings` 声明时须相同，如 `["W800"]`）；
+  负例两侧都在名称解析阶段拒绝，错误码集合相同且包含 `meta.expectCode`。不比对诊断位置（字段声明、构造字段、枚举成员处
+  Java AST 无逐项 span，位置差异已登记）。
+- eval golden 放在 `vocab-<locale>/inputs/<case>.cases.json`，不放在样本旁：JVM 包 `CorpusLoader.readCases()` 会把样本旁的
+  `.cases.json` 交给不传词汇的消费方执行。
+- 守卫（`scripts/lib/vocab-corpus.mjs`，回归测试 `node scripts/test-vocab-corpus.mjs`）：词汇文件必须被 `vocab: true` 条目认领，
+  `vocab: true` 条目必须有词汇文件，`tier1-parity/` 下的 `.aster` 与 `inputs/*.cases.json` 必须能被 manifest 加载到，
+  带词汇负例必须声明 `expectCode`。
+
+当前未覆盖的位置及原因：
+
+- FuncType：TS 解析器没有函数类型语法（`(T) -> R` 只有 Java 接受），无法写成双引擎样本。
+- workflow 步骤名：Java 语法只接受单步 workflow，单步时 IR 又多出显式 `null`，与名称解析无关；见 `IR-DIVERGENCE-LEDGER.md`。
+- 导入名遮蔽词条：CNL 中导入模块的声明只能经别名限定访问（`R.gesamt(x)`），限定前缀属于 MODULE 段、整体不参与词汇解析；
+  `vocab-de/import-alias-qualified` 锁定这一点，不存在未限定导入名与词条竞争的写法。
+- 天城文类型名：Java 词法器把天城文标识符一律归为 IDENT，不能出现在类型声明位置（既有差异），故印地语样本的类型名用拉丁写法。

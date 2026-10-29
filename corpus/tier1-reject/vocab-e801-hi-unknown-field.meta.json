@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "hi-IN",
+  "expect": "reject",
+  "expectCode": "E801",
+  "source": "ADR 0051 §4 R2 表 FIELD_REF 行（印地语）：接收者类型已知为 Customer，字段 वजन 既不在 fields[Customer] 也不是 Customer 的规范字段 → E801（UNRESOLVED_FIELD）"
+}

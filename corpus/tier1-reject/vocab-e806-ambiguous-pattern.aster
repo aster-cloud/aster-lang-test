@@ -1,0 +1,10 @@
+Modul versicherung.muster.
+
+Definiere Stufe als eines von Hoch, Niedrig.
+
+Definiere Rang als eines von Hoch, Normal.
+
+Regel wert gegeben s, liefert Ganzzahl:
+  pruefe s:
+    bei Hoch, gib zurueck 1.
+    bei andere, gib zurueck 0.

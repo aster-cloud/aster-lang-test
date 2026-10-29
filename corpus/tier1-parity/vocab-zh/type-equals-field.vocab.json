@@ -1,0 +1,41 @@
+{
+  "id": "parity.vocab.zh-type-equals-field",
+  "name": "中文类型名 = 字段名",
+  "locale": "zh-CN",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Level",
+      "localized": "等级",
+      "kind": "struct"
+    },
+    {
+      "canonical": "Customer",
+      "localized": "客户",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "points",
+      "localized": "积分",
+      "kind": "field",
+      "parent": "Level"
+    },
+    {
+      "canonical": "level",
+      "localized": "等级",
+      "kind": "field",
+      "parent": "Customer"
+    },
+    {
+      "canonical": "age",
+      "localized": "年龄",
+      "kind": "field",
+      "parent": "Customer"
+    }
+  ],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}

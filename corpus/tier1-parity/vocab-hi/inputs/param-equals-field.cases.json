@@ -1,0 +1,15 @@
+{
+  "entry": "evaluate",
+  "cases": [
+    {
+      "name": "स्तर-जोड़-आयु",
+      "input": [
+        {
+          "level": 2,
+          "age": 50
+        }
+      ],
+      "expectedOutput": 52
+    }
+  ]
+}

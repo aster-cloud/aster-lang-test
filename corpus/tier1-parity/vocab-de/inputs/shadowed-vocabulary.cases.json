@@ -1,0 +1,20 @@
+{
+  "entry": "rechnen",
+  "cases": [
+    {
+      "name": "lokal-gesamt",
+      "input": [
+        4
+      ],
+      "expectedOutput": 5
+    },
+    {
+      "name": "regel-total",
+      "entry": "total",
+      "input": [
+        4
+      ],
+      "expectedOutput": 8
+    }
+  ]
+}

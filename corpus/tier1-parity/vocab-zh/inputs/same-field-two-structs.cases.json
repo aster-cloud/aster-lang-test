@@ -1,0 +1,17 @@
+{
+  "entry": "合计",
+  "cases": [
+    {
+      "name": "年龄合计",
+      "input": [
+        {
+          "age": 40
+        },
+        {
+          "vehicleAge": 6
+        }
+      ],
+      "expectedOutput": 46
+    }
+  ]
+}

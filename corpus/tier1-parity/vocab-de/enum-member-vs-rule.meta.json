@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "ADR 0051 §1 复现 2：规则 hoch 与枚举成员 Hoch 并存，限定写法 Stufe.Hoch 解析为 Level.High，规则名解析为 high"
+}

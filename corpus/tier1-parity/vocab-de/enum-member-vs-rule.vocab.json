@@ -1,0 +1,36 @@
+{
+  "id": "parity.vocab.enum-member-vs-rule",
+  "name": "ADR 0051 §1 复现 2（限定写法）",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Level",
+      "localized": "Stufe",
+      "kind": "struct"
+    }
+  ],
+  "fields": [],
+  "functions": [
+    {
+      "canonical": "high",
+      "localized": "hoch",
+      "kind": "function"
+    }
+  ],
+  "enumValues": [
+    {
+      "canonical": "High",
+      "localized": "Hoch",
+      "kind": "enum_value",
+      "parent": "Level"
+    },
+    {
+      "canonical": "Low",
+      "localized": "Niedrig",
+      "kind": "enum_value",
+      "parent": "Level"
+    }
+  ],
+  "literals": []
+}

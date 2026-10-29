@@ -1,0 +1,36 @@
+{
+  "id": "parity.vocab.hi-param-equals-field",
+  "name": "हिन्दी 参数 = 字段名",
+  "locale": "hi-IN",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Customer",
+      "localized": "Customer",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "level",
+      "localized": "स्तर",
+      "kind": "field",
+      "parent": "Customer"
+    },
+    {
+      "canonical": "age",
+      "localized": "आयु",
+      "kind": "field",
+      "parent": "Customer"
+    }
+  ],
+  "functions": [
+    {
+      "canonical": "evaluate",
+      "localized": "मूल्यांकन",
+      "kind": "function"
+    }
+  ],
+  "enumValues": [],
+  "literals": []
+}

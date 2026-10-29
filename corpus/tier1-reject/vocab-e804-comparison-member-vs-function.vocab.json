@@ -1,0 +1,48 @@
+{
+  "id": "parity.vocab.e804-comparison-member-vs-function",
+  "name": "ADR 0051 R49 比较操作数：成员与词汇函数同写法",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Level",
+      "localized": "Stufe",
+      "kind": "struct"
+    },
+    {
+      "canonical": "Driver",
+      "localized": "Fahrer",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "level",
+      "localized": "stufe",
+      "kind": "field",
+      "parent": "Driver"
+    }
+  ],
+  "functions": [
+    {
+      "canonical": "high",
+      "localized": "hoch",
+      "kind": "function"
+    }
+  ],
+  "enumValues": [
+    {
+      "canonical": "High",
+      "localized": "Hoch",
+      "kind": "enum_value",
+      "parent": "Level"
+    },
+    {
+      "canonical": "Low",
+      "localized": "Niedrig",
+      "kind": "enum_value",
+      "parent": "Level"
+    }
+  ],
+  "literals": []
+}

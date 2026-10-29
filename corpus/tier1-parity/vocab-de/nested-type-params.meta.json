@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "TYPE 位置的嵌套类型参数（List of Stufe、Map Text to Stufe）按词汇解析为 Level（ADR 0051 §5 TypeName 行）"
+}

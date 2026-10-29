@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "evalExempt": true,
+  "evalExemptReason": "导入的 mock.remote 模块不存在于语料中，无法执行；本例只锁定 IR",
+  "source": "经导入别名限定的调用 R.gesamt：限定前缀属于 MODULE 段，整个点分名不参与词汇解析（gesamt 不改写为 total）。CNL 中导入声明只能经别名限定访问，不存在未限定的导入名与词条竞争的写法（ADR 0051 §5 Module/Import 行）"
+}

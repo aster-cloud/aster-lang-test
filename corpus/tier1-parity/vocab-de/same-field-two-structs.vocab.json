@@ -1,0 +1,35 @@
+{
+  "id": "parity.vocab.same-field-two-structs",
+  "name": "ADR 0051 §1 复现 4",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Driver",
+      "localized": "Fahrer",
+      "kind": "struct"
+    },
+    {
+      "canonical": "Vehicle",
+      "localized": "Fahrzeug",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "age",
+      "localized": "alter",
+      "kind": "field",
+      "parent": "Driver"
+    },
+    {
+      "canonical": "vehicleAge",
+      "localized": "alter",
+      "kind": "field",
+      "parent": "Vehicle"
+    }
+  ],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}

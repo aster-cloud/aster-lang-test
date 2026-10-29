@@ -69,7 +69,7 @@ const DEFAULT_ORIGIN_MODE = 'file+line';
  * Normalize one `origin` object according to originMode.
  * Returns undefined when origin should be dropped entirely.
  */
-function normalizeOrigin(origin: any, originMode: string = DEFAULT_ORIGIN_MODE): any {
+function normalizeOrigin(origin: any, originMode: string = DEFAULT_ORIGIN_MODE, includeResolution = false): any {
   if (originMode === 'off') return undefined;
   if (origin === null || typeof origin !== 'object') return origin;
   const out: Record<string, any> = {};
@@ -85,6 +85,13 @@ function normalizeOrigin(origin: any, originMode: string = DEFAULT_ORIGIN_MODE):
     // noisy today. Dropping it here keeps `line` genuinely guarded meanwhile.
     if (originMode === 'strict') norm.col = p.col;
     out[endpoint] = norm;
+  }
+  // ADR 0051 §4：written/role 是名称解析的旁路记录，只在 parity 比较时保留；
+  // contentHash 走默认路径不含它们，保证语义哈希与引入该字段前逐字节相同。
+  // 两引擎都只在 written !== canonical 时写出，缺省即不出现，不做补齐。
+  if (includeResolution) {
+    if (origin.written !== undefined) out.written = origin.written;
+    if (origin.role !== undefined) out.role = origin.role;
   }
   return out;
 }
@@ -144,8 +151,24 @@ function foldAnnotationArgs(node: any): any {
  * field-comparable: drop ignored fields, apply the alias table, treat a missing
  * field as an empty array/false default, and sort order-insensitive collections.
  */
-function normalizeIr(node: any, kind?: string, originMode: string = DEFAULT_ORIGIN_MODE): any {
-  if (Array.isArray(node)) return node.map((n) => normalizeIr(n, kind, originMode));
+/**
+ * 归一化选项。
+ * - originMode：origin 的比较粒度，见上文分阶段收紧说明。
+ * - includeResolution：是否保留 origin.written/role（ADR 0051）。parity 门禁传 true，
+ *   以比较两引擎记录的原写法与角色；contentHash 保持默认 false。
+ */
+interface NormalizeOptions {
+  readonly originMode?: string;
+  readonly includeResolution?: boolean;
+}
+
+function normalizeIr(node: any, options: NormalizeOptions = {}): any {
+  const { originMode = DEFAULT_ORIGIN_MODE, includeResolution = false } = options;
+  return normalizeNode(node, undefined, { originMode, includeResolution });
+}
+
+function normalizeNode(node: any, kind: string | undefined, opts: Required<NormalizeOptions>): any {
+  if (Array.isArray(node)) return node.map((n) => normalizeNode(n, kind, opts));
   if (node === null || typeof node !== 'object') return node;
   node = foldAnnotationArgs(node);
 
@@ -155,12 +178,12 @@ function normalizeIr(node: any, kind?: string, originMode: string = DEFAULT_ORIG
     if (IR_IGNORE_FIELDS.has(key)) continue;
     if (IR_INFERENCE_FIELDS.has(key)) continue; // derived analysis state — out of scope
     if (key === 'origin') {
-      const norm = normalizeOrigin(val, originMode);
+      const norm = normalizeOrigin(val, opts.originMode, opts.includeResolution);
       if (norm !== undefined) out.origin = norm;
       continue;
     }
     const aliased = IR_FIELD_ALIASES[`${k}.${key}`] || key;
-    out[aliased] = normalizeIr(val, k, originMode);
+    out[aliased] = normalizeNode(val, k, opts);
   }
   // Declared effects: TS calls the field `declaredEffects` and preserves the
   // source casing (`IO`); Java calls it `effects` and lowercases (`io`). Same
@@ -238,5 +261,6 @@ function nodeMayHave(kind: string | undefined, out: any, field: string): boolean
   return false;
 }
 
+export type { NormalizeOptions };
 export { normalizeIr, normalizeOrigin, nodeMayHave, DEFAULT_ORIGIN_MODE,
          IR_IGNORE_FIELDS, IR_INFERENCE_FIELDS, IR_FIELD_ALIASES };

@@ -1,0 +1,17 @@
+{
+  "entry": "bewerten",
+  "cases": [
+    {
+      "name": "stufe-punkte-plus-alter",
+      "input": [
+        {
+          "level": {
+            "points": 3
+          },
+          "age": 40
+        }
+      ],
+      "expectedOutput": 43
+    }
+  ]
+}

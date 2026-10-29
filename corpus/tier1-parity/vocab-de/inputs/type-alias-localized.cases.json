@@ -1,0 +1,12 @@
+{
+  "entry": "erhoehen",
+  "cases": [
+    {
+      "name": "plus-eins",
+      "input": [
+        5
+      ],
+      "expectedOutput": 6
+    }
+  ]
+}

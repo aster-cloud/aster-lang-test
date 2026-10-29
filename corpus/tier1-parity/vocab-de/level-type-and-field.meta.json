@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "ADR 0051 §1 复现 1（类型 Stufe 与字段 stufe 并存）与复现 3（参数 fahrer 与类型 Fahrer 同词，参数不被改写）"
+}

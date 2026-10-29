@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "expect": "reject",
+  "expectCode": "E806",
+  "source": "ADR 0051 §4 R2 表 PatternCtor 行：主语 s 未注解（未知），模式 Hoch 精确命中 Level.High 与 Priority.Top 两个不同规范成员 → E806（AMBIGUOUS_PATTERN）"
+}

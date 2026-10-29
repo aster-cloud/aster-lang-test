@@ -1,0 +1,14 @@
+{
+  "entry": "kosten",
+  "cases": [
+    {
+      "name": "preis",
+      "input": [
+        {
+          "price": 7
+        }
+      ],
+      "expectedOutput": 7
+    }
+  ]
+}

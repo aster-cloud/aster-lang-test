@@ -1,0 +1,20 @@
+Modul versicherung.muster.
+
+Definiere Stufe als eines von Hoch, Niedrig.
+
+Definiere Fahrer hat name als Text, alter als Ganzzahl.
+
+Regel einstufen gegeben x als Ganzzahl, liefert Stufe:
+  wenn x groesser als 10:
+    gib zurueck Stufe.Hoch.
+  gib zurueck Stufe.Niedrig.
+
+Regel punkte gegeben x als Ganzzahl, liefert Ganzzahl:
+  sei s gleich einstufen(x).
+  pruefe s:
+    bei Hoch, gib zurueck 100.
+    bei Niedrig, gib zurueck 1.
+
+Regel alterVon gegeben fahrer als Fahrer, liefert Ganzzahl:
+  pruefe fahrer:
+    bei Fahrer(n, a), gib zurueck a.

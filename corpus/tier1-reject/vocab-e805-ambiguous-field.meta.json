@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "expect": "reject",
+  "expectCode": "E805",
+  "source": "ADR 0051 §4 R2 表：接收者 x 未注解类型（未知），字段 alter 在 Driver / Vehicle 中有两个不同规范名 → E805（AMBIGUOUS_FIELD）"
+}

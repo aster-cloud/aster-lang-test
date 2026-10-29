@@ -1,0 +1,8 @@
+Modul versicherung.doppelt.
+
+Definiere Fahrer hat alter als Ganzzahl.
+
+Definiere Driver hat name als Text.
+
+Regel f gegeben x als Ganzzahl, liefert Ganzzahl:
+  gib zurueck x.
