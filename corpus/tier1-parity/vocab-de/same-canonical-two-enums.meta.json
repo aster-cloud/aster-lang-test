@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "expectWarnings": [
+    "W801"
+  ],
+  "source": "aster-lang-test#174 子项 4（T11 M2）锁定现行为：主语 s 未注解，模式 Hoch 命中 Level.High 与 Priority.High——两者规范成员名相同，候选按规范名去重，IR 里都是 PatName High、不可区分，故不报 E806（对照 tier1-reject/vocab-e806-ambiguous-pattern：规范名不同则 E806），两引擎一致给 W801。若将来要求跨枚举同名成员必须限定，须先修订 ADR 0051 §4 R2"
+}
