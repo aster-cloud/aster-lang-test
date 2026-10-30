@@ -18,6 +18,7 @@ import {
   checkVocabCorpus,
   judgeVocabSample,
   judgeVocabReject,
+  compareLinesOf,
 } from './lib/vocab-corpus.mjs';
 
 let pass = 0;
@@ -167,7 +168,7 @@ const LOC = (code, line, col = 1) => ({ code, line, col });
 const RESL = (locs) => ({ ...RES(...locs.map((l) => l.code)), locs });
 const OKL = (locs) => ({ ...OK(locs.map((l) => l.code)), locs });
 
-check('默认不比对位置：行号不同也通过（沿用既有契约）', () => {
+check('判定函数未传 compareLines 时不比对位置（是否比较由 compareLinesOf(meta) 决定）', () => {
   assert.strictEqual(
     judgeVocabReject({ ts: RESL([LOC('E807', 3, 37)]), java: RESL([LOC('E807', 1, 1)]), expectCode: 'E807' }).verdict, 'rejected');
 });
@@ -226,6 +227,25 @@ check('meta.compareDiagnosticLines 只能出现在带词汇的条目上', () => 
   });
   assert.deepStrictEqual(problems(true), []);
   assert.ok(problems(false).some((p) => /compareDiagnosticLines/.test(p)));
+});
+
+check('带词汇样本默认比较诊断行；只有显式 compareDiagnosticLines: false 才关闭', () => {
+  assert.strictEqual(compareLinesOf(null), true);
+  assert.strictEqual(compareLinesOf({}), true);
+  assert.strictEqual(compareLinesOf({ expectCode: 'E807' }), true);
+  assert.strictEqual(compareLinesOf({ compareDiagnosticLines: true }), true);
+  assert.strictEqual(compareLinesOf({ compareDiagnosticLines: false }), false);
+});
+
+check('meta.compareDiagnosticLines 必须是布尔值', () => {
+  const entry = { rel: 'tier1-reject/vocab-x.aster', vocab: true };
+  const problems = (value) => checkVocabCorpus({
+    samples: [], mustReject: [entry], vocabOnDisk: ['tier1-reject/vocab-x.vocab.json'],
+    parityAsterOnDisk: [], metaOf: () => ({ expectCode: 'E807', compareDiagnosticLines: value }),
+  });
+  assert.deepStrictEqual(problems(false), []);
+  assert.ok(problems('false').some((p) => /compareDiagnosticLines/.test(p)));
+  assert.ok(problems(0).some((p) => /compareDiagnosticLines/.test(p)));
 });
 
 console.log(`\n${pass} passed, ${fail} failed`);
