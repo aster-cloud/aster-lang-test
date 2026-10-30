@@ -242,6 +242,7 @@
     "tier1-equivalence/policies/verdict-basic.aster",
     "tier1-equivalence/policies/verdict-fields.aster",
     "tier1-equivalence/policies/context-map-access.aster",
+    "tier1-equivalence/policies/rule-function-value.aster",
     "tier1-parity/types/function-type.aster",
     "tier1-parity/workflow/workflow-compensate.aster",
     "tier1-parity/workflow/workflow-multistep.aster",

@@ -1,0 +1,20 @@
+{
+  "policy": "tier1-equivalence/policies/rule-function-value.aster",
+  "entry": "main",
+  "cases": [
+    {
+      "name": "n=1 → 3 + 2 + (-1) + 0",
+      "input": [
+        1
+      ],
+      "expectedOutput": 4
+    },
+    {
+      "name": "n=10 → 12 + 11 + 8 + 9",
+      "input": [
+        10
+      ],
+      "expectedOutput": 40
+    }
+  ]
+}

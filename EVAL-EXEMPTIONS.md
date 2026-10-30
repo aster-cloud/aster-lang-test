@@ -16,11 +16,11 @@
 
 | Metric | Count |
 |---|---:|
-| Total tier1-equivalence samples | 232 |
+| Total tier1-equivalence samples | 233 |
 | Eval-exempt (no meaningful pure-eval golden) | 74 |
-| **Eval-able** (denominator) | **158** |
-| Covered by a `*.cases.json` golden | 158 |
-| **Coverage** | **158 / 158 = 100.0 %** |
+| **Eval-able** (denominator) | **159** |
+| Covered by a `*.cases.json` golden | 159 |
+| **Coverage** | **159 / 159 = 100.0 %** |
 | Eval-able but NOT yet covered (backlog) | 0 |
 
 `--mode=eval` 实测 **764/764 identical**（双引擎一致且匹配 golden，0 divergent）。
