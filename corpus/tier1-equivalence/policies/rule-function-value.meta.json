@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "规则引用作函数值（ADR 0024 §9 具名规则作 fn 参数 / ADR 0051 §4 FUNC_REF）：作为实参传给高阶规则、Let 绑定后调用、经同名参数遮蔽、作为返回值。依赖 aster-lang-ts#265（TS typecheck 与解释器支持，aster-lang-ts#256）",
+  "capabilities": [
+    "cases-golden"
+  ]
+}

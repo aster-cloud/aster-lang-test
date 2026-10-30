@@ -1,0 +1,23 @@
+Module parity.types.rulefnvalue.
+
+Rule inc given x as Int, produce Int:
+  Return x plus 1.
+
+Rule dec given x as Int, produce Int:
+  Return x minus 1.
+
+Rule twice given f as (Int) -> Int, n as Int, produce Int:
+  Return f(f(n)).
+
+Rule viaParam given inc as (Int) -> Int, n as Int, produce Int:
+  Return twice(inc, n).
+
+Rule pick given up as Bool, produce (Int) -> Int:
+  If up:
+    Return inc.
+  Return dec.
+
+Rule main given n as Int, produce Int:
+  Let g be inc.
+  Let h be pick(false).
+  Return twice(inc, n) plus g(n) plus viaParam(dec, n) plus h(n).
