@@ -1,0 +1,38 @@
+Module demo.assign.writeback.
+
+Rule caseTotal given n as Int, produce Int:
+  Let total be 0.
+  Match n:
+    When 1,
+      Set total to 10.
+    When 2,
+      Set total to total plus 20.
+  Return total.
+
+Rule caseAccumulate given n as Int, produce Int:
+  Let acc be 1.
+  Match n:
+    When 0,
+      Set acc to 100.
+    When other,
+      Set acc to acc plus other.
+      Set acc to acc times 2.
+  Return acc.
+
+Rule branchSign given n as Int, produce Int:
+  Let sign be 0.
+  If n greater than 0
+    Set sign to 1.
+  Otherwise
+    Set sign to 2.
+  Return sign.
+
+Rule nestedWriteback given n as Int, produce Int:
+  Let result be 0.
+  If n greater than 10
+    Match n:
+      When 11,
+        Set result to 111.
+      When other,
+        Set result to other plus 1.
+  Return result.
