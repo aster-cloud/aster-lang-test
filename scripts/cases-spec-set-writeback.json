@@ -1,0 +1,106 @@
+{
+  "samples": [
+    {
+      "name": "set-writeback",
+      "entry": "caseTotal",
+      "cases": [
+        {
+          "name": "caseTotal: When 1 体内 Set 外层 Let → 10",
+          "entry": "caseTotal",
+          "input": [
+            1
+          ],
+          "expectedOutput": 10
+        },
+        {
+          "name": "caseTotal: When 2 体内读写外层 Let → 20",
+          "entry": "caseTotal",
+          "input": [
+            2
+          ],
+          "expectedOutput": 20
+        },
+        {
+          "name": "caseTotal: 无分支命中 → 外层初值 0",
+          "entry": "caseTotal",
+          "input": [
+            3
+          ],
+          "expectedOutput": 0
+        },
+        {
+          "name": "caseAccumulate: When 0 → 100",
+          "entry": "caseAccumulate",
+          "input": [
+            0
+          ],
+          "expectedOutput": 100
+        },
+        {
+          "name": "caseAccumulate: 同一 case 体内连续两次 Set 外层 Let → (1+5)*2",
+          "entry": "caseAccumulate",
+          "input": [
+            5
+          ],
+          "expectedOutput": 12
+        },
+        {
+          "name": "branchSign: If 分支 Set → 1",
+          "entry": "branchSign",
+          "input": [
+            3
+          ],
+          "expectedOutput": 1
+        },
+        {
+          "name": "branchSign: Otherwise 分支 Set → 2",
+          "entry": "branchSign",
+          "input": [
+            -3
+          ],
+          "expectedOutput": 2
+        },
+        {
+          "name": "nestedWriteback: If 内 case 体 Set 写回两层 → 111",
+          "entry": "nestedWriteback",
+          "input": [
+            11
+          ],
+          "expectedOutput": 111
+        },
+        {
+          "name": "nestedWriteback: 模式绑定参与赋值 → 21",
+          "entry": "nestedWriteback",
+          "input": [
+            20
+          ],
+          "expectedOutput": 21
+        },
+        {
+          "name": "nestedWriteback: If 不成立 → 0",
+          "entry": "nestedWriteback",
+          "input": [
+            5
+          ],
+          "expectedOutput": 0
+        },
+        {
+          "name": "closureSnapshot: 闭包创建后外层 Set，闭包仍看到创建时的值 → (5+1)+1000",
+          "entry": "closureSnapshot",
+          "input": [
+            5
+          ],
+          "expectedOutput": 1006
+        },
+        {
+          "name": "lowercaseSet: 小写 set 同样是 Set 语句 → 4",
+          "entry": "lowercaseSet",
+          "input": [
+            3
+          ],
+          "expectedOutput": 4
+        }
+      ]
+    }
+  ]
+}

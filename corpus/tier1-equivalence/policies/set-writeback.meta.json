@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "Set 按词法作用域写回（ADR 0052，aster-lang-truffle#151）：case 体、If / Otherwise 分支、If 内 case 体中给外层 Let 赋值，离开块后可见；只对 Let 绑定赋值",
+  "capabilities": [
+    "cases-golden"
+  ]
+}

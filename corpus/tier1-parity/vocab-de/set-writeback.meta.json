@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "Deutsch 'setze X auf Y' schreibt lexikalisch in die äußere sei-Bindung zurück (ADR 0052, aster-lang-truffle#151): Fallrumpf, wenn / sonst; Vokabular bildet nur die Hilfsregel verdoppeln→double ab"
+}
