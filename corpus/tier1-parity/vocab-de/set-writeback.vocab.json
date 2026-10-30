@@ -1,0 +1,17 @@
+{
+  "id": "parity.vocab.de-set-writeback",
+  "name": "Deutsch Set-Rückschreiben",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [],
+  "fields": [],
+  "functions": [
+    {
+      "canonical": "double",
+      "localized": "verdoppeln",
+      "kind": "function"
+    }
+  ],
+  "enumValues": [],
+  "literals": []
+}

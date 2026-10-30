@@ -1,0 +1,18 @@
+Modul zuweisung.rueckschreiben.
+
+Regel verdoppeln gegeben x als Ganzzahl, liefert Ganzzahl:
+  gib zurueck x mal 2.
+
+Regel summieren gegeben n als Ganzzahl, liefert Ganzzahl:
+  sei summe gleich 0.
+  pruefe n:
+    bei 1,
+      setze summe auf 10.
+    bei anderes,
+      setze summe auf summe plus anderes.
+      setze summe auf verdoppeln(summe).
+  wenn n groesser als 100:
+    setze summe auf summe plus 1.
+  sonst:
+    setze summe auf summe plus 2.
+  gib zurueck summe.

@@ -301,6 +301,10 @@
       "vocab": true
     },
     {
+      "path": "tier1-parity/vocab-de/set-writeback.aster",
+      "vocab": true
+    },
+    {
       "path": "tier1-parity/vocab-hi/devanagari-type-names.aster",
       "vocab": true
     },
@@ -318,6 +322,10 @@
     },
     {
       "path": "tier1-parity/vocab-zh/type-equals-field.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-zh/set-writeback.aster",
       "vocab": true
     }
   ],

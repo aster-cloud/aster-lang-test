@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "中文「将 X 设为 Y」按词法作用域写回外层 令 绑定（ADR 0052，aster-lang-truffle#151）：case 体、如果 / 否则 分支内赋值离开块后可见；词汇只映射辅助规则名 加倍→double；模式绑定用 ASCII 名 x：中文名作绑定时 Java 判为枚举变体、TS 判为绑定，属既有分歧，不在本样本范围"
+}

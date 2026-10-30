@@ -81,6 +81,22 @@
         5
       ],
       "expectedOutput": 0
+    },
+    {
+      "name": "closureSnapshot: 闭包创建后外层 Set，闭包仍看到创建时的值 → (5+1)+1000",
+      "entry": "closureSnapshot",
+      "input": [
+        5
+      ],
+      "expectedOutput": 1006
+    },
+    {
+      "name": "lowercaseSet: 小写 set 同样是 Set 语句 → 4",
+      "entry": "lowercaseSet",
+      "input": [
+        3
+      ],
+      "expectedOutput": 4
     }
   ]
 }

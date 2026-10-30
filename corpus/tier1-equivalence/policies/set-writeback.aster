@@ -36,3 +36,15 @@ Rule nestedWriteback given n as Int, produce Int:
       When other,
         Set result to other plus 1.
   Return result.
+
+Rule closureSnapshot given n as Int, produce Int:
+  Let base be n.
+  Let addBase be function with k as Int, produce Int:
+    Return base plus k.
+  Set base to 1000.
+  Return addBase(1) plus base.
+
+Rule lowercaseSet given n as Int, produce Int:
+  Let x be n.
+  set x to x plus 1.
+  Return x.

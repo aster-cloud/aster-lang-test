@@ -1,0 +1,17 @@
+{
+  "id": "parity.vocab.zh-set-writeback",
+  "name": "中文 Set 写回",
+  "locale": "zh-CN",
+  "version": "1.0.0",
+  "structs": [],
+  "fields": [],
+  "functions": [
+    {
+      "canonical": "double",
+      "localized": "加倍",
+      "kind": "function"
+    }
+  ],
+  "enumValues": [],
+  "literals": []
+}
