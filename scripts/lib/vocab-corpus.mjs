@@ -115,7 +115,21 @@ export function checkVocabCorpus({ samples, mustReject, vocabOnDisk, parityAster
       problems.push(`${e.rel}: compareDiagnosticLines is only checked for vocab entries`);
     }
   }
+  for (const e of all.filter((x) => x.vocab)) {
+    const value = (metaOf(e.rel) || {}).compareDiagnosticLines;
+    if (value !== undefined && typeof value !== 'boolean') {
+      problems.push(`${e.rel}: compareDiagnosticLines must be a boolean, got ${JSON.stringify(value)}`);
+    }
+  }
   return problems;
+}
+
+/**
+ * 带词汇样本是否比较两引擎诊断的「码@起始行」。默认比较（两引擎逐项 span 已对齐，aster-lang-test#174-2）；
+ * 只有 meta 显式写 `"compareDiagnosticLines": false` 才关闭，关闭时应在 meta.source 写明原因。
+ */
+export function compareLinesOf(meta) {
+  return meta?.compareDiagnosticLines !== false;
 }
 
 function expectCodeProblems(entry, meta) {

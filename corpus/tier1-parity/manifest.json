@@ -279,6 +279,10 @@
       "vocab": true
     },
     {
+      "path": "tier1-parity/vocab-de/same-canonical-two-enums.aster",
+      "vocab": true
+    },
+    {
       "path": "tier1-parity/vocab-de/same-field-two-structs.aster",
       "vocab": true
     },

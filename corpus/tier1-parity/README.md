@@ -66,11 +66,11 @@
   Java 走 aster-lang-core `CoreIrFingerprintCli`（JSON 输入行 `{path, lexicon, vocabulary}`）与 aster-lang-truffle `CoreIrEvalCli`
   （请求带 `lexicon` / `vocabulary`）。
 - parse 门对带词汇样本检查「解析 + 名称解析」：正例两侧都成功且警告码一致（`meta.expectWarnings` 声明时须相同，如 `["W800"]`）；
-  负例两侧都在名称解析阶段拒绝，错误码集合相同且包含 `meta.expectCode`。默认不比对诊断位置：字段声明、构造字段、枚举成员处
-  Java AST 曾无逐项 span，位置差异已登记。样本 meta 写 `"compareDiagnosticLines": true` 即对该样本比较两侧「码 + 起始行」
-  的多重集合（列号不比）。TS 侧位置取自诊断的 `span.start`；Java 侧要求 aster-lang-core 的 `CoreIrFingerprintCli`
-  在记录里输出 `locs: [{code, line, col}]`，缺失时判 `locs-missing`（不会静默通过）。逐项 span 落地并输出 `locs` 之前，
-  没有样本打开该开关。
+  负例两侧都在名称解析阶段拒绝，错误码集合相同且包含 `meta.expectCode`。两类都**默认比较诊断位置**：两侧「码 + 起始行」
+  的多重集合必须相同（列号不比）。TS 侧位置取自诊断的 `span.start`；Java 侧取 aster-lang-core `CoreIrFingerprintCli`
+  记录里的 `locs: [{code, line, col}]`，缺失时判 `locs-missing`（不会静默通过）。字段声明、构造字段、枚举成员的逐项 span
+  已在 aster-lang-core#222 对齐。确有已登记的位置差异时，在该样本 meta 写 `"compareDiagnosticLines": false` 并在
+  `source` 里写明原因（只能是布尔值，且只能出现在带词汇的条目上）。
 - eval golden 放在 `vocab-<locale>/inputs/<case>.cases.json`，不放在样本旁：JVM 包 `CorpusLoader.readCases()` 会把样本旁的
   `.cases.json` 交给不传词汇的消费方执行。
 - 守卫（`scripts/lib/vocab-corpus.mjs`，回归测试 `node scripts/test-vocab-corpus.mjs`）：词汇文件必须被 `vocab: true` 条目认领，

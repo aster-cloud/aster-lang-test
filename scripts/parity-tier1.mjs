@@ -52,7 +52,7 @@ import { collectEvalCaseProblem, entryForCase, expectsError } from './lib/eval-c
 import { inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
 import { MUST_REJECT_DIR, judgeMustReject, javaRejection, checkMustRejectManifest } from './lib/must-reject.mjs';
 import {
-  VOCAB_SUFFIX, VOCAB_SAMPLE_DIR, vocabPathOf, casesPathOf, normalizeEntries, checkVocabCorpus, judgeVocabSample, judgeVocabReject,
+  VOCAB_SUFFIX, VOCAB_SAMPLE_DIR, vocabPathOf, casesPathOf, normalizeEntries, checkVocabCorpus, judgeVocabSample, judgeVocabReject, compareLinesOf,
 } from './lib/vocab-corpus.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -492,7 +492,7 @@ function classifyVocabSamples(tsRes, javaRes, samples) {
     const java = javaRes[rel] || { ok: false, err: 'missing in java result' };
     const meta = readMeta(abs);
     const expectWarnings = meta?.expectWarnings ?? null;
-    const { verdict, reason } = judgeVocabSample({ ts, java, expectWarnings, compareLines: meta?.compareDiagnosticLines === true });
+    const { verdict, reason } = judgeVocabSample({ ts, java, expectWarnings, compareLines: compareLinesOf(meta) });
     return {
       path: rel, vocab: true, ts: ts.ok, java: java.ok, verdict, reason,
       tsWarnings: ts.warnings ?? null, javaWarnings: java.warnings ?? null,
@@ -508,7 +508,7 @@ function classifyVocabRejects(tsRes, javaRes, rejects) {
     const java = javaRes[rel] || { ok: false, stage: 'crash', err: 'missing in java result' };
     const meta = readMeta(abs);
     const expectCode = meta?.expectCode ?? null;
-    const { verdict, reason } = judgeVocabReject({ ts, java, expectCode, compareLines: meta?.compareDiagnosticLines === true });
+    const { verdict, reason } = judgeVocabReject({ ts, java, expectCode, compareLines: compareLinesOf(meta) });
     return {
       path: rel, vocab: true, verdict, reason, expectCode,
       ts: ts.ok, tsCodes: ts.codes ?? null, tsErr: ts.err || null,

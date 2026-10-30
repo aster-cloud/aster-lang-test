@@ -1,0 +1,19 @@
+{
+  "entry": "wert",
+  "cases": [
+    {
+      "name": "high-1",
+      "input": [
+        "High"
+      ],
+      "expectedOutput": 1
+    },
+    {
+      "name": "normal-0",
+      "input": [
+        "Normal"
+      ],
+      "expectedOutput": 0
+    }
+  ]
+}
