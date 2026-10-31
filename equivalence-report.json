@@ -1,11 +1,11 @@
 {
   "summary": {
-    "total": 232,
-    "equivalent": 232,
+    "total": 234,
+    "equivalent": 234,
     "divergent": 0,
     "bothFail": 0,
     "rate": 1,
-    "basedOnHistory": "2026-10-30T08:12:10.273Z"
+    "basedOnHistory": "2026-10-31T08:06:57.983Z"
   },
   "rows": [
     {
@@ -1318,7 +1318,21 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/rule-function-value.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/rules_engine.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/set-writeback.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
