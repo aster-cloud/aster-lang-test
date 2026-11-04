@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "中文 case 体按词法作用域遮蔽（ADR 0052 §2.1，aster-lang-truffle#156）：case 体（含嵌套 case）内「令」外层同名变量只遮蔽外层，之后的「将 … 设为」写块内绑定，离开后外层值不变；块内无同名「令」时写回外层；词汇只映射辅助规则名 加倍→double"
+}

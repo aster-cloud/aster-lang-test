@@ -1,0 +1,35 @@
+{
+  "entry": "分支遮蔽",
+  "cases": [
+    {
+      "name": "zh: n=0，case 体内「令 合计」遮蔽后加倍只改块内绑定，外层仍为 1 → 1+200",
+      "input": [
+        0
+      ],
+      "expectedOutput": 201
+    },
+    {
+      "name": "zh: n=5，无同名「令」时「将 合计 设为」写回外层 → 1+5",
+      "input": [
+        5
+      ],
+      "expectedOutput": 6
+    },
+    {
+      "name": "zh: n=0，内层 case 遮蔽不影响外层 case 的 值 → 10",
+      "entry": "嵌套遮蔽",
+      "input": [
+        0
+      ],
+      "expectedOutput": 10
+    },
+    {
+      "name": "zh: n=3，无分支命中 → 1",
+      "entry": "嵌套遮蔽",
+      "input": [
+        3
+      ],
+      "expectedOutput": 1
+    }
+  ]
+}

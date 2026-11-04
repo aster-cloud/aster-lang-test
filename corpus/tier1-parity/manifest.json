@@ -198,6 +198,7 @@
     "tier1-equivalence/policies/risk.aster",
     "tier1-equivalence/policies/rules_engine.aster",
     "tier1-equivalence/policies/set-writeback.aster",
+    "tier1-equivalence/policies/block-scope-shadowing.aster",
     "tier1-equivalence/policies/simple_test.aster",
     "tier1-equivalence/policies/soc2-audit-demo.aster",
     "tier1-equivalence/policies/stdlib_collections.aster",
@@ -326,6 +327,14 @@
     },
     {
       "path": "tier1-parity/vocab-zh/set-writeback.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-zh/block-scope-shadowing.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-zh/cjk-pattern-binding.aster",
       "vocab": true
     }
   ],

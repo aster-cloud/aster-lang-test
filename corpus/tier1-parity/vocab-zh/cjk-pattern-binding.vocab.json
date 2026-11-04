@@ -1,0 +1,17 @@
+{
+  "id": "parity.vocab.zh-cjk-pattern-binding",
+  "name": "中文模式绑定",
+  "locale": "zh-CN",
+  "version": "1.0.0",
+  "structs": [],
+  "fields": [],
+  "functions": [
+    {
+      "canonical": "inc",
+      "localized": "加一",
+      "kind": "function"
+    }
+  ],
+  "enumValues": [],
+  "literals": []
+}
