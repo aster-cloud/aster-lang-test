@@ -1,0 +1,20 @@
+Module demo.builtinnameshadowing.
+
+Rule lessThan given a as Int, b as Int, produce Bool:
+  Return a less than b.
+
+Rule ap given gt as (Int, Int) -> Bool, produce Bool:
+  Return gt(1, 2).
+
+Rule viaParam given n as Int, produce Bool:
+  Return ap(lessThan).
+
+Rule viaClosure given n as Int, produce Int:
+  Let add be function with a as Int, b as Int, produce Int:
+    Return a times b.
+  Return add(n, 3).
+
+Rule viaUnary given n as Int, produce Int:
+  Let add be function with a as Int, produce Int:
+    Return a plus 10.
+  Return add(n).
