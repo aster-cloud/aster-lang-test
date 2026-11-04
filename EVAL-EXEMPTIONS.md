@@ -23,7 +23,7 @@
 | **Coverage** | **162 / 162 = 100.0 %** |
 | Eval-able but NOT yet covered (backlog) | 0 |
 
-`--mode=eval` 实测 **845/845 identical**（双引擎一致且匹配 golden，0 divergent）。加入 builtin-name-shadowing 后为 849 例，其中 4 例依赖 aster-lang-truffle#158 的「局部函数值优先于同名 builtin」修复。
+`--mode=eval` 实测 **849/849 identical**（双引擎一致且匹配 golden，0 divergent；其中 builtin-name-shadowing 的 4 例依赖 aster-lang-truffle#158 的「局部函数值优先于同名 builtin」修复）。
 
 > **本表的数字必须与 `node scripts/tag-eval-exempt.mjs` 的实时输出一致。**
 > 上一版（2026-07-28）记的是 218 / 145 / 298，而实时已是 223 / 150 / 713——
