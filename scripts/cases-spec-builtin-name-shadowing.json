@@ -1,0 +1,14 @@
+{
+  "samples": [
+    {
+      "name": "builtin-name-shadowing",
+      "entry": "viaParam",
+      "cases": [
+        { "name": "viaParam: 函数类型形参 gt 调用传入的 lessThan，1 < 2 → true（builtin gt 会得 false）", "entry": "viaParam", "input": [0], "expectedOutput": true },
+        { "name": "viaClosure: 闭包 add 为乘法，2 × 3 → 6（builtin add 会得 5）", "entry": "viaClosure", "input": [2], "expectedOutput": 6 },
+        { "name": "viaClosure: 0 × 3 → 0", "entry": "viaClosure", "input": [0], "expectedOutput": 0 },
+        { "name": "viaUnary: 单参闭包 add，1 + 10 → 11（builtin add 要求 2 个实参）", "entry": "viaUnary", "input": [1], "expectedOutput": 11 }
+      ]
+    }
+  ]
+}
