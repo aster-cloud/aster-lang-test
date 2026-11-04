@@ -1,0 +1,17 @@
+{
+  "id": "parity.vocab.hi-devanagari-pattern-names",
+  "name": "天城文模式名",
+  "locale": "hi-IN",
+  "version": "1.0.0",
+  "structs": [],
+  "fields": [],
+  "functions": [
+    {
+      "canonical": "double",
+      "localized": "दोगुना",
+      "kind": "function"
+    }
+  ],
+  "enumValues": [],
+  "literals": []
+}

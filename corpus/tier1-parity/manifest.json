@@ -306,11 +306,19 @@
       "vocab": true
     },
     {
+      "path": "tier1-parity/vocab-de/umlaut-pattern-names.aster",
+      "vocab": true
+    },
+    {
       "path": "tier1-parity/vocab-hi/devanagari-type-names.aster",
       "vocab": true
     },
     {
       "path": "tier1-parity/vocab-hi/param-equals-field.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-hi/devanagari-pattern-names.aster",
       "vocab": true
     },
     {

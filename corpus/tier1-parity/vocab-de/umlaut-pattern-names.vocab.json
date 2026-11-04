@@ -1,0 +1,17 @@
+{
+  "id": "parity.vocab.de-umlaut-pattern-names",
+  "name": "德语变音开头的模式名",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [],
+  "fields": [],
+  "functions": [
+    {
+      "canonical": "double",
+      "localized": "verdoppeln",
+      "kind": "function"
+    }
+  ],
+  "enumValues": [],
+  "literals": []
+}

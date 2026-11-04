@@ -1,0 +1,23 @@
+Modul muster.umlaut.
+
+Definiere Laune als eines von Übel, Gut, Ärger.
+
+Regel verdoppeln gegeben x als Ganzzahl, liefert Ganzzahl:
+  gib zurueck x mal 2.
+
+Regel wert gegeben l als Laune, liefert Ganzzahl:
+  pruefe l:
+    bei Übel, gib zurueck 1.
+    bei Gut, gib zurueck 2.
+    bei rest, gib zurueck 9.
+
+Regel wertUebel, liefert Ganzzahl:
+  gib zurueck wert(Laune.Übel).
+
+Regel wertAerger, liefert Ganzzahl:
+  gib zurueck wert(Laune.Ärger).
+
+Regel binden gegeben n als Ganzzahl, liefert Ganzzahl:
+  pruefe n:
+    bei 0, gib zurueck 100.
+    bei Ärger, gib zurueck verdoppeln(Ärger).

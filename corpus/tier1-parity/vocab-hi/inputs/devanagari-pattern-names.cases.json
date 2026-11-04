@@ -1,0 +1,40 @@
+{
+  "entry": "अंक",
+  "cases": [
+    {
+      "name": "hi: जब उच्च 是变体，只匹配同名成员 → 1",
+      "input": [
+        "उच्च"
+      ],
+      "expectedOutput": 1
+    },
+    {
+      "name": "hi: जब निम्न 是变体 → 2",
+      "entry": "निम्नअंक",
+      "input": [],
+      "expectedOutput": 2
+    },
+    {
+      "name": "hi: मध्यम 不在分支中，由 जब बाकी 兜底 → 9",
+      "entry": "मध्यमअंक",
+      "input": [],
+      "expectedOutput": 9
+    },
+    {
+      "name": "hi: 整数主语下 जब 0 → 100",
+      "entry": "वर्ग",
+      "input": [
+        0
+      ],
+      "expectedOutput": 100
+    },
+    {
+      "name": "hi: 整数主语下 जब शेष 是绑定 → 4*2",
+      "entry": "वर्ग",
+      "input": [
+        4
+      ],
+      "expectedOutput": 8
+    }
+  ]
+}
