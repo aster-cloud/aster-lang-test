@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "de 以变音字母开头的裸模式名（ADR 0051 裁决 R55，aster-lang-core#227）：主语枚举的成员 Übel 是变体（R2 产出无参数 PatCtor），bei rest 兜底；整数主语下的 Ärger 是绑定（truffle PatNameNode 只按 ASCII 大写判变体）；词汇只映射辅助规则名 verdoppeln→double，不映射枚举成员"
+}

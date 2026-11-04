@@ -1,0 +1,40 @@
+{
+  "entry": "wert",
+  "cases": [
+    {
+      "name": "de: bei Übel 是变体，只匹配同名成员 → 1",
+      "entry": "wertUebel",
+      "input": [],
+      "expectedOutput": 1
+    },
+    {
+      "name": "de: Ärger 不在分支中，由 bei rest 兜底 → 9",
+      "entry": "wertAerger",
+      "input": [],
+      "expectedOutput": 9
+    },
+    {
+      "name": "de: bei Gut（ASCII 大写）是变体 → 2",
+      "input": [
+        "Gut"
+      ],
+      "expectedOutput": 2
+    },
+    {
+      "name": "de: 整数主语下 bei 0 → 100",
+      "entry": "binden",
+      "input": [
+        0
+      ],
+      "expectedOutput": 100
+    },
+    {
+      "name": "de: 整数主语下 bei Ärger 是绑定 → 7*2",
+      "entry": "binden",
+      "input": [
+        7
+      ],
+      "expectedOutput": 14
+    }
+  ]
+}

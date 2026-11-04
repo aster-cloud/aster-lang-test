@@ -1,0 +1,63 @@
+{
+  "entry": "描述",
+  "cases": [
+    {
+      "name": "zh: 当 待处理 是变体，只匹配同名成员 → 1",
+      "input": [
+        "待处理"
+      ],
+      "expectedOutput": 1
+    },
+    {
+      "name": "zh: 当 其余 是绑定，兜底未列出的成员 → 9",
+      "input": [
+        "已删除"
+      ],
+      "expectedOutput": 9
+    },
+    {
+      "name": "zh: 规则内传入枚举成员 已删除 → 9",
+      "entry": "删除后描述",
+      "input": [],
+      "expectedOutput": 9
+    },
+    {
+      "name": "zh: 规则内传入枚举成员 进行中 → 2",
+      "entry": "进行时描述",
+      "input": [],
+      "expectedOutput": 2
+    },
+    {
+      "name": "zh: 整数主语下 当 0 → 100",
+      "entry": "分类",
+      "input": [
+        0
+      ],
+      "expectedOutput": 100
+    },
+    {
+      "name": "zh: 整数主语下 当 其他 绑定被匹配值 → 5+1",
+      "entry": "分类",
+      "input": [
+        5
+      ],
+      "expectedOutput": 6
+    },
+    {
+      "name": "zh: n=0，读外层 其他 → 7+7",
+      "entry": "模式遮蔽",
+      "input": [
+        0
+      ],
+      "expectedOutput": 14
+    },
+    {
+      "name": "zh: n=5，模式绑定 其他 只在分支内遮蔽外层 → 7+5",
+      "entry": "模式遮蔽",
+      "input": [
+        5
+      ],
+      "expectedOutput": 12
+    }
+  ]
+}

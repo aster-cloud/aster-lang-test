@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "局部函数值优先于同名单段 builtin（aster-lang-ts#273 复审 R1、aster-lang-truffle#158）：函数类型形参 gt、闭包 add（二参、一参）在调用位置调用局部值，不被 builtin gt / add 覆盖。非函数局部与 builtin 同名时调用 builtin，由 ts rule-call-checks 单测覆盖",
+  "capabilities": [
+    "cases-golden"
+  ]
+}

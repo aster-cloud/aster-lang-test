@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "case 体按词法作用域遮蔽（ADR 0052 §2.1，aster-lang-truffle#156）：case 体（含嵌套 case）内 Let 外层同名变量只遮蔽外层，之后的 Set 写块内绑定，离开后外层值不变；块内无同名 Let 时 Set 写回外层；模式绑定只在本分支内遮蔽外层同名变量；case 体内的闭包捕获块内绑定。Scope 只能用 Core IR 构造，由 truffle CaseScopeShadowingTest 与 ts scope-writeback 单测覆盖",
+  "capabilities": [
+    "cases-golden"
+  ]
+}

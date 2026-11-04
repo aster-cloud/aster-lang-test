@@ -1,0 +1,114 @@
+{
+  "samples": [
+    {
+      "name": "block-scope-shadowing",
+      "entry": "caseShadow",
+      "cases": [
+        {
+          "name": "caseShadow: When 0 体内 Let 遮蔽后 Set 只改块内绑定 → 外层 1",
+          "entry": "caseShadow",
+          "input": [
+            0
+          ],
+          "expectedOutput": 1
+        },
+        {
+          "name": "caseShadow: 绑定分支体内 Let 遮蔽 → 外层 1",
+          "entry": "caseShadow",
+          "input": [
+            5
+          ],
+          "expectedOutput": 1
+        },
+        {
+          "name": "caseShadowRead: 块内读到遮蔽绑定 100，外层仍为 1 → 101",
+          "entry": "caseShadowRead",
+          "input": [
+            0
+          ],
+          "expectedOutput": 101
+        },
+        {
+          "name": "caseShadowRead: Let 之前读到外层 1，Let 后外层不变 → 2",
+          "entry": "caseShadowRead",
+          "input": [
+            1
+          ],
+          "expectedOutput": 2
+        },
+        {
+          "name": "caseShadowRead: 无同名 Let 时 Set 写回外层 → 11",
+          "entry": "caseShadowRead",
+          "input": [
+            5
+          ],
+          "expectedOutput": 11
+        },
+        {
+          "name": "nestedCaseShadow: 内层 case 遮蔽不影响外层 case 绑定 → 10",
+          "entry": "nestedCaseShadow",
+          "input": [
+            0
+          ],
+          "expectedOutput": 10
+        },
+        {
+          "name": "nestedCaseShadow: 无分支命中 → 1",
+          "entry": "nestedCaseShadow",
+          "input": [
+            3
+          ],
+          "expectedOutput": 1
+        },
+        {
+          "name": "patternShadow: 其他分支读外层 other → 7+7",
+          "entry": "patternShadow",
+          "input": [
+            0
+          ],
+          "expectedOutput": 14
+        },
+        {
+          "name": "patternShadow: 模式绑定 other 只在分支内遮蔽外层 → 7+5",
+          "entry": "patternShadow",
+          "input": [
+            5
+          ],
+          "expectedOutput": 12
+        },
+        {
+          "name": "closureInCase: case 体内闭包捕获遮蔽绑定 → 100+1",
+          "entry": "closureInCase",
+          "input": [
+            0
+          ],
+          "expectedOutput": 101
+        },
+        {
+          "name": "closureInCase: 未命中 → 外层 1",
+          "entry": "closureInCase",
+          "input": [
+            2
+          ],
+          "expectedOutput": 1
+        },
+        {
+          "name": "paramShadow: case 体内 Let 遮蔽形参，离开后形参不变 → 0",
+          "entry": "paramShadow",
+          "input": [
+            0
+          ],
+          "expectedOutput": 0
+        },
+        {
+          "name": "paramShadow: 未命中 → 4",
+          "entry": "paramShadow",
+          "input": [
+            4
+          ],
+          "expectedOutput": 4
+        }
+      ]
+    }
+  ]
+}

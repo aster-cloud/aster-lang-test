@@ -1,0 +1,64 @@
+Module demo.block.shadowing.
+
+Rule caseShadow given n as Int, produce Int:
+  Let x be 1.
+  Match n:
+    When 0,
+      Let x be 100.
+      Set x to x plus 1.
+    When other,
+      Let x be other.
+  Return x.
+
+Rule caseShadowRead given n as Int, produce Int:
+  Let x be 1.
+  Let seen be 0.
+  Match n:
+    When 0,
+      Let x be 100.
+      Set seen to x.
+    When 1,
+      Set seen to x.
+      Let x be 200.
+    When other,
+      Set x to x plus 10.
+  Return x plus seen.
+
+Rule nestedCaseShadow given n as Int, produce Int:
+  Let x be 1.
+  Match n:
+    When 0,
+      Let x be 10.
+      Match n:
+        When 0,
+          Let x be 20.
+          Set x to x plus 1.
+      Return x.
+  Return x.
+
+Rule patternShadow given n as Int, produce Int:
+  Let other be 7.
+  Let seen be 0.
+  Match n:
+    When 0,
+      Set seen to other.
+    When other,
+      Set seen to other.
+  Return other plus seen.
+
+Rule closureInCase given n as Int, produce Int:
+  Let base be 1.
+  Match n:
+    When 0,
+      Let base be 100.
+      Let addBase be function with k as Int, produce Int:
+        Return base plus k.
+      Return addBase(1).
+  Return base.
+
+Rule paramShadow given n as Int, produce Int:
+  Match n:
+    When 0,
+      Let n be 50.
+      Set n to n plus 1.
+  Return n.
