@@ -1,11 +1,11 @@
 {
   "summary": {
-    "total": 234,
-    "equivalent": 234,
+    "total": 238,
+    "equivalent": 238,
     "divergent": 0,
     "bothFail": 0,
     "rate": 1,
-    "basedOnHistory": "2026-11-04T08:44:23.283Z"
+    "basedOnHistory": "2026-11-05T09:04:54.698Z"
   },
   "rows": [
     {
@@ -325,6 +325,20 @@
     },
     {
       "path": "tier1-equivalence/policies/bad_generic_return_type.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/block-scope-shadowing.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/builtin-name-shadowing.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -1325,6 +1339,13 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/rule-local-shadowing.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/rules_engine.aster",
       "ts": true,
       "java": true,
@@ -1641,6 +1662,13 @@
     },
     {
       "path": "tier1-equivalence/policies/verdict-fields.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/workflow-step-scope.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
