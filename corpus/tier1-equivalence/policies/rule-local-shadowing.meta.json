@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "局部函数值优先于同名规则（ADR 0051 §6.2 LOCAL 层，aster-lang-truffle#161）：Let combine / Let add 闭包与同名规则并存时调用局部；无同名局部时调用规则（规则 add 优先于 builtin add）",
+  "capabilities": [
+    "cases-golden"
+  ]
+}

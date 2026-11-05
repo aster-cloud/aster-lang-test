@@ -1,0 +1,46 @@
+{
+  "policy": "tier1-equivalence/policies/rule-local-shadowing.aster",
+  "entry": "viaLocal",
+  "cases": [
+    {
+      "name": "viaRule: 无同名局部时调用规则 combine，2 + 3 → 5",
+      "entry": "viaRule",
+      "input": [
+        2
+      ],
+      "expectedOutput": 5
+    },
+    {
+      "name": "viaLocal: 局部闭包 combine 遮蔽同名规则，2 × 3 → 6（规则会得 5）",
+      "entry": "viaLocal",
+      "input": [
+        2
+      ],
+      "expectedOutput": 6
+    },
+    {
+      "name": "viaLocal: 0 × 3 → 0",
+      "entry": "viaLocal",
+      "input": [
+        0
+      ],
+      "expectedOutput": 0
+    },
+    {
+      "name": "viaLocalBuiltinName: 局部闭包 add 遮蔽同名规则与 builtin，4 × 3 → 12（规则得 1，builtin 得 7）",
+      "entry": "viaLocalBuiltinName",
+      "input": [
+        4
+      ],
+      "expectedOutput": 12
+    },
+    {
+      "name": "viaRuleBuiltinName: 无同名局部时规则 add 优先于 builtin，4 − 3 → 1",
+      "entry": "viaRuleBuiltinName",
+      "input": [
+        4
+      ],
+      "expectedOutput": 1
+    }
+  ]
+}

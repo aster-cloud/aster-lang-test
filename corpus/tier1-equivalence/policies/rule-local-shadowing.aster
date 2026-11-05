@@ -1,0 +1,23 @@
+Module demo.rulelocalshadowing.
+
+Rule combine given a as Int, b as Int, produce Int:
+  Return a plus b.
+
+Rule add given a as Int, b as Int, produce Int:
+  Return a minus b.
+
+Rule viaRule given n as Int, produce Int:
+  Return combine(n, 3).
+
+Rule viaLocal given n as Int, produce Int:
+  Let combine be function with a as Int, b as Int, produce Int:
+    Return a times b.
+  Return combine(n, 3).
+
+Rule viaLocalBuiltinName given n as Int, produce Int:
+  Let add be function with a as Int, b as Int, produce Int:
+    Return a times b.
+  Return add(n, 3).
+
+Rule viaRuleBuiltinName given n as Int, produce Int:
+  Return add(n, 3).
