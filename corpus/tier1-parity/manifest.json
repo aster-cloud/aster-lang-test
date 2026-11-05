@@ -200,6 +200,8 @@
     "tier1-equivalence/policies/set-writeback.aster",
     "tier1-equivalence/policies/block-scope-shadowing.aster",
     "tier1-equivalence/policies/builtin-name-shadowing.aster",
+    "tier1-equivalence/policies/rule-local-shadowing.aster",
+    "tier1-equivalence/policies/workflow-step-scope.aster",
     "tier1-equivalence/policies/simple_test.aster",
     "tier1-equivalence/policies/soc2-audit-demo.aster",
     "tier1-equivalence/policies/stdlib_collections.aster",

@@ -1,0 +1,22 @@
+Module demo.workflowstepscope.
+
+Rule runSteps given n as Int, produce Int. It performs io:
+  Let x be n.
+  workflow:
+    step first:
+      Let x be n plus 1.
+      Let y be x times 2.
+      Return ok of y.
+    compensate:
+      Let x be n minus 1.
+      Return ok of x.
+
+    step second:
+      Let y be n plus 10.
+      Return ok of y.
+
+    step third:
+      Set x to n plus 100.
+      Return ok of x.
+  .
+  Return x.

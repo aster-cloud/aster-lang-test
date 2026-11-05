@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "workflow 的 step 体与 compensate 体各是一层词法作用域（aster-lang-truffle#159，与 case / Scope 一致，ADR 0052 §2.1）：step 内 Let 遮蔽外层 x，并行 step 各自的 Let y 互不影响，无同名 Let 的 step 里 Set 写回外层。TS 解释器不支持 workflow，只比 parse / IR",
+  "evalExempt": true,
+  "evalExemptReason": "effects",
+  "evalExemptDetail": "tests effect inference/enforcement (a compile-time concern), not runtime output"
+}
