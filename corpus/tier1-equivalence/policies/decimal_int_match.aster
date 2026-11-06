@@ -1,0 +1,22 @@
+Module demo.decimal_int_match.
+
+Rule classify given x, produce Text:
+  Match x:
+    When 0, Return "zero".
+    When 1, Return "one".
+    When other, Return "other".
+
+Rule decimalZero produce Text:
+  Return classify(0m).
+
+Rule decimalZeroScaled produce Text:
+  Return classify(0.00m).
+
+Rule decimalOneScaled produce Text:
+  Return classify(1.000m).
+
+Rule decimalOnePointFive produce Text:
+  Return classify(1.5m).
+
+Rule intOne produce Text:
+  Return classify(1).

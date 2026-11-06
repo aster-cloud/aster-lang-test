@@ -1,0 +1,15 @@
+{
+  "samples": [
+    {
+      "name": "decimal_int_match",
+      "entry": "decimalZero",
+      "cases": [
+        { "name": "0m 命中 When 0", "entry": "decimalZero", "input": [], "expectedOutput": "zero" },
+        { "name": "0.00m 命中 When 0（不看 scale）", "entry": "decimalZeroScaled", "input": [], "expectedOutput": "zero" },
+        { "name": "1.000m 命中 When 1", "entry": "decimalOneScaled", "input": [], "expectedOutput": "one" },
+        { "name": "1.5m 不命中 When 1，落入兜底", "entry": "decimalOnePointFive", "input": [], "expectedOutput": "other" },
+        { "name": "Int 1 行为不变", "entry": "intOne", "input": [], "expectedOutput": "one" }
+      ]
+    }
+  ]
+}

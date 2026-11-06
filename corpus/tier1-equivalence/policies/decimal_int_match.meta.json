@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "整数模式 When N 对 Decimal 按精确数值比较（aster-lang-truffle#166、aster-lang-ts#289）：0m / 0.00m 命中 When 0，1.000m 命中 When 1，1.5m 落入兜底",
+  "capabilities": [
+    "cases-golden"
+  ]
+}
