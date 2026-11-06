@@ -16,14 +16,14 @@
 
 | Metric | Count |
 |---|---:|
-| Total tier1-equivalence samples | 238 |
+| Total tier1-equivalence samples | 239 |
 | Eval-exempt (no meaningful pure-eval golden) | 75 |
-| **Eval-able** (denominator) | **163** |
-| Covered by a `*.cases.json` golden | 163 |
-| **Coverage** | **163 / 163 = 100.0 %** |
+| **Eval-able** (denominator) | **164** |
+| Covered by a `*.cases.json` golden | 164 |
+| **Coverage** | **164 / 164 = 100.0 %** |
 | Eval-able but NOT yet covered (backlog) | 0 |
 
-`--mode=eval` 实测 **854/854 identical**（双引擎一致且匹配 golden，0 divergent；其中 builtin-name-shadowing 的 4 例依赖 aster-lang-truffle#158 的「局部函数值优先于同名 builtin」修复，rule-local-shadowing 的 5 例锁定「局部函数值优先于同名规则」（aster-lang-truffle#161））。workflow-step-scope（aster-lang-truffle#159）按 `effects` 豁免，只比 parse / IR。
+`--mode=eval` 实测 **859/859 identical**（双引擎一致且匹配 golden，0 divergent；其中 builtin-name-shadowing 的 4 例依赖 aster-lang-truffle#158 的「局部函数值优先于同名 builtin」修复，rule-local-shadowing 的 5 例锁定「局部函数值优先于同名规则」（aster-lang-truffle#161），decimal_int_match 的 5 例锁定「整数模式对 Decimal 精确数值匹配」（aster-lang-truffle#166、aster-lang-ts#289））。workflow-step-scope（aster-lang-truffle#159）按 `effects` 豁免，只比 parse / IR。
 
 > **本表的数字必须与 `node scripts/tag-eval-exempt.mjs` 的实时输出一致。**
 > 上一版（2026-07-28）记的是 218 / 145 / 298，而实时已是 223 / 150 / 713——
