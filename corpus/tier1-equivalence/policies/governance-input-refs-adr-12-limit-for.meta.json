@@ -5,5 +5,12 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）adr-12-limit-for：limitFor→null; decide→[\"context.amount\", \"context.tier\"]"
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）adr-12-limit-for：limitFor→null; decide→[\"context.amount\", \"context.tier\"]",
+  "expectedInputRefs": {
+    "limitFor": null,
+    "decide": [
+      "context.amount",
+      "context.tier"
+    ]
+  }
 }

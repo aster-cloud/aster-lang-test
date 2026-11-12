@@ -5,5 +5,18 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）adr-13-inline-depth-8：h1→null; h2→null; h3→null; h4→null; h5→null; h6→null; h7→null; h8→null; decide→[\"context.amount\"]"
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）adr-13-inline-depth-8：h1→null; h2→null; h3→null; h4→null; h5→null; h6→null; h7→null; h8→null; decide→[\"context.amount\"]",
+  "expectedInputRefs": {
+    "h1": null,
+    "h2": null,
+    "h3": null,
+    "h4": null,
+    "h5": null,
+    "h6": null,
+    "h7": null,
+    "h8": null,
+    "decide": [
+      "context.amount"
+    ]
+  }
 }

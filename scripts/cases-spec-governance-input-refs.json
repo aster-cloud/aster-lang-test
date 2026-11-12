@@ -1259,6 +1259,569 @@
      }
     }
    ]
+  },
+  {
+   "name": "governance-input-refs-lambda-capture-read",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "allow",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 60000,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-lambda-parameter-applied",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "positive",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 5,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "DENY",
+      "reason": "positive"
+     }
+    },
+    {
+     "name": "zero",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 0,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-lambda-returned-from-callee",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "allow",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 60000,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-if-expression",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "gold",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 5,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    },
+    {
+     "name": "non-positive",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 0,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "DENY",
+      "reason": "tier"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-list-literal",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "action x",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "x",
+       "context": {
+        "amount": 60000,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "DENY",
+      "reason": "x"
+     }
+    },
+    {
+     "name": "none",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "y",
+       "context": {
+        "amount": 60000,
+        "tier": "z",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-map-values-iteration",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "has x",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 60000,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "k": "x"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "DENY",
+      "reason": "x"
+     }
+    },
+    {
+     "name": "no x",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 60000,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "k": "y"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-map-contains-literal-key",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "has region",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 60000,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ESCALATE",
+      "reason": "region"
+     }
+    },
+    {
+     "name": "no region",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 60000,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "k": "y"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-construct-passed-to-callee",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "big",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 60000,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ESCALATE",
+      "reason": "big"
+     }
+    },
+    {
+     "name": "small",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 10,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-direct-self-recursion",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "terminates at amount ≥ 1",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 5,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "DENY",
+      "reason": "deep"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-function-value-passed-to-builtin",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "ops",
+     "input": [
+      {
+       "principal_roles": [
+        "dev",
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 60000,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    },
+    {
+     "name": "dev",
+     "input": [
+      {
+       "principal_roles": [
+        "dev"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 60000,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "DENY",
+      "reason": "role"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-match-map-get-when-null",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "region",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 60000,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    },
+    {
+     "name": "no region（Map.get 缺键得 None，不匹配 null 模式）",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 60000,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {}
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-named-operator-builtin",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "positive",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 5,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ESCALATE",
+      "reason": "positive"
+     }
+    },
+    {
+     "name": "zero",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "refund",
+       "context": {
+        "amount": 0,
+        "tier": "gold",
+        "band": "silver",
+        "meta": {
+         "region": "EU"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
   }
  ]
 }

@@ -5,5 +5,8 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）no-input-read：decide→[]"
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）no-input-read：decide→[]",
+  "expectedInputRefs": {
+    "decide": []
+  }
 }

@@ -1,7 +1,17 @@
 {
   "tier": 1,
-  "engines": ["java", "ts"],
+  "engines": [
+    "java",
+    "ts"
+  ],
   "lexicon": "en-US",
   "source": "ADR 0046 §5 语法糖与长写法成对样本",
-  "capabilities": ["cases-golden"]
+  "capabilities": [
+    "cases-golden"
+  ],
+  "expectedInputRefs": {
+    "decide": [
+      ""
+    ]
+  }
 }

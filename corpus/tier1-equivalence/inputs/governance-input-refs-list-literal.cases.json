@@ -1,0 +1,53 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-list-literal.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "action x",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "x",
+          "context": {
+            "amount": 60000,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "DENY",
+        "reason": "x"
+      }
+    },
+    {
+      "name": "none",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "y",
+          "context": {
+            "amount": 60000,
+            "tier": "z",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

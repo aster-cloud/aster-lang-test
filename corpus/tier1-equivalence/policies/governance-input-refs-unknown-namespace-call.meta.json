@@ -1,0 +1,20 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）unknown-namespace-call：decide→[\"*\"] (cross-module-call)",
+  "expectedInputRefs": {
+    "decide": [
+      "*"
+    ]
+  },
+  "expectedInputRefConstructs": {
+    "decide": "cross-module-call"
+  },
+  "evalExempt": true,
+  "evalExemptReason": "io",
+  "evalExemptDetail": "calls a side-effecting IO builtin; runtime needs real effects, not a deterministic golden"
+}

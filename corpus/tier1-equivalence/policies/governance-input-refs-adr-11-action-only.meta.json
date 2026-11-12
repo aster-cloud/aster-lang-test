@@ -5,5 +5,10 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）adr-11-action-only：decide→[\"action\"]"
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）adr-11-action-only：decide→[\"action\"]",
+  "expectedInputRefs": {
+    "decide": [
+      "action"
+    ]
+  }
 }

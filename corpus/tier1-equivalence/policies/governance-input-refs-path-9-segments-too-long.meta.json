@@ -5,5 +5,13 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）path-9-segments-too-long：decide→[\"*\"] (path-too-long)"
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）path-9-segments-too-long：decide→[\"*\"] (path-too-long)",
+  "expectedInputRefs": {
+    "decide": [
+      "*"
+    ]
+  },
+  "expectedInputRefConstructs": {
+    "decide": "path-too-long"
+  }
 }

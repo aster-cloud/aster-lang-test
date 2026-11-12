@@ -1,0 +1,54 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-function-value-passed-to-builtin.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "ops",
+      "input": [
+        {
+          "principal_roles": [
+            "dev",
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 60000,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    },
+    {
+      "name": "dev",
+      "input": [
+        {
+          "principal_roles": [
+            "dev"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 60000,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "DENY",
+        "reason": "role"
+      }
+    }
+  ]
+}

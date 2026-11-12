@@ -5,5 +5,10 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）adr-10-principal-roles：decide→[\"principal_roles\"]"
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）adr-10-principal-roles：decide→[\"principal_roles\"]",
+  "expectedInputRefs": {
+    "decide": [
+      "principal_roles"
+    ]
+  }
 }

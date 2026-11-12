@@ -1,0 +1,30 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-direct-self-recursion.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "terminates at amount ≥ 1",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 5,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "DENY",
+        "reason": "deep"
+      }
+    }
+  ]
+}

@@ -5,5 +5,15 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）adr-15-mutual-recursion：isOk→null; isBad→null; decide→[\"*\"] (recursion)"
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）adr-15-mutual-recursion：isOk→null; isBad→null; decide→[\"*\"] (recursion)",
+  "expectedInputRefs": {
+    "isOk": null,
+    "isBad": null,
+    "decide": [
+      "*"
+    ]
+  },
+  "expectedInputRefConstructs": {
+    "decide": "recursion"
+  }
 }

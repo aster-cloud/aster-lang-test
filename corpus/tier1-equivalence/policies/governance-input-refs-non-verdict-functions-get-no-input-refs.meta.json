@@ -5,5 +5,13 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）non-verdict-functions-get-no-input-refs：helper→null; other→null; decide→[\"action\", \"context.amount\"]"
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）non-verdict-functions-get-no-input-refs：helper→null; other→null; decide→[\"action\", \"context.amount\"]",
+  "expectedInputRefs": {
+    "helper": null,
+    "other": null,
+    "decide": [
+      "action",
+      "context.amount"
+    ]
+  }
 }
