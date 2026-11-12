@@ -1,11 +1,11 @@
 {
   "summary": {
-    "total": 239,
-    "equivalent": 239,
+    "total": 240,
+    "equivalent": 240,
     "divergent": 0,
     "bothFail": 0,
     "rate": 1,
-    "basedOnHistory": "2026-11-11T08:57:39.873Z"
+    "basedOnHistory": "2026-11-12T09:24:48.110Z"
   },
   "rows": [
     {
@@ -738,6 +738,13 @@
     },
     {
       "path": "tier1-equivalence/policies/eff_violation_transitive.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/effect-unknown-name.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
