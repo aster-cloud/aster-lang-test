@@ -5,3 +5,6 @@ Rule nextValue given x as Int, produce Int. It performs teleport:
 
 Rule tagged given name as Text, produce Text. It performs teleport [Http]:
   Return name.
+
+Rule softWord given x as Int, produce Int. It performs maybe:
+  Return x.
