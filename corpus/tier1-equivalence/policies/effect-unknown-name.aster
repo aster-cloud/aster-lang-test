@@ -1,0 +1,10 @@
+Module test.effect.unknown_name.
+
+Rule nextValue given x as Int, produce Int. It performs teleport:
+  Return x plus 1.
+
+Rule tagged given name as Text, produce Text. It performs teleport [Http]:
+  Return name.
+
+Rule softWord given x as Int, produce Int. It performs maybe:
+  Return x.

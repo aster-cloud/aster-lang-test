@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "未知效果名（aster-lang-ts#304）：两引擎都接受 `It performs <任意名>`（含 core 不保留的软关键词 maybe），IR 的 effects 原样保留效果名，检查阶段按 pure 处理",
+  "evalExempt": true,
+  "evalExemptReason": "effects",
+  "evalExemptDetail": "tests effect inference/enforcement (a compile-time concern), not runtime output"
+}

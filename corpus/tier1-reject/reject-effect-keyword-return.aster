@@ -1,0 +1,3 @@
+Module reject.effectKeywordReturn.
+
+Rule f given x as Int, produce Int. It performs return.

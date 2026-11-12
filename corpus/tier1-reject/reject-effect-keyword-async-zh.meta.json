@@ -1,0 +1,8 @@
+{
+  "tier": 1,
+  "engines": ["java", "ts"],
+  "lexicon": "zh-CN",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "效果名位置的关键词（zh-CN，aster-lang-ts#304 审查 F1）：异步 规范化为保留词 async，不是 IDENT，两引擎都必须拒绝"
+}
