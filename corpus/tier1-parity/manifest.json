@@ -111,6 +111,7 @@
     "tier1-equivalence/policies/eff_violation_secrets_calls_http.aster",
     "tier1-equivalence/policies/eff_violation_sql_calls_files.aster",
     "tier1-equivalence/policies/eff_violation_transitive.aster",
+    "tier1-equivalence/policies/effect-unknown-name.aster",
     "tier1-equivalence/policies/effect_enforcement.aster",
     "tier1-equivalence/policies/eligibility.aster",
     "tier1-equivalence/policies/enterprise.aster",
