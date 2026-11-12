@@ -7,5 +7,5 @@ Define GuardRequest has principal_roles as List of Text, action as Text, context
 @id("R-1")
 @control("EU_AI_ACT:ART14")
 Rule decide given req as GuardRequest, produce Verdict:
-  Let r be Http.get(req.action).
+  Let r be Payments.charge(req.action).
   Return Verdict.allow().

@@ -15,6 +15,6 @@
     "decide": "cross-module-call"
   },
   "evalExempt": true,
-  "evalExemptReason": "io",
-  "evalExemptDetail": "calls a side-effecting IO builtin; runtime needs real effects, not a deterministic golden"
+  "evalExemptReason": "undefined-call",
+  "evalExemptDetail": "calls a function never defined in the module; fails in both engines (parser-only fixture)"
 }

@@ -1822,6 +1822,94 @@
      }
     }
    ]
+  },
+  {
+   "name": "governance-input-refs-memo-key-collision-repro",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "allow",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "x",
+       "context": {
+        "amount": 1,
+        "tier": "gold",
+        "band": "b",
+        "meta": {
+         "a": "y"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-map-literal-key-control-char",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "absent key",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "x",
+       "context": {
+        "amount": 1,
+        "tier": "gold",
+        "band": "b",
+        "meta": {
+         "k": "x"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
+  },
+  {
+   "name": "governance-input-refs-memo-similar-args-kept-apart",
+   "entry": "decide",
+   "cases": [
+    {
+     "name": "allow",
+     "input": [
+      {
+       "principal_roles": [
+        "ops"
+       ],
+       "action": "x",
+       "context": {
+        "amount": 1,
+        "tier": "gold",
+        "band": "b",
+        "meta": {
+         "a": "y",
+         "a_principal_roles": "z"
+        }
+       }
+      }
+     ],
+     "expectedOutput": {
+      "__type": "Verdict",
+      "outcome": "ALLOW"
+     }
+    }
+   ]
   }
  ]
 }

@@ -1,0 +1,29 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-map-literal-key-control-char.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "absent key",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "x",
+          "context": {
+            "amount": 1,
+            "tier": "gold",
+            "band": "b",
+            "meta": {
+              "k": "x"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

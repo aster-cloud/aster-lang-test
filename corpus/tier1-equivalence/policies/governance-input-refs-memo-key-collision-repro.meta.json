@@ -1,0 +1,18 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）memo-key-collision-repro：g→null; decide→[\"*\"] (unrepresentable-key)",
+  "expectedInputRefs": {
+    "g": null,
+    "decide": [
+      "*"
+    ]
+  },
+  "expectedInputRefConstructs": {
+    "decide": "unrepresentable-key"
+  }
+}

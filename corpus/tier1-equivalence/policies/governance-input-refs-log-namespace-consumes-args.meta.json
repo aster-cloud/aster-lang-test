@@ -1,0 +1,17 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）log-namespace-consumes-args：decide→[\"action\"]",
+  "expectedInputRefs": {
+    "decide": [
+      "action"
+    ]
+  },
+  "evalExempt": true,
+  "evalExemptReason": "undefined-call",
+  "evalExemptDetail": "calls a function never defined in the module; fails in both engines (parser-only fixture)"
+}
