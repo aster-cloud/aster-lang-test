@@ -1,0 +1,9 @@
+Module governance.input.refs.case16.
+Profile "eu-ai-act-high-risk".
+
+@id("S-1")
+@control("EU_AI_ACT:ART14")
+Rule decide given amount, produce Verdict:
+  If amount at least 100:
+    Return Verdict.escalate("large").
+  Return Verdict.allow().

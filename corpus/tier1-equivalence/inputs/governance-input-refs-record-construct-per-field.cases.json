@@ -1,0 +1,53 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-record-construct-per-field.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "positive",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 3,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ESCALATE",
+        "reason": "positive"
+      }
+    },
+    {
+      "name": "zero",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 0,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）node-visit-budget：h1→null; h2→null; h3→null; decide→[\"*\"] (inline-depth)",
+  "expectedInputRefs": {
+    "h1": null,
+    "h2": null,
+    "h3": null,
+    "decide": [
+      "*"
+    ]
+  },
+  "expectedInputRefConstructs": {
+    "decide": "inline-depth"
+  },
+  "evalExempt": true,
+  "evalExemptReason": "undefined-call",
+  "evalExemptDetail": "calls a function never defined in the module; fails in both engines (parser-only fixture)"
+}

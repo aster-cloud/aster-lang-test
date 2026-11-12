@@ -1,0 +1,50 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-match-map-get-when-null.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "region",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 60000,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    },
+    {
+      "name": "no region（Map.get 缺键得 None，不匹配 null 模式）",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 60000,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {}
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

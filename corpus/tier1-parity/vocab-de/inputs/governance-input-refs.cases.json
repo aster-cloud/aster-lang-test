@@ -1,0 +1,55 @@
+{
+  "entry": "entscheide",
+  "cases": [
+    {
+      "name": "de: betrag ≥ 50000 → ablehnen gross",
+      "input": [
+        {
+          "action": "ansehen",
+          "context": {
+            "amount": 60000,
+            "tier": "gold"
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "DENY",
+        "reason": "gross"
+      }
+    },
+    {
+      "name": "de: aktion erstattung → eskalieren",
+      "input": [
+        {
+          "action": "erstattung",
+          "context": {
+            "amount": 100,
+            "tier": "gold"
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ESCALATE",
+        "reason": "erstattung"
+      }
+    },
+    {
+      "name": "de: sonst → erlauben",
+      "input": [
+        {
+          "action": "ansehen",
+          "context": {
+            "amount": 100,
+            "tier": "gold"
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

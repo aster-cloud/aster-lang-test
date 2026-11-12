@@ -1,0 +1,53 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-adr-09-function-value-from-variable.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "big",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 60000,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "DENY",
+        "reason": "picked"
+      }
+    },
+    {
+      "name": "small",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 5,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

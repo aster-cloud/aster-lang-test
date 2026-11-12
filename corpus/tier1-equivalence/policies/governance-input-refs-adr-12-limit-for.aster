@@ -1,0 +1,19 @@
+Module governance.input.refs.case12.
+Profile "eu-ai-act-high-risk".
+
+Define GuardContext has amount as Decimal, tier as Text, band as Text, meta as Map Text to Text.
+Define GuardRequest has principal_roles as List of Text, action as Text, context as GuardContext.
+
+Rule limitFor given t as Text, produce Decimal:
+  If t equals to "gold":
+    Return 100000.
+  Return 10000.
+
+@id("R-1")
+@control("EU_AI_ACT:ART14")
+Rule decide given req as GuardRequest, produce Verdict:
+  Let c be req.context.
+  Let lim be limitFor(c.tier).
+  If c.amount greater than lim:
+    Return Verdict.escalate("over").
+  Return Verdict.allow().

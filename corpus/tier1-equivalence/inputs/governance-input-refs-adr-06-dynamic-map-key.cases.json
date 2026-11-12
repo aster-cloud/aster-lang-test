@@ -1,0 +1,53 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-adr-06-dynamic-map-key.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "hit",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "k",
+          "context": {
+            "amount": 60000,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "k": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ESCALATE",
+        "reason": "eu"
+      }
+    },
+    {
+      "name": "miss",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "k",
+          "context": {
+            "amount": 60000,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "k": "US"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

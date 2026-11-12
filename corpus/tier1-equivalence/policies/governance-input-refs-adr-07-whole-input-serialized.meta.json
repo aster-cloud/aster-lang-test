@@ -1,0 +1,20 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）adr-07-whole-input-serialized：decide→[\"*\"] (whole-input-serialized)",
+  "expectedInputRefs": {
+    "decide": [
+      "*"
+    ]
+  },
+  "expectedInputRefConstructs": {
+    "decide": "whole-input-serialized"
+  },
+  "evalExempt": true,
+  "evalExemptReason": "undefined-call",
+  "evalExemptDetail": "calls a function never defined in the module; fails in both engines (parser-only fixture)"
+}

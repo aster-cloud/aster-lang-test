@@ -1,0 +1,11 @@
+Module governance.input.refs.case23.
+Profile "eu-ai-act-high-risk".
+
+Define Deep has s1.
+
+@id("D-1")
+@control("EU_AI_ACT:ART14")
+Rule decide given req as Deep, produce Verdict:
+  If req.s1.s2.s3.s4.s5.s6.s7.s8 equals to "x":
+    Return Verdict.deny("deep").
+  Return Verdict.allow().

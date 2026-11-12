@@ -48,6 +48,7 @@ import { dirname, resolve, join, basename } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { upsertDailyHistory } from './lib/history.mjs';
+import { inputRefsProblems } from './lib/input-refs-expect.mjs';
 import { collectEvalCaseProblem, entryForCase, expectsError } from './lib/eval-cases.mjs';
 import { inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
 import { MUST_REJECT_DIR, judgeMustReject, javaRejection, checkMustRejectManifest } from './lib/must-reject.mjs';
@@ -572,14 +573,34 @@ function buildFingerprint(coreModule) {
  */
 async function runTsIr(samples) {
   const resolved = await runTsResolve(samples);
+  const analyze = IR_FULL ? await loadTsInputRefsAnalyzer() : null;
   const results = {};
   for (const { rel } of samples) {
     const r = resolved[rel];
     results[rel] = !r.ok
       ? { ok: false, error: r.err }
-      : IR_FULL ? { ok: true, ir: r.ir } : { ok: true, fingerprint: buildFingerprint(r.ir) };
+      : IR_FULL ? { ok: true, ir: r.ir, inputRefConstructs: tsConstructsOf(analyze, r.ir) } : { ok: true, fingerprint: buildFingerprint(r.ir) };
   }
   return results;
+}
+
+/** TS 的 analyzeInputRefs（ADR 0046 §11 D2）；旧版 aster-lang-ts 没有该模块时为 null。 */
+async function loadTsInputRefsAnalyzer() {
+  const p = join(TS_REPO, 'dist', 'src', 'governance', 'input-refs.js');
+  if (!existsSync(p)) return null;
+  return (await import(p)).analyzeInputRefs ?? null;
+}
+
+/** inputRefs 为 ["*"] 的函数 → E708 construct；与 Java CoreIrFingerprintCli 的 inputRefConstructs 同形。 */
+function tsConstructsOf(analyze, ir) {
+  if (!analyze) return undefined;
+  const out = {};
+  for (const d of ir?.decls ?? []) {
+    if (d.kind === 'Func' && Array.isArray(d.inputRefs) && d.inputRefs.length === 1 && d.inputRefs[0] === '*') {
+      out[d.name] = analyze(ir, d).construct;
+    }
+  }
+  return out;
 }
 
 /**
@@ -658,7 +679,7 @@ function runJavaIr(samples, { full = IR_FULL } = {}) {
       results[rel] = { ok: false, stage: rec.stage || 'crash', codes: rec.codes, locs: rec.locs, error, err: error };
     } else {
       results[rel] = full
-        ? { ok: true, ir: rec.ir, warnings: rec.diagnostics || [], locs: rec.locs }
+        ? { ok: true, ir: rec.ir, inputRefConstructs: rec.inputRefConstructs, warnings: rec.diagnostics || [], locs: rec.locs }
         : { ok: true, fingerprint: rec.fingerprint, warnings: rec.diagnostics || [], locs: rec.locs };
     }
   }
@@ -829,6 +850,16 @@ function classifyIr(tsRes, javaRes, samples) {
     } else if (IR_FULL) {
       diffs = diffIr(t.ir, j.ir);
       verdict = diffs.length === 0 ? 'identical' : (exempt ? 'divergent-exempt' : 'divergent');
+      // 治理输入引用样本：两引擎相同还不够，须等于 meta 声明的期望值（两边同时算错也要变红）
+      const meta = readMeta(abs) ?? {};
+      const expectProblems = [
+        ...inputRefsProblems('ts', meta, t.ir, t.inputRefConstructs),
+        ...inputRefsProblems('java', meta, j.ir, j.inputRefConstructs),
+      ];
+      if (expectProblems.length > 0) {
+        verdict = 'divergent';
+        diffs = [...diffs, ...expectProblems.map((value) => ({ path: 'expectedInputRefs', value }))];
+      }
     } else {
       diffs = diffFingerprints(t.fingerprint, j.fingerprint);
       verdict = diffs.length === 0 ? 'identical' : 'divergent';

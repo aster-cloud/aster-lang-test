@@ -1,0 +1,29 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-memo-key-collision-repro.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "allow",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "x",
+          "context": {
+            "amount": 1,
+            "tier": "gold",
+            "band": "b",
+            "meta": {
+              "a": "y"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

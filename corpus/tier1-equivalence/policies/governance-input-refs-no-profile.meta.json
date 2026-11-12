@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0046 §11 D2：未声明档案的模块不写 inputRefs，Verdict 规则的 IR 与引入 inputRefs 之前逐字节相同（与 governance-input-refs-adr-01-literal-field 同一规则体，只少 Profile 声明）",
+  "expectedInputRefs": {
+    "decide": null
+  }
+}

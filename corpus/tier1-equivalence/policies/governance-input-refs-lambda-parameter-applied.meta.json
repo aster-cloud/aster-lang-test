@@ -1,0 +1,17 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）lambda-parameter-applied：decide→[\"*\"] (function-value)",
+  "expectedInputRefs": {
+    "decide": [
+      "*"
+    ]
+  },
+  "expectedInputRefConstructs": {
+    "decide": "function-value"
+  }
+}

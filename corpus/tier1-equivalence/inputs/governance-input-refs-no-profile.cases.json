@@ -1,0 +1,39 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-no-profile.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "large",
+      "input": [
+        {
+          "action": "x",
+          "context": {
+            "amount": 60000,
+            "tier": "gold"
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ESCALATE",
+        "reason": "large"
+      }
+    },
+    {
+      "name": "small",
+      "input": [
+        {
+          "action": "x",
+          "context": {
+            "amount": 10,
+            "tier": "gold"
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

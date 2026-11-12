@@ -1,0 +1,11 @@
+Module governance.input.refs.case51.
+Profile "eu-ai-act-high-risk".
+
+Define GuardContext has amount as Decimal, tier as Text, band as Text, meta as Map Text to Text.
+Define GuardRequest has principal_roles as List of Text, action as Text, context as GuardContext.
+
+@id("R-1")
+@control("EU_AI_ACT:ART14")
+Rule decide given req as GuardRequest, produce Verdict:
+  Let n be Log.info(req.action).
+  Return Verdict.allow().

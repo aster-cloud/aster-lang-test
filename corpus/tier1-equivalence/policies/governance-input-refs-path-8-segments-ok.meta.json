@@ -1,0 +1,14 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）path-8-segments-ok：decide→[\"s1.s2.s3.s4.s5.s6.s7.s8\"]",
+  "expectedInputRefs": {
+    "decide": [
+      "s1.s2.s3.s4.s5.s6.s7.s8"
+    ]
+  }
+}

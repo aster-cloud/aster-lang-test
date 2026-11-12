@@ -1,0 +1,14 @@
+Module governance.input.refs.case25.
+Profile "eu-ai-act-high-risk".
+
+Define GuardContext has amount as Decimal, tier as Text, band as Text, meta as Map Text to Text.
+Define GuardRequest has principal_roles as List of Text, action as Text, context as GuardContext.
+Define Pair has amt as Decimal, lbl as Text.
+
+@id("R-1")
+@control("EU_AI_ACT:ART14")
+Rule decide given req as GuardRequest, produce Verdict:
+  Let p be Pair with amt set to req.context.amount, lbl set to req.action.
+  If p.amt greater than 0:
+    Return Verdict.escalate("positive").
+  Return Verdict.allow().

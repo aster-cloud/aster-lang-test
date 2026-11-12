@@ -161,6 +161,9 @@ jobs:
               # 语料自带词汇（ADR 0051）的 manifest 形态 / 守卫 / 判定，与 envelope 共享向量及其快测。
               - 'scripts/lib/vocab-corpus.mjs'
               - 'scripts/test-vocab-corpus.mjs'
+              # 治理输入引用样本的期望值核对（ADR 0046 §11 R62）及其回归测试。
+              - 'scripts/lib/input-refs-expect.mjs'
+              - 'scripts/test-input-refs-expect.mjs'
               # parity 门禁的 IR 归一化入口及其接线回归测试。
               - 'scripts/lib/ir-normalize-parity.mjs'
               - 'scripts/test-ir-normalize-parity.mjs'
@@ -361,6 +364,13 @@ jobs:
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         run: node scripts/test-vocab-corpus.mjs
+
+      # 治理输入引用（ADR 0046 §11 R62）：声明 expectedInputRefs 的样本在 ir --full 下须等于期望值，
+      # 而不只是两引擎相同。直接测核对规则本身。
+      - name: Run input-refs expectation regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-input-refs-expect.mjs
 
       # parity 门禁的 IR 归一化接线：门禁必须经 lib/ir-normalize-parity.mjs 取得归一化，
       # 且签名 / 字段类型上的 written/role 参与比较。直接测函数行为，而非对脚本源码做子串匹配。

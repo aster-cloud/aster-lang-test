@@ -1,0 +1,15 @@
+Modul governance.input.refs.de.
+Profil "eu-ai-act-high-risk".
+
+Definiere Kontext hat betrag als Dezimal, stufe als Text.
+Definiere Anfrage hat aktion als Text, kontext als Kontext.
+
+@id("DE-1")
+@control("EU_AI_ACT:ART14")
+Regel entscheide gegeben anfrage als Anfrage, liefert Verdict:
+  sei b gleich anfrage.kontext.betrag.
+  wenn b mindestens 50000:
+    gib zurueck Verdict.deny("gross").
+  wenn anfrage.aktion entspricht "erstattung":
+    gib zurueck Verdict.escalate("erstattung").
+  gib zurueck Verdict.allow().

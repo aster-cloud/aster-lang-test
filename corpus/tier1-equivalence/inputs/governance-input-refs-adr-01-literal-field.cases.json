@@ -1,0 +1,53 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-adr-01-literal-field.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "large",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 60000,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ESCALATE",
+        "reason": "large"
+      }
+    },
+    {
+      "name": "small",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 100,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

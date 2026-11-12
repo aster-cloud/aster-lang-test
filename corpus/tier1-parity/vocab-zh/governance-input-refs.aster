@@ -1,0 +1,15 @@
+模块 governance.input.refs.zh。
+档案 "eu-ai-act-high-risk"。
+
+定义 上下文 包含 金额 作为 小数，等级 作为 文本。
+定义 请求 包含 动作 作为 文本，上下文 作为 上下文。
+
+@id("ZH-1")
+@control("EU_AI_ACT:ART14")
+规则 决定 给定 请求 作为 请求，产出 Verdict：
+  令 甲 定义为 请求.上下文.金额。
+  如果 甲 至少 50000：
+    返回 Verdict.deny("大额")。
+  如果 请求.动作 等于 "退款"：
+    返回 Verdict.escalate("退款")。
+  返回 Verdict.allow()。

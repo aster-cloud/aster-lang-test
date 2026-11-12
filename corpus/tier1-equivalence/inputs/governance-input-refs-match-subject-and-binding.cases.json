@@ -1,0 +1,30 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-match-subject-and-binding.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "tier",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 60000,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "region": "EU"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "DENY",
+        "reason": "gold"
+      }
+    }
+  ]
+}

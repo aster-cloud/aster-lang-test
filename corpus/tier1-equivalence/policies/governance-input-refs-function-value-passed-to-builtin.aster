@@ -1,0 +1,16 @@
+Module governance.input.refs.case43.
+Profile "eu-ai-act-high-risk".
+
+Define GuardContext has amount as Decimal, tier as Text, band as Text, meta as Map Text to Text.
+Define GuardRequest has principal_roles as List of Text, action as Text, context as GuardContext.
+
+Rule isOps given r as Text, produce Bool:
+  Return r equals to "ops".
+
+@id("R-1")
+@control("EU_AI_ACT:ART14")
+Rule decide given req as GuardRequest, produce Verdict:
+  Let marks be List.map(req.principal_roles, isOps).
+  If List.contains(marks, true):
+    Return Verdict.allow().
+  Return Verdict.deny("role").

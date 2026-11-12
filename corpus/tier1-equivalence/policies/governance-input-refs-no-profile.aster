@@ -1,0 +1,9 @@
+Module governance.input.refs.noprofile.
+
+Define GuardContext has amount as Decimal, tier as Text.
+Define GuardRequest has action as Text, context as GuardContext.
+
+Rule decide given req as GuardRequest, produce Verdict:
+  If req.context.amount at least 50000:
+    Return Verdict.escalate("large").
+  Return Verdict.allow().

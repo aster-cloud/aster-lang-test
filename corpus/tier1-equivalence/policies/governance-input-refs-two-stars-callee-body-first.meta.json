@@ -1,0 +1,21 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0046 §11 D2 / §11.6 规则输入引用（inputRefs）two-stars-callee-body-first：dyn→null; decide→[\"*\"] (dynamic-map-key)",
+  "expectedInputRefs": {
+    "dyn": null,
+    "decide": [
+      "*"
+    ]
+  },
+  "expectedInputRefConstructs": {
+    "decide": "dynamic-map-key"
+  },
+  "evalExempt": true,
+  "evalExemptReason": "undefined-call",
+  "evalExemptDetail": "calls a function never defined in the module; fails in both engines (parser-only fixture)"
+}

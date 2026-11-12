@@ -1,0 +1,199 @@
+Module governance.input.refs.case47.
+Profile "eu-ai-act-high-risk".
+
+Define Box has v.
+Define Req has context as Box.
+
+Rule h1 given c as Box, produce Bool:
+  Let y00 be h2(c.v.f00).
+  Let y01 be h2(c.v.f01).
+  Let y02 be h2(c.v.f02).
+  Let y03 be h2(c.v.f03).
+  Let y04 be h2(c.v.f04).
+  Let y05 be h2(c.v.f05).
+  Let y06 be h2(c.v.f06).
+  Let y07 be h2(c.v.f07).
+  Let y08 be h2(c.v.f08).
+  Let y09 be h2(c.v.f09).
+  Let y10 be h2(c.v.f10).
+  Let y11 be h2(c.v.f11).
+  Let y12 be h2(c.v.f12).
+  Let y13 be h2(c.v.f13).
+  Let y14 be h2(c.v.f14).
+  Let y15 be h2(c.v.f15).
+  Let y16 be h2(c.v.f16).
+  Let y17 be h2(c.v.f17).
+  Let y18 be h2(c.v.f18).
+  Let y19 be h2(c.v.f19).
+  Let y20 be h2(c.v.f20).
+  Let y21 be h2(c.v.f21).
+  Let y22 be h2(c.v.f22).
+  Let y23 be h2(c.v.f23).
+  Let y24 be h2(c.v.f24).
+  Let y25 be h2(c.v.f25).
+  Let y26 be h2(c.v.f26).
+  Let y27 be h2(c.v.f27).
+  Let y28 be h2(c.v.f28).
+  Let y29 be h2(c.v.f29).
+  Let y30 be h2(c.v.f30).
+  Let y31 be h2(c.v.f31).
+  Let y32 be h2(c.v.f32).
+  Let y33 be h2(c.v.f33).
+  Let y34 be h2(c.v.f34).
+  Let y35 be h2(c.v.f35).
+  Let y36 be h2(c.v.f36).
+  Let y37 be h2(c.v.f37).
+  Let y38 be h2(c.v.f38).
+  Let y39 be h2(c.v.f39).
+  Let y40 be h2(c.v.f40).
+  Let y41 be h2(c.v.f41).
+  Let y42 be h2(c.v.f42).
+  Let y43 be h2(c.v.f43).
+  Let y44 be h2(c.v.f44).
+  Let y45 be h2(c.v.f45).
+  Let y46 be h2(c.v.f46).
+  Let y47 be h2(c.v.f47).
+  Let y48 be h2(c.v.f48).
+  Let y49 be h2(c.v.f49).
+  Let y50 be h2(c.v.f50).
+  Let y51 be h2(c.v.f51).
+  Let y52 be h2(c.v.f52).
+  Let y53 be h2(c.v.f53).
+  Let y54 be h2(c.v.f54).
+  Let y55 be h2(c.v.f55).
+  Let y56 be h2(c.v.f56).
+  Let y57 be h2(c.v.f57).
+  Let y58 be h2(c.v.f58).
+  Let y59 be h2(c.v.f59).
+  Let y60 be h2(c.v.f60).
+  Let y61 be h2(c.v.f61).
+  Let y62 be h2(c.v.f62).
+  Let y63 be h2(c.v.f63).
+  Return true.
+
+Rule h2 given d as Box, produce Bool:
+  Let z00 be h3(d.v.g00).
+  Let z01 be h3(d.v.g01).
+  Let z02 be h3(d.v.g02).
+  Let z03 be h3(d.v.g03).
+  Let z04 be h3(d.v.g04).
+  Let z05 be h3(d.v.g05).
+  Let z06 be h3(d.v.g06).
+  Let z07 be h3(d.v.g07).
+  Let z08 be h3(d.v.g08).
+  Let z09 be h3(d.v.g09).
+  Let z10 be h3(d.v.g10).
+  Let z11 be h3(d.v.g11).
+  Let z12 be h3(d.v.g12).
+  Let z13 be h3(d.v.g13).
+  Let z14 be h3(d.v.g14).
+  Let z15 be h3(d.v.g15).
+  Let z16 be h3(d.v.g16).
+  Let z17 be h3(d.v.g17).
+  Let z18 be h3(d.v.g18).
+  Let z19 be h3(d.v.g19).
+  Let z20 be h3(d.v.g20).
+  Let z21 be h3(d.v.g21).
+  Let z22 be h3(d.v.g22).
+  Let z23 be h3(d.v.g23).
+  Let z24 be h3(d.v.g24).
+  Let z25 be h3(d.v.g25).
+  Let z26 be h3(d.v.g26).
+  Let z27 be h3(d.v.g27).
+  Let z28 be h3(d.v.g28).
+  Let z29 be h3(d.v.g29).
+  Let z30 be h3(d.v.g30).
+  Let z31 be h3(d.v.g31).
+  Let z32 be h3(d.v.g32).
+  Let z33 be h3(d.v.g33).
+  Let z34 be h3(d.v.g34).
+  Let z35 be h3(d.v.g35).
+  Let z36 be h3(d.v.g36).
+  Let z37 be h3(d.v.g37).
+  Let z38 be h3(d.v.g38).
+  Let z39 be h3(d.v.g39).
+  Let z40 be h3(d.v.g40).
+  Let z41 be h3(d.v.g41).
+  Let z42 be h3(d.v.g42).
+  Let z43 be h3(d.v.g43).
+  Let z44 be h3(d.v.g44).
+  Let z45 be h3(d.v.g45).
+  Let z46 be h3(d.v.g46).
+  Let z47 be h3(d.v.g47).
+  Let z48 be h3(d.v.g48).
+  Let z49 be h3(d.v.g49).
+  Let z50 be h3(d.v.g50).
+  Let z51 be h3(d.v.g51).
+  Let z52 be h3(d.v.g52).
+  Let z53 be h3(d.v.g53).
+  Let z54 be h3(d.v.g54).
+  Let z55 be h3(d.v.g55).
+  Let z56 be h3(d.v.g56).
+  Let z57 be h3(d.v.g57).
+  Let z58 be h3(d.v.g58).
+  Let z59 be h3(d.v.g59).
+  Let z60 be h3(d.v.g60).
+  Let z61 be h3(d.v.g61).
+  Let z62 be h3(d.v.g62).
+  Let z63 be h3(d.v.g63).
+  Return true.
+
+Rule h3 given e as Box, produce Bool:
+  Let x00 be e.v plus 0.
+  Let x01 be e.v plus 1.
+  Let x02 be e.v plus 2.
+  Let x03 be e.v plus 3.
+  Let x04 be e.v plus 4.
+  Let x05 be e.v plus 5.
+  Let x06 be e.v plus 6.
+  Let x07 be e.v plus 7.
+  Let x08 be e.v plus 8.
+  Let x09 be e.v plus 9.
+  Let x10 be e.v plus 10.
+  Let x11 be e.v plus 11.
+  Let x12 be e.v plus 12.
+  Let x13 be e.v plus 13.
+  Let x14 be e.v plus 14.
+  Let x15 be e.v plus 15.
+  Let x16 be e.v plus 16.
+  Let x17 be e.v plus 17.
+  Let x18 be e.v plus 18.
+  Let x19 be e.v plus 19.
+  Let x20 be e.v plus 20.
+  Let x21 be e.v plus 21.
+  Let x22 be e.v plus 22.
+  Let x23 be e.v plus 23.
+  Let x24 be e.v plus 24.
+  Let x25 be e.v plus 25.
+  Let x26 be e.v plus 26.
+  Let x27 be e.v plus 27.
+  Let x28 be e.v plus 28.
+  Let x29 be e.v plus 29.
+  Let x30 be e.v plus 30.
+  Let x31 be e.v plus 31.
+  Let x32 be e.v plus 32.
+  Let x33 be e.v plus 33.
+  Let x34 be e.v plus 34.
+  Let x35 be e.v plus 35.
+  Let x36 be e.v plus 36.
+  Let x37 be e.v plus 37.
+  Let x38 be e.v plus 38.
+  Let x39 be e.v plus 39.
+  Let x40 be e.v plus 40.
+  Let x41 be e.v plus 41.
+  Let x42 be e.v plus 42.
+  Let x43 be e.v plus 43.
+  Let x44 be e.v plus 44.
+  Let x45 be e.v plus 45.
+  Let x46 be e.v plus 46.
+  Let x47 be e.v plus 47.
+  Let x48 be e.v plus 48.
+  Let x49 be e.v plus 49.
+  Return e.v greater than 0.
+
+@id("B-1")
+@control("EU_AI_ACT:ART14")
+Rule decide given req as Req, produce Verdict:
+  If h1(req.context):
+    Return Verdict.deny("fan-out").
+  Return Verdict.allow().
