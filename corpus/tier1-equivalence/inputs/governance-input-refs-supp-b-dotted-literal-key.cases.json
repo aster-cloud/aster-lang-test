@@ -1,0 +1,51 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-supp-b-dotted-literal-key.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "hit",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 60000,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {
+              "eu.region": "x"
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "DENY",
+        "reason": "dotted"
+      }
+    },
+    {
+      "name": "miss",
+      "input": [
+        {
+          "principal_roles": [
+            "ops"
+          ],
+          "action": "refund",
+          "context": {
+            "amount": 60000,
+            "tier": "gold",
+            "band": "silver",
+            "meta": {}
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

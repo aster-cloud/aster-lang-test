@@ -1,0 +1,10 @@
+Module governance.input.refs.case17.
+Profile "eu-ai-act-high-risk".
+
+@id("S-1")
+@control("EU_AI_ACT:ART14")
+Rule decide given amount, produce Verdict:
+  Let s be Int.toString(amount).
+  If s equals to "1":
+    Return Verdict.deny("one").
+  Return Verdict.allow().

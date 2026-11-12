@@ -1,0 +1,16 @@
+Module governance.input.refs.case08.
+Profile "eu-ai-act-high-risk".
+
+Use ext.scoring as Ext.
+
+
+Define GuardContext has amount as Decimal, tier as Text, band as Text, meta as Map Text to Text.
+Define GuardRequest has principal_roles as List of Text, action as Text, context as GuardContext.
+
+@id("R-1")
+@control("EU_AI_ACT:ART14")
+Rule decide given req as GuardRequest, produce Verdict:
+  Let r be Ext.score(req.context.amount).
+  If r greater than 10:
+    Return Verdict.deny("score").
+  Return Verdict.allow().

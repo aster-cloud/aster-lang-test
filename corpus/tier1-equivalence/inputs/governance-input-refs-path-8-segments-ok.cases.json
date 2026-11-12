@@ -1,0 +1,59 @@
+{
+  "policy": "tier1-equivalence/policies/governance-input-refs-path-8-segments-ok.aster",
+  "entry": "decide",
+  "cases": [
+    {
+      "name": "x",
+      "input": [
+        {
+          "s1": {
+            "s2": {
+              "s3": {
+                "s4": {
+                  "s5": {
+                    "s6": {
+                      "s7": {
+                        "s8": "x"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "DENY",
+        "reason": "deep"
+      }
+    },
+    {
+      "name": "y",
+      "input": [
+        {
+          "s1": {
+            "s2": {
+              "s3": {
+                "s4": {
+                  "s5": {
+                    "s6": {
+                      "s7": {
+                        "s8": "y"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      ],
+      "expectedOutput": {
+        "__type": "Verdict",
+        "outcome": "ALLOW"
+      }
+    }
+  ]
+}

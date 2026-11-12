@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "ADR 0046 §11 D2 / §11.6：本地化字段名经 R2 规范化后 inputRefs 为规范路径（决定→[\"action\", \"context.amount\"]）"
+}

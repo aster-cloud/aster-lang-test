@@ -1,0 +1,47 @@
+{
+  "id": "probe.localized",
+  "name": "probe",
+  "version": "1.0.0",
+  "functions": [],
+  "enumValues": [],
+  "literals": [],
+  "locale": "zh-CN",
+  "structs": [
+    {
+      "canonical": "GuardContext",
+      "localized": "上下文",
+      "kind": "struct"
+    },
+    {
+      "canonical": "GuardRequest",
+      "localized": "请求",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "amount",
+      "localized": "金额",
+      "kind": "field",
+      "parent": "GuardContext"
+    },
+    {
+      "canonical": "tier",
+      "localized": "等级",
+      "kind": "field",
+      "parent": "GuardContext"
+    },
+    {
+      "canonical": "action",
+      "localized": "动作",
+      "kind": "field",
+      "parent": "GuardRequest"
+    },
+    {
+      "canonical": "context",
+      "localized": "上下文",
+      "kind": "field",
+      "parent": "GuardRequest"
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "id": "probe.localized",
+  "name": "probe",
+  "version": "1.0.0",
+  "functions": [],
+  "enumValues": [],
+  "literals": [],
+  "locale": "de-DE",
+  "structs": [
+    {
+      "canonical": "GuardContext",
+      "localized": "Kontext",
+      "kind": "struct"
+    },
+    {
+      "canonical": "GuardRequest",
+      "localized": "Anfrage",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "amount",
+      "localized": "betrag",
+      "kind": "field",
+      "parent": "GuardContext"
+    },
+    {
+      "canonical": "tier",
+      "localized": "stufe",
+      "kind": "field",
+      "parent": "GuardContext"
+    },
+    {
+      "canonical": "action",
+      "localized": "aktion",
+      "kind": "field",
+      "parent": "GuardRequest"
+    },
+    {
+      "canonical": "context",
+      "localized": "kontext",
+      "kind": "field",
+      "parent": "GuardRequest"
+    }
+  ]
+}
