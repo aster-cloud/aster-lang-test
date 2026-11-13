@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0055 #3 / Review Focus 1：@control 写在 @id 之前时 annotations 保持源码顺序；同一注解多个位置参数与具名参数混写时 args 依次为 $0、level、$1"
+}

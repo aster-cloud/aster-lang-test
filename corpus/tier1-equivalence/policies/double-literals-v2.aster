@@ -1,0 +1,15 @@
+Module demo.doubles.v2.
+
+Define Reading has level as Double between 0.50 and 2.0, ratio as Double between 0 and 123456789012345678901.5.
+
+Rule tenth, produce Double:
+  Return 0.1.
+
+Rule wholeOne, produce Double:
+  Return 1.0.
+
+Rule trimmed, produce Double:
+  Return 2.50.
+
+Rule shifted given x as Double, produce Double:
+  Return x plus 0.30000000000000004.

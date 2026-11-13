@@ -1,0 +1,21 @@
+{
+  "entry": "screen",
+  "cases": [
+    {
+      "name": "年龄大于 20 → true",
+      "input": [
+        30,
+        "AB1234"
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "年龄不大于 20 → false",
+      "input": [
+        19,
+        "AB1234"
+      ],
+      "expectedOutput": false
+    }
+  ]
+}

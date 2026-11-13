@@ -1,0 +1,30 @@
+{
+  "entry": "tenth",
+  "cases": [
+    {
+      "name": "0.1",
+      "input": [],
+      "expectedOutput": 0.1
+    },
+    {
+      "name": "1.0 → 1",
+      "entry": "wholeOne",
+      "input": [],
+      "expectedOutput": 1
+    },
+    {
+      "name": "2.50 → 2.5",
+      "entry": "trimmed",
+      "input": [],
+      "expectedOutput": 2.5
+    },
+    {
+      "name": "0 + 0.30000000000000004：字面量的全部有效位在运行时保留",
+      "entry": "shifted",
+      "input": [
+        0
+      ],
+      "expectedOutput": 0.30000000000000004
+    }
+  ]
+}

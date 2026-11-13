@@ -1,0 +1,6 @@
+Module demo.constraints.v2.
+
+Define Applicant has name as Text required, age as Int required between 18 and 120, email as Text matching "^.+@.+$", code as Text required matching pattern "^[A-Z]{2}[0-9]{4}$".
+
+Rule screen given age as Int required between 18 and 120, code as Text required matching pattern "^[A-Z]{2}[0-9]{4}$", produce Bool:
+  Return age greater than 20.
