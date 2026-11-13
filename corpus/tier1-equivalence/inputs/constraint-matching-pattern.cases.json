@@ -1,0 +1,12 @@
+{
+  "entry": "normalizeCode",
+  "cases": [
+    {
+      "name": "原样返回代码",
+      "input": [
+        "ABC"
+      ],
+      "expectedOutput": "ABC"
+    }
+  ]
+}

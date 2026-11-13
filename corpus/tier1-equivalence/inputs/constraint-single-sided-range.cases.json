@@ -1,0 +1,19 @@
+{
+  "entry": "clampTerm",
+  "cases": [
+    {
+      "name": "超过上限 360 → 360",
+      "input": [
+        400
+      ],
+      "expectedOutput": 360
+    },
+    {
+      "name": "范围内原样返回",
+      "input": [
+        12
+      ],
+      "expectedOutput": 12
+    }
+  ]
+}

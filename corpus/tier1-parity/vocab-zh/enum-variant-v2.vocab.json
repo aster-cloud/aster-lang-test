@@ -1,0 +1,17 @@
+{
+  "id": "parity.vocab.zh-enum-variant-v2",
+  "name": "中文枚举变体",
+  "locale": "zh-CN",
+  "version": "1.0.0",
+  "structs": [],
+  "fields": [],
+  "functions": [
+    {
+      "canonical": "rejectScore",
+      "localized": "驳回分",
+      "kind": "function"
+    }
+  ],
+  "enumValues": [],
+  "literals": []
+}
