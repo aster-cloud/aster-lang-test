@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0055 #4：字段与形参上的 required、between、matching / matching pattern 约束组合，两引擎产出同一约束 IR（Required / Range / Pattern，Range 边界为规范十进制串）"
+}

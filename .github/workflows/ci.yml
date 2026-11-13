@@ -164,9 +164,9 @@ jobs:
               # 治理输入引用样本的期望值核对（ADR 0046 §11 R62）及其回归测试。
               - 'scripts/lib/input-refs-expect.mjs'
               - 'scripts/test-input-refs-expect.mjs'
-              # parity 门禁的 IR 归一化入口及其接线回归测试。
-              - 'scripts/lib/ir-normalize-parity.mjs'
-              - 'scripts/test-ir-normalize-parity.mjs'
+              # 逐字节 IR parity 判定（ADR 0055 §6）及其回归测试。
+              - 'scripts/lib/ir-byte-parity.mjs'
+              - 'scripts/test-ir-byte-parity.mjs'
               - 'corpus/shared-vectors/**'
               - 'scripts/test-envelope-vectors.mjs'
               - 'scripts/coverage-report.py'
@@ -183,19 +183,19 @@ jobs:
               - 'scripts/test-wipe-guard.mjs'
               - 'scripts/test-golden-overwrite.mjs'
               - 'scripts/gen-cases.mjs'
-              # ★守门脚本 import 的本仓库共享库同样必须在清单里：parity-tier1.mjs 的
-              #   IR 比对语义整体来自 packages/js/src/ir-normalize.ts（「什么算分歧」由它
-              #   定义），此前清单零条 packages/js 项，只放宽归一化规则的 PR 会整体跳过
-              #   parity job（issue #146）。用目录通配而非单文件，避免再抽共享库时重蹈。
+              # ★本仓库共享代码同样必须在清单里：此前清单零条 packages/js 项，只改共享库的 PR
+              #   会整体跳过 parity job（issue #146）。用目录通配而非单文件，避免再抽共享库时重蹈。
               - 'packages/js/src/**'
               - '.github/workflows/ci.yml'
 
       # Shared version catalog (aster-lang-platform, ADR 0012). aster-lang-core
       # 的 settings.gradle 通过 asterLibs.* 引用它，故 publish core 前必须先把
       # 它发到 Maven Local，否则解析 cloud.aster-lang:aster-lang-platform 失败。
-      # 兄弟仓 checkout 走分支匹配（self checkout 进了 aster-lang-test/ 子目录，
-      # 故复合 action 路径带前缀 ./aster-lang-test/...）。匹配同名 PR 分支，
-      # 否则回退 main —— 让跨仓 PR 合并前即可联合验证。
+      # 兄弟仓 checkout 走分支匹配（platform 的 checkout-sibling：PR 构建取兄弟仓同名分支，
+      # 不存在则回退 main）—— 让跨仓 PR 合并前即可联合验证。Core IR v2（ADR 0055）的同名分支组
+      # feat/core-ir-v2 依赖这一规则：locales / core / ts / truffle / hi 都检出 feat/core-ir-v2，
+      # 门禁读同级目录 ../aster-lang-ts、../aster-lang-core 与 Maven Local 中由同名分支发布的制品。
+      # P1（1.0.46 列车）之后改回按 v1.0.46 tag 检出。
       - name: Checkout aster-lang-platform
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
@@ -372,12 +372,13 @@ jobs:
         working-directory: aster-lang-test
         run: node scripts/test-input-refs-expect.mjs
 
-      # parity 门禁的 IR 归一化接线：门禁必须经 lib/ir-normalize-parity.mjs 取得归一化，
-      # 且签名 / 字段类型上的 written/role 参与比较。直接测函数行为，而非对脚本源码做子串匹配。
-      - name: Run IR-normalize parity wiring regression tests
+      # 逐字节 IR parity 判定（ADR 0055 §6）：col 投影、shape / value 分类、V1–V4 豁免的位置边界、
+      # stale / 到期判定与豁免表配置校验，以及 parity-tier1.mjs 中真实豁免表的合法性。
+      # 用已构建的 aster-lang-ts 的 canonicalJson，故放在 Build aster-lang-ts 之后。
+      - name: Run IR byte-parity judgement regression tests
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
-        run: node scripts/test-ir-normalize-parity.mjs
+        run: node scripts/test-ir-byte-parity.mjs
 
       # envelope 5 段共享向量（ADR 0051 §7）：独立重算哈希，并用已构建的 aster-lang-ts
       # 核对 canonicalScopesJson(buildVocabularyScopes(vocabulary)) === scopesJson。
@@ -447,17 +448,11 @@ jobs:
           set -o pipefail
           node scripts/parity-tier1.mjs --mode=parse | tee parity-tier1-parse-report.md
 
-      # Phase B (codex architect plan): structural Core IR fingerprint
-      # parity. Runs after the parse gate using the same Maven Local
-      # state the parse gate already built.
-      #
-      # ADR 0016 phase 3: now PR-blocking at the FIELD level. After the
-      # normalizing comparator (normalizeIr/diffIr) and the eval-exempt
-      # boundary, the non-exempt corpus is field-identical (202/207; the 5
-      # remaining are effect/workflow/interop derived-analysis differences,
-      # reported as `divergent-exempt`, not failures). A new structural
-      # divergence in an executable-tree node now fails the gate.
-      - name: Run tier1-parity strict gate (IR field-level, PR-blocking)
+      # ADR 0055 §6：逐字节 Core IR v2 parity，复用 parse 门已准备好的 Maven Local。
+      # 两侧规范字节须通过 schema 与不变式；删除 origin.*.col 后，除 VALUE_EXEMPTIONS 登记的
+      # 值层位置（V1–V4，带 issue 与 2027-01-31 截止）外逐字节一致。shape-diff 永远不可豁免；
+      # stale / 到期的豁免同样使门禁失败。
+      - name: Run tier1-parity strict gate (IR byte-level, PR-blocking)
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         shell: bash

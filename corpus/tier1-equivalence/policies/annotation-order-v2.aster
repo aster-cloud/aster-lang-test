@@ -1,0 +1,12 @@
+Module demo.annotations.order.
+
+@control("SOX:404")
+@id("AO-1")
+Rule approve given amount as Int, produce Bool:
+  Return amount greater than 100.
+
+@sensitive("a", level: "L2", "b")
+@id("AO-2")
+@control("GDPR:ART22")
+Rule review given amount as Int, produce Int:
+  Return amount.

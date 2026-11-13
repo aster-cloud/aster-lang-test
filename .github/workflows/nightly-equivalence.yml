@@ -182,15 +182,12 @@ jobs:
           set -o pipefail
           node scripts/feature-coverage.mjs --history=feature-coverage-history.csv | tee feature-coverage-report.md
 
-      # ADR 0016：字段级 Core IR parity（归一化后逐字段比对两引擎 IR）。
-      # 盲点记入 IR-DIVERGENCE-LEDGER.md。复用上面已发布的 core。
-      # --history 记 IR 字段级一致率趋势（供走势图）。
-      # GATING（audit #58）：IR field-level parity 自 2026-06-30 起连续 4+ 夜
-      # 212/212=1.0000（见 ir-history.csv 尾部），已从 report-only 升级为 gating，
-      # 与 ci.yml 的 PR 门禁（--mode=ir --full，已 PR-blocking）对齐。`divergent-exempt`
-      # 的 effect/workflow/interop 派生分析差异不算失败；一次结构性 IR 回归让 nightly
-      # 失败并阻断 "Append history to main"。仍须 pipefail（见 eval step）。
-      - name: Run field-level IR parity
+      # ADR 0055 §6：逐字节 Core IR v2 parity（schema 校验 + 删除 origin.*.col 后逐字节比较）。
+      # 值层差异只能经 parity-tier1.mjs 的 VALUE_EXEMPTIONS（V1–V4，带 issue 与 2027-01-31 截止）豁免；
+      # stale / 到期的豁免同样使门禁失败。复用上面已发布的 core。
+      # --history 记 IR 逐字节一致率趋势（供走势图）。GATING：与 ci.yml 的 PR 门禁同一口径，
+      # 一次 IR 回归让 nightly 失败并阻断 "Append history to main"。仍须 pipefail（见 eval step）。
+      - name: Run byte-level IR parity (ADR 0055 §6)
         working-directory: aster-lang-test
         shell: bash
         run: |

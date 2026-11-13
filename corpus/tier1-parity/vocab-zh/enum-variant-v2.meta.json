@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "ADR 0055 #16 / Review Focus 2：中文枚举变体名没有大小写，当 驳回 / 当 批准 必须降为 PatCtor 而不是 PatName 绑定，当 其余 是绑定；规则内以 评分(驳回) 传入成员。词汇只映射辅助规则名 驳回分→rejectScore。（与关键词同形的成员名，如 拒绝 = deny，两引擎解析不一致，见 X1 报告，不放进 tier1）"
+}

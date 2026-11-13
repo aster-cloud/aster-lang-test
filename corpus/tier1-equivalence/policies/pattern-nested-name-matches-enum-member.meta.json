@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "ADR 0055 #16：构造器模式内嵌套的名字与枚举成员相同时解析为该变体（当 工单(待处理, n) 中的 待处理 → PatCtor{typeName, args:[]}），其余名字是绑定（PatName）；中文名没有大小写，两引擎都靠名称解析判定"
+}

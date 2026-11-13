@@ -1,5 +1,22 @@
 # Changelog
 
+## 2.0.0
+
+### Breaking
+
+- 删除 IR 归一化导出（包入口子路径及其模块）。Core IR v2（ADR 0055）下两引擎输出同一种规范字节，
+  跨引擎比较改为 schema 校验加逐字节比较（`scripts/parity-tier1.mjs --mode=ir --full`，判定逻辑在
+  `scripts/lib/ir-byte-parity.mjs`），不再需要归一化。ADR 0037 的 contentHash 改为对删除整个 `origin`
+  后的规范 IR 取 sha256（ADR 0055 §6），不再经本包。
+- `IR-DIVERGENCE-LEDGER.md` 退役：值层差异改由 `parity-tier1.mjs` 的 `VALUE_EXEMPTIONS`（V1–V4，
+  每项带 issue、owner 角色与 2027-01-31 截止）登记。
+
+### 新增
+
+- tier1 parity 样本：`constraints-v2`、`annotation-order-v2`、`double-literals-v2`、
+  `vocab-zh/enum-variant-v2`，以及 `constraint-single-sided-range`、`constraint-matching-pattern`、
+  `pattern-nested-name-matches-enum-member` 进入 manifest 并带 eval golden（ADR 0055 #3、#4、#16、#18）。
+
 ## 1.2.0
 
 ### 新增
@@ -11,11 +28,11 @@
 
 ### 修复
 
-- `ir-normalize.ts` 中属于 `normalizeNode` 的 JSDoc 归位，并给 `normalizeIr` 补上注释（#175）。
+- IR 归一化模块（2.0.0 已删除）中节点归一化函数的 JSDoc 归位，并给入口函数补上注释（#175）。
 
 ### 行为变化
 
-- `normalizeIr(node, { includeResolution: true })` 不再整棵丢弃 `type` / `ret` / `retType` 子树，
+- IR 归一化入口（2.0.0 已删除）在 `includeResolution: true` 时不再整棵丢弃 `type` / `ret` / `retType` 子树，
   其中的 `origin.written` / `role` 折叠为按先序排列的 `typeResolutions` / `retResolutions` /
   `retTypeResolutions`（规范名、原写法、角色、起始行）。推导出的类型形状仍不参与比较。parity 比较因此更严格：
   经词汇解析的签名与字段类型也会跨引擎比对，所以升次版本位（#174 子项 3）。
@@ -27,7 +44,7 @@
 
 ### Breaking
 
-- `normalizeIr(node, options)` now takes an options object
+- The IR normalisation entry point (removed in 2.0.0) now takes an options object
   `{ originMode?, includeResolution? }` instead of positional arguments.
   `includeResolution` defaults to `false`, so `contentHash` inputs are
   unchanged; parity comparisons pass `includeResolution: true` to also compare

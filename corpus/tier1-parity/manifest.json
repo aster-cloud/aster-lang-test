@@ -300,6 +300,12 @@
     "tier1-equivalence/policies/verdict-fields.aster",
     "tier1-equivalence/policies/context-map-access.aster",
     "tier1-equivalence/policies/rule-function-value.aster",
+    "tier1-equivalence/policies/constraint-single-sided-range.aster",
+    "tier1-equivalence/policies/constraint-matching-pattern.aster",
+    "tier1-equivalence/policies/pattern-nested-name-matches-enum-member.aster",
+    "tier1-equivalence/policies/constraints-v2.aster",
+    "tier1-equivalence/policies/annotation-order-v2.aster",
+    "tier1-equivalence/policies/double-literals-v2.aster",
     "tier1-parity/types/function-type.aster",
     "tier1-parity/workflow/workflow-compensate.aster",
     "tier1-parity/workflow/workflow-multistep.aster",
@@ -402,6 +408,10 @@
     },
     {
       "path": "tier1-parity/vocab-zh/cjk-pattern-binding.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-zh/enum-variant-v2.aster",
       "vocab": true
     },
     {

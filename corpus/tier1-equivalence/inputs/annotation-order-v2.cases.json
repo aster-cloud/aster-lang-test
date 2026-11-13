@@ -1,0 +1,27 @@
+{
+  "entry": "approve",
+  "cases": [
+    {
+      "name": "金额大于 100 → true",
+      "input": [
+        150
+      ],
+      "expectedOutput": true
+    },
+    {
+      "name": "金额不大于 100 → false",
+      "input": [
+        50
+      ],
+      "expectedOutput": false
+    },
+    {
+      "name": "带多参数注解的规则原样返回",
+      "entry": "review",
+      "input": [
+        7
+      ],
+      "expectedOutput": 7
+    }
+  ]
+}
