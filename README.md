@@ -97,7 +97,7 @@ for (Sample s : CorpusLoader.listTier("tier1-equivalence")) {
 | 层级 | 含义 | 当前 |
 |---|---|---|
 | **Parse parity** | 两引擎都*接受*同一份源码（PR-blocking, `parity-tier1.mjs --mode=parse`） | 见 `equivalence-history.csv` 最新行 |
-| **IR parity** | 两引擎降低出的 Core IR 字段级一致（PR-blocking, `--mode=ir --full`） | 见 `ir-history.csv` 最新行 |
+| **IR parity** | 两引擎的 Core IR v2 规范字节一致（ADR 0055 §6，PR-blocking, `--mode=ir --full`） | 见 `ir-history.csv` 最新行 |
 | **Eval parity** | 两引擎对相同输入产生*相同输出*（黄金用例, PR-blocking, `--mode=eval`） | 见 `eval-history.csv` 最新行 |
 | **Eval 覆盖率** | 有黄金用例的样本 / 可 eval 样本（排除 IO/effect/PII/bad，见 meta 的 `evalExempt`） | 见 `node scripts/tag-eval-exempt.mjs` |
 

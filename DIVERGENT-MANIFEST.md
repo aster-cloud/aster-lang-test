@@ -57,7 +57,7 @@ gating `parity-tier1.mjs` modes above.
 
 | Tier | What it asserts | CI gate |
 |---|---|---|
-| **tier1-parity** | Curated subset of tier1 where both engines must accept. Source of truth: `corpus/tier1-parity/manifest.json`. | **PR-blocking (parse)** in `aster-lang-test`, `aster-lang-core`, `aster-lang-ts` via `scripts/parity-tier1.mjs --mode=parse`. **PR-blocking (IR field-level)** alongside via `--mode=ir --full`. **PR-blocking (eval)** via `--mode=eval`, nightly-gating as well (audit #58). |
+| **tier1-parity** | Curated subset of tier1 where both engines must accept. Source of truth: `corpus/tier1-parity/manifest.json`. | **PR-blocking (parse)** in `aster-lang-test`, `aster-lang-core`, `aster-lang-ts` via `scripts/parity-tier1.mjs --mode=parse`. **PR-blocking (IR byte-level, ADR 0055 §6)** alongside via `--mode=ir --full`. **PR-blocking (eval)** via `--mode=eval`, nightly-gating as well (audit #58). |
 | tier1-reject | Inverse contract: inputs both engines must reject with a parse error (`manifest.json` → `mustReject`, files under `corpus/tier1-reject/`). A one-sided acceptance, a crash, or an error on the wrong line (`meta.expectErrorLine`) fails the gate. See `corpus/tier1-parity/README.md`. | **PR-blocking (parse only)** via the same `--mode=parse` run; excluded from ir/eval and from the eval-exemption counts. |
 | tier1-equivalence | Full set of samples that *should* be bidirectionally accepted; tier1-parity is a subset of this. | Nightly (`equivalence-nightly.mjs`), regression on rate vs. last-recorded baseline. |
 | tier2-divergent | Known one-engine-only samples; drives the divergence backlog. | Nightly only; cases catalogued in this file. |
@@ -77,7 +77,7 @@ below.
 Mode | Status | History
 ---|---|---
 `--mode=parse` | **PR-blocking + nightly-gating** | Promoted in the Phase A landing PR.
-`--mode=ir --full` (field-level) | **PR-blocking + nightly-gating** | Promoted to PR-blocking after the normalizing comparator landed (both conditions met: baseline divergence reached zero; field-level normalized JSON parity replaced fingerprint comparison). Nightly promoted from report-only to gating in audit #58 after a full rate held for 4+ consecutive nights.
+`--mode=ir --full` (byte-level) | **PR-blocking + nightly-gating** | ADR 0055 §6 (Core IR v2): both sides' canonical bytes must pass the v2 schema and invariants; after dropping `origin.*.col` they must be byte-identical except at the value-layer positions registered in `VALUE_EXEMPTIONS` (`scripts/parity-tier1.mjs`; V1–V4, each with an issue, owner role and `expires: 2027-01-31`). Shape differences are never exemptable; stale or expired exemptions fail the gate; go-live requires an empty table. Replaced the earlier normalizing field-level comparator.
 `--mode=eval` (evaluator output) | **PR-blocking + nightly-gating** | The Truffle multi-argument NPE and the eval divergences catalogued below are all resolved. Nightly promoted from report-only to gating in audit #58 after a full rate held for 4+ consecutive nights. PR CI was promoted from report-only (`continue-on-error` + `--report-only`) to blocking on 2026-07-15 once the multi-argument NPE blocker was fixed upstream (see the step comment in `.github/workflows/ci.yml`); do **not** re-add `continue-on-error` to that step. Phase C compares each side's evaluator output against the other engine's output AND the golden `expectedOutput`.
 
 The Phase C eval scope is the subset of tier1-parity samples that have a
@@ -97,8 +97,8 @@ Regression is now caught automatically, not by manual review of this file:
 
 - **parse** — `scripts/parity-tier1.mjs --mode=parse`, PR-blocking in
   `aster-lang-test`, `aster-lang-core`, `aster-lang-ts`, and nightly-gating.
-- **ir (field-level)** — `scripts/parity-tier1.mjs --mode=ir --full`,
-  PR-blocking and nightly-gating.
+- **ir (byte-level, ADR 0055 §6)** — `scripts/parity-tier1.mjs --mode=ir --full`,
+  PR-blocking and nightly-gating; judgement in `scripts/lib/ir-byte-parity.mjs`.
 - **eval** — `scripts/parity-tier1.mjs --mode=eval`, PR-blocking and
   nightly-gating. Coverage/exemptions in `EVAL-EXEMPTIONS.md`.
 - **doc rot** — `scripts/tag-eval-exempt.mjs --check`, PR-blocking and
@@ -129,8 +129,8 @@ layer are retained in the sections below.
 
 The original Phase B fingerprint was structural — it compared `moduleName`,
 `declCount`, the `kind → count` histogram, and the sorted list of declared
-symbol names — not the full lowered Core IR; it has since been replaced by the
-field-level normalized comparator (`--mode=ir --full`). The initial run at the
+symbol names — not the full lowered Core IR; it was later replaced by a
+field-level normalized comparator and, with Core IR v2 (ADR 0055), by the byte-level gate (`--mode=ir --full`). The initial run at the
 Phase B landing showed ~55/162 tier1 samples where Java failed to lower (NPE in
 AstBuilder for `eff_caps_*` files).
 

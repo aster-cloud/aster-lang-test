@@ -1,6 +1,6 @@
 {
   "name": "@aster-cloud/aster-lang-test",
-  "version": "1.2.0",
+  "version": "2.0.0",
   "description": "Shared test corpus for Aster Lang dual-engine equivalence (Java ANTLR + TS PEG).",
   "license": "Apache-2.0",
   "type": "module",
@@ -10,10 +10,6 @@
     ".": {
       "import": "./dist/loader.js",
       "types": "./dist/loader.d.ts"
-    },
-    "./ir-normalize": {
-      "import": "./dist/ir-normalize.js",
-      "types": "./dist/ir-normalize.d.ts"
     }
   },
   "files": [

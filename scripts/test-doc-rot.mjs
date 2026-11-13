@@ -85,7 +85,7 @@ check('只含指针的文本 → 无命中', () => {
 });
 
 check('日期、issue 号、路径、版本号不误报', () => {
-  const noise = '2026-09-28 #147 packages/js/src/ir-normalize.ts 1.0.30 4+ nights = 0 divergent';
+  const noise = '2026-09-28 #147 packages/js/src/loader.ts 1.0.30 4+ nights = 0 divergent';
   assert.deepStrictEqual(findInlineCounts(noise), []);
 });
 

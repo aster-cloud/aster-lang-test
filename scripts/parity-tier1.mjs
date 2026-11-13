@@ -18,11 +18,15 @@
  * Modes (mirrors the planned phase progression):
  *   --mode=parse  (Phase A, default, PR-blocking) — parse both engines,
  *                 compare ok/fail
- *   --mode=ir     (Phase B, report-only initially) — compare a structural
- *                 fingerprint of each side's lowered Core IR:
- *                   { moduleName, declCount, declKinds: {kind→count}, declNames }
- *                 Raw JSON parity is deferred until field-name divergence
- *                 (e.g. Import.path vs Import.name) is resolved by ADR.
+ *   --mode=ir     (Phase B) — compare a structural fingerprint of each side's
+ *                 lowered Core IR: { moduleName, declCount, declKinds, declNames }.
+ *   --mode=ir --full (ADR 0055 §6, PR-blocking) — byte-level Core IR v2 parity:
+ *                 both sides' canonical bytes must be schema-valid; after
+ *                 dropping origin.*.col and masking the registered value-layer
+ *                 exemptions (VALUE_EXEMPTIONS, V1–V4) they must be byte-identical.
+ *                 Verdicts: identical / schema-invalid / shape-diff / value-diff /
+ *                 ts-failed / java-failed, plus stale-exemption / expired-exemption
+ *                 for the exemption table. See scripts/lib/ir-byte-parity.mjs.
  *   --mode=eval   (Phase C, report-only initially) — for every sample
  *                 with a sibling .cases.json, evaluate each case on both
  *                 engines and compare the result against expectedOutput
@@ -30,8 +34,9 @@
  *
  * Flags:
  *   --report-only  — write the report and exit 0 even on divergence.
- *                    Used during Phase B's initial cycle so we can observe
- *                    the drift surface before promoting to PR-blocking.
+ *   --today=YYYY-MM-DD — (ir --full) run date for exemption expiry checks.
+ *   --dump-dir=<dir>   — (ir --full) write each side's canonical bytes to
+ *                        <dir>/<rel>.{ts,java}.json for reproduction.
  *
  * Exit codes:
  *   0  — clean (or --report-only)
@@ -43,11 +48,15 @@
  *   parity-tier1-report.json — machine-readable detail (per-sample verdict)
  */
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync, existsSync, mkdtempSync, rmSync, readdirSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, mkdtempSync, mkdirSync, rmSync, readdirSync } from 'node:fs';
+import { createRequire } from 'node:module';
 import { dirname, resolve, join, basename } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { upsertDailyHistory } from './lib/history.mjs';
+import {
+  IR_VERDICTS, EXEMPTION_CATEGORIES, createExemptionLedger, judgeSample, exemptionFindings, maskedCounts, narrowableScopes,
+} from './lib/ir-byte-parity.mjs';
 import { inputRefsProblems } from './lib/input-refs-expect.mjs';
 import { collectEvalCaseProblem, entryForCase, expectsError } from './lib/eval-cases.mjs';
 import { inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
@@ -68,9 +77,7 @@ const args = process.argv.slice(2);
 const modeArg = args.find((a) => a.startsWith('--mode='));
 const MODE = modeArg ? modeArg.slice('--mode='.length) : 'parse';
 const REPORT_ONLY = args.includes('--report-only');
-// --full (ADR 0016, mode=ir only): field-level normalized IR diff instead of the
-// shallow structural fingerprint. Captures each engine's complete lowered Core IR
-// and compares it through normalizeIr()/diffIr() (alias table + ignore set).
+// --full（仅 mode=ir）：逐字节比较两引擎的 Core IR v2 规范字节（ADR 0055 §6），取代声明级指纹。
 const IR_FULL = args.includes('--full');
 // --history=<file>: 追加一行趋势 CSV（供 nightly 写 eval-history.csv / parse-history.csv）。
 const historyArg = args.find((a) => a.startsWith('--history='));
@@ -574,14 +581,25 @@ function buildFingerprint(coreModule) {
 async function runTsIr(samples) {
   const resolved = await runTsResolve(samples);
   const analyze = IR_FULL ? await loadTsInputRefsAnalyzer() : null;
+  const { serializeCoreIr } = IR_FULL ? await import(join(TS_REPO, 'dist', 'src', 'index.js')) : {};
+  if (IR_FULL && !serializeCoreIr) fail('aster-lang-ts is missing serializeCoreIr (needs Core IR v2, ts ≥ 2.0.0)');
   const results = {};
   for (const { rel } of samples) {
     const r = resolved[rel];
     results[rel] = !r.ok
       ? { ok: false, error: r.err }
-      : IR_FULL ? { ok: true, ir: r.ir, inputRefConstructs: tsConstructsOf(analyze, r.ir) } : { ok: true, fingerprint: buildFingerprint(r.ir) };
+      : IR_FULL ? tsCanonicalOf(serializeCoreIr, r.ir, analyze) : { ok: true, fingerprint: buildFingerprint(r.ir) };
   }
   return results;
+}
+
+/** ts 侧规范字节（ADR 0055 §6 第 1 步）；序列化抛错（例如 IR 不满足规范输出前提）记为 ts 失败。 */
+function tsCanonicalOf(serializeCoreIr, ir, analyze) {
+  try {
+    return { ok: true, bytes: serializeCoreIr(ir), ir, inputRefConstructs: tsConstructsOf(analyze, ir) };
+  } catch (e) {
+    return { ok: false, error: `serializeCoreIr: ${e && e.message ? e.message : String(e)}` };
+  }
 }
 
 /** TS 的 analyzeInputRefs（ADR 0046 §11 D2）；旧版 aster-lang-ts 没有该模块时为 null。 */
@@ -620,10 +638,13 @@ function runJavaIr(samples, { full = IR_FULL } = {}) {
   // the local checkout. Use those absolute paths so Java reads exactly
   // the bytes the manifest declares, with no stale-Maven dependency
   // (the same blind spot the parse mode's coverage check defends).
-  // 带词汇样本写成 JSON 行（路径 + 词法表 + 词汇文件），CoreIrFingerprintCli 据此规范化关键词并做名称解析。
-  const lineOf = (s) => (s.vocabPath
-    ? JSON.stringify({ path: s.abs, lexicon: lexiconOf(s.abs), vocabulary: s.vocabPath })
-    : s.abs);
+  // 带词汇或非 en-US 词法表的样本写成 JSON 行（路径 + 词法表 [+ 词汇文件]），CoreIrFingerprintCli 据此
+  // 规范化关键词并做名称解析；只写路径时 Java 侧按 en-US 处理，与 ts 侧按 meta 驱动的词法表不一致。
+  const lineOf = (s) => {
+    const lexicon = lexiconOf(s.abs);
+    if (!s.vocabPath && lexicon === 'en-US') return s.abs;
+    return JSON.stringify({ path: s.abs, lexicon, ...(s.vocabPath ? { vocabulary: s.vocabPath } : {}) });
+  };
   writeFileSync(inputFile, samples.map(lineOf).join('\n') + '\n');
 
   const result = spawnSync(
@@ -678,8 +699,11 @@ function runJavaIr(samples, { full = IR_FULL } = {}) {
       // stage/codes 供带词汇样本的 parse 门判定（语法错误 / 名称解析错误 / 其它异常）
       results[rel] = { ok: false, stage: rec.stage || 'crash', codes: rec.codes, locs: rec.locs, error, err: error };
     } else {
+      if (full && typeof rec.irCanonical !== 'string') {
+        fail('aster-lang-core CoreIrFingerprintCli --full did not emit irCanonical (needs Core IR v2, ADR 0055 §6)');
+      }
       results[rel] = full
-        ? { ok: true, ir: rec.ir, inputRefConstructs: rec.inputRefConstructs, warnings: rec.diagnostics || [], locs: rec.locs }
+        ? { ok: true, bytes: rec.irCanonical, ir: JSON.parse(rec.irCanonical), inputRefConstructs: rec.inputRefConstructs, warnings: rec.diagnostics || [], locs: rec.locs }
         : { ok: true, fingerprint: rec.fingerprint, warnings: rec.diagnostics || [], locs: rec.locs };
     }
   }
@@ -736,76 +760,498 @@ function diffFingerprints(tsFp, javaFp) {
 }
 
 // ============================================================================
-// ADR 0016 — field-level (normalized) Core IR parity (--mode=ir --full)
+// ADR 0055 §6 — 逐字节 Core IR parity（--mode=ir --full）
 // ============================================================================
-
-// Fields ignored on every node. Kept empty on purpose — see IR_ORIGIN_MODE below
-// for how `origin` is handled now.
-// ★IR 归一化规则已抽到 `packages/js/src/ir-normalize.ts`（本仓自己的包），
-//   因为它不止服务本门禁：ADR 0037 的 contentHash、未来的 MappingIR verifier
-//   都必须用**同一套**规则，否则会出现「门禁说一致、contentHash 说不一致」
-//   且两边都不报错的单源漂移。规则本身**原样未改**。
-import { normalizeForParity } from './lib/ir-normalize-parity.mjs';
-
-// originMode 仍由本脚本从 env 读取（库不依赖进程环境），再显式传入。
-const IR_ORIGIN_MODE = process.env.ASTER_IR_ORIGIN_MODE || 'file+line';
-
-// ADR 0051 §4：parity 比较 origin.written/role（两引擎须在同一位置记录同一原写法与角色，
-// 含签名与字段类型上的记录）；选项固定在 lib/ir-normalize-parity.mjs，contentHash 不经此处。
-function normalizeIr(node) {
-  return normalizeForParity(node, IR_ORIGIN_MODE);
-}
+//
+// 判定逻辑在 scripts/lib/ir-byte-parity.mjs（与回归测试 scripts/test-ir-byte-parity.mjs 共用）；
+// 本脚本负责取两侧规范字节、装配 schema 校验，并持有值层豁免表 VALUE_EXEMPTIONS。
+// 两侧唯一的全局投影是删除 origin.start.col / origin.end.col；其余每个字节都硬比较，
+// 字段名、kind、字段是否出现、数组长度不同一律 shape-diff，永远不可豁免。
 
 /**
- * Field-level diff of two normalized IR trees. Returns a list of
- * { path, ts, java } leaf disagreements (capped per sample for readability).
+ * 值层分期豁免表（ADR 0055 §6）。每项：
+ *   id       V1 类型推断 / V2 能力推断 / V3 闭包捕获 / V4 origin 行号；
+ *   issue    tracking issue；owner 为负责收紧的维护者角色；
+ *   expires  截止日（最晚 2027-01-31）。运行日期晚于它，该类别失效并报 expired-exemption；
+ *   V1–V3    scope 'category'：只在 files 列出的语料文件内、由 match 选中 ADR 表中的值位置；
+ *   V4       scope 'entries'：逐项登记 (语料文件, JSON 路径)，只豁免该处的 origin.end.line。
+ * V1–V3 整个类别、或 V4 某个登记项一轮运行中不再有被豁免的差异即报 stale-exemption，须删掉该项。
+ * go-live 要求本表为空。
  */
-function diffIr(tsIr, javaIr) {
-  const diffs = [];
-  walkDiff(normalizeIr(tsIr), normalizeIr(javaIr), '$', diffs);
-  return diffs;
+// ── 豁免作用范围（2026-11-14 在 core feat/core-ir-v2 db30fbb、ts feat/core-ir-v2 d112d74 上实测） ──
+// V1 / V2 只在下列语料文件内生效；类别整体不再有差异时报 stale-exemption，个别文件不再有差异时报告列为可收窄范围。
+// V3（Lambda.captures）实测 0 处差异，不登记（aster-lang-test#197）。
+// V4 逐项登记：均为 Lambda 返回类型 TypeName 的 origin.end.line（Java 比 ts 多算到 Lambda 体末行）。
+const V1_FILES = [
+  'tier1-equivalence/policies/01-arithmetic-add.aster',
+  'tier1-equivalence/policies/02-arithmetic-precedence.aster',
+  'tier1-equivalence/policies/03-if-else.aster',
+  'tier1-equivalence/policies/04-let-binding.aster',
+  'tier1-equivalence/policies/05-comparison.aster',
+  'tier1-equivalence/policies/06-string-concat.aster',
+  'tier1-equivalence/policies/07-arithmetic-subtract.aster',
+  'tier1-equivalence/policies/08-arithmetic-divide.aster',
+  'tier1-equivalence/policies/09-arithmetic-modulo.aster',
+  'tier1-equivalence/policies/10-arithmetic-negate.aster',
+  'tier1-equivalence/policies/11-boolean-and.aster',
+  'tier1-equivalence/policies/12-boolean-or.aster',
+  'tier1-equivalence/policies/13-boolean-not.aster',
+  'tier1-equivalence/policies/14-boolean-short-circuit.aster',
+  'tier1-equivalence/policies/15-comparison-less.aster',
+  'tier1-equivalence/policies/16-comparison-equals.aster',
+  'tier1-equivalence/policies/17-comparison-not-equals.aster',
+  'tier1-equivalence/policies/17-comparison-range.aster',
+  'tier1-equivalence/policies/18-comparison-chained.aster',
+  'tier1-equivalence/policies/18-comparison-is-equal.aster',
+  'tier1-equivalence/policies/19-comparison-is-not-equal.aster',
+  'tier1-equivalence/policies/19-let-multiple.aster',
+  'tier1-equivalence/policies/20-let-dependent.aster',
+  'tier1-equivalence/policies/21-comparison-is-prefix.aster',
+  'tier1-equivalence/policies/21-let-conditional.aster',
+  'tier1-equivalence/policies/22-let-shadowing.aster',
+  'tier1-equivalence/policies/22-logical-and.aster',
+  'tier1-equivalence/policies/23-if-nested.aster',
+  'tier1-equivalence/policies/23-logical-or.aster',
+  'tier1-equivalence/policies/24-if-guard-clause.aster',
+  'tier1-equivalence/policies/24-logical-precedence.aster',
+  'tier1-equivalence/policies/25-if-multi-branch.aster',
+  'tier1-equivalence/policies/26-if-bool-condition.aster',
+  'tier1-equivalence/policies/27-business-loan-eligibility.aster',
+  'tier1-equivalence/policies/28-business-insurance-premium.aster',
+  'tier1-equivalence/policies/29-business-tax-bracket.aster',
+  'tier1-equivalence/policies/30-business-gdpr-retention.aster',
+  'tier1-equivalence/policies/31-arithmetic-intdiv.aster',
+  'tier1-equivalence/policies/32-arithmetic-modulo-op.aster',
+  'tier1-equivalence/policies/45-text-equals.aster',
+  'tier1-equivalence/policies/and-or-short-circuit.aster',
+  'tier1-equivalence/policies/arith_compare.aster',
+  'tier1-equivalence/policies/auto.aster',
+  'tier1-equivalence/policies/bad_generic.aster',
+  'tier1-equivalence/policies/bad_generic_return.aster',
+  'tier1-equivalence/policies/bad_generic_return_type.aster',
+  'tier1-equivalence/policies/capability-v2.aster',
+  'tier1-equivalence/policies/capdemo.aster',
+  'tier1-equivalence/policies/claims.aster',
+  'tier1-equivalence/policies/cli_tool.aster',
+  'tier1-equivalence/policies/comparison_operators.aster',
+  'tier1-equivalence/policies/creditcard.aster',
+  'tier1-equivalence/policies/cross_compiler_ops.aster',
+  'tier1-equivalence/policies/eff_alias_import.aster',
+  'tier1-equivalence/policies/eff_alias_unmapped.aster',
+  'tier1-equivalence/policies/eff_caps_enforce.aster',
+  'tier1-equivalence/policies/eff_caps_enforce_brackets.aster',
+  'tier1-equivalence/policies/eff_caps_enforce_missing_ai_model.aster',
+  'tier1-equivalence/policies/eff_caps_enforce_missing_files.aster',
+  'tier1-equivalence/policies/eff_caps_enforce_missing_secrets.aster',
+  'tier1-equivalence/policies/eff_caps_enforce_unused_extra.aster',
+  'tier1-equivalence/policies/eff_caps_enforce_unused_files.aster',
+  'tier1-equivalence/policies/eff_caps_enforce_unused_time.aster',
+  'tier1-equivalence/policies/eff_caps_parse.aster',
+  'tier1-equivalence/policies/eff_caps_parse_bare.aster',
+  'tier1-equivalence/policies/eff_caps_parse_brackets.aster',
+  'tier1-equivalence/policies/eff_caps_parse_files_secrets.aster',
+  'tier1-equivalence/policies/eff_caps_parse_mixed_brackets_and_and.aster',
+  'tier1-equivalence/policies/eff_caps_parse_single.aster',
+  'tier1-equivalence/policies/eff_custom_prefix.aster',
+  'tier1-equivalence/policies/eff_infer_mixed.aster',
+  'tier1-equivalence/policies/eff_infer_transitive.aster',
+  'tier1-equivalence/policies/eff_infer_wrapper_cpu.aster',
+  'tier1-equivalence/policies/eff_infer_wrapper_io.aster',
+  'tier1-equivalence/policies/eff_valid_all_caps.aster',
+  'tier1-equivalence/policies/eff_valid_cpu_only.aster',
+  'tier1-equivalence/policies/eff_valid_exact_match.aster',
+  'tier1-equivalence/policies/eff_valid_exact_match__programs-patterns.aster',
+  'tier1-equivalence/policies/eff_valid_http_sql.aster',
+  'tier1-equivalence/policies/eff_valid_nested.aster',
+  'tier1-equivalence/policies/eff_valid_pure_only.aster',
+  'tier1-equivalence/policies/eff_valid_subset_declared.aster',
+  'tier1-equivalence/policies/eff_violation_chain.aster',
+  'tier1-equivalence/policies/eff_violation_cpu_calls_io.aster',
+  'tier1-equivalence/policies/eff_violation_empty_caps.aster',
+  'tier1-equivalence/policies/eff_violation_files_calls_secrets.aster',
+  'tier1-equivalence/policies/eff_violation_files_only.aster',
+  'tier1-equivalence/policies/eff_violation_http_calls_sql.aster',
+  'tier1-equivalence/policies/eff_violation_missing_http.aster',
+  'tier1-equivalence/policies/eff_violation_missing_sql.aster',
+  'tier1-equivalence/policies/eff_violation_missing_time.aster',
+  'tier1-equivalence/policies/eff_violation_mixed_caps.aster',
+  'tier1-equivalence/policies/eff_violation_multiple_errors.aster',
+  'tier1-equivalence/policies/eff_violation_nested_a.aster',
+  'tier1-equivalence/policies/eff_violation_nested_b.aster',
+  'tier1-equivalence/policies/eff_violation_pure_calls_cpu.aster',
+  'tier1-equivalence/policies/eff_violation_secrets_calls_ai.aster',
+  'tier1-equivalence/policies/eff_violation_secrets_calls_http.aster',
+  'tier1-equivalence/policies/eff_violation_sql_calls_files.aster',
+  'tier1-equivalence/policies/eff_violation_transitive.aster',
+  'tier1-equivalence/policies/effect_enforcement.aster',
+  'tier1-equivalence/policies/eligibility.aster',
+  'tier1-equivalence/policies/enterprise.aster',
+  'tier1-equivalence/policies/entry_annotation.aster',
+  'tier1-equivalence/policies/enum_exhaustiveness.aster',
+  'tier1-equivalence/policies/enum_wildcard.aster',
+  'tier1-equivalence/policies/fetch_dashboard.aster',
+  'tier1-equivalence/policies/fraud-simple-test.aster',
+  'tier1-equivalence/policies/fraud.aster',
+  'tier1-equivalence/policies/g0-omit-produce.aster',
+  'tier1-equivalence/policies/g1-lowercase-keywords.aster',
+  'tier1-equivalence/policies/g1-softkeyword-idents.aster',
+  'tier1-equivalence/policies/g2a-inline-if.aster',
+  'tier1-equivalence/policies/g2b-if-expression.aster',
+  'tier1-equivalence/policies/g3-apply-call.aster',
+  'tier1-equivalence/policies/governance-input-refs-lambda-returned-from-callee.aster',
+  'tier1-equivalence/policies/greet.aster',
+  'tier1-equivalence/policies/hello.aster',
+  'tier1-equivalence/policies/hipaa-validation-demo.aster',
+  'tier1-equivalence/policies/id_generic.aster',
+  'tier1-equivalence/policies/if_param.aster',
+  'tier1-equivalence/policies/incremental.aster',
+  'tier1-equivalence/policies/incremental_test.aster',
+  'tier1-equivalence/policies/incremental_test2.aster',
+  'tier1-equivalence/policies/incremental_test3.aster',
+  'tier1-equivalence/policies/int_match.aster',
+  'tier1-equivalence/policies/int_match_default.aster',
+  'tier1-equivalence/policies/interop_overload.aster',
+  'tier1-equivalence/policies/interop_sum.aster',
+  'tier1-equivalence/policies/lambda_capture_inline_if.aster',
+  'tier1-equivalence/policies/lambda_capture_list_literal.aster',
+  'tier1-equivalence/policies/lambda_cnl.aster',
+  'tier1-equivalence/policies/lambda_cnl_length.aster',
+  'tier1-equivalence/policies/lambda_cnl_length_cmp.aster',
+  'tier1-equivalence/policies/lambda_cnl_match_bind.aster',
+  'tier1-equivalence/policies/lambda_cnl_match_bind__programs-patterns.aster',
+  'tier1-equivalence/policies/lambda_cnl_match_maybe.aster',
+  'tier1-equivalence/policies/lambda_cnl_match_maybe__programs-patterns.aster',
+  'tier1-equivalence/policies/lambda_cnl_match_result.aster',
+  'tier1-equivalence/policies/lambda_cnl_match_result__programs-patterns.aster',
+  'tier1-equivalence/policies/lambda_cnl_math_bool.aster',
+  'tier1-equivalence/policies/lambda_cnl_mixed.aster',
+  'tier1-equivalence/policies/lambda_cnl_short.aster',
+  'tier1-equivalence/policies/lambda_gte_test.aster',
+  'tier1-equivalence/policies/lambda_lte_test.aster',
+  'tier1-equivalence/policies/life.aster',
+  'tier1-equivalence/policies/list-get-eager-let.aster',
+  'tier1-equivalence/policies/list_ops.aster',
+  'tier1-equivalence/policies/loan.aster',
+  'tier1-equivalence/policies/loan_fixed.aster',
+  'tier1-equivalence/policies/loan_full_test.aster',
+  'tier1-equivalence/policies/loan_with_constraints.aster',
+  'tier1-equivalence/policies/loan_with_int.aster',
+  'tier1-equivalence/policies/login.aster',
+  'tier1-equivalence/policies/map_int_key_probe.aster',
+  'tier1-equivalence/policies/map_ops.aster',
+  'tier1-equivalence/policies/match_enum.aster',
+  'tier1-equivalence/policies/match_multi.aster',
+  'tier1-equivalence/policies/match_null.aster',
+  'tier1-equivalence/policies/neq_test.aster',
+  'tier1-equivalence/policies/nested_generic_function.aster',
+  'tier1-equivalence/policies/nested_generic_lambda.aster',
+  'tier1-equivalence/policies/patient-record.aster',
+  'tier1-equivalence/policies/personal.aster',
+  'tier1-equivalence/policies/pii_function_return.aster',
+  'tier1-equivalence/policies/pii_http_safe.aster',
+  'tier1-equivalence/policies/pii_http_violation.aster',
+  'tier1-equivalence/policies/pii_nested_call.aster',
+  'tier1-equivalence/policies/pii_propagation.aster',
+  'tier1-equivalence/policies/pii_type_basic.aster',
+  'tier1-equivalence/policies/pii_type_in_data.aster',
+  'tier1-equivalence/policies/pii_type_in_function.aster',
+  'tier1-equivalence/policies/pii_type_mixed.aster',
+  'tier1-equivalence/policies/pii_type_phone.aster',
+  'tier1-equivalence/policies/pii_type_ssn.aster',
+  'tier1-equivalence/policies/policy_demo.aster',
+  'tier1-equivalence/policies/policy_engine.aster',
+  'tier1-equivalence/policies/prescription-workflow.aster',
+  'tier1-equivalence/policies/rest_service.aster',
+  'tier1-equivalence/policies/result_trycatch.aster',
+  'tier1-equivalence/policies/risk.aster',
+  'tier1-equivalence/policies/rules_engine.aster',
+  'tier1-equivalence/policies/simple_test.aster',
+  'tier1-equivalence/policies/soc2-audit-demo.aster',
+  'tier1-equivalence/policies/stdlib_collections.aster',
+  'tier1-equivalence/policies/stdlib_date.aster',
+  'tier1-equivalence/policies/stdlib_io.aster',
+  'tier1-equivalence/policies/stdlib_maybe_result.aster',
+  'tier1-equivalence/policies/stdlib_text.aster',
+  'tier1-equivalence/policies/symbolic_operators.aster',
+  'tier1-equivalence/policies/test-operators.aster',
+  'tier1-equivalence/policies/test_all_comparisons__ts-only.aster',
+  'tier1-equivalence/policies/test_arithmetic.aster',
+  'tier1-equivalence/policies/test_auto.aster',
+  'tier1-equivalence/policies/test_claims.aster',
+  'tier1-equivalence/policies/test_complex_return.aster',
+  'tier1-equivalence/policies/test_copy.aster',
+  'tier1-equivalence/policies/test_division.aster',
+  'tier1-equivalence/policies/test_eligibility.aster',
+  'tier1-equivalence/policies/test_eligibility_full.aster',
+  'tier1-equivalence/policies/test_eligibility_minimal.aster',
+  'tier1-equivalence/policies/test_eligibility_simple.aster',
+  'tier1-equivalence/policies/test_eligibility_struct.aster',
+  'tier1-equivalence/policies/test_eligibility_with_ifs.aster',
+  'tier1-equivalence/policies/test_exact_eligibility.aster',
+  'tier1-equivalence/policies/test_helper1.aster',
+  'tier1-equivalence/policies/test_invalid.aster',
+  'tier1-equivalence/policies/test_let_in_if.aster',
+  'tier1-equivalence/policies/test_let_member_call.aster',
+  'tier1-equivalence/policies/test_let_with_call.aster',
+  'tier1-equivalence/policies/test_life.aster',
+  'tier1-equivalence/policies/test_operators__ts-only.aster',
+  'tier1-equivalence/policies/test_second_func.aster',
+  'tier1-equivalence/policies/test_two_ifs.aster',
+  'tier1-equivalence/policies/test_two_statements.aster',
+  'tier1-equivalence/policies/text_ops.aster',
+  'tier1-equivalence/policies/type_alias.aster',
+  'tier1-parity/vocab-de/workflow-step-name.aster',
+  'tier1-parity/workflow/workflow-compensate.aster',
+  'tier1-parity/workflow/workflow-multistep.aster',
+  'tier1-parity/workflow/workflow-single-step.aster',
+];
+
+const V2_FILES = [
+  'tier1-equivalence/policies/capability-v2.aster',
+  'tier1-equivalence/policies/capdemo.aster',
+  'tier1-equivalence/policies/eff_alias_import.aster',
+  'tier1-equivalence/policies/eff_caps_parse_bare.aster',
+  'tier1-equivalence/policies/eff_custom_prefix.aster',
+  'tier1-equivalence/policies/eff_infer_mixed.aster',
+  'tier1-equivalence/policies/eff_infer_transitive.aster',
+  'tier1-equivalence/policies/eff_infer_wrapper_cpu.aster',
+  'tier1-equivalence/policies/eff_infer_wrapper_io.aster',
+  'tier1-equivalence/policies/eff_valid_cpu_only.aster',
+  'tier1-equivalence/policies/eff_violation_chain.aster',
+  'tier1-equivalence/policies/eff_violation_cpu_calls_io.aster',
+  'tier1-equivalence/policies/eff_violation_empty_caps.aster',
+  'tier1-equivalence/policies/eff_violation_nested_a.aster',
+  'tier1-equivalence/policies/eff_violation_nested_b.aster',
+  'tier1-equivalence/policies/eff_violation_pure_calls_cpu.aster',
+  'tier1-equivalence/policies/fetch_dashboard.aster',
+  'tier1-equivalence/policies/login.aster',
+  'tier1-equivalence/policies/soc2-audit-demo.aster',
+  'tier1-equivalence/policies/stdlib_io.aster',
+  'tier1-equivalence/policies/workflow-step-scope.aster',
+  'tier1-parity/vocab-de/workflow-step-name.aster',
+  'tier1-parity/workflow/workflow-compensate.aster',
+  'tier1-parity/workflow/workflow-multistep.aster',
+  'tier1-parity/workflow/workflow-single-step.aster',
+];
+
+const V4_ENTRIES = [
+  { file: 'tier1-equivalence/policies/governance-input-refs-lambda-capture-read.aster', path: '$.decls[2].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/governance-input-refs-lambda-parameter-applied.aster', path: '$.decls[2].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/governance-input-refs-lambda-returned-from-callee.aster', path: '$.decls[2].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/lambda_capture_inline_if.aster', path: '$.decls[0].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/lambda_capture_list_literal.aster', path: '$.decls[0].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/lambda_cnl_match_bind.aster', path: '$.decls[1].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/lambda_cnl_match_bind.aster', path: '$.decls[2].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/lambda_cnl_match_bind__programs-patterns.aster', path: '$.decls[1].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/lambda_cnl_match_bind__programs-patterns.aster', path: '$.decls[2].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/lambda_cnl_match_maybe.aster', path: '$.decls[0].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/lambda_cnl_match_maybe__programs-patterns.aster', path: '$.decls[0].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/lambda_cnl_match_result.aster', path: '$.decls[0].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/lambda_cnl_match_result__programs-patterns.aster', path: '$.decls[0].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/lambda_cnl_mixed.aster', path: '$.decls[0].body.statements[0].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/lambda_cnl_mixed.aster', path: '$.decls[0].body.statements[1].expr.ret.origin.end.line' },
+  { file: 'tier1-equivalence/policies/nested_generic_lambda.aster', path: '$.decls[0].body.statements[0].expr.ret.origin.end.line' },
+];
+
+export const VALUE_EXEMPTIONS = Object.freeze([
+  {
+    id: 'V1',
+    issue: 'https://github.com/aster-cloud/aster-lang-test/issues/195',
+    owner: '两引擎类型检查维护者',
+    expires: '2027-01-31',
+    scope: 'category',
+    // 仅类型节点：retTypeInferred:true 的 Func.ret，typeInferred:true 的 Param.type / Field.type
+    match: (path, node, parent) =>
+      (path.endsWith('.ret') && parent?.kind === 'Func' && parent.retTypeInferred === true) ||
+      (path.endsWith('.type') && !('kind' in parent) && parent.typeInferred === true),
+    files: V1_FILES,
+  },
+  {
+    id: 'V2',
+    issue: 'https://github.com/aster-cloud/aster-lang-test/issues/196',
+    owner: '效应 / 能力检查维护者',
+    expires: '2027-01-31',
+    scope: 'category',
+    // 只有 effectCapsExplicit:false 的 Func.effectCaps 数组值；effectCapsExplicit 本身仍硬比较
+    match: (path, node, parent) => path.endsWith('.effectCaps') && parent?.kind === 'Func' && parent.effectCapsExplicit === false,
+    files: V2_FILES,
+  },
+  {
+    id: 'V4',
+    issue: 'https://github.com/aster-cloud/aster-lang-test/issues/198',
+    owner: 'Java parser 维护者',
+    expires: '2027-01-31',
+    scope: 'entries',
+    entries: V4_ENTRIES,
+  },
+]);
+
+// --today=YYYY-MM-DD：注入运行日期（测试到期判定用），默认取当前 UTC 日期。
+const todayArg = args.find((a) => a.startsWith('--today='));
+const TODAY = todayArg ? todayArg.slice('--today='.length) : new Date().toISOString().slice(0, 10);
+// --dump-dir=<dir>：把每个样本两侧的规范字节写到 <dir>/<rel>.{ts,java}.json，供引擎维护者复现差异。
+const dumpArg = args.find((a) => a.startsWith('--dump-dir='));
+const DUMP_DIR = dumpArg ? resolve(dumpArg.slice('--dump-dir='.length)) : null;
+
+/** 规范序列化与 schema + 不变式校验，均取自同级 aster-lang-ts（schema 副本与 locales 源由 ts 的 sibling parity 测试守护）。 */
+async function loadIrChecks() {
+  const canonicalPath = join(TS_REPO, 'dist', 'src', 'core', 'canonical-json.js');
+  const distIndex = join(TS_REPO, 'dist', 'src', 'index.js');
+  if (!existsSync(canonicalPath) || !existsSync(distIndex)) fail(`aster-lang-ts not built. Run: cd ${TS_REPO} && pnpm build`);
+  const { canonicalJson } = await import(canonicalPath);
+  const { validateCoreIrInvariants } = await import(distIndex);
+  if (!canonicalJson || !validateCoreIrInvariants) fail('aster-lang-ts is missing canonicalJson / validateCoreIrInvariants (needs Core IR v2, ts ≥ 2.0.0)');
+  const schemaPath = join(TS_REPO, 'shared', 'core-ir.v2.schema.json');
+  if (!existsSync(schemaPath)) fail(`Core IR v2 schema not found: ${schemaPath}`);
+  const ajvModule = createRequire(join(TS_REPO, 'package.json'))('ajv/dist/2020.js');
+  const Ajv2020 = ajvModule.Ajv2020 ?? ajvModule.default ?? ajvModule;
+  const schemaValidate = new Ajv2020({ allErrors: true, strict: true }).compile(JSON.parse(readFileSync(schemaPath, 'utf8')));
+  const validate = (tree) => (schemaValidate(tree)
+    ? validateCoreIrInvariants(tree)
+    : schemaValidate.errors.map((e) => ({ path: e.instancePath, code: 'schema', message: e.message })));
+  return { canonicalJson, validate };
 }
 
-function walkDiff(a, b, path, diffs) {
-  if (diffs.length >= 40) return; // cap noise per sample
-  if (a === b) return;
-  const ta = a === null ? 'null' : Array.isArray(a) ? 'array' : typeof a;
-  const tb = b === null ? 'null' : Array.isArray(b) ? 'array' : typeof b;
-  if (ta !== tb) {
-    diffs.push({ path, ts: summarize(a), java: summarize(b) });
-    return;
-  }
-  if (ta === 'array') {
-    if (a.length !== b.length) {
-      diffs.push({ path: `${path}.length`, ts: a.length, java: b.length });
-      return;
+function dumpBytes(rel, side, bytes) {
+  if (!DUMP_DIR || typeof bytes !== 'string') return;
+  const out = join(DUMP_DIR, `${rel}.${side}.json`);
+  mkdirSync(dirname(out), { recursive: true });
+  writeFileSync(out, bytes);
+}
+
+/** 逐样本判定 + 治理输入引用期望值核对，再对豁免表做 stale / 到期判定。 */
+function classifyIr(tsRes, javaRes, samples, checks) {
+  const ledger = createExemptionLedger(VALUE_EXEMPTIONS, { today: TODAY });
+  const rows = [];
+  for (const { rel, abs } of samples) {
+    const t = tsRes[rel] || { ok: false, error: 'missing ts' };
+    const j = javaRes[rel] || { ok: false, error: 'missing java' };
+    dumpBytes(rel, 'ts', t.bytes);
+    dumpBytes(rel, 'java', j.bytes);
+    const judged = judgeSample({ file: rel, ts: t, java: j, ledger, ...checks });
+    const row = { path: rel, ...judged, tsErr: t.error || null, javaErr: j.error || null };
+    if (row.verdict === 'identical' || row.verdict === 'value-diff') {
+      // 治理输入引用样本：两引擎相同还不够，须等于 meta 声明的期望值（两边同时算错也要变红）
+      const meta = readMeta(abs) ?? {};
+      const expectProblems = [
+        ...inputRefsProblems('ts', meta, t.ir, t.inputRefConstructs),
+        ...inputRefsProblems('java', meta, j.ir, j.inputRefConstructs),
+      ];
+      if (expectProblems.length > 0) {
+        row.verdict = 'value-diff';
+        row.diffs.push(...expectProblems.map((value) => ({ class: 'value', path: 'expectedInputRefs', value })));
+        row.valueCount += expectProblems.length;
+      }
     }
-    for (let i = 0; i < a.length; i++) walkDiff(a[i], b[i], `${path}[${i}]`, diffs);
-    return;
+    rows.push(row);
   }
-  if (ta === 'object') {
-    const keys = new Set([...Object.keys(a), ...Object.keys(b)]);
-    for (const key of [...keys].sort()) {
-      if (!(key in a)) { diffs.push({ path: `${path}.${key}`, ts: undefined, java: summarize(b[key]) }); continue; }
-      if (!(key in b)) { diffs.push({ path: `${path}.${key}`, ts: summarize(a[key]), java: undefined }); continue; }
-      walkDiff(a[key], b[key], `${path}.${key}`, diffs);
+  return { rows, findings: exemptionFindings(ledger), narrowable: narrowableScopes(ledger), exempted: maskedCounts(ledger) };
+}
+
+function countBy(rows, verdict) {
+  return rows.filter((r) => r.verdict === verdict).length;
+}
+
+function printMarkdownIrFull({ rows, findings, narrowable, exempted }, mode) {
+  console.log(`# tier1-parity IR byte-level report (mode=${mode} --full, ADR 0055 §6, run date ${TODAY})\n`);
+  console.log(`- total: ${rows.length}`);
+  for (const v of IR_VERDICTS.filter((x) => !x.endsWith('-exemption'))) console.log(`- ${v}: ${countBy(rows, v)}`);
+  console.log(`- stale-exemption: ${findings.filter((f) => f.verdict === 'stale-exemption').length}`);
+  console.log(`- expired-exemption: ${findings.filter((f) => f.verdict === 'expired-exemption').length}`);
+  console.log(`- shape differences (paths): ${rows.reduce((s, r) => s + r.shapeCount, 0)}`);
+  console.log(`- value differences outside exemptions (paths): ${rows.reduce((s, r) => s + r.valueCount, 0)}\n`);
+
+  console.log('## Value-layer exemptions (masked differences this run)\n');
+  console.log('| id | category | masked | expires | issue |');
+  console.log('|---|---|---:|---|---|');
+  for (const e of VALUE_EXEMPTIONS) {
+    console.log(`| ${e.id} | ${EXEMPTION_CATEGORIES[e.id]} | ${exempted[e.id] ?? 0} | ${e.expires} | ${e.issue} |`);
+  }
+  console.log('');
+
+  if (findings.length > 0) {
+    console.log('## Exemption table problems\n');
+    for (const f of findings) {
+      const where = [f.file, f.path].filter(Boolean).join(' ');
+      console.log(`- ${f.verdict} ${f.id}${where ? ` ${where}` : ''}${f.verdict === 'expired-exemption' ? ` (expires ${f.expires}, run date ${f.today})` : ''}`);
     }
-    return;
+    console.log('');
   }
-  diffs.push({ path, ts: a, java: b });
+
+  if (narrowable.length > 0) {
+    console.log('## Exemption scopes that can be narrowed (informational)\n');
+    console.log('These files no longer have a masked difference in their category; remove them from the category\'s `files`.\n');
+    for (const n of narrowable) console.log(`- ${n.id} ${n.file}`);
+    console.log('');
+  }
+
+  for (const verdict of ['shape-diff', 'value-diff', 'schema-invalid', 'ts-failed', 'java-failed']) {
+    const bad = rows.filter((r) => r.verdict === verdict);
+    if (bad.length === 0) continue;
+    console.log(`## ${verdict} (${bad.length})\n`);
+    for (const r of bad) {
+      console.log(`### ${r.path}\n`);
+      if (r.tsErr || r.javaErr) console.log(`- error: ts=${JSON.stringify(r.tsErr)} java=${JSON.stringify(r.javaErr)}`);
+      for (const p of r.problems) console.log(`- ${p.side} ${p.code} ${p.path}${p.message ? ` — ${p.message}` : ''}`);
+      for (const d of r.diffs.slice(0, 20)) {
+        if (d.value !== undefined) console.log(`- ${d.class} ${d.path}: ${JSON.stringify(d.value)}`);
+        else console.log(`- ${d.class} ${d.path}: ts=${d.ts ?? '(absent)'} java=${d.java ?? '(absent)'}`);
+      }
+      if (r.diffs.length > 20) console.log(`- …and ${r.diffs.length - 20} more`);
+      console.log('');
+    }
+  }
 }
 
-function summarize(v) {
-  const s = JSON.stringify(v);
-  return s && s.length > 80 ? s.slice(0, 77) + '…' : s;
+function printMarkdownIrFingerprint(rows, mode) {
+  const divergent = rows.filter((r) => r.verdict === 'divergent');
+  const oneSideFailed = rows.filter((r) => r.verdict === 'one-side-failed');
+  console.log(`# tier1-parity IR fingerprint report (mode=${mode})\n`);
+  console.log(`- total: ${rows.length}`);
+  console.log(`- identical: ${countBy(rows, 'identical')}`);
+  console.log(`- divergent: ${divergent.length}`);
+  console.log(`- one side failed to lower: ${oneSideFailed.length}`);
+  console.log(`- both failed: ${countBy(rows, 'both-fail')}\n`);
+  if (divergent.length > 0) {
+    console.log('## Divergent (fingerprint)\n');
+    console.log('Structural diffs only (decl count, kind histogram, names). Byte-level parity runs under `--mode=ir --full` (ADR 0055 §6).\n');
+    for (const r of divergent.slice(0, 50)) {
+      console.log(`### ${r.path}\n`);
+      for (const d of r.diffs) {
+        if (d.value !== undefined) console.log(`- ${d.field}: ${JSON.stringify(d.value)}`);
+        else console.log(`- ${d.field}: ts=${JSON.stringify(d.ts)} java=${JSON.stringify(d.java)}`);
+      }
+      console.log('');
+    }
+  }
+  if (oneSideFailed.length > 0) {
+    console.log('## One-side lowering failures\n');
+    for (const r of oneSideFailed.slice(0, 30)) {
+      const failedSide = r.ts ? 'java' : 'ts';
+      const err = r.ts ? r.javaErr : r.tsErr;
+      console.log(`- ${r.path} (${failedSide} failed: ${(err || '').slice(0, 100)})`);
+    }
+    console.log('');
+  }
 }
 
-// Read a sample's evalExempt reason (or null) from its sibling .meta.json. An
-// eval-exempt sample (effects/io/interop/workflow) exercises a derived-analysis
-// surface (effect lowering, async workflow, host-interop) whose IR shape the two
-// engines legitimately represent differently — the same boundary eval-parity
-// uses. Such divergences are reported but do NOT count as structural-parity
-// failures, matching ADR 0016's "structural parity = the executable tree".
+/** --mode=ir（不带 --full）：声明级结构指纹，非门禁口径，仅供快速观测。 */
+function classifyIrFingerprint(tsRes, javaRes, samples) {
+  return samples.map(({ rel }) => {
+    const t = tsRes[rel] || { ok: false, error: 'missing ts' };
+    const j = javaRes[rel] || { ok: false, error: 'missing java' };
+    let verdict;
+    let diffs = [];
+    if (!t.ok && !j.ok) verdict = 'both-fail';
+    else if (t.ok !== j.ok) verdict = 'one-side-failed';
+    else {
+      diffs = diffFingerprints(t.fingerprint, j.fingerprint);
+      verdict = diffs.length === 0 ? 'identical' : 'divergent';
+    }
+    return { path: rel, ts: t.ok, java: j.ok, verdict, diffs, tsErr: t.error || null, javaErr: j.error || null };
+  });
+}
+
 // Read a sample's declared lexicon (defaults to 'en-US').
 //
 // ★2026-08-17 审计：每个 .meta.json 都声明了 `lexicon` 字段，但 parity runner
@@ -824,6 +1270,7 @@ function lexiconOf(abs) {
   }
 }
 
+// 样本 meta 的 evalExempt 理由（无则 null）；只用于 eval 门的 golden 守卫，IR 门不读它。
 function exemptReasonOf(abs) {
   const metaPath = abs.replace(/\.aster$/, '.meta.json');
   if (!existsSync(metaPath)) return null;
@@ -832,115 +1279,6 @@ function exemptReasonOf(abs) {
     return meta.evalExempt === true ? (meta.evalExemptReason || 'exempt') : null;
   } catch {
     return null;
-  }
-}
-
-function classifyIr(tsRes, javaRes, samples) {
-  const rows = [];
-  for (const { rel, abs } of samples) {
-    const t = tsRes[rel] || { ok: false, error: 'missing ts' };
-    const j = javaRes[rel] || { ok: false, error: 'missing java' };
-    const exempt = IR_FULL ? exemptReasonOf(abs) : null;
-    let verdict;
-    let diffs = [];
-    if (!t.ok && !j.ok) {
-      verdict = 'both-fail';
-    } else if (t.ok !== j.ok) {
-      verdict = 'one-side-failed';
-    } else if (IR_FULL) {
-      diffs = diffIr(t.ir, j.ir);
-      verdict = diffs.length === 0 ? 'identical' : (exempt ? 'divergent-exempt' : 'divergent');
-      // 治理输入引用样本：两引擎相同还不够，须等于 meta 声明的期望值（两边同时算错也要变红）
-      const meta = readMeta(abs) ?? {};
-      const expectProblems = [
-        ...inputRefsProblems('ts', meta, t.ir, t.inputRefConstructs),
-        ...inputRefsProblems('java', meta, j.ir, j.inputRefConstructs),
-      ];
-      if (expectProblems.length > 0) {
-        verdict = 'divergent';
-        diffs = [...diffs, ...expectProblems.map((value) => ({ path: 'expectedInputRefs', value }))];
-      }
-    } else {
-      diffs = diffFingerprints(t.fingerprint, j.fingerprint);
-      verdict = diffs.length === 0 ? 'identical' : 'divergent';
-    }
-    rows.push({
-      path: rel,
-      ts: t.ok,
-      java: j.ok,
-      verdict,
-      diffs,
-      exempt,
-      tsErr: t.error || null,
-      javaErr: j.error || null,
-    });
-  }
-  return rows;
-}
-
-function printMarkdownIr(rows, mode) {
-  const total = rows.length;
-  const identical = rows.filter((r) => r.verdict === 'identical').length;
-  const divergent = rows.filter((r) => r.verdict === 'divergent');
-  const divergentExempt = rows.filter((r) => r.verdict === 'divergent-exempt');
-  const oneSideFailed = rows.filter((r) => r.verdict === 'one-side-failed');
-  const bothFail = rows.filter((r) => r.verdict === 'both-fail');
-
-  const kind = IR_FULL ? 'field-level' : 'fingerprint';
-  console.log(`# tier1-parity IR ${kind} report (mode=${mode})\n`);
-  console.log(`- total: ${total}`);
-  console.log(`- identical: ${identical}`);
-  console.log(`- divergent: ${divergent.length}`);
-  if (IR_FULL) {
-    console.log(`- divergent (eval-exempt, not a structural-parity failure): ${divergentExempt.length}`);
-  }
-  console.log(`- one side failed to lower: ${oneSideFailed.length}`);
-  console.log(`- both failed: ${bothFail.length}\n`);
-
-  if (divergent.length > 0) {
-    console.log(`## Divergent (${kind})\n`);
-    if (IR_FULL) {
-      console.log('Normalized field-level diffs (origins stripped, known aliases applied, ' +
-        'inferred-type noise removed — see ADR 0016). Each unresolved path is a real ' +
-        'cross-engine IR divergence to triage.\n');
-    } else {
-      console.log('Structural diffs only (decl count, kind histogram, names). ' +
-        'Field-level alignment runs under `--mode=ir --full` (ADR 0016).\n');
-    }
-    for (const r of divergent.slice(0, 50)) {
-      console.log(`### ${r.path}\n`);
-      for (const d of r.diffs) {
-        const label = d.path || d.field;
-        if (d.value !== undefined) console.log(`- ${label}: ${JSON.stringify(d.value)}`);
-        else console.log(`- ${label}: ts=${JSON.stringify(d.ts)} java=${JSON.stringify(d.java)}`);
-      }
-      console.log('');
-    }
-    if (divergent.length > 50) {
-      console.log(`_…and ${divergent.length - 50} more (truncated)_\n`);
-    }
-  }
-
-  if (IR_FULL && divergentExempt.length > 0) {
-    console.log('## Divergent — eval-exempt (informational)\n');
-    console.log('These samples exercise effect/workflow/interop surfaces that are ' +
-      'eval-exempt; the two engines lower their derived-analysis structure ' +
-      'differently and this is out of scope for structural IR parity (ADR 0016). ' +
-      'Listed for visibility, not counted as failures.\n');
-    for (const r of divergentExempt) {
-      console.log(`- ${r.path} (${r.exempt}): ${r.diffs.length} field diff${r.diffs.length === 1 ? '' : 's'}`);
-    }
-    console.log('');
-  }
-
-  if (oneSideFailed.length > 0) {
-    console.log('## One-side lowering failures\n');
-    for (const r of oneSideFailed.slice(0, 30)) {
-      const failedSide = r.ts ? 'java' : 'ts';
-      const err = r.ts ? r.javaErr : r.tsErr;
-      console.log(`- ${r.path} (${failedSide} failed: ${(err || '').slice(0, 100)})`);
-    }
-    console.log('');
   }
 }
 
@@ -1022,15 +1360,29 @@ function collectEvalRequests(samples) {
  * Each spawn is fresh per request because the runner is designed for
  * one-shot use.
  */
+/**
+ * 求值请求是否要按样本的词法表 / 词汇处理。dual-engine-runner 的 stdin 协议只有 {source, entry, input}，
+ * 默认按 en-US 编译；带词汇或声明了非 en-US 词法表的样本都走进程内求值（loadTsVocabEval）。
+ */
+function needsLexiconEval(req) {
+  return Boolean(req.vocabPath) || lexiconOf(req.samplePath) !== 'en-US';
+}
+
+/** Java 求值请求中的词法表 / 词汇字段；en-US 且无词汇时为空（CoreIrEvalCli 走默认词法表）。 */
+function evalLexiconFields(req) {
+  if (!needsLexiconEval(req)) return {};
+  return { lexicon: lexiconOf(req.samplePath), ...(req.vocabPath ? { vocabulary: req.vocabPath } : {}) };
+}
+
 async function runTsEval(requests) {
   if (!existsSync(TS_DUAL_ENGINE_RUNNER)) {
     fail(`TS dual-engine runner not found at ${TS_DUAL_ENGINE_RUNNER}. ` +
       `Run: cd ${TS_REPO} && pnpm build`);
   }
-  const vocabEval = requests.some((r) => r.vocabPath) ? await loadTsVocabEval() : null;
+  const vocabEval = requests.some(needsLexiconEval) ? await loadTsVocabEval() : null;
   const results = [];
   for (const req of requests) {
-    if (req.vocabPath) {
+    if (needsLexiconEval(req)) {
       results.push({ rel: req.rel, caseIndex: req.caseIndex, ...vocabEval(req) });
       continue;
     }
@@ -1059,7 +1411,7 @@ async function runTsEval(requests) {
 }
 
 /**
- * 带词汇请求的 TS 求值（进程内）。dual-engine-runner 的 stdin 协议只有 {source, entry, input}，
+ * 带词汇或非 en-US 词法表请求的 TS 求值（进程内）。dual-engine-runner 的 stdin 协议只有 {source, entry, input}，
  * 没有词法表与词汇通道；这里复用同一份 dist（browser compile + interpreter），
  * 步骤与该 runner 逐一对应：compile → 找入口 → 元数检查 → evaluate → serializeGuestValue。
  */
@@ -1107,8 +1459,8 @@ function runJavaEval(requests) {
       entry: req.entry,
       input: req.input,
       caseIndex: req.caseIndex,
-      // 带词汇请求：CoreIrEvalCli 按词法表规范化关键词，并以该词汇做名称解析
-      ...(req.vocabPath ? { lexicon: lexiconOf(req.samplePath), vocabulary: req.vocabPath } : {}),
+      // 带词汇或非 en-US 词法表的请求：CoreIrEvalCli 按词法表规范化关键词，带词汇时以该词汇做名称解析
+      ...evalLexiconFields(req),
     }),
   );
   writeFileSync(inputFile, lines.join('\n') + '\n');
@@ -1372,6 +1724,20 @@ function printMarkdown(rows, mode) {
   }
 }
 
+/** 按 --report-only 收尾：失败时打印 ::error::（或 ::warning::）并设置退出码。 */
+function finish(msg, failed) {
+  if (!failed) {
+    console.error('[parity-tier1] OK');
+    return;
+  }
+  if (REPORT_ONLY) {
+    console.error(`::warning::tier1-parity (${msg})`);
+    return;
+  }
+  console.error(`::error::tier1-parity (${msg})`);
+  process.exitCode = 1;
+}
+
 async function main() {
   if (MODE !== 'parse' && MODE !== 'ir' && MODE !== 'eval') {
     fail(`mode=${MODE} not implemented. Supported: parse (Phase A), ir (Phase B), eval (Phase C).`);
@@ -1438,62 +1804,35 @@ async function main() {
   }
 
   if (MODE === 'ir') {
+    // 先装配校验器：ts 未构建或缺 v2 出口时立即报基础设施错误，不必等 gradle 跑完
+    const checks = IR_FULL ? await loadIrChecks() : null;
     console.error('[parity-tier1] running TS engine (parse→R1→lower→R2) ...');
     const tsRes = await runTsIr(samples);
 
     console.error('[parity-tier1] running Java engine (gradle CoreIrFingerprintCli, may take ~30s) ...');
     const javaRes = runJavaIr(samples);
 
-    const rows = classifyIr(tsRes, javaRes, samples);
-    writeFileSync(REPORT_FILE, JSON.stringify({ mode: MODE, total: rows.length, rows }, null, 2));
-    printMarkdownIr(rows, MODE);
-
-    // Trend history (field-level mode only). `divergent-exempt` samples are out
-    // of scope for structural parity (ADR 0016) so they leave the denominator:
-    // rate = identical / (total - exempt). Matches the dashboard's other rates.
-    if (IR_FULL) {
-      const identical = rows.filter((r) => r.verdict === 'identical').length;
-      const exempt = rows.filter((r) => r.verdict === 'divergent-exempt').length;
-      const denom = rows.length - exempt;
-      appendHistory('ir', denom, identical, denom - identical);
+    if (!IR_FULL) {
+      const rows = classifyIrFingerprint(tsRes, javaRes, samples);
+      writeFileSync(REPORT_FILE, JSON.stringify({ mode: MODE, total: rows.length, rows }, null, 2));
+      printMarkdownIrFingerprint(rows, MODE);
+      return finish(`ir fingerprint: ${rows.filter((r) => r.verdict !== 'identical').length}/${rows.length} sample(s) not identical`,
+        rows.some((r) => r.verdict !== 'identical'));
     }
 
-    // ★`divergent-exempt` 不再被豁免——它必须能让门禁变红。
-    //
-    //   原逻辑把 `divergent-exempt` 排除在失败集合之外，注释称其为
-    //   「effect/workflow/interop 的推导分析层差异，仅供参考」。实测**不成立**：
-    //   该标记并非来自「确认过是合法差异」，而是**自动**由样本元数据里的
-    //   `evalExempt` 推导而来（见 classifyIr）。`evalExempt` 的本意是
-    //   「这个样本不参与 eval-parity（不执行）」，与「它的 IR 分歧可以接受」
-    //   是**两件毫不相干的事**，此处却被混为一谈。
-    //
-    //   后果（2026-09-12 逐个排查证实）：5 个长期标着 divergent-exempt 的样本，
-    //   **全部**是真缺陷，没有一个是合法引擎差异：
-    //     interop_sum/interop_overload  Long 序列化成 JSON number → JS 侧精度静默丢失；
-    //                                   且超范围 Long 让 canonicalHash 抛错，
-    //                                   Stable Node ID 完全不可用
-    //     eff_valid_all_caps            裸表达式语句被降成 Return → **函数提前返回**，
-    //                                   其后的写文件/写库永不执行且不报错
-    //     login                         TS 缺 UFCS → 两引擎实际传参个数不同（2 vs 3）
-    //     fetch_dashboard               `as async` 被当成函数调用，而运行时没有该函数
-    //
-    //   这些缺陷在门禁全绿的情况下存活了很久——因为门禁**结构上就不会因它们变红**。
-    //
-    //   现状：73 个带 evalExempt 的样本**全部 identical**，故移除该豁免不会让
-    //   门禁立刻变红；它只是把「下一个同类缺陷」的发现时机从「有人碰巧去查」
-    //   提前到「CI 当场报红」。
+    const result = classifyIr(tsRes, javaRes, samples, checks);
+    const { rows, findings } = result;
+    writeFileSync(REPORT_FILE, JSON.stringify({ mode: MODE, full: true, today: TODAY, total: rows.length, ...result }, null, 2));
+    printMarkdownIrFull(result, MODE);
+
+    // 趋势：identical / total。逐字节口径下没有「豁免样本移出分母」——值层豁免只替换位置，不剔除样本。
+    const identical = rows.filter((r) => r.verdict === 'identical').length;
+    appendHistory('ir', rows.length, identical, rows.length - identical);
+
+    // 任何非 identical 的样本、任何 stale / 到期的豁免都使门禁失败（ADR 0055 §6）。
     const bad = rows.filter((r) => r.verdict !== 'identical');
-    if (bad.length > 0) {
-      const msg = `tier1-parity (ir ${IR_FULL ? 'field-level' : 'fingerprint'}) divergence: ${bad.length}/${rows.length} sample(s) not identical`;
-      if (REPORT_ONLY) {
-        console.error(`::warning::${msg}`);
-        process.exit(0);
-      }
-      console.error(`::error::${msg}`);
-      process.exit(1);
-    }
-    console.error('[parity-tier1] OK');
-    return;
+    return finish(`ir byte-level: ${bad.length}/${rows.length} sample(s) not identical, ${findings.length} exemption-table problem(s)`,
+      bad.length + findings.length > 0);
   }
 
   // mode === 'eval'
@@ -1533,7 +1872,10 @@ async function main() {
   console.error('[parity-tier1] OK');
 }
 
-main().catch((e) => {
-  console.error('FATAL:', e);
-  process.exit(2);
-});
+// 只在作为脚本执行时运行；回归测试 import 本文件只为读取 VALUE_EXEMPTIONS。
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((e) => {
+    console.error('FATAL:', e);
+    process.exit(2);
+  });
+}
