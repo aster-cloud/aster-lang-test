@@ -1,0 +1,6 @@
+Module demo.constraints.matching.
+
+Define Account has code as Text matching pattern "^[A-Z]{3}[0-9]+$", email as Text required matching "^.+@.+$".
+
+Rule normalizeCode given code as Text matching pattern "^[A-Z]+$", produce Text:
+  Return code.

@@ -1,0 +1,8 @@
+Module demo.constraints.singlesided.
+
+Define Loan has amount as Int at least 1, rate as Double at most 0.25, termMonths as Int between 6 and 360.
+
+Rule clampTerm given months as Int at least 6, produce Int:
+  If months greater than 360:
+    Return 360.
+  Return months.

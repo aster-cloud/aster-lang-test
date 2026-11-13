@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "ADR 0055 #4：两引擎同一约束 IR（at least / at most 单边范围、matching pattern 与 matching 同义）"
+}
