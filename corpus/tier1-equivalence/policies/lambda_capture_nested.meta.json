@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "嵌套 lambda 的捕获（ADR 0056 §4.2）：外层 lambda 内的 Let a 遮蔽外层形参 a、内层形参 c 遮蔽外层形参 c；内层穿透引用的 b 记到外层 captures，内层 captures 按首次引用位置为 [b, a]",
+  "capabilities": [
+    "cases-golden"
+  ]
+}

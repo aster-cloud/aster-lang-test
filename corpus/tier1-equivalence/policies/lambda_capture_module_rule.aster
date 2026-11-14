@@ -1,0 +1,10 @@
+Module demo.lambdacapturemodulerule.
+
+Rule bump given x as Int, produce Int:
+  Return x plus 1.
+
+Rule applyBump given n as Int, produce Int:
+  Let k be 5.
+  Let f be function with y as Int, produce Int:
+    Return bump(y) plus k.
+  Return f(n).

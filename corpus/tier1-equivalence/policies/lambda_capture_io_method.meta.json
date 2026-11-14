@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "tier3 type-checker/lambda_with_effects 的写法（ADR 0056 §4.2）：`io.get(…)` 改写后的 get、io 都不是外层局部，captures 只有 base；此前 Java 收进 get、io",
+  "evalExempt": true,
+  "evalExemptReason": "effects",
+  "evalExemptDetail": "tests effect inference/enforcement (a compile-time concern), not runtime output"
+}
