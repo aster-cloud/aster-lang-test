@@ -779,7 +779,8 @@ function diffFingerprints(tsFp, javaFp) {
  * go-live 要求本表为空。
  */
 // ── 豁免作用范围（2026-11-14 在 core feat/core-ir-v2 db30fbb、ts feat/core-ir-v2 d112d74 上实测） ──
-// V1 / V2 只在下列语料文件内生效；类别整体不再有差异时报 stale-exemption，个别文件不再有差异时报告列为可收窄范围。
+// V1 只在下列语料文件内生效；类别整体不再有差异时报 stale-exemption，个别文件不再有差异时报告列为可收窄范围。
+// V2（能力推断）已按 ADR 0056 §4.1 清零（ts 不再展开裸 io / cpu 的能力预置），条目删除（aster-lang-test#196）。
 // V3（Lambda.captures）实测 0 处差异，不登记（aster-lang-test#197）。
 // V4 逐项登记：均为 Lambda 返回类型 TypeName 的 origin.end.line（Java 比 ts 多算到 Lambda 体末行）。
 const V1_FILES = [
@@ -1006,34 +1007,6 @@ const V1_FILES = [
   'tier1-parity/workflow/workflow-single-step.aster',
 ];
 
-const V2_FILES = [
-  'tier1-equivalence/policies/capability-v2.aster',
-  'tier1-equivalence/policies/capdemo.aster',
-  'tier1-equivalence/policies/eff_alias_import.aster',
-  'tier1-equivalence/policies/eff_caps_parse_bare.aster',
-  'tier1-equivalence/policies/eff_custom_prefix.aster',
-  'tier1-equivalence/policies/eff_infer_mixed.aster',
-  'tier1-equivalence/policies/eff_infer_transitive.aster',
-  'tier1-equivalence/policies/eff_infer_wrapper_cpu.aster',
-  'tier1-equivalence/policies/eff_infer_wrapper_io.aster',
-  'tier1-equivalence/policies/eff_valid_cpu_only.aster',
-  'tier1-equivalence/policies/eff_violation_chain.aster',
-  'tier1-equivalence/policies/eff_violation_cpu_calls_io.aster',
-  'tier1-equivalence/policies/eff_violation_empty_caps.aster',
-  'tier1-equivalence/policies/eff_violation_nested_a.aster',
-  'tier1-equivalence/policies/eff_violation_nested_b.aster',
-  'tier1-equivalence/policies/eff_violation_pure_calls_cpu.aster',
-  'tier1-equivalence/policies/fetch_dashboard.aster',
-  'tier1-equivalence/policies/login.aster',
-  'tier1-equivalence/policies/soc2-audit-demo.aster',
-  'tier1-equivalence/policies/stdlib_io.aster',
-  'tier1-equivalence/policies/workflow-step-scope.aster',
-  'tier1-parity/vocab-de/workflow-step-name.aster',
-  'tier1-parity/workflow/workflow-compensate.aster',
-  'tier1-parity/workflow/workflow-multistep.aster',
-  'tier1-parity/workflow/workflow-single-step.aster',
-];
-
 const V4_ENTRIES = [
   { file: 'tier1-equivalence/policies/governance-input-refs-lambda-capture-read.aster', path: '$.decls[2].body.statements[0].expr.ret.origin.end.line' },
   { file: 'tier1-equivalence/policies/governance-input-refs-lambda-parameter-applied.aster', path: '$.decls[2].body.statements[0].expr.ret.origin.end.line' },
@@ -1065,16 +1038,6 @@ export const VALUE_EXEMPTIONS = Object.freeze([
       (path.endsWith('.ret') && parent?.kind === 'Func' && parent.retTypeInferred === true) ||
       (path.endsWith('.type') && !('kind' in parent) && parent.typeInferred === true),
     files: V1_FILES,
-  },
-  {
-    id: 'V2',
-    issue: 'https://github.com/aster-cloud/aster-lang-test/issues/196',
-    owner: '效应 / 能力检查维护者',
-    expires: '2027-01-31',
-    scope: 'category',
-    // 只有 effectCapsExplicit:false 的 Func.effectCaps 数组值；effectCapsExplicit 本身仍硬比较
-    match: (path, node, parent) => path.endsWith('.effectCaps') && parent?.kind === 'Func' && parent.effectCapsExplicit === false,
-    files: V2_FILES,
   },
   {
     id: 'V4',
