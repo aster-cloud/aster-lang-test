@@ -1,0 +1,13 @@
+Module parity.workflow.bare_io_capability.
+
+Rule syncBare given endpoint as Text, produce Text. It performs io:
+  workflow:
+    step fetch:
+      Return Http.get(endpoint).
+  .
+
+Rule syncExplicit given endpoint as Text, produce Text. It performs io [Http]:
+  workflow:
+    step fetch:
+      Return Http.get(endpoint).
+  .

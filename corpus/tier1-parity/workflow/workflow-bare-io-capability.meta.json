@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "workflow + 裸 It performs io（ADR 0056 §4.1，aster-lang-test#196）：IR 的 effectCaps 只记显式能力，裸 io 为 []、effectCapsExplicit=false；步骤里调用 Http 两引擎都不报 WORKFLOW_UNDECLARED_CAPABILITY。对照规则写了 [Http]，effectCaps 为 [\"Http\"]",
+  "evalExempt": true,
+  "evalExemptReason": "effects",
+  "evalExemptDetail": "workflow 声明 It performs io：副作用推断 / 强制属编译期关注，运行时无确定性输出可作 golden"
+}
