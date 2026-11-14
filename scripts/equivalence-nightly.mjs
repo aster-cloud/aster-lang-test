@@ -26,6 +26,7 @@ import { readFileSync, writeFileSync, existsSync, appendFileSync, readdirSync, s
 import { dirname, resolve, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
+import { declaredLexiconOf, loadTsLexicons, selectTsLexicon, tsParseOne } from './lib/sample-lexicon.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
@@ -53,31 +54,40 @@ async function runTsParse(samples) {
     throw new Error(`aster-lang-ts not built. Run: cd ${TS_REPO} && pnpm build`);
   }
   const mod = await import(distIndex);
-  const { canonicalize, lex, parse } = mod;
-  if (!canonicalize || !lex || !parse) {
+  if (!mod.canonicalize || !mod.lex || !mod.parse) {
     throw new Error('aster-lang-ts is missing expected exports (canonicalize/lex/parse)');
   }
+  return tsParseSamples(samples, { mod, lexicons: await loadTsLexicons(TS_REPO) });
+}
 
+/**
+ * nightly 范围内未显式声明 lexicon 的样本（每条一行说明）；空数组 = 全部已声明。
+ * 在跑任何引擎之前检查并一次列全，而不是在第一个样本处中断。
+ */
+export function undeclaredLexiconProblems(samples, root = CORPUS) {
+  const problems = [];
+  for (const abs of samples) {
+    try {
+      declaredLexiconOf(abs);
+    } catch (e) {
+      problems.push(`${relative(root, abs)}: ${e.message}`);
+    }
+  }
+  return problems;
+}
+
+/**
+ * 按样本声明的词法表跑 TS 解析，返回 { rel → { ok, err } }。
+ * ★issue #205：此前这里一律 canonicalize/lex/parse 默认英语，zh-CN 样本必然报
+ *   Unexpected character；现与 parity-tier1 共用 lib/sample-lexicon.mjs 的同一解析路径。
+ *   声明的非 en-US 词法表取不到即抛错（不退回英语）。
+ */
+export function tsParseSamples(samples, { mod, lexicons }, root = CORPUS) {
   const results = {};
   for (const abs of samples) {
-    const rel = relative(CORPUS, abs);
-    let ok = false;
-    let err = null;
-    try {
-      const src = readFileSync(abs, 'utf8');
-      const canonical = canonicalize(src);
-      const tokens = lex(canonical);
-      const { ast, diagnostics } = parse(tokens);
-      if (diagnostics && diagnostics.some((d) => d.severity === 'error')) {
-        err = diagnostics.find((d) => d.severity === 'error').message;
-      } else if (!ast) {
-        err = 'parse returned no AST';
-      } else {
-        ok = true;
-      }
-    } catch (e) {
-      err = e.message || String(e);
-    }
+    const rel = relative(root, abs);
+    const lexObj = selectTsLexicon(lexicons, declaredLexiconOf(abs), rel);
+    const { ok, err } = tsParseOne(mod, readFileSync(abs, 'utf8'), lexObj);
     results[rel] = { ok, err };
   }
   return results;
@@ -85,7 +95,8 @@ async function runTsParse(samples) {
 
 function runJavaParse(samples) {
   // 调 aster-lang-core 的 TsSampleParseInventoryTest；输出解析与判定与 parity-tier1.mjs
-  // 共用 lib/java-inventory.mjs。
+  // 共用 lib/java-inventory.mjs。词法表无需从这里传：该测试经 CorpusLoader 读取同一份
+  // meta.lexicon 并按它规范化（取不到即失败，不退回英语）。
   const result = spawnSync(
     './gradlew',
     ['test', '--tests', 'TsSampleParseInventoryTest', '--rerun-tasks', '-i'],
@@ -226,6 +237,14 @@ async function main() {
   }
   console.error(`[nightly] running parse-equivalence over ${samples.length} samples (tier1 + tier2)`);
 
+  // ★issue #205 守卫：每个样本都必须显式声明 lexicon。非英语样本漏标时若静默按 en-US
+  //   处理，只会变成一条莫名的 TS 解析失败（或两侧一起按英语误判）；这里直接点名中止。
+  const undeclared = undeclaredLexiconProblems(samples);
+  if (undeclared.length > 0) {
+    console.error(`::error::${undeclared.length} sample(s) do not declare meta.lexicon:\n` + undeclared.map((p) => `  - ${p}`).join('\n'));
+    process.exit(2);
+  }
+
   console.error('[nightly] running TS engine ...');
   const tsRes = await runTsParse(samples);
 
@@ -259,7 +278,10 @@ async function main() {
   }
 }
 
-main().catch((e) => {
-  console.error('FATAL:', e);
-  process.exit(2);
-});
+// 仅作为脚本直接运行时执行；被 test-sample-lexicon.mjs import 时不跑。
+if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+  main().catch((e) => {
+    console.error('FATAL:', e);
+    process.exit(2);
+  });
+}

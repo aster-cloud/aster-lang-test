@@ -60,6 +60,8 @@ import {
 import { inputRefsProblems } from './lib/input-refs-expect.mjs';
 import { collectEvalCaseProblem, entryForCase, expectsError } from './lib/eval-cases.mjs';
 import { inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
+// 按样本 meta.lexicon 驱动 TS 解析：与 equivalence-nightly.mjs 共用（issue #205，单一事实源）。
+import { lexiconOf, loadTsLexicons, selectTsLexicon, tsParseOne } from './lib/sample-lexicon.mjs';
 import { MUST_REJECT_DIR, judgeMustReject, javaRejection, checkMustRejectManifest } from './lib/must-reject.mjs';
 import {
   VOCAB_SUFFIX, VOCAB_SAMPLE_DIR, vocabPathOf, casesPathOf, normalizeEntries, checkVocabCorpus, judgeVocabSample, judgeVocabReject, compareLinesOf,
@@ -284,25 +286,6 @@ function readMeta(abs) {
   }
 }
 
-// 加载 TS 侧的词法表对象（en-US 用 undefined 走默认路径，保持既有行为逐字节不变）。
-async function loadTsLexicons(mod) {
-  const out = {};
-  const specs = [
-    ['zh-CN', 'config/lexicons/zh-CN.js', 'ZH_CN'],
-    ['de-DE', 'config/lexicons/de-DE.js', 'DE_DE'],
-    ['hi-IN', 'config/lexicons/hi-IN.js', 'HI_IN'],
-  ];
-  for (const [name, rel, exportName] of specs) {
-    try {
-      const m = await import(join(TS_REPO, 'dist', 'src', rel));
-      if (m[exportName]) out[name] = m[exportName];
-    } catch {
-      // 该词法表在当前构建中不可用；只有样本真的声明它时才会 fail（见调用处）
-    }
-  }
-  return out;
-}
-
 async function runTsParse(samples) {
   const distIndex = join(TS_REPO, 'dist', 'src', 'index.js');
   if (!existsSync(distIndex)) {
@@ -316,41 +299,13 @@ async function runTsParse(samples) {
 
   // ★按样本声明的词法表驱动（2026-08-17 审计）：此前 runner 从不读 meta.lexicon，
   //   一律按默认英语处理，导致非英语词法表在双引擎 parity 上零覆盖。
-  const lexicons = await loadTsLexicons(mod);
+  const lexicons = await loadTsLexicons(TS_REPO);
 
   const results = {};
-  for (const { rel, abs } of samples) {
-    const lexName = lexiconOf(abs);
-    const lexObj = lexicons[lexName];
-    if (!lexObj && lexName !== 'en-US') {
-      fail(`sample ${rel} declares lexicon "${lexName}" but it could not be loaded from aster-lang-ts`);
-    }
-    results[rel] = tsParseOne(mod, readFileSync(abs, 'utf8'), lexObj);
+  for (const sample of samples) {
+    results[sample.rel] = tsParseOne(mod, readFileSync(sample.abs, 'utf8'), tsLexiconFor(lexicons, sample));
   }
   return results;
-}
-
-/**
- * 单个样本的 TS 解析结果 { ok, err, line, crash }。
- * 错误诊断与 DiagnosticError 都是「解析错误」（带行号）；其余异常是崩溃，
- * must-reject 门不把崩溃当成拒绝。
- */
-function tsParseOne({ canonicalize, lex, parse, parseWithLexicon }, src, lexObj) {
-  try {
-    const canonical = lexObj ? canonicalize(src, lexObj) : canonicalize(src);
-    const tokens = lexObj ? lex(canonical, lexObj) : lex(canonical);
-    const { ast, diagnostics } = lexObj && parseWithLexicon
-      ? parseWithLexicon(tokens, lexObj)
-      : parse(tokens);
-    const diag = (diagnostics || []).find((d) => d.severity === 'error');
-    if (diag) return { ok: false, err: diag.message, line: diag.span?.start?.line ?? null, crash: false };
-    if (!ast) return { ok: false, err: 'parse returned no AST', line: null, crash: true };
-    return { ok: true, err: null };
-  } catch (e) {
-    const err = e && e.message ? e.message : String(e);
-    const line = e?.diagnostic?.span?.start?.line ?? null;
-    return { ok: false, err, line, crash: !e?.diagnostic };
-  }
 }
 
 /**
@@ -367,7 +322,7 @@ async function runTsResolve(samples) {
   if (!mod.parseSource || !mod.resolveAndLowerChecked || !mod.NameResolutionError || !mod.buildVocabularyScopes) {
     fail('aster-lang-ts is missing expected exports (parseSource/resolveAndLowerChecked/NameResolutionError/buildVocabularyScopes)');
   }
-  const lexicons = await loadTsLexicons(mod);
+  const lexicons = await loadTsLexicons(TS_REPO);
   const results = {};
   for (const sample of samples) {
     results[sample.rel] = tsResolveOne(mod, readFileSync(sample.abs, 'utf8'), tsLexiconFor(lexicons, sample), readVocab(sample));
@@ -377,12 +332,11 @@ async function runTsResolve(samples) {
 
 /** 样本声明的 TS 词法表对象；en-US 为 undefined（默认路径）。 */
 function tsLexiconFor(lexicons, { rel, abs }) {
-  const lexName = lexiconOf(abs);
-  const lexObj = lexicons[lexName];
-  if (!lexObj && lexName !== 'en-US') {
-    fail(`sample ${rel} declares lexicon "${lexName}" but it could not be loaded from aster-lang-ts`);
+  try {
+    return selectTsLexicon(lexicons, lexiconOf(abs), rel);
+  } catch (e) {
+    fail(e.message);
   }
-  return lexObj;
 }
 
 /** 诊断位置 [{ code, line, col }]；与 Java CoreIrFingerprintCli 记录里的 `locs` 同形。 */
@@ -953,24 +907,6 @@ function classifyIrFingerprint(tsRes, javaRes, samples) {
   });
 }
 
-// Read a sample's declared lexicon (defaults to 'en-US').
-//
-// ★2026-08-17 审计：每个 .meta.json 都声明了 `lexicon` 字段，但 parity runner
-//   **从不读取它**——两侧引擎一律按默认（英语）词法表处理。结果是：
-//   219 个 tier1 样本全部是 en-US，非英语词法表在双引擎 parity 上**零覆盖**。
-//   CJK / 天城文 等标识符的双引擎分歧因此无法被自动发现，只能靠人工审计。
-//   本函数让 runner 真正按样本声明的词法表驱动两侧引擎。
-function lexiconOf(abs) {
-  const metaPath = abs.replace(/\.aster$/, '.meta.json');
-  if (!existsSync(metaPath)) return 'en-US';
-  try {
-    const meta = JSON.parse(readFileSync(metaPath, 'utf8'));
-    return typeof meta.lexicon === 'string' && meta.lexicon ? meta.lexicon : 'en-US';
-  } catch {
-    return 'en-US';
-  }
-}
-
 // 样本 meta 的 evalExempt 理由（无则 null）；只用于 eval 门的 golden 守卫，IR 门不读它。
 function exemptReasonOf(abs) {
   const metaPath = abs.replace(/\.aster$/, '.meta.json');
@@ -1119,7 +1055,7 @@ async function runTsEval(requests) {
 async function loadTsVocabEval() {
   const { compile } = await import(join(TS_REPO, 'dist', 'src', 'browser.js'));
   const { evaluate, serializeGuestValue } = await import(join(TS_REPO, 'dist', 'src', 'core', 'interpreter.js'));
-  const lexicons = await loadTsLexicons({});
+  const lexicons = await loadTsLexicons(TS_REPO);
   return (req) => {
     const sample = { rel: req.rel, abs: req.samplePath, vocabPath: req.vocabPath };
     const compiled = compile(readFileSync(req.samplePath, 'utf8'), {
