@@ -60,6 +60,7 @@ const NO_FIELD = sample('no-field', '模块 样例。\n', { tier: 1 });
 const EMPTY = sample('empty', '模块 样例。\n', { tier: 1, lexicon: '' });
 const NO_META = sample('no-meta', '模块 样例。\n', null);
 const BAD_JSON = sample('bad-json', 'Module demo.\n', '{ not json');
+const NON_STRING = sample('non-string', 'Module demo.\n', { tier: 1, lexicon: 42 });
 
 // 假引擎：记录每一步收到的词法表，以便断言 nightly 真的把它传下去了。
 const ZH_LEX = { id: 'zh-CN' };
@@ -75,11 +76,14 @@ function fakeEngine() {
 }
 
 try {
-  await check('lexiconOf（parity 宽松口径）：声明值原样返回，缺失退回 en-US', () => {
+  await check('lexiconOf（parity 宽松口径）：声明值原样返回，缺失 / 空值 / 坏 JSON / 非字符串退回 en-US', () => {
     assert.strictEqual(lexiconOf(ZH), 'zh-CN');
     assert.strictEqual(lexiconOf(EN), 'en-US');
     assert.strictEqual(lexiconOf(NO_FIELD), DEFAULT_LEXICON);
     assert.strictEqual(lexiconOf(NO_META), DEFAULT_LEXICON);
+    assert.strictEqual(lexiconOf(EMPTY), DEFAULT_LEXICON);
+    assert.strictEqual(lexiconOf(BAD_JSON), DEFAULT_LEXICON);
+    assert.strictEqual(lexiconOf(NON_STRING), DEFAULT_LEXICON);
   });
 
   await check('declaredLexiconOf（nightly 严格口径）：显式声明才返回', () => {
@@ -87,11 +91,12 @@ try {
     assert.strictEqual(declaredLexiconOf(EN), 'en-US');
   });
 
-  await check('declaredLexiconOf：缺字段 / 空值 / 缺 meta / 坏 JSON 一律抛错，不退回 en-US', () => {
+  await check('declaredLexiconOf：缺字段 / 空值 / 非字符串 / 缺 meta / 坏 JSON 一律抛错，不退回 en-US', () => {
     assert.throws(() => declaredLexiconOf(NO_FIELD), /lexicon/);
     assert.throws(() => declaredLexiconOf(EMPTY), /lexicon/);
     assert.throws(() => declaredLexiconOf(NO_META), /meta/);
     assert.throws(() => declaredLexiconOf(BAD_JSON), /meta/);
+    assert.throws(() => declaredLexiconOf(NON_STRING), /lexicon/);
   });
 
   await check('selectTsLexicon：en-US → undefined（默认路径）；已加载 → 对象；未加载的非 en-US → 抛错', () => {
