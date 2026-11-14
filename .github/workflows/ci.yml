@@ -155,6 +155,9 @@ jobs:
               # Java 侧 inventory 输出的解析/逐样本判定（parity-tier1 与 nightly 共用）。
               - 'scripts/lib/java-inventory.mjs'
               - 'scripts/test-java-inventory.mjs'
+              # 样本 meta.lexicon 驱动的 TS 解析（parity-tier1 与 nightly 共用，issue #205）及其回归测试。
+              - 'scripts/lib/sample-lexicon.mjs'
+              - 'scripts/test-sample-lexicon.mjs'
               # must-reject（双引擎都必须拒绝）判定与 manifest 守卫及其快测。
               - 'scripts/lib/must-reject.mjs'
               - 'scripts/test-must-reject.mjs'
@@ -350,6 +353,14 @@ jobs:
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
         working-directory: aster-lang-test
         run: node scripts/test-java-inventory.mjs
+
+      # 样本词法表（issue #205）：nightly 曾不读 meta.lexicon，zh-CN 样本被按英语硬解而整晚变红。
+      # 锁住「按声明的词法表解析」与「未显式声明 lexicon 即失败」两条语义；ts 已在上方构建，
+      # 故同时用真实引擎端到端解析语料里的 zh-CN 样本。
+      - name: Run sample-lexicon guard regression tests
+        if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        working-directory: aster-lang-test
+        run: node scripts/test-sample-lexicon.mjs
 
       # must-reject 判定：只有两侧都报解析错误才算通过，
       # 一侧接受、崩溃或错误行号不符都必须变红。逻辑回归会让「该拒绝的输入」静默放行。
