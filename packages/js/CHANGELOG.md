@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.1.0
+
+### 新增
+
+- tier1 parity 样本（推断值统一，ADR 0056）：`lambda_capture_io_method`、`lambda_capture_method_call`、
+  `lambda_capture_module_rule`、`lambda_capture_nested`（Lambda.captures 只列外层局部；后三份带 eval 用例）、
+  `types/inferred-field-constraints`（未标注字段按命名规则与约束推断）、`workflow/workflow-bare-io-capability`
+  （工作流能力检查只看显式能力）进入 manifest（#201–#203）。这些样本的期望 IR 依赖 aster-lang-core 1.0.47 与
+  aster-lang-ts 3.0.0。包入口 API 无变化。
+
 ## 2.0.0
 
 ### Breaking
