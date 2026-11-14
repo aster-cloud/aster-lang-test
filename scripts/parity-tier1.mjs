@@ -778,72 +778,14 @@ function diffFingerprints(tsFp, javaFp) {
  * V1–V3 整个类别、或 V4 某个登记项一轮运行中不再有被豁免的差异即报 stale-exemption，须删掉该项。
  * go-live 要求本表为空。
  */
-// ── 豁免作用范围（2026-11-14 在 core feat/core-ir-v2 db30fbb、ts feat/core-ir-v2 d112d74 上实测） ──
-// V1 只在下列语料文件内生效；类别整体不再有差异时报 stale-exemption，个别文件不再有差异时报告列为可收窄范围。
-// ADR 0056 §3.1 推断返回类型统一为占位 Unknown 后，V1 只剩未标注形参 / 字段的推断类型（101 处），文件清单随之收窄。
-// V2（能力推断）已按 ADR 0056 §4.1 清零（ts 不再展开裸 io / cpu 的能力预置），条目删除（aster-lang-test#196）。
-// V3（Lambda.captures）实测 0 处差异，不登记（aster-lang-test#197）。
-// V4（origin 行号）已按 ADR 0056 §3.3 / §4.3 清零（推断返回类型锚定在 produce 关键词），条目删除（aster-lang-test#198）。
-const V1_FILES = [
-  'tier1-equivalence/policies/13-boolean-not.aster',
-  'tier1-equivalence/policies/14-boolean-short-circuit.aster',
-  'tier1-equivalence/policies/25-if-multi-branch.aster',
-  'tier1-equivalence/policies/26-if-bool-condition.aster',
-  'tier1-equivalence/policies/30-business-gdpr-retention.aster',
-  'tier1-equivalence/policies/and-or-short-circuit.aster',
-  'tier1-equivalence/policies/auto.aster',
-  'tier1-equivalence/policies/claims.aster',
-  'tier1-equivalence/policies/creditcard.aster',
-  'tier1-equivalence/policies/eligibility.aster',
-  'tier1-equivalence/policies/enterprise.aster',
-  'tier1-equivalence/policies/fraud.aster',
-  'tier1-equivalence/policies/hipaa-validation-demo.aster',
-  'tier1-equivalence/policies/if_param.aster',
-  'tier1-equivalence/policies/incremental.aster',
-  'tier1-equivalence/policies/incremental_test.aster',
-  'tier1-equivalence/policies/incremental_test2.aster',
-  'tier1-equivalence/policies/incremental_test3.aster',
-  'tier1-equivalence/policies/lambda_capture_inline_if.aster',
-  'tier1-equivalence/policies/lambda_cnl_match_maybe.aster',
-  'tier1-equivalence/policies/lambda_cnl_match_maybe__programs-patterns.aster',
-  'tier1-equivalence/policies/lambda_cnl_match_result.aster',
-  'tier1-equivalence/policies/lambda_cnl_match_result__programs-patterns.aster',
-  'tier1-equivalence/policies/life.aster',
-  'tier1-equivalence/policies/loan.aster',
-  'tier1-equivalence/policies/loan_fixed.aster',
-  'tier1-equivalence/policies/loan_full_test.aster',
-  'tier1-equivalence/policies/loan_with_int.aster',
-  'tier1-equivalence/policies/patient-record.aster',
-  'tier1-equivalence/policies/personal.aster',
-  'tier1-equivalence/policies/prescription-workflow.aster',
-  'tier1-equivalence/policies/risk.aster',
-  'tier1-equivalence/policies/soc2-audit-demo.aster',
-  'tier1-equivalence/policies/test_auto.aster',
-  'tier1-equivalence/policies/test_claims.aster',
-  'tier1-equivalence/policies/test_complex_return.aster',
-  'tier1-equivalence/policies/test_eligibility.aster',
-  'tier1-equivalence/policies/test_eligibility_full.aster',
-  'tier1-equivalence/policies/test_eligibility_minimal.aster',
-  'tier1-equivalence/policies/test_eligibility_struct.aster',
-  'tier1-equivalence/policies/test_eligibility_with_ifs.aster',
-  'tier1-equivalence/policies/test_exact_eligibility.aster',
-  'tier1-equivalence/policies/test_life.aster',
-];
-
-export const VALUE_EXEMPTIONS = Object.freeze([
-  {
-    id: 'V1',
-    issue: 'https://github.com/aster-cloud/aster-lang-test/issues/195',
-    owner: '两引擎类型检查维护者',
-    expires: '2027-01-31',
-    scope: 'category',
-    // 仅类型节点：retTypeInferred:true 的 Func.ret，typeInferred:true 的 Param.type / Field.type
-    match: (path, node, parent) =>
-      (path.endsWith('.ret') && parent?.kind === 'Func' && parent.retTypeInferred === true) ||
-      (path.endsWith('.type') && !('kind' in parent) && parent.typeInferred === true),
-    files: V1_FILES,
-  },
-]);
+// ── 豁免表现状（ADR 0056 实施完毕）──
+// V1（类型推断）：推断返回类型统一为占位 Unknown（§3.1），未标注形参 / 字段按 locales 的同一张命名规则表推断（§3.2），
+//   条目删除（aster-lang-test#195）。
+// V2（能力推断）：effectCaps 只记显式能力（§4.1），条目删除（aster-lang-test#196）。
+// V3（Lambda.captures）：门禁内 0 处差异，从未登记（aster-lang-test#197）。
+// V4（origin 行号）：推断占位锚定 produce 关键词（§3.3 / §4.3），条目删除（aster-lang-test#198）。
+// 表为空即 ADR 0055 §6 的 go-live 条件。
+export const VALUE_EXEMPTIONS = Object.freeze([]);
 
 // --today=YYYY-MM-DD：注入运行日期（测试到期判定用），默认取当前 UTC 日期。
 const todayArg = args.find((a) => a.startsWith('--today='));

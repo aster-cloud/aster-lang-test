@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "未标注类型的字段 / 形参按名字推断后按约束修正（ADR 0056 §3.2，aster-lang-test#195）：Range 按端点规范十进制串区分 Int / Float（原文 1.0 不算小数），Pattern 得 Text，Range 与 Pattern 混写时与书写顺序无关，Bool 不被 Range 改写；德语后缀 gueltig 在英文模块里同样生效（规则与词法表无关），days_since_consent 按整词命中时间单位，candidate 不再误中 date",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定推断类型的 IR；推断类型不改变求值结果"
+}

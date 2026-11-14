@@ -1,0 +1,6 @@
+Module parity.types.inferred_constraints.
+
+Define Applicant has nickname between 1 and 10, ratio between 0 and 1.0, score matching "^[0-9]+$", code matching "^[A-Z]+$" between 1 and 5, approved between 0 and 1, kundeGueltig, days_since_consent, candidate.
+
+Rule check given applicant as Applicant, limit at least 0.5, produce Bool:
+  Return true.
