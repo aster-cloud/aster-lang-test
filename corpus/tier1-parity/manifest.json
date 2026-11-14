@@ -307,6 +307,7 @@
     "tier1-equivalence/policies/annotation-order-v2.aster",
     "tier1-equivalence/policies/double-literals-v2.aster",
     "tier1-parity/types/function-type.aster",
+    "tier1-parity/types/inferred-field-constraints.aster",
     "tier1-parity/workflow/workflow-bare-io-capability.aster",
     "tier1-parity/workflow/workflow-compensate.aster",
     "tier1-parity/workflow/workflow-multistep.aster",
