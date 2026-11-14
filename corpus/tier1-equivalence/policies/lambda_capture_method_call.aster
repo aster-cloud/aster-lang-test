@@ -1,0 +1,7 @@
+Module demo.lambdacapturemethodcall.
+
+Rule scaled given n as Int, produce Int:
+  Let offset be 10.
+  Let f be function with x as Int, produce Int:
+    Return x.add(offset).
+  Return f(n).

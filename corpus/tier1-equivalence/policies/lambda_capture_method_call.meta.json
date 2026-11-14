@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "lambda 捕获与方法调用改写（ADR 0056 §4.2，aster-lang-test#197）：`x.add(offset)` 改写为 add(x, offset)，方法名 add 不是外层局部，captures 只有 offset",
+  "capabilities": [
+    "cases-golden"
+  ]
+}

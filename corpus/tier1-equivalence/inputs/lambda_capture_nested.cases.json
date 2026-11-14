@@ -1,0 +1,24 @@
+{
+  "policy": "tier1-equivalence/policies/lambda_capture_nested.aster",
+  "entry": "combine",
+  "cases": [
+    {
+      "name": "内层读外层 lambda 的 Let a 与外层形参 b",
+      "input": [
+        1,
+        2,
+        3
+      ],
+      "expectedOutput": 11
+    },
+    {
+      "name": "另一组",
+      "input": [
+        0,
+        10,
+        4
+      ],
+      "expectedOutput": 22
+    }
+  ]
+}

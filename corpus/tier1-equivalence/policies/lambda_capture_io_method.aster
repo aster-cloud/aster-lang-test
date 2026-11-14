@@ -1,0 +1,9 @@
+Module demo.lambdacaptureiomethod.
+
+Rule fetchData given url as Text, produce Text. It performs io:
+  Return io.get(url).
+
+Rule processWithLambda given base as Text, produce Text. It performs io:
+  Let fetcher be function with endpoint as Text, produce Text:
+    Return io.get(Text.concat(base, endpoint)).
+  Return fetcher("/api/data").

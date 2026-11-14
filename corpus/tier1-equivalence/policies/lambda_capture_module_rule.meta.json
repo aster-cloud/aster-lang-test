@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "lambda 调用模块规则并使用运算符（ADR 0056 §4.2）：bump 是模块声明、plus 是运算符，都不进 captures，只有外层 Let k；Truffle 按全局名回落解析 bump",
+  "capabilities": [
+    "cases-golden"
+  ]
+}

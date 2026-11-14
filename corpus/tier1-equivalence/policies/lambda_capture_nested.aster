@@ -1,0 +1,9 @@
+Module demo.lambdacapturenested.
+
+Rule combine given a as Int, b as Int, c as Int, produce Int:
+  Let outer be function with x as Int, produce Int:
+    Let a be x times 2.
+    Let inner be function with c as Int, produce Int:
+      Return c plus b plus a.
+    Return inner(x).
+  Return outer(c).
