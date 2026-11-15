@@ -1,0 +1,4 @@
+Module reject.typeListAmbiguousComma.
+
+Rule f given g as (result of Int, Text) -> Bool, produce Int:
+  Return 1.

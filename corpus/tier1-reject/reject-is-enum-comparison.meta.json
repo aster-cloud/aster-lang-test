@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 6,
+  "source": "裸 `is` 不是比较运算符（aster-lang-core#245）：相等写 `equals to` / `is equal to`，`is` 只出现在 `is under` / `is over` / `is less than` 等多词比较里。两引擎都必须拒绝"
+}

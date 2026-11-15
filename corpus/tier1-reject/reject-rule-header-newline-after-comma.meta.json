@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "规则头跨行（aster-lang-core#266）：逗号后换行再写 produce。core 文法 funcDecl 不收 NEWLINE；裁决规则头写在一行（ADR 0026 §2 只允许等缩进续行），ts 不再跳过规则头里的布局记号，两引擎都必须拒绝"
+}

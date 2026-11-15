@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "of-type-args-boundary 的 de-DE 写法：本地化的 `als` 同样作为「名字 als」边界，`Ergebnis aus A, B` 与 `und` 同义",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定形参 / 字段 / 返回类型的 Core IR；规则体都返回常量，类型不改变求值结果"
+}

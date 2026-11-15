@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "`X of` 参数与下一个形参 / 字段的边界（parity 清扫 1.0.48，Batch B 遗留）：分隔符后是「名字 as」时归外层，否则在元数允许时归类型参数；`result of A, B` 与 `result of A and B` 同义（core 一直接受逗号）。括号类型表里元数已满的 X 后的逗号归类型表。修复前 ts 贪婪吞分隔符后报 E056 / E055，core 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定形参 / 字段 / 返回类型的 Core IR；规则体都返回常量，类型不改变求值结果"
+}

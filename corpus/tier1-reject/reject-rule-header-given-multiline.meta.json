@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "规则头跨行（aster-lang-core#266）：given 后换行逐行列参数，ts 此前接受（含与参数同缩进的函数体），core 拒绝；两引擎都必须拒绝"
+}

@@ -314,6 +314,9 @@
     "tier1-parity/types/of-type-arity.aster",
     "tier1-parity/types/of-type-arity-de.aster",
     "tier1-parity/types/of-type-arity-zh.aster",
+    "tier1-parity/types/of-type-args-boundary.aster",
+    "tier1-parity/types/of-type-args-boundary-de.aster",
+    "tier1-parity/types/of-type-args-boundary-zh.aster",
     "tier1-parity/types/inferred-field-constraints.aster",
     "tier1-parity/workflow/workflow-bare-io-capability.aster",
     "tier1-parity/workflow/workflow-compensate.aster",
@@ -464,6 +467,13 @@
     "tier1-reject/reject-return-missing-period-if-block.aster",
     "tier1-reject/reject-return-missing-period-mid-block.aster",
     "tier1-reject/reject-return-missing-period-zh.aster",
+    "tier1-reject/reject-rule-header-newline-after-comma.aster",
+    "tier1-reject/reject-rule-header-given-multiline.aster",
+    "tier1-reject/reject-rule-header-effect-next-line.aster",
+    "tier1-reject/reject-is-enum-comparison.aster",
+    "tier1-reject/reject-not-call-bare-equals.aster",
+    "tier1-reject/reject-type-list-ambiguous-comma.aster",
+    "tier1-reject/reject-type-list-ambiguous-comma-generic.aster",
     {
       "path": "tier1-reject/vocab-e801-hi-unknown-field.aster",
       "vocab": true

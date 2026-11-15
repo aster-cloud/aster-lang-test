@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 5,
+  "source": "括号类型表里开放元数泛型 `Pair of A, B` 的逗号同样有歧义（parity 清扫 1.0.48），两引擎都报 E064"
+}

@@ -1,0 +1,4 @@
+Module reject.notCallBareEquals.
+
+Rule f given y as Int, k as Int, produce Bool:
+  Return not(y equals k).

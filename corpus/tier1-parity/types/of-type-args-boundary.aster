@@ -1,0 +1,41 @@
+Module parity.types.ofargsboundary.
+
+Define Pair has a as Int and b as Int.
+
+Define Box has p as Pair of Int, q as Text, r as result of Int, Text and s as Text.
+
+Rule pairThenParam given x as Pair of Int, y as Text, produce Int:
+  Return 1.
+
+Rule pairAndThenParam given x as Pair of Int and y as Text, produce Int:
+  Return 1.
+
+Rule pairTwoArgs given x as Pair of Int, Text, produce Int:
+  Return 1.
+
+Rule resultAndThenParam given x as result of Int and y as Text, produce Int:
+  Return 1.
+
+Rule resultCommaThenParam given x as result of Int, y as Text, produce Int:
+  Return 1.
+
+Rule resultCommaErr given x as result of Int, Text, produce Int:
+  Return 1.
+
+Rule resultCommaListErrThenParam given x as result of Int, list of Text and y as Text, produce Int:
+  Return 1.
+
+Rule pairOfResult given x as Pair of result of Int, Text, produce Int:
+  Return 1.
+
+Rule fnListThenType given g as (list of Int, Text) -> Bool, produce Int:
+  Return 1.
+
+Rule fnResultAnd given g as (result of Int and Text) -> Bool, produce Int:
+  Return 1.
+
+Rule fnParenGeneric given g as ((Pair of Int), Text) -> Bool, produce Int:
+  Return 1.
+
+Rule returnsResultComma given x as Int, produce result of Int, Text:
+  Return ok of x.

@@ -1,0 +1,6 @@
+Module reject.typeListAmbiguousCommaGeneric.
+
+Define Pair has a as Int.
+
+Rule f given g as (Pair of Int, Text) -> Bool, produce Int:
+  Return 1.

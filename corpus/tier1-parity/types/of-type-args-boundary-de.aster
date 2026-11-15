@@ -1,0 +1,10 @@
+Modul parity.types.ofargsgrenze.
+
+Regel ergebnisKomma gegeben x als Ergebnis aus Ganzzahl, Text, liefert Ganzzahl:
+  gib zurueck 1.
+
+Regel ergebnisKommaParameter gegeben x als Ergebnis aus Ganzzahl, y als Text, liefert Ganzzahl:
+  gib zurueck 1.
+
+Regel ergebnisUndParameter gegeben x als Ergebnis aus Ganzzahl und y als Text, liefert Ganzzahl:
+  gib zurueck 1.
