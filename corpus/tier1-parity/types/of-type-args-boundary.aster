@@ -10,6 +10,9 @@ Rule pairThenParam given x as Pair of Int, y as Text, produce Int:
 Rule pairAndThenParam given x as Pair of Int and y as Text, produce Int:
   Return 1.
 
+Rule pairThenProduce given x as Pair of Int, produce Int:
+  Return 1.
+
 Rule pairTwoArgs given x as Pair of Int, Text, produce Int:
   Return 1.
 
