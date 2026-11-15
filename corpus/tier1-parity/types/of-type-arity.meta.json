@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "`X of` 的元数按名字确定（aster-lang-core#256）：list / option 恰一个参数，result 一个成功类型加可选失败类型（缺省 Text），其余泛型不限；and 归最内层还能接参数的那个。修复前 core 把 `result of list of Int and Text` 的 Text 交给内层 list 后丢弃，result / option 降为 TypeApp（ts 为 Result / Option 节点）",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定形参 / 字段 / 返回类型的 Core IR；类型不改变求值结果（returnsResult 返回 ok of [x]，其余规则返回常量），求值语义由既有 Result / 列表的 eval 样本覆盖"
+}

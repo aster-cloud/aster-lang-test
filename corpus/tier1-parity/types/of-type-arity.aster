@@ -1,0 +1,39 @@
+Module parity.types.ofarity.
+
+Define Outcome has value as result of list of Int and Text, note as option of Text.
+
+Rule resultOfList given x as result of list of Int and Text, produce Int:
+  Return 1.
+
+Rule resultOfOption given x as result of option of Int and Text, produce Int:
+  Return 1.
+
+Rule resultErrList given x as result of Int and list of Text, produce Int:
+  Return 1.
+
+Rule resultNested given x as result of result of Int and Text and Bool, produce Int:
+  Return 1.
+
+Rule resultCapitalised given x as Result of Int and Text, produce Int:
+  Return 1.
+
+Rule resultDefaultErr given x as result of Int, produce Int:
+  Return 1.
+
+Rule optionOf given x as option of Int and y as Option of Text, produce Int:
+  Return 1.
+
+Rule listThenParam given x as list of Int and y as List of Text, produce Int:
+  Return 1.
+
+Rule resultThenParam given x as result of Int and Text and y as result of list of Int, produce Int:
+  Return 1.
+
+Rule mapOfList given x as Map Text to list of Int and y as Map list of Int to Text, produce Int:
+  Return 1.
+
+Rule maybeElement given x as list of Int?, produce Int:
+  Return 1.
+
+Rule returnsResult given x as Int, produce result of list of Int and Text:
+  Return ok of [x].
