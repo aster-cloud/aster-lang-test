@@ -1,0 +1,13 @@
+Modul parity.types.ofaritaet.
+
+Regel ergebnisOption gegeben x als Ergebnis aus Option aus Ganzzahl und Text, liefert Ganzzahl:
+  gib zurueck 1.
+
+Regel ergebnisFehler gegeben x als Ergebnis aus Ganzzahl, liefert Ganzzahl:
+  gib zurueck 1.
+
+Regel ergebnisDannParameter gegeben x als Ergebnis aus Ganzzahl und Text und y als Option aus Text, liefert Ganzzahl:
+  gib zurueck 1.
+
+Regel verschachtelt gegeben x als Ergebnis aus Ergebnis aus Ganzzahl und Text und Text, liefert Ganzzahl:
+  gib zurueck 1.

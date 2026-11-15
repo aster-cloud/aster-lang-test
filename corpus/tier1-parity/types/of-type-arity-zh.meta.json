@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "#256 的 zh-CN 写法：本地化的 result of / option of 关键词同样按元数归属「并且」（result 至多一个失败类型，option 恰一个参数）",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定形参 / 字段 / 返回类型的 Core IR；规则体都返回常量，类型不改变求值结果"
+}

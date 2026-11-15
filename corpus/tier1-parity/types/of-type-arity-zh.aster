@@ -1,0 +1,13 @@
+模块 parity.types.ofarityzh。
+
+规则 resultOption 给定 x 作为 结果 选项 整数 并且 文本，产出 整数：
+  返回 1。
+
+规则 resultDefault 给定 x 作为 结果 整数，产出 整数：
+  返回 1。
+
+规则 resultThenParam 给定 x 作为 结果 整数 并且 文本 并且 y 作为 选项 文本，产出 整数：
+  返回 1。
+
+规则 nestedResult 给定 x 作为 结果 结果 整数 并且 文本 并且 文本，产出 整数：
+  返回 1。
