@@ -1,11 +1,11 @@
 {
   "summary": {
-    "total": 290,
-    "equivalent": 290,
+    "total": 300,
+    "equivalent": 300,
     "divergent": 0,
     "bothFail": 0,
     "rate": 1,
-    "basedOnHistory": "2026-11-13T09:12:39.517Z"
+    "basedOnHistory": "2026-11-15T00:00:10.946Z"
   },
   "rows": [
     {
@@ -296,6 +296,13 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/annotation-order-v2.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/arith_compare.aster",
       "ts": true,
       "java": true,
@@ -380,6 +387,27 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/constraint-matching-pattern.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/constraint-single-sided-range.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/constraints-v2.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/context-map-access.aster",
       "ts": true,
       "java": true,
@@ -409,6 +437,13 @@
     },
     {
       "path": "tier1-equivalence/policies/decimal_int_match.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/double-literals-v2.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -1318,7 +1353,35 @@
       "tsErr": null
     },
     {
+      "path": "tier1-equivalence/policies/lambda_capture_io_method.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
       "path": "tier1-equivalence/policies/lambda_capture_list_literal.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/lambda_capture_method_call.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/lambda_capture_module_rule.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/lambda_capture_nested.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
@@ -1557,6 +1620,13 @@
     },
     {
       "path": "tier1-equivalence/policies/patient-record.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/pattern-nested-name-matches-enum-member.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
