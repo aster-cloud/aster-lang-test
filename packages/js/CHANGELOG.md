@@ -1,5 +1,16 @@
 # Changelog
 
+## Unreleased
+
+### 新增
+
+- tier1 parity 样本（aster-lang-ts#328，ADR 0056 修订 A2）：`types/param-annotations`、`types/param-annotations-zh`
+  （形参前置注解，Param.annotations 两引擎逐字节一致）、`types/type-alias-keyword-case`（`Type` / `TYPE` / `type` 同义）、
+  `types/maybe-prefix`、`types/maybe-prefix-zh`（前缀可空 `maybe T`，内层可带 `@pii`）进入 manifest。
+- tier1 必拒样本（aster-lang-ts#328）：`reject-angle-bracket-generic`、`reject-angle-bracket-generic-field`（E056）、
+  `reject-param-name-capitalized`、`reject-param-list-of-untyped-text`（E055）、`reject-result-or`（E062）、`reject-maybe-of`（E061）。
+- 这些样本的期望依赖 aster-lang-core 与 aster-lang-ts 的同名分支 `fix/parity328`。包入口 API 无变化。
+
 ## 2.2.0
 
 ### 新增

@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "param-annotations 的 zh-CN 写法：注解写法与 en-US 相同，「名字 作为」之前的注解属于该形参",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定形参注解的 Core IR；注解不参与求值"
+}

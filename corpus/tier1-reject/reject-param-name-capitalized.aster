@@ -1,0 +1,4 @@
+Module reject.paramNameCapitalized.
+
+Rule f given Customer as Text, produce Text:
+  Return "x".

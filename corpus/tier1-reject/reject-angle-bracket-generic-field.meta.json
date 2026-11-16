@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "字段类型里的尖括号泛型同样报 E056（aster-lang-ts#328），写 `list of Int`。修复前 core 接受，ts 以解析错误拒绝"
+}

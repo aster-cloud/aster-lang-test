@@ -1,0 +1,6 @@
+Module reject.angleBracketGeneric.
+
+Define Pair has a as Int.
+
+Rule f given x as Pair<Int, Text>, produce Int:
+  Return 1.

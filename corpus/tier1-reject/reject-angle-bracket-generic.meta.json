@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 5,
+  "source": "尖括号泛型不是 Aster 语法（aster-lang-ts#328）：两引擎都在 `<` 上报 E056，正式写法是 `Pair of Int and Text`。修复前 core 接受（Pair<Int,Text>），ts 报 E056"
+}

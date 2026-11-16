@@ -1,0 +1,4 @@
+Module reject.paramListOfUntypedText.
+
+Rule f given x as list of Int and Text, produce Int:
+  Return 1.

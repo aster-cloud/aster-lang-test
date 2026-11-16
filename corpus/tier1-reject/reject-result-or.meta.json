@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "`or` 不是 result 的失败类型分隔符（aster-lang-ts#328），写 `result of Int and Text`：两引擎都在 `or` 上报 E062。修复前 core 拒绝，ts 接受"
+}

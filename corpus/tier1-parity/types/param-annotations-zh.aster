@@ -1,0 +1,7 @@
+模块 parity.types.paramannotationszh。
+
+规则 annotated 给定 x 作为 整数，@pii(L1, email) y 作为 文本，产出 文本：
+  返回 y。
+
+规则 stacked 给定 @audit p 作为 文本 并且 q 作为 @pii(L1, email) 文本，产出 文本：
+  返回 p。

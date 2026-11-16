@@ -1,0 +1,8 @@
+Module parity.types.maybeprefix.
+
+Define Contact has email as Maybe @pii(L1, email) Text, phone as maybe Text, nick as Text?, tags as maybe list of Text.
+
+Define Person has name as @pii(L1, name) Text?, alias as maybe Text?.
+
+Rule describe given c as Contact and fallback as Maybe @pii(L2, name) Text, produce maybe Text:
+  Return c.phone.

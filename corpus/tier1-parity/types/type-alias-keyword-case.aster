@@ -1,0 +1,12 @@
+Module parity.types.aliaskeywordcase.
+
+Type Amount as Int.
+
+TYPE Label as Text.
+
+type Score as Int.
+
+Define Type has code as Text.
+
+Rule total given a as Amount and l as Label and s as Score and t as Type, produce Int:
+  Return a.

@@ -1,0 +1,4 @@
+Module reject.resultOr.
+
+Rule f given x as result of Int or Text, produce Int:
+  Return 1.

@@ -1,0 +1,3 @@
+Module reject.angleBracketGenericField.
+
+Define Box has items as List<Int>.

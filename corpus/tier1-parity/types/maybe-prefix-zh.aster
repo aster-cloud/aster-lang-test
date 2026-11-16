@@ -1,0 +1,3 @@
+模块 parity.types.maybeprefixzh。
+
+定义 Contact 包含 email 作为 可选 @pii(L1, email) 文本，phone 作为 可选 文本。

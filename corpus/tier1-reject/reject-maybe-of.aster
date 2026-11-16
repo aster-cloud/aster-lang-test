@@ -1,0 +1,3 @@
+Module reject.maybeOf.
+
+Define Contact has phone as maybe of Text.

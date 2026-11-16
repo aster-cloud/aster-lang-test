@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "形参前置注解（aster-lang-ts#328）：`given x as Pair of Int, @pii(L1, email) y as Text` 里注解开始下一个形参；多个注解、命名与位置参数、无类型形参、带约束形参、lambda 形参都可带注解。Param.annotations 先列前置注解、再列类型最外层的 @pii（与 core AstBuilder.visitParam 一致）。注解后不是「名字 as」时是带注解的类型参数。修复前 ts 报 E056，core 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定形参注解的 Core IR；注解不参与求值"
+}
