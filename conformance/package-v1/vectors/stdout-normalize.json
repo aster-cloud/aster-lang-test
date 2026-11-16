@@ -1,0 +1,60 @@
+{
+  "description": "stdout 归一向量（ADR 0059 修订 1 A0；规则见 normalize-stdout.mjs 文件头）。只替换顶层 meta 的 engine / cliVersion 的字符串值；其余字节（含 message 里的同名文字、value 里的 meta、转义写法）不动；不是 JSON 对象时原样返回。",
+  "vectors": [
+    {
+      "name": "run-ok",
+      "stdout": "{\"meta\":{\"cliVersion\":\"3.3.0\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"aster-lang-ts-interpreter\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"10.82\"}\n",
+      "expected": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"10.82\"}\n"
+    },
+    {
+      "name": "run-error-entry-null",
+      "stdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"1.0.49\",\"coreIrSha256\":null,\"engine\":\"aster-lang-truffle\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expected": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n"
+    },
+    {
+      "name": "message-contains-engine-and-version",
+      "stdout": "{\"error\":{\"code\":\"EVAL_ERROR\",\"message\":\"engine \\\"aster-lang-truffle\\\" cliVersion \\\"1.0.49\\\"\"},\"meta\":{\"cliVersion\":\"1.0.49\",\"coreIrSha256\":null,\"engine\":\"aster-lang-truffle\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expected": "{\"error\":{\"code\":\"EVAL_ERROR\",\"message\":\"engine \\\"aster-lang-truffle\\\" cliVersion \\\"1.0.49\\\"\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n"
+    },
+    {
+      "name": "value-contains-meta",
+      "stdout": "{\"meta\":{\"cliVersion\":\"3.3.0\",\"coreIrSha256\":null,\"engine\":\"aster-lang-ts-interpreter\",\"entry\":\"f\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"meta\":{\"cliVersion\":\"x\",\"engine\":\"y\"}}}\n",
+      "expected": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":\"f\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"meta\":{\"cliVersion\":\"x\",\"engine\":\"y\"}}}\n"
+    },
+    {
+      "name": "verify",
+      "stdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true}],\"meta\":{\"cliVersion\":\"1.0.49\",\"coreIrSha256\":null,\"engine\":\"aster-lang-truffle\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":true}\n",
+      "expected": "{\"checks\":[{\"name\":\"schema\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":true}\n"
+    },
+    {
+      "name": "escaped-string-value",
+      "stdout": "{\"meta\":{\"cliVersion\":\"3.3.0-\\u0062eta\",\"engine\":\"aster-lang-ts-interpreter\"},\"ok\":true,\"value\":1}\n",
+      "expected": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"engine\":\"<ENGINE>\"},\"ok\":true,\"value\":1}\n"
+    },
+    {
+      "name": "version-unchanged",
+      "stdout": "{\"cliVersion\":\"3.3.0\",\"coreIrVersions\":[2],\"engine\":\"aster-lang-ts-interpreter\",\"formatVersions\":[\"1.0\"],\"toolchainId\":\"t\",\"trustAnchorKids\":[]}\n",
+      "expected": "{\"cliVersion\":\"3.3.0\",\"coreIrVersions\":[2],\"engine\":\"aster-lang-ts-interpreter\",\"formatVersions\":[\"1.0\"],\"toolchainId\":\"t\",\"trustAnchorKids\":[]}\n"
+    },
+    {
+      "name": "no-trailing-newline",
+      "stdout": "{\"meta\":{\"cliVersion\":\"3.3.0\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"aster-lang-ts-interpreter\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"10.82\"}",
+      "expected": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"10.82\"}"
+    },
+    {
+      "name": "engine-not-a-string",
+      "stdout": "{\"meta\":{\"cliVersion\":1,\"engine\":null},\"ok\":true}\n",
+      "expected": "{\"meta\":{\"cliVersion\":1,\"engine\":null},\"ok\":true}\n"
+    },
+    {
+      "name": "not-json",
+      "stdout": "Exception in thread \"main\"\n",
+      "expected": "Exception in thread \"main\"\n"
+    },
+    {
+      "name": "empty",
+      "stdout": "",
+      "expected": ""
+    }
+  ]
+}

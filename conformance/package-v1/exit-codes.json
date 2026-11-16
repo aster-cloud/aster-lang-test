@@ -1,0 +1,30 @@
+{
+  "description": "包格式 v1 两个 aster CLI 共用的错误码、退出码与固定 message（ADR 0059 §4.1 / 实施计划 Global Constraints）。信封 error.message 必须逐字等于本表的 message；诊断细节（文件名、哈希、编译诊断、引擎异常）只写 stderr。",
+  "formatVersion": "1.0",
+  "exitCodes": {
+    "0": "成功",
+    "1": "策略求值失败（EVAL_ERROR）或 verify --probes 结果与期望不符（PROBE_MISMATCH）",
+    "2": "输入或调用错误（INPUT_INVALID、ENTRY_NOT_FOUND、USAGE）",
+    "3": "完整性与签名失败（PKG_INTEGRITY、PKG_SIGNATURE、PKG_UNSIGNED、PKG_UNTRUSTED_KID）",
+    "4": "包或 IR 不受支持（PKG_INVALID_MANIFEST、PKG_UNSUPPORTED_FORMAT、PKG_UNSUPPORTED_IR、PKG_IR_DRIFT、COMPILE_ERROR）",
+    "5": "超时或资源耗尽（TIMEOUT、RESOURCE_EXHAUSTED）"
+  },
+  "codes": {
+    "COMPILE_ERROR": { "exit": 4, "message": "source failed to compile" },
+    "ENTRY_NOT_FOUND": { "exit": 2, "message": "entry function not found or not runnable" },
+    "EVAL_ERROR": { "exit": 1, "message": "policy evaluation failed" },
+    "INPUT_INVALID": { "exit": 2, "message": "input does not match the entry's input schema" },
+    "PKG_INTEGRITY": { "exit": 3, "message": "package integrity check failed" },
+    "PKG_INVALID_MANIFEST": { "exit": 4, "message": "manifest is not valid" },
+    "PKG_IR_DRIFT": { "exit": 4, "message": "locally compiled IR differs from the package; use an A package or the CLI version recorded in runtime.cli.version" },
+    "PKG_SIGNATURE": { "exit": 3, "message": "manifest signature is invalid" },
+    "PKG_UNSIGNED": { "exit": 3, "message": "package is unsigned; pass --allow-unsigned to accept it" },
+    "PKG_UNSUPPORTED_FORMAT": { "exit": 4, "message": "package format version is not supported" },
+    "PKG_UNSUPPORTED_IR": { "exit": 4, "message": "Core IR version is not supported" },
+    "PKG_UNTRUSTED_KID": { "exit": 3, "message": "signing key id is not in the trust anchor" },
+    "PROBE_MISMATCH": { "exit": 1, "message": "a probe result differs from its expected output" },
+    "RESOURCE_EXHAUSTED": { "exit": 5, "message": "evaluation exhausted a resource limit" },
+    "TIMEOUT": { "exit": 5, "message": "evaluation timed out" },
+    "USAGE": { "exit": 2, "message": "invalid command line" }
+  }
+}

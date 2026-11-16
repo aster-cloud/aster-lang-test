@@ -1,0 +1,49 @@
+{
+  "description": "B 包，非空 aliasSet（多词、规范形，过 UserAliasValidator；IF / RETURN 为结构性别名，allowStructural=true）。修订 A2 之下两侧都期望成功：ts 与 Java 的 IR 只差 origin 列（向量 position-free-hash.json 收录这一对）。",
+  "package": "b-alias",
+  "cases": [
+    {
+      "name": "over-threshold",
+      "args": [
+        "run",
+        "b-alias",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"amount\":150}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"23c0066384a3ce839acc714964ce7332402f26f74d0a0b89e4ada927ab195a2d\",\"engine\":\"<ENGINE>\",\"entry\":\"discount\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":300}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "under-threshold",
+      "args": [
+        "run",
+        "b-alias",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"amount\":80}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"23c0066384a3ce839acc714964ce7332402f26f74d0a0b89e4ada927ab195a2d\",\"engine\":\"<ENGINE>\",\"entry\":\"discount\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":80}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-recompile",
+      "args": [
+        "verify",
+        "b-alias",
+        "--recompile",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"23c0066384a3ce839acc714964ce7332402f26f74d0a0b89e4ada927ab195a2d\",\"engine\":\"<ENGINE>\",\"entry\":\"discount\",\"irRecompiled\":true,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "cases": {
+    "depth-20000": {
+      "source": "platform",
+      "error": "evaluation_failed Policy evaluation failed"
+    },
+    "depth-10": {
+      "source": "platform",
+      "value": "10"
+    }
+  },
+  "probes": [
+    {
+      "source": "platform",
+      "value": "10"
+    }
+  ]
+}

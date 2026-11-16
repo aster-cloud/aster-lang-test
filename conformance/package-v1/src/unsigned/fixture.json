@@ -1,0 +1,11 @@
+{
+  "description": "无签名包（没有 manifest.sig.json；载荷同 a-multi-entry）：缺省拒绝（PKG_UNSIGNED / 3）；--allow-unsigned 时照常运行且 meta.signed=false。",
+  "base": "a-multi-entry",
+  "signed": false,
+  "cases": [
+    { "name": "rejected-by-default", "command": "run", "input": { "x": 7 }, "expect": { "code": "PKG_UNSIGNED" } },
+    { "name": "allow-unsigned", "command": "run", "args": ["--allow-unsigned"], "input": { "x": 7 }, "expect": "platform", "sameAs": "a-multi-entry/default-entry" },
+    { "name": "verify-rejected-by-default", "command": "verify" },
+    { "name": "verify-allow-unsigned", "command": "verify", "args": ["--allow-unsigned"] }
+  ]
+}

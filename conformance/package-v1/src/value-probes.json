@@ -1,0 +1,310 @@
+{
+  "description": "值规范 JSON 向量的平台采集清单：对 value-probes.aster 的每个入口以 contextJson（原文发送，保留大整数精度）调用本地 aster-api /evaluate-json，记录响应中 result 的原文。synthetic 为按 Jackson / Java Double.toString 写法构造的边界值（平台策略难以直接产出）。",
+  "platform": [
+    {
+      "name": "int",
+      "category": "Int",
+      "entry": "intValue",
+      "contextJson": "{\"x\":41}"
+    },
+    {
+      "name": "long-from-unsafe-integer-input",
+      "category": "Long",
+      "entry": "intValue",
+      "contextJson": "{\"x\":9007199254740993}"
+    },
+    {
+      "name": "long",
+      "category": "Long",
+      "entry": "longValue",
+      "contextJson": "{\"x\":4}"
+    },
+    {
+      "name": "double-fraction",
+      "category": "Double",
+      "entry": "doubleValue",
+      "contextJson": "{\"x\":100}"
+    },
+    {
+      "name": "double-large",
+      "category": "Double",
+      "entry": "doubleValue",
+      "contextJson": "{\"x\":1000000000000000}"
+    },
+    {
+      "name": "int-division-exact",
+      "category": "Int",
+      "entry": "doubleValue",
+      "contextJson": "{\"x\":7}"
+    },
+    {
+      "name": "double-half-negative",
+      "category": "Double",
+      "entry": "halfValue",
+      "contextJson": "{\"x\":-7}"
+    },
+    {
+      "name": "decimal",
+      "category": "Decimal",
+      "entry": "decimalValue",
+      "contextJson": "{\"x\":0}"
+    },
+    {
+      "name": "text-non-ascii",
+      "category": "Text",
+      "entry": "textValue",
+      "contextJson": "{\"x\":0}"
+    },
+    {
+      "name": "bool",
+      "category": "Bool",
+      "entry": "boolValue",
+      "contextJson": "{\"x\":4}"
+    },
+    {
+      "name": "list",
+      "category": "List",
+      "entry": "listValue",
+      "contextJson": "{\"xs\":[1,2,3]}"
+    },
+    {
+      "name": "map-insertion-order",
+      "category": "Map",
+      "entry": "mapValue",
+      "contextJson": "{\"a\":\"z\",\"b\":\"b\"}"
+    },
+    {
+      "name": "map-non-bmp-keys",
+      "category": "Map",
+      "entry": "mapValue",
+      "contextJson": "{\"a\":\"\\ud83d\\ude00\",\"b\":\"\\ufffd\"}"
+    },
+    {
+      "name": "data-with-double-field",
+      "category": "Data",
+      "entry": "dataValue",
+      "contextJson": "{\"x\":3}"
+    },
+    {
+      "name": "enum",
+      "category": "Enum",
+      "entry": "enumValue",
+      "contextJson": "{\"x\":750}"
+    },
+    {
+      "name": "maybe-some",
+      "category": "Maybe",
+      "entry": "someValue",
+      "contextJson": "{\"x\":9}"
+    },
+    {
+      "name": "maybe-none",
+      "category": "Maybe",
+      "entry": "noneValue",
+      "contextJson": "{\"x\":0}"
+    },
+    {
+      "name": "result-ok",
+      "category": "Result",
+      "entry": "okValue",
+      "contextJson": "{\"x\":1}"
+    },
+    {
+      "name": "result-err",
+      "category": "Result",
+      "entry": "errValue",
+      "contextJson": "{\"x\":1}"
+    },
+    {
+      "name": "verdict-allow",
+      "category": "Verdict",
+      "entry": "verdictAllow",
+      "contextJson": "{\"x\":1}"
+    },
+    {
+      "name": "verdict-deny",
+      "category": "Verdict",
+      "entry": "verdictDeny",
+      "contextJson": "{\"x\":1}"
+    },
+    {
+      "name": "verdict-require-approval",
+      "category": "Verdict",
+      "entry": "verdictApproval",
+      "contextJson": "{\"x\":1}"
+    },
+    {
+      "name": "decimal-trailing-zero-stripped",
+      "category": "Decimal",
+      "entry": "decimalTrailing",
+      "contextJson": "{\"x\":40}"
+    },
+    {
+      "name": "decimal-zero",
+      "category": "Decimal",
+      "entry": "decimalZero",
+      "contextJson": "{\"x\":0}"
+    },
+    {
+      "name": "decimal-negative",
+      "category": "Decimal",
+      "entry": "decimalNegative",
+      "contextJson": "{\"x\":0}"
+    },
+    {
+      "name": "decimal-small",
+      "category": "Decimal",
+      "entry": "decimalSmall",
+      "contextJson": "{\"x\":0}"
+    },
+    {
+      "name": "double-integral-from-division",
+      "category": "Double",
+      "entry": "halfValue",
+      "contextJson": "{\"x\":4}"
+    }
+  ],
+  "synthetic": [
+    {
+      "name": "double-3.5",
+      "category": "Double",
+      "treeJson": "3.5"
+    },
+    {
+      "name": "double-one-third",
+      "category": "Double",
+      "treeJson": "0.3333333333333333"
+    },
+    {
+      "name": "double-jackson-exponent",
+      "category": "Double",
+      "treeJson": "1.4285714285714284E14"
+    },
+    {
+      "name": "double-1e21",
+      "category": "Double",
+      "treeJson": "1.0E21"
+    },
+    {
+      "name": "double-1e20",
+      "category": "Double",
+      "treeJson": "1.0E20"
+    },
+    {
+      "name": "double-1e-7",
+      "category": "Double",
+      "treeJson": "1.0E-7"
+    },
+    {
+      "name": "double-1e-6",
+      "category": "Double",
+      "treeJson": "1.0E-6"
+    },
+    {
+      "name": "double-min-subnormal",
+      "category": "Double",
+      "treeJson": "4.9E-324"
+    },
+    {
+      "name": "double-max",
+      "category": "Double",
+      "treeJson": "1.7976931348623157E308"
+    },
+    {
+      "name": "double-negative-zero",
+      "category": "Double",
+      "treeJson": "-0.0"
+    },
+    {
+      "name": "double-0.1",
+      "category": "Double",
+      "treeJson": "0.1"
+    },
+    {
+      "name": "long-2^53+1",
+      "category": "Long",
+      "treeJson": "9007199254740993"
+    },
+    {
+      "name": "long-min",
+      "category": "Long",
+      "treeJson": "-9223372036854775808"
+    },
+    {
+      "name": "long-max",
+      "category": "Long",
+      "treeJson": "9223372036854775807"
+    },
+    {
+      "name": "text-escapes",
+      "category": "Text",
+      "treeJson": "\"q\\\"b\\\\s\\/\\b\\f\\n\\r\\t\\u0001\\u001f\\u007f\\u2028\""
+    },
+    {
+      "name": "data-jackson-insertion-order",
+      "category": "Data",
+      "treeJson": "{\"__type\":\"AffordabilityAnalysis\",\"debtToIncomeRatio\":11.6,\"residualIncome\":4420,\"affordabilityGrade\":\"EXCELLENT\",\"maxMonthlyPayment\":1500}"
+    },
+    {
+      "name": "nested-list-of-maybe",
+      "category": "List",
+      "treeJson": "[{\"__type\":\"Some\",\"value\":{\"__type\":\"Ok\",\"value\":2.5E-8}},{\"__type\":\"None\"},[],{}]"
+    },
+    {
+      "name": "double-2.0",
+      "category": "Double",
+      "treeJson": "2.0"
+    },
+    {
+      "name": "double-minus-1.0",
+      "category": "Double",
+      "treeJson": "-1.0"
+    },
+    {
+      "name": "double-10.0",
+      "category": "Double",
+      "treeJson": "10.0"
+    },
+    {
+      "name": "double-123.0",
+      "category": "Double",
+      "treeJson": "123.0"
+    },
+    {
+      "name": "double-1e15",
+      "category": "Double",
+      "treeJson": "1.0E15"
+    },
+    {
+      "name": "double-2^53",
+      "category": "Double",
+      "treeJson": "9.007199254740992E15"
+    },
+    {
+      "name": "double-1e21-minus-ulp",
+      "category": "Double",
+      "treeJson": "9.999999999999999E20"
+    },
+    {
+      "name": "double-1.2345678901234568E20",
+      "category": "Double",
+      "treeJson": "1.2345678901234568E20"
+    },
+    {
+      "name": "double-0.001",
+      "category": "Double",
+      "treeJson": "0.001"
+    },
+    {
+      "name": "double-1.0E-4",
+      "category": "Double",
+      "treeJson": "1.0E-4"
+    },
+    {
+      "name": "text-lone-surrogate",
+      "category": "Text",
+      "treeJson": "\"\\ud800\"",
+      "error": true
+    }
+  ]
+}

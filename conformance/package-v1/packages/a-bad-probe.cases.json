@@ -1,0 +1,31 @@
+{
+  "description": "与 a-decimal 相同，但 tests/probes.json 第 2 条（下标 1）的期望值被改成 \"99.99\" 后照常计算 probesSha256 并签名：verify 通过，verify --probes 以 PROBE_MISMATCH / 1 失败。",
+  "package": "a-bad-probe",
+  "cases": [
+    {
+      "name": "verify",
+      "args": [
+        "verify",
+        "a-bad-probe",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-probes-mismatch",
+      "args": [
+        "verify",
+        "a-bad-probe",
+        "--probes",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"code\":\"PROBE_MISMATCH\",\"name\":\"probes\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 1,
+      "code": "PROBE_MISMATCH"
+    }
+  ]
+}

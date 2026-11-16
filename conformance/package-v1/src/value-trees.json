@@ -1,0 +1,336 @@
+{
+  "description": "由 --capture 生成：value-probes.json 的平台采集结果（result 原文）与 synthetic 边界值。",
+  "trees": [
+    {
+      "name": "int",
+      "category": "Int",
+      "source": "platform",
+      "treeJson": "42"
+    },
+    {
+      "name": "long-from-unsafe-integer-input",
+      "category": "Long",
+      "source": "platform",
+      "treeJson": "9007199254740994"
+    },
+    {
+      "name": "long",
+      "category": "Long",
+      "source": "platform",
+      "treeJson": "12000000000000000"
+    },
+    {
+      "name": "double-fraction",
+      "category": "Double",
+      "source": "platform",
+      "treeJson": "14.285714285714286"
+    },
+    {
+      "name": "double-large",
+      "category": "Double",
+      "source": "platform",
+      "treeJson": "1.4285714285714284E14"
+    },
+    {
+      "name": "int-division-exact",
+      "category": "Int",
+      "source": "platform",
+      "treeJson": "1"
+    },
+    {
+      "name": "double-half-negative",
+      "category": "Double",
+      "source": "platform",
+      "treeJson": "-3.5"
+    },
+    {
+      "name": "decimal",
+      "category": "Decimal",
+      "source": "platform",
+      "treeJson": "\"3.305\""
+    },
+    {
+      "name": "text-non-ascii",
+      "category": "Text",
+      "source": "platform",
+      "treeJson": "\"Grüße, 世界\""
+    },
+    {
+      "name": "bool",
+      "category": "Bool",
+      "source": "platform",
+      "treeJson": "true"
+    },
+    {
+      "name": "list",
+      "category": "List",
+      "source": "platform",
+      "treeJson": "[2,4,6]"
+    },
+    {
+      "name": "map-insertion-order",
+      "category": "Map",
+      "source": "platform",
+      "treeJson": "{\"z\":1,\"b\":2}"
+    },
+    {
+      "name": "map-non-bmp-keys",
+      "category": "Map",
+      "source": "platform",
+      "treeJson": "{\"\\uD83D\\uDE00\":1,\"�\":2}"
+    },
+    {
+      "name": "data-with-double-field",
+      "category": "Data",
+      "source": "platform",
+      "treeJson": "{\"__type\":\"Point\",\"x\":3,\"label\":\"p\",\"ratio\":0.75}"
+    },
+    {
+      "name": "enum",
+      "category": "Enum",
+      "source": "platform",
+      "treeJson": "{\"_enum\":\"Tier\",\"value\":\"Gold\",\"variant\":\"Gold\",\"args\":[]}"
+    },
+    {
+      "name": "maybe-some",
+      "category": "Maybe",
+      "source": "platform",
+      "treeJson": "{\"__type\":\"Some\",\"value\":9}"
+    },
+    {
+      "name": "maybe-none",
+      "category": "Maybe",
+      "source": "platform",
+      "treeJson": "{\"__type\":\"None\"}"
+    },
+    {
+      "name": "result-ok",
+      "category": "Result",
+      "source": "platform",
+      "treeJson": "{\"__type\":\"Ok\",\"value\":1}"
+    },
+    {
+      "name": "result-err",
+      "category": "Result",
+      "source": "platform",
+      "treeJson": "{\"__type\":\"Err\",\"value\":\"bad\"}"
+    },
+    {
+      "name": "verdict-allow",
+      "category": "Verdict",
+      "source": "platform",
+      "treeJson": "{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}"
+    },
+    {
+      "name": "verdict-deny",
+      "category": "Verdict",
+      "source": "platform",
+      "treeJson": "{\"__type\":\"Verdict\",\"outcome\":\"DENY\",\"reason\":\"over limit\"}"
+    },
+    {
+      "name": "verdict-require-approval",
+      "category": "Verdict",
+      "source": "platform",
+      "treeJson": "{\"__type\":\"Verdict\",\"outcome\":\"REQUIRE_APPROVAL\",\"role\":\"Credit Officer\",\"reason\":\"large exposure\"}"
+    },
+    {
+      "name": "decimal-trailing-zero-stripped",
+      "category": "Decimal",
+      "source": "platform",
+      "treeJson": "\"43.3\""
+    },
+    {
+      "name": "decimal-zero",
+      "category": "Decimal",
+      "source": "platform",
+      "treeJson": "\"0\""
+    },
+    {
+      "name": "decimal-negative",
+      "category": "Decimal",
+      "source": "platform",
+      "treeJson": "\"-1.5\""
+    },
+    {
+      "name": "decimal-small",
+      "category": "Decimal",
+      "source": "platform",
+      "treeJson": "\"0.000001\""
+    },
+    {
+      "name": "double-integral-from-division",
+      "category": "Double",
+      "source": "platform",
+      "treeJson": "2"
+    },
+    {
+      "name": "double-3.5",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "3.5"
+    },
+    {
+      "name": "double-one-third",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "0.3333333333333333"
+    },
+    {
+      "name": "double-jackson-exponent",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "1.4285714285714284E14"
+    },
+    {
+      "name": "double-1e21",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "1.0E21"
+    },
+    {
+      "name": "double-1e20",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "1.0E20"
+    },
+    {
+      "name": "double-1e-7",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "1.0E-7"
+    },
+    {
+      "name": "double-1e-6",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "1.0E-6"
+    },
+    {
+      "name": "double-min-subnormal",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "4.9E-324"
+    },
+    {
+      "name": "double-max",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "1.7976931348623157E308"
+    },
+    {
+      "name": "double-negative-zero",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "-0.0"
+    },
+    {
+      "name": "double-0.1",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "0.1"
+    },
+    {
+      "name": "long-2^53+1",
+      "category": "Long",
+      "source": "synthetic",
+      "treeJson": "9007199254740993"
+    },
+    {
+      "name": "long-min",
+      "category": "Long",
+      "source": "synthetic",
+      "treeJson": "-9223372036854775808"
+    },
+    {
+      "name": "long-max",
+      "category": "Long",
+      "source": "synthetic",
+      "treeJson": "9223372036854775807"
+    },
+    {
+      "name": "text-escapes",
+      "category": "Text",
+      "source": "synthetic",
+      "treeJson": "\"q\\\"b\\\\s\\/\\b\\f\\n\\r\\t\\u0001\\u001f\\u007f\\u2028\""
+    },
+    {
+      "name": "data-jackson-insertion-order",
+      "category": "Data",
+      "source": "synthetic",
+      "treeJson": "{\"__type\":\"AffordabilityAnalysis\",\"debtToIncomeRatio\":11.6,\"residualIncome\":4420,\"affordabilityGrade\":\"EXCELLENT\",\"maxMonthlyPayment\":1500}"
+    },
+    {
+      "name": "nested-list-of-maybe",
+      "category": "List",
+      "source": "synthetic",
+      "treeJson": "[{\"__type\":\"Some\",\"value\":{\"__type\":\"Ok\",\"value\":2.5E-8}},{\"__type\":\"None\"},[],{}]"
+    },
+    {
+      "name": "double-2.0",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "2.0"
+    },
+    {
+      "name": "double-minus-1.0",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "-1.0"
+    },
+    {
+      "name": "double-10.0",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "10.0"
+    },
+    {
+      "name": "double-123.0",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "123.0"
+    },
+    {
+      "name": "double-1e15",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "1.0E15"
+    },
+    {
+      "name": "double-2^53",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "9.007199254740992E15"
+    },
+    {
+      "name": "double-1e21-minus-ulp",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "9.999999999999999E20"
+    },
+    {
+      "name": "double-1.2345678901234568E20",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "1.2345678901234568E20"
+    },
+    {
+      "name": "double-0.001",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "0.001"
+    },
+    {
+      "name": "double-1.0E-4",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "1.0E-4"
+    },
+    {
+      "name": "text-lone-surrogate",
+      "category": "Text",
+      "source": "synthetic",
+      "treeJson": "\"\\ud800\"",
+      "error": true
+    }
+  ]
+}

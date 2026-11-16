@@ -1,0 +1,40 @@
+{
+  "description": "A 包，指数分支递归 spin(60)：--timeout 1s 下两侧都必须在约 1 s 内以 TIMEOUT / 5 退出（Node：Worker terminate；JVM：Context.close(true)）。",
+  "package": "a-timeout",
+  "cases": [
+    {
+      "name": "timeout-1s",
+      "args": [
+        "run",
+        "a-timeout",
+        "--timeout",
+        "1s",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"n\":60}",
+      "expectedStdout": "{\"error\":{\"code\":\"TIMEOUT\",\"message\":\"evaluation timed out\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"8842c2780cd654dba8098eca645ae79b4064a833179ced47602b0f5b4f06e3b6\",\"engine\":\"<ENGINE>\",\"entry\":\"spin\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 5,
+      "code": "TIMEOUT"
+    },
+    {
+      "name": "small-input-completes",
+      "args": [
+        "run",
+        "a-timeout",
+        "--timeout",
+        "1s",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"n\":3}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"8842c2780cd654dba8098eca645ae79b4064a833179ced47602b0f5b4f06e3b6\",\"engine\":\"<ENGINE>\",\"entry\":\"spin\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":4}\n",
+      "expectedExit": 0,
+      "code": null
+    }
+  ]
+}

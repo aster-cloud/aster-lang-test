@@ -1,0 +1,98 @@
+{
+  "description": "运行时生成的体积类夹具（README「体积上限」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节；stdinRecipe：prefix + padding 个空格 + suffix。",
+  "cases": [
+    {
+      "name": "dir-single-file-over-64MiB",
+      "recipe": {
+        "copyPackage": "packages/b-credit-limit",
+        "add": [
+          {
+            "path": "big.bin",
+            "size": 67108865
+          }
+        ]
+      },
+      "args": [
+        "run",
+        "<PKG>",
+        "--input",
+        "-",
+        "--jwks",
+        "<PACKAGE_V1>/keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "dir-cumulative-over-64MiB",
+      "recipe": {
+        "copyPackage": "packages/b-credit-limit",
+        "add": [
+          {
+            "path": "a.bin",
+            "size": 41943040
+          },
+          {
+            "path": "b.bin",
+            "size": 41943040
+          }
+        ]
+      },
+      "args": [
+        "run",
+        "<PKG>",
+        "--input",
+        "-",
+        "--jwks",
+        "<PACKAGE_V1>/keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-file-over-64MiB",
+      "recipe": {
+        "copyZip": "packages/b-credit-limit.zip",
+        "appendZeros": 67108864
+      },
+      "args": [
+        "run",
+        "<PKG>",
+        "--input",
+        "-",
+        "--jwks",
+        "<PACKAGE_V1>/keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "input-over-16MiB",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit"
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "<PACKAGE_V1>/keys/test-jwks.json"
+      ],
+      "stdinRecipe": {
+        "prefix": "{\"applicant\":",
+        "padding": 16777216,
+        "suffix": "{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}"
+      },
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    }
+  ]
+}

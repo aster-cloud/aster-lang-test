@@ -1,0 +1,6 @@
+Module fixture.deep.
+
+Rule deep given n as Int, produce Int:
+  If n at most 0:
+    Return 0.
+  Return 1 plus deep(n minus 1).

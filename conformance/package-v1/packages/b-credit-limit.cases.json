@@ -1,0 +1,429 @@
+{
+  "description": "B 包，en-US，单个 Data 入参（含 Decimal 字段），Verdict 输出；另有 zip 形态、--pubkey 与缺信任锚、inspect、verify --recompile 用例。源码取自 corpus/tier1-equivalence/policies/credit-pilot.aster。 信任锚用例（README「信任锚」）：原始 --pubkey 不看 kid；JWK 形态的 --pubkey 带 kid 时必须相符；非法锚文件一律 USAGE。zip 形态另有 verify / inspect。",
+  "package": "b-credit-limit",
+  "cases": [
+    {
+      "name": "allow",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "deny-active-default",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":1,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"DENY\",\"reason\":\"active_default\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "deny-dti",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"5000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"DENY\",\"reason\":\"dti_exceeds_limit\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "require-approval",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":700,\"monthlyDebt\":\"1000\",\"monthlyIncome\":\"8000\",\"requestedAmount\":\"60000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"REQUIRE_APPROVAL\",\"reason\":\"large_exposure\",\"role\":\"Credit Officer\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "escalate",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":650,\"monthlyDebt\":\"1000\",\"monthlyIncome\":\"8000\",\"requestedAmount\":\"10000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ESCALATE\",\"reason\":\"borderline_credit_score\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "explicit-entry",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--entry",
+        "decide",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "zip-allow",
+      "args": [
+        "run",
+        "b-credit-limit.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "pubkey-raw-anchor",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--pubkey",
+        "../keys/test-ed25519.pub.b64u"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "builtin-anchor-is-empty",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_UNTRUSTED_KID\",\"message\":\"signing key id is not in the trust anchor\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_UNTRUSTED_KID"
+    },
+    {
+      "name": "inspect",
+      "args": [
+        "inspect",
+        "b-credit-limit",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":true},\"policy\":{\"controls\":[\"EU_AI_ACT:ART14\",\"GDPR:ART22\"],\"entries\":[{\"default\":true,\"function\":\"decide\",\"inputSchema\":\"#/$defs/entry.decide\",\"outputSchema\":\"#/$defs/entry.decide\"}],\"moduleName\":\"aster.pilot.credit\",\"profile\":null,\"ruleId\":\"CP-DECIDE\"},\"runtime\":{\"cli\":{\"name\":\"cloud.aster-lang:aster-cli\",\"version\":\"1.0.49\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-truffle\",\"requires\":{\"java\":\">=25\"}},\"schemas\":{\"input\":{\"$defs\":{\"data.Applicant\":{\"additionalProperties\":false,\"properties\":{\"activeDefaults\":{\"maximum\":2147483647,\"minimum\":-2147483648,\"type\":\"integer\"},\"creditScore\":{\"maximum\":2147483647,\"minimum\":-2147483648,\"type\":\"integer\"},\"monthlyDebt\":{\"pattern\":\"^-?(0|[1-9][0-9]*)(\\\\.[0-9]+)?(?![\\\\s\\\\S])\",\"type\":\"string\"},\"monthlyIncome\":{\"pattern\":\"^-?(0|[1-9][0-9]*)(\\\\.[0-9]+)?(?![\\\\s\\\\S])\",\"type\":\"string\"},\"requestedAmount\":{\"pattern\":\"^-?(0|[1-9][0-9]*)(\\\\.[0-9]+)?(?![\\\\s\\\\S])\",\"type\":\"string\"}},\"required\":[\"creditScore\",\"monthlyIncome\",\"monthlyDebt\",\"requestedAmount\",\"activeDefaults\"],\"type\":\"object\"},\"entry.decide\":{\"additionalProperties\":false,\"properties\":{\"applicant\":{\"$ref\":\"#/$defs/data.Applicant\"}},\"required\":[\"applicant\"],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"aster.pilot.credit entry inputs\"},\"output\":{\"$defs\":{\"entry.decide\":{\"additionalProperties\":false,\"properties\":{\"__type\":{\"const\":\"Verdict\"},\"outcome\":{\"enum\":[\"ALLOW\",\"DENY\",\"REQUIRE_APPROVAL\",\"ESCALATE\"]},\"reason\":{\"type\":\"string\"},\"role\":{\"type\":\"string\"}},\"required\":[\"__type\",\"outcome\"],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"aster.pilot.credit entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":2,\"probesSha256\":\"c36bcb5c19759e219b5e0d0501bd71b746d7a40559fe4698758e4e4f55e930ed\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify",
+      "args": [
+        "verify",
+        "b-credit-limit",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-recompile",
+      "args": [
+        "verify",
+        "b-credit-limit",
+        "--recompile",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "zip-verify",
+      "args": [
+        "verify",
+        "b-credit-limit.zip",
+        "--recompile",
+        "--probes",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true},{\"name\":\"probes\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "zip-inspect",
+      "args": [
+        "inspect",
+        "b-credit-limit.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":true},\"policy\":{\"controls\":[\"EU_AI_ACT:ART14\",\"GDPR:ART22\"],\"entries\":[{\"default\":true,\"function\":\"decide\",\"inputSchema\":\"#/$defs/entry.decide\",\"outputSchema\":\"#/$defs/entry.decide\"}],\"moduleName\":\"aster.pilot.credit\",\"profile\":null,\"ruleId\":\"CP-DECIDE\"},\"runtime\":{\"cli\":{\"name\":\"cloud.aster-lang:aster-cli\",\"version\":\"1.0.49\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-truffle\",\"requires\":{\"java\":\">=25\"}},\"schemas\":{\"input\":{\"$defs\":{\"data.Applicant\":{\"additionalProperties\":false,\"properties\":{\"activeDefaults\":{\"maximum\":2147483647,\"minimum\":-2147483648,\"type\":\"integer\"},\"creditScore\":{\"maximum\":2147483647,\"minimum\":-2147483648,\"type\":\"integer\"},\"monthlyDebt\":{\"pattern\":\"^-?(0|[1-9][0-9]*)(\\\\.[0-9]+)?(?![\\\\s\\\\S])\",\"type\":\"string\"},\"monthlyIncome\":{\"pattern\":\"^-?(0|[1-9][0-9]*)(\\\\.[0-9]+)?(?![\\\\s\\\\S])\",\"type\":\"string\"},\"requestedAmount\":{\"pattern\":\"^-?(0|[1-9][0-9]*)(\\\\.[0-9]+)?(?![\\\\s\\\\S])\",\"type\":\"string\"}},\"required\":[\"creditScore\",\"monthlyIncome\",\"monthlyDebt\",\"requestedAmount\",\"activeDefaults\"],\"type\":\"object\"},\"entry.decide\":{\"additionalProperties\":false,\"properties\":{\"applicant\":{\"$ref\":\"#/$defs/data.Applicant\"}},\"required\":[\"applicant\"],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"aster.pilot.credit entry inputs\"},\"output\":{\"$defs\":{\"entry.decide\":{\"additionalProperties\":false,\"properties\":{\"__type\":{\"const\":\"Verdict\"},\"outcome\":{\"enum\":[\"ALLOW\",\"DENY\",\"REQUIRE_APPROVAL\",\"ESCALATE\"]},\"reason\":{\"type\":\"string\"},\"role\":{\"type\":\"string\"}},\"required\":[\"__type\",\"outcome\"],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"aster.pilot.credit entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":2,\"probesSha256\":\"c36bcb5c19759e219b5e0d0501bd71b746d7a40559fe4698758e4e4f55e930ed\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "raw-pubkey-ignores-kid",
+      "args": [
+        "run",
+        "../tamper/signature-untrusted-kid",
+        "--input",
+        "-",
+        "--pubkey",
+        "../keys/test-ed25519.pub.b64u"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "jwk-pubkey-matching-kid",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--pubkey",
+        "../anchors/test-pub.jwk.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "jwk-pubkey-kid-mismatch",
+      "args": [
+        "run",
+        "../tamper/signature-untrusted-kid",
+        "--input",
+        "-",
+        "--pubkey",
+        "../anchors/test-pub.jwk.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_UNTRUSTED_KID\",\"message\":\"signing key id is not in the trust anchor\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_UNTRUSTED_KID"
+    },
+    {
+      "name": "jwk-pubkey-without-kid",
+      "args": [
+        "run",
+        "../tamper/signature-untrusted-kid",
+        "--input",
+        "-",
+        "--pubkey",
+        "../anchors/test-pub-no-kid.jwk.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "usage-jwks-duplicate-kid",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../anchors/jwks-duplicate-kid.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-jwks-wrong-curve",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../anchors/jwks-wrong-curve.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-jwks-short-x",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../anchors/jwks-short-x.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-jwks-wrong-alg",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../anchors/jwks-wrong-alg.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-jwks-not-json",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../anchors/jwks-not-json.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-jwks-missing-file",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../anchors/does-not-exist.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-pubkey-padded",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--pubkey",
+        "../anchors/pub-padded.b64u"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-pubkey-crlf",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--pubkey",
+        "../anchors/pub-crlf.b64u"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-pubkey-31-bytes",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--pubkey",
+        "../anchors/pub-31-bytes.b64u"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "dir-named-like-zip",
+      "args": [
+        "run",
+        "b-credit-limit-dir.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "zip-without-extension",
+      "args": [
+        "run",
+        "b-credit-limit-zip-no-extension",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    }
+  ]
+}

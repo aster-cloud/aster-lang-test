@@ -1,0 +1,76 @@
+Module fixture.values.
+
+Define Tier as one of Gold, Silver.
+
+Define Point has x, label, ratio.
+
+Rule intValue given x, produce:
+  Return x plus 1.
+
+Rule longValue given x, produce:
+  Return x times 3000000000000000L.
+
+Rule doubleValue given x, produce:
+  Return x divided by 7.
+
+Rule halfValue given x, produce:
+  Return x divided by 2.
+
+Rule decimalValue given x, produce:
+  Return 1.10m plus 2.205m.
+
+Rule textValue given x, produce:
+  Return "Grüße, 世界".
+
+Rule boolValue given x, produce:
+  Return x greater than 3.
+
+Rule double given x, produce:
+  Return x times 2.
+
+Rule listValue given xs, produce:
+  Return List.map(xs, double).
+
+Rule mapValue given a, b, produce:
+  Return Map.put(Map.put(Map.empty(), a, 1), b, 2).
+
+Rule dataValue given x, produce:
+  Return Point with x set to x and label set to "p" and ratio set to x divided by 4.
+
+Rule enumValue given x, produce:
+  If x greater than 700:
+    Return Gold.
+  Return Silver.
+
+Rule someValue given x, produce:
+  Return Some(x).
+
+Rule noneValue given x, produce:
+  Return None.
+
+Rule okValue given x, produce:
+  Return Ok(x).
+
+Rule errValue given x, produce:
+  Return Err("bad").
+
+Rule verdictAllow given x, produce Verdict:
+  Return Verdict.allow().
+
+Rule verdictDeny given x, produce Verdict:
+  Return Verdict.deny("over limit").
+
+Rule verdictApproval given x, produce Verdict:
+  Return Verdict.require_approval("Credit Officer", "large exposure").
+
+Rule decimalTrailing given x, produce:
+  Return x times 1.0825m.
+
+Rule decimalZero given x, produce:
+  Return 0.00m.
+
+Rule decimalNegative given x, produce:
+  Return 0m minus 1.50m.
+
+Rule decimalSmall given x, produce:
+  Return 0.000001m.
