@@ -1,0 +1,4119 @@
+{
+ "summary": {
+  "control": {
+   "differs-only-in-origin-col": 317
+  },
+  "alias-en-US": {
+   "differs-only-in-origin-col": 306
+  },
+  "alias-zh-CN": {
+   "differs-only-in-origin-col": 4
+  },
+  "alias-de-DE": {
+   "differs-only-in-origin-col": 2
+  },
+  "control-vocab": {
+   "differs-only-in-origin-col": 27
+  },
+  "alias-vocab": {
+   "differs-only-in-origin-col": 24
+  },
+  "handmade": {
+   "differs-only-in-origin-col": 2
+  }
+ },
+ "rows": [
+  {
+   "id": "control:tier1-equivalence/policies/01-arithmetic-add.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/01-arithmetic-add.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/02-arithmetic-precedence.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/02-arithmetic-precedence.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 11
+  },
+  {
+   "id": "control:tier1-equivalence/policies/03-if-else.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/03-if-else.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 22
+  },
+  {
+   "id": "control:tier1-equivalence/policies/04-let-binding.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/04-let-binding.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-equivalence/policies/05-comparison.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/05-comparison.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/06-string-concat.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/06-string-concat.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/07-arithmetic-subtract.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/07-arithmetic-subtract.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/08-arithmetic-divide.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/08-arithmetic-divide.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/09-arithmetic-modulo.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/09-arithmetic-modulo.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 18
+  },
+  {
+   "id": "control:tier1-equivalence/policies/10-arithmetic-negate.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/10-arithmetic-negate.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/11-boolean-and.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/11-boolean-and.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/12-boolean-or.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/12-boolean-or.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/13-boolean-not.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/13-boolean-not.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/14-boolean-short-circuit.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/14-boolean-short-circuit.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 11
+  },
+  {
+   "id": "control:tier1-equivalence/policies/15-comparison-less.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/15-comparison-less.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/16-comparison-equals.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/16-comparison-equals.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/17-comparison-not-equals.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/17-comparison-not-equals.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/17-comparison-range.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/17-comparison-range.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 14
+  },
+  {
+   "id": "control:tier1-equivalence/policies/18-comparison-chained.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/18-comparison-chained.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 22
+  },
+  {
+   "id": "control:tier1-equivalence/policies/18-comparison-is-equal.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/18-comparison-is-equal.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/19-comparison-is-not-equal.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/19-comparison-is-not-equal.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/19-let-multiple.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/19-let-multiple.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/20-let-dependent.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/20-let-dependent.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-equivalence/policies/21-comparison-is-prefix.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 6
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/21-comparison-is-prefix.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 50
+  },
+  {
+   "id": "control:tier1-equivalence/policies/21-let-conditional.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/21-let-conditional.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 20
+  },
+  {
+   "id": "control:tier1-equivalence/policies/22-let-shadowing.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/22-let-shadowing.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 14
+  },
+  {
+   "id": "control:tier1-equivalence/policies/22-logical-and.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/22-logical-and.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 14
+  },
+  {
+   "id": "control:tier1-equivalence/policies/23-if-nested.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/23-if-nested.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 23
+  },
+  {
+   "id": "control:tier1-equivalence/policies/23-logical-or.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/23-logical-or.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 14
+  },
+  {
+   "id": "control:tier1-equivalence/policies/24-if-guard-clause.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/24-if-guard-clause.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/24-logical-precedence.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 4
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/24-logical-precedence.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 20
+  },
+  {
+   "id": "control:tier1-equivalence/policies/25-if-multi-branch.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 4
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/25-if-multi-branch.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 30
+  },
+  {
+   "id": "control:tier1-equivalence/policies/26-if-bool-condition.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/26-if-bool-condition.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 31
+  },
+  {
+   "id": "control:tier1-equivalence/policies/27-business-loan-eligibility.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/27-business-loan-eligibility.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 20
+  },
+  {
+   "id": "control:tier1-equivalence/policies/28-business-insurance-premium.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/28-business-insurance-premium.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/29-business-tax-bracket.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/29-business-tax-bracket.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 48
+  },
+  {
+   "id": "control:tier1-equivalence/policies/30-business-gdpr-retention.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/30-business-gdpr-retention.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 11
+  },
+  {
+   "id": "control:tier1-equivalence/policies/31-arithmetic-intdiv.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/31-arithmetic-intdiv.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/32-arithmetic-modulo-op.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/32-arithmetic-modulo-op.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/45-text-equals.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/45-text-equals.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/and-or-short-circuit.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/and-or-short-circuit.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 63
+  },
+  {
+   "id": "control:tier1-equivalence/policies/arith_compare.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/arith_compare.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-equivalence/policies/auto.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/auto.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 29
+  },
+  {
+   "id": "control:tier1-equivalence/policies/bad_generic.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/bad_generic.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/bad_generic_return.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/bad_generic_return.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/bad_generic_return_type.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/bad_generic_return_type.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/capability-v2.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/capability-v2.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 20
+  },
+  {
+   "id": "control:tier1-equivalence/policies/capdemo.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/capdemo.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 14
+  },
+  {
+   "id": "control:tier1-equivalence/policies/claims.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/claims.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/cli_tool.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/cli_tool.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 21
+  },
+  {
+   "id": "control:tier1-equivalence/policies/comparison_operators.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 6
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/comparison_operators.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 35
+  },
+  {
+   "id": "control:tier1-equivalence/policies/credit-pilot.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 6
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/credit-pilot.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 56
+  },
+  {
+   "id": "control:tier1-equivalence/policies/creditcard.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 63
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/creditcard.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 472
+  },
+  {
+   "id": "control:tier1-equivalence/policies/cross_compiler_ops.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/cross_compiler_ops.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 169
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_alias_import.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_alias_import.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 31
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_alias_unmapped.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_alias_unmapped.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 18
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_enforce.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_enforce.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_enforce_brackets.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_enforce_brackets.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_enforce_missing_ai_model.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_enforce_missing_ai_model.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_enforce_missing_files.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_enforce_missing_files.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_enforce_missing_secrets.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_enforce_missing_secrets.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_enforce_unused_extra.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_enforce_unused_extra.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_enforce_unused_files.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_enforce_unused_files.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_enforce_unused_time.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_enforce_unused_time.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_parse.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_parse.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_parse_bare.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_parse_bare.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_parse_brackets.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_parse_brackets.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_parse_files_secrets.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_parse_files_secrets.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_parse_mixed_brackets_and_and.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_parse_mixed_brackets_and_and.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_caps_parse_single.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_caps_parse_single.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_custom_prefix.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_custom_prefix.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_infer_mixed.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_infer_mixed.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 14
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_infer_transitive.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_infer_transitive.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 17
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_infer_wrapper_cpu.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_infer_wrapper_cpu.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_infer_wrapper_io.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_infer_wrapper_io.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 12
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_valid_all_caps.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_valid_all_caps.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_valid_cpu_only.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_valid_cpu_only.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 19
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_valid_exact_match.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_valid_exact_match.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_valid_exact_match__programs-patterns.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_valid_exact_match__programs-patterns.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_valid_http_sql.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_valid_http_sql.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_valid_nested.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_valid_nested.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 24
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_valid_pure_only.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_valid_pure_only.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_valid_subset_declared.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_valid_subset_declared.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_chain.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_chain.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 24
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_cpu_calls_io.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_cpu_calls_io.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 12
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_empty_caps.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_empty_caps.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_files_calls_secrets.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_files_calls_secrets.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_files_only.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_files_only.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_http_calls_sql.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_http_calls_sql.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_missing_http.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_missing_http.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_missing_sql.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_missing_sql.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_missing_time.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_missing_time.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_mixed_caps.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_mixed_caps.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_multiple_errors.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_multiple_errors.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_nested_a.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_nested_a.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 17
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_nested_b.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_nested_b.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 17
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_pure_calls_cpu.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_pure_calls_cpu.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_secrets_calls_ai.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_secrets_calls_ai.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_secrets_calls_http.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_secrets_calls_http.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_sql_calls_files.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_sql_calls_files.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eff_violation_transitive.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eff_violation_transitive.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/effect-unknown-name.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/effect-unknown-name.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/effect_enforcement.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/effect_enforcement.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/eligibility.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/eligibility.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 21
+  },
+  {
+   "id": "control:tier1-equivalence/policies/enterprise.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 50
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/enterprise.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 380
+  },
+  {
+   "id": "control:tier1-equivalence/policies/entry_annotation.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/entry_annotation.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-equivalence/policies/enum_exhaustiveness.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/enum_exhaustiveness.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/enum_wildcard.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/enum_wildcard.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "control:tier1-equivalence/policies/fetch_dashboard.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/fetch_dashboard.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/fraud-simple-test.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/fraud-simple-test.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 6
+  },
+  {
+   "id": "control:tier1-equivalence/policies/fraud.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/fraud.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/g0-omit-produce.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/g0-omit-produce.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/g1-lowercase-keywords.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "control:tier1-equivalence/policies/g1-softkeyword-idents.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "control:tier1-equivalence/policies/g2a-inline-if.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/g2b-if-expression.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/g2b-if-expression.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 23
+  },
+  {
+   "id": "control:tier1-equivalence/policies/g3-apply-call.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/g3-apply-call.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 56
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-01-literal-field.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-01-literal-field.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-02-let-alias-chain.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-02-let-alias-chain.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-03-set-union.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-03-set-union.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-04-same-module-call.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-04-same-module-call.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 20
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-05-map-literal-key.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-05-map-literal-key.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 22
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-06-dynamic-map-key.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-06-dynamic-map-key.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 22
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-07-whole-input-serialized.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-07-whole-input-serialized.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-08-cross-module-call.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-08-cross-module-call.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-09-function-value-from-variable.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-09-function-value-from-variable.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 24
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-10-principal-roles.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-10-principal-roles.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-11-action-only.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-11-action-only.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-12-limit-for.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-12-limit-for.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 28
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-13-inline-depth-8.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-13-inline-depth-8.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 64
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-14-inline-depth-9.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-14-inline-depth-9.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 70
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-adr-15-mutual-recursion.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-adr-15-mutual-recursion.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 35
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-alias-same-name-as-local-function.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 4
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-alias-same-name-as-local-function.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 25
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-construct-passed-to-callee.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-construct-passed-to-callee.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 22
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-direct-self-recursion.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-direct-self-recursion.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 29
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-function-value-passed-to-builtin.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-function-value-passed-to-builtin.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 23
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-if-expression.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-if-expression.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 17
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-lambda-capture-read.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-lambda-capture-read.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 14
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-lambda-parameter-applied.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-lambda-parameter-applied.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 21
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-lambda-returned-from-callee.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-lambda-returned-from-callee.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 18
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-list-literal.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-list-literal.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-log-namespace-consumes-args.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-log-namespace-consumes-args.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 6
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-map-contains-literal-key.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-map-contains-literal-key.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-map-iteration.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-map-iteration.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-map-literal-key-control-char.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-map-literal-key-control-char.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 22
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-map-values-iteration.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-map-values-iteration.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-match-map-get-when-null.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-match-map-get-when-null.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-match-subject-and-binding.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-match-subject-and-binding.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-memo-key-collision-repro.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-memo-key-collision-repro.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 23
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-memo-similar-args-kept-apart.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-memo-similar-args-kept-apart.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 26
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-named-operator-builtin.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-named-operator-builtin.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-no-input-read.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-no-input-read.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 6
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-no-profile.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-no-profile.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-node-visit-budget.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-node-visit-budget.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 30
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-non-verdict-functions-get-no-input-refs.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-non-verdict-functions-get-no-input-refs.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 36
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-path-8-segments-ok.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-path-8-segments-ok.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-path-9-segments-too-long.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-path-9-segments-too-long.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-record-construct-per-field.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-record-construct-per-field.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-supp-a-scalar-root.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-supp-a-scalar-root.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-supp-a-scalar-serialized.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-supp-a-scalar-serialized.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-supp-a-whole-record-compared.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-supp-a-whole-record-compared.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-supp-b-dotted-literal-key.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-supp-b-dotted-literal-key.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 22
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-supp-b-empty-literal-key.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-supp-b-empty-literal-key.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 22
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-supp-c-second-param-not-tracked.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-supp-c-second-param-not-tracked.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-two-stars-callee-body-first.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-two-stars-callee-body-first.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 23
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-unknown-namespace-call.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-unknown-namespace-call.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 6
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-input-refs-unused-binding-not-consumed.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-input-refs-unused-binding-not-consumed.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 6
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-sugar-long.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 4
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/governance-sugar-long.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 37
+  },
+  {
+   "id": "control:tier1-equivalence/policies/governance-sugar.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 4
+  },
+  {
+   "id": "control:tier1-equivalence/policies/greet.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/greet.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "control:tier1-equivalence/policies/hello.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/hello.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/hipaa-validation-demo.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 19
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/hipaa-validation-demo.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 316
+  },
+  {
+   "id": "control:tier1-equivalence/policies/id_generic.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/id_generic.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/if_param.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/if_param.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 14
+  },
+  {
+   "id": "control:tier1-equivalence/policies/incremental.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/incremental.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/incremental_test.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/incremental_test.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "control:tier1-equivalence/policies/incremental_test2.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/incremental_test2.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/incremental_test3.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/incremental_test3.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/int_match.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/int_match.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/int_match_default.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/int_match_default.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-equivalence/policies/interop_overload.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/interop_overload.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 37
+  },
+  {
+   "id": "control:tier1-equivalence/policies/interop_sum.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/interop_sum.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 36
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_capture_inline_if.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_capture_inline_if.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_capture_list_literal.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_capture_list_literal.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_capture_io_method.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_capture_io_method.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 25
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_capture_method_call.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_capture_method_call.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_capture_module_rule.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_capture_module_rule.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 24
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_capture_nested.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_capture_nested.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 29
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_cnl.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_cnl.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_cnl_length.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_cnl_length.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_cnl_length_cmp.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_cnl_length_cmp.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_cnl_match_bind.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_cnl_match_bind.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 40
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_cnl_match_bind__programs-patterns.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_cnl_match_bind__programs-patterns.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 40
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_cnl_match_maybe.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_cnl_match_maybe.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 17
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_cnl_match_maybe__programs-patterns.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_cnl_match_maybe__programs-patterns.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 17
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_cnl_match_result.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_cnl_match_result.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 20
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_cnl_match_result__programs-patterns.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_cnl_match_result__programs-patterns.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 20
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_cnl_math_bool.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_cnl_math_bool.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_cnl_mixed.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_cnl_mixed.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 35
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_cnl_short.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_cnl_short.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_gte_test.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_gte_test.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-equivalence/policies/lambda_lte_test.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/lambda_lte_test.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-equivalence/policies/life.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/life.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 21
+  },
+  {
+   "id": "control:tier1-equivalence/policies/list-get-eager-let.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/list-get-eager-let.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 29
+  },
+  {
+   "id": "control:tier1-equivalence/policies/list_ops.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/list_ops.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 20
+  },
+  {
+   "id": "control:tier1-equivalence/policies/loan.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/loan.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-equivalence/policies/loan_fixed.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/loan_fixed.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-equivalence/policies/loan_full_test.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/loan_full_test.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-equivalence/policies/loan_with_constraints.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/loan_with_constraints.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-equivalence/policies/loan_with_int.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/loan_with_int.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-equivalence/policies/login.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 4
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/login.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 19
+  },
+  {
+   "id": "control:tier1-equivalence/policies/map_int_key_probe.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/map_int_key_probe.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 11
+  },
+  {
+   "id": "control:tier1-equivalence/policies/map_ops.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/map_ops.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 21
+  },
+  {
+   "id": "control:tier1-equivalence/policies/match_enum.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/match_enum.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "control:tier1-equivalence/policies/match_multi.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/match_multi.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "control:tier1-equivalence/policies/match_null.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/match_null.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "control:tier1-equivalence/policies/multiline_continuation.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/multiline_continuation.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 23
+  },
+  {
+   "id": "control:tier1-equivalence/policies/neq_test.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/neq_test.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 28
+  },
+  {
+   "id": "control:tier1-equivalence/policies/nested_generic_function.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/nested_generic_function.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 6
+  },
+  {
+   "id": "control:tier1-equivalence/policies/nested_generic_lambda.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/nested_generic_lambda.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 11
+  },
+  {
+   "id": "control:tier1-equivalence/policies/not-precedence.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 4
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/not-precedence.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 33
+  },
+  {
+   "id": "control:tier1-equivalence/policies/patient-record.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/patient-record.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 127
+  },
+  {
+   "id": "control:tier1-equivalence/policies/personal.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 46
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/personal.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 328
+  },
+  {
+   "id": "control:tier1-equivalence/policies/pii_function_return.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/pii_function_return.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 12
+  },
+  {
+   "id": "control:tier1-equivalence/policies/pii_http_safe.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/pii_http_safe.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/pii_http_violation.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/pii_http_violation.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/pii_nested_call.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/pii_nested_call.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 21
+  },
+  {
+   "id": "control:tier1-equivalence/policies/pii_propagation.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/pii_propagation.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/pii_type_basic.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/pii_type_basic.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/pii_type_in_data.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/pii_type_in_data.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/pii_type_in_function.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/pii_type_in_function.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/pii_type_mixed.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/pii_type_mixed.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 11
+  },
+  {
+   "id": "control:tier1-equivalence/policies/pii_type_phone.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/pii_type_phone.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/pii_type_ssn.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/pii_type_ssn.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/policy_demo.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/policy_demo.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 25
+  },
+  {
+   "id": "control:tier1-equivalence/policies/policy_engine.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/policy_engine.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 80
+  },
+  {
+   "id": "control:tier1-equivalence/policies/prefix-operator-call.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/prefix-operator-call.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 65
+  },
+  {
+   "id": "control:tier1-equivalence/policies/prescription-workflow.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 6
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/prescription-workflow.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 130
+  },
+  {
+   "id": "control:tier1-equivalence/policies/rest_service.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/rest_service.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 21
+  },
+  {
+   "id": "control:tier1-equivalence/policies/result_trycatch.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/result_trycatch.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 6
+  },
+  {
+   "id": "control:tier1-equivalence/policies/risk.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/risk.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/rules_engine.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/rules_engine.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/set-writeback.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/set-writeback.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 53
+  },
+  {
+   "id": "control:tier1-equivalence/policies/block-scope-shadowing.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/block-scope-shadowing.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 51
+  },
+  {
+   "id": "control:tier1-equivalence/policies/builtin-name-shadowing.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/builtin-name-shadowing.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 50
+  },
+  {
+   "id": "control:tier1-equivalence/policies/rule-local-shadowing.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/rule-local-shadowing.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 59
+  },
+  {
+   "id": "control:tier1-equivalence/policies/workflow-step-scope.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/workflow-step-scope.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 28
+  },
+  {
+   "id": "control:tier1-equivalence/policies/decimal_int_match.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/decimal_int_match.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 43
+  },
+  {
+   "id": "control:tier1-equivalence/policies/simple_test.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/simple_test.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "control:tier1-equivalence/policies/soc2-audit-demo.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/soc2-audit-demo.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 183
+  },
+  {
+   "id": "control:tier1-equivalence/policies/stdlib_collections.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/stdlib_collections.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 43
+  },
+  {
+   "id": "control:tier1-equivalence/policies/stdlib_date.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/stdlib_date.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 65
+  },
+  {
+   "id": "control:tier1-equivalence/policies/stdlib_decimal.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/stdlib_decimal.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 101
+  },
+  {
+   "id": "control:tier1-equivalence/policies/stdlib_io.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/stdlib_io.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 25
+  },
+  {
+   "id": "control:tier1-equivalence/policies/stdlib_maybe_result.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/stdlib_maybe_result.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 37
+  },
+  {
+   "id": "control:tier1-equivalence/policies/stdlib_text.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/stdlib_text.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-equivalence/policies/struct_list_equality.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/struct_list_equality.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 21
+  },
+  {
+   "id": "control:tier1-equivalence/policies/symbolic_operators.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/symbolic_operators.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test-operators.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test-operators.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 19
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_all_comparisons.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_all_comparisons.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_all_comparisons__ts-only.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_all_comparisons__ts-only.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 11
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_arithmetic.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_arithmetic.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_auto.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 38
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_auto.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 372
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_claims.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 20
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_claims.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 215
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_complex_return.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_complex_return.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_copy.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_copy.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_division.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_division.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 17
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_eligibility.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 18
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_eligibility.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 267
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_eligibility_full.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_eligibility_full.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_eligibility_minimal.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_eligibility_minimal.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_eligibility_simple.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_eligibility_simple.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_eligibility_struct.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_eligibility_struct.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 21
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_eligibility_with_ifs.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_eligibility_with_ifs.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 21
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_exact_eligibility.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_exact_eligibility.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 21
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_gte.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_gte.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_helper1.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_helper1.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_invalid.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_invalid.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_let_in_if.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_let_in_if.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_let_member_call.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_let_member_call.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_let_with_call.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_let_with_call.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_life.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 54
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_life.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 450
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_loan.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_loan.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_operators.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_operators.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_operators__ts-only.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_operators__ts-only.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_return_with.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_return_with.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_second_func.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_second_func.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_two_ifs.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_two_ifs.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/test_two_statements.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/test_two_statements.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-equivalence/policies/text_ops.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/text_ops.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 35
+  },
+  {
+   "id": "control:tier1-equivalence/policies/type_alias.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/type_alias.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/verdict-basic.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 4
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/verdict-basic.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 45
+  },
+  {
+   "id": "control:tier1-equivalence/policies/verdict-fields.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/verdict-fields.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-equivalence/policies/context-map-access.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/context-map-access.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 20
+  },
+  {
+   "id": "control:tier1-equivalence/policies/rule-function-value.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/rule-function-value.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 62
+  },
+  {
+   "id": "control:tier1-equivalence/policies/constraint-single-sided-range.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/constraint-single-sided-range.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-equivalence/policies/constraint-matching-pattern.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/constraint-matching-pattern.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-equivalence/policies/pattern-nested-name-matches-enum-member.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 23
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/pattern-nested-name-matches-enum-member.aster",
+   "group": "alias-zh-CN",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 23
+  },
+  {
+   "id": "control:tier1-equivalence/policies/constraints-v2.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/constraints-v2.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-equivalence/policies/annotation-order-v2.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 2
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/annotation-order-v2.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 12
+  },
+  {
+   "id": "control:tier1-equivalence/policies/double-literals-v2.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-equivalence/policies/double-literals-v2.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 20
+  },
+  {
+   "id": "control:tier1-parity/types/function-type.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-parity/types/function-type.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-parity/types/of-type-arity.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-parity/types/of-type-arity.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 51
+  },
+  {
+   "id": "control:tier1-parity/types/of-type-arity-de.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 38
+  },
+  {
+   "id": "alias:tier1-parity/types/of-type-arity-de.aster",
+   "group": "alias-de-DE",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 38
+  },
+  {
+   "id": "control:tier1-parity/types/of-type-arity-zh.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 38
+  },
+  {
+   "id": "alias:tier1-parity/types/of-type-arity-zh.aster",
+   "group": "alias-zh-CN",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 38
+  },
+  {
+   "id": "control:tier1-parity/types/of-type-args-boundary.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-parity/types/of-type-args-boundary.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 54
+  },
+  {
+   "id": "control:tier1-parity/types/of-type-args-boundary-de.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 27
+  },
+  {
+   "id": "alias:tier1-parity/types/of-type-args-boundary-de.aster",
+   "group": "alias-de-DE",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 27
+  },
+  {
+   "id": "control:tier1-parity/types/of-type-args-boundary-zh.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 27
+  },
+  {
+   "id": "alias:tier1-parity/types/of-type-args-boundary-zh.aster",
+   "group": "alias-zh-CN",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 27
+  },
+  {
+   "id": "control:tier1-parity/types/param-annotations.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 3
+  },
+  {
+   "id": "alias:tier1-parity/types/param-annotations.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 36
+  },
+  {
+   "id": "control:tier1-parity/types/param-annotations-zh.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "alias:tier1-parity/types/param-annotations-zh.aster",
+   "group": "alias-zh-CN",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-parity/types/type-alias-keyword-case.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-parity/types/type-alias-keyword-case.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-parity/types/maybe-prefix.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 4
+  },
+  {
+   "id": "alias:tier1-parity/types/maybe-prefix.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-parity/types/maybe-prefix-zh.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 7
+  },
+  {
+   "id": "control:tier1-parity/types/inferred-field-constraints.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-parity/types/inferred-field-constraints.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 5
+  },
+  {
+   "id": "control:tier1-parity/workflow/workflow-bare-io-capability.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-parity/workflow/workflow-bare-io-capability.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-parity/workflow/workflow-compensate.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-parity/workflow/workflow-compensate.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 24
+  },
+  {
+   "id": "control:tier1-parity/workflow/workflow-multistep.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-parity/workflow/workflow-multistep.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-parity/workflow/workflow-single-step.aster",
+   "group": "control",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 1
+  },
+  {
+   "id": "alias:tier1-parity/workflow/workflow-single-step.aster",
+   "group": "alias-en-US",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 6
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/case-only-fields.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/case-only-fields.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/comparison-enum-member.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 45
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/comparison-enum-member.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 45
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/enum-member-vs-rule.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 22
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/enum-member-vs-rule.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 22
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/import-alias-qualified.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/import-alias-qualified.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/level-type-and-field.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/level-type-and-field.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/nested-type-params.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 17
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/nested-type-params.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 17
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/nfc-combining-type.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/nfc-combining-type.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/pattern-constructor.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 47
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/pattern-constructor.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 47
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/same-canonical-two-enums.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/same-canonical-two-enums.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 16
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/same-field-two-structs.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/same-field-two-structs.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/shadowed-vocabulary.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 19
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/shadowed-vocabulary.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 19
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/type-alias-localized.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/type-alias-localized.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/workflow-step-name.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 18
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/workflow-step-name.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 18
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/set-writeback.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 53
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/set-writeback.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 53
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/umlaut-pattern-names.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 57
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/umlaut-pattern-names.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 57
+  },
+  {
+   "id": "control:tier1-parity/vocab-de/governance-input-refs.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 36
+  },
+  {
+   "id": "alias:tier1-parity/vocab-de/governance-input-refs.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 36
+  },
+  {
+   "id": "control:tier1-parity/vocab-hi/devanagari-type-names.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 13
+  },
+  {
+   "id": "control:tier1-parity/vocab-hi/param-equals-field.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 12
+  },
+  {
+   "id": "control:tier1-parity/vocab-hi/devanagari-pattern-names.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 44
+  },
+  {
+   "id": "control:tier1-parity/vocab-zh/same-field-two-structs.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "alias:tier1-parity/vocab-zh/same-field-two-structs.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 11
+  },
+  {
+   "id": "control:tier1-parity/vocab-zh/synonyms.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 12
+  },
+  {
+   "id": "alias:tier1-parity/vocab-zh/synonyms.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 8
+  },
+  {
+   "id": "control:tier1-parity/vocab-zh/type-equals-field.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 15
+  },
+  {
+   "id": "alias:tier1-parity/vocab-zh/type-equals-field.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 11
+  },
+  {
+   "id": "control:tier1-parity/vocab-zh/set-writeback.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 53
+  },
+  {
+   "id": "alias:tier1-parity/vocab-zh/set-writeback.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 50
+  },
+  {
+   "id": "control:tier1-parity/vocab-zh/block-scope-shadowing.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 73
+  },
+  {
+   "id": "alias:tier1-parity/vocab-zh/block-scope-shadowing.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 65
+  },
+  {
+   "id": "control:tier1-parity/vocab-zh/cjk-pattern-binding.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 84
+  },
+  {
+   "id": "alias:tier1-parity/vocab-zh/cjk-pattern-binding.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 76
+  },
+  {
+   "id": "control:tier1-parity/vocab-zh/enum-variant-v2.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 27
+  },
+  {
+   "id": "alias:tier1-parity/vocab-zh/enum-variant-v2.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 27
+  },
+  {
+   "id": "control:tier1-parity/vocab-zh/governance-input-refs.aster",
+   "group": "control-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 28
+  },
+  {
+   "id": "alias:tier1-parity/vocab-zh/governance-input-refs.aster",
+   "group": "alias-vocab",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 36
+  },
+  {
+   "id": "handmade:operator-alias-no-structural",
+   "group": "handmade",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 10
+  },
+  {
+   "id": "handmade:mixed-alias-and-canonical",
+   "group": "handmade",
+   "verdict": "differs-only-in-origin-col",
+   "colDiffs": 9
+  }
+ ]
+}

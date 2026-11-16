@@ -1,0 +1,474 @@
+{
+ "cases": 960,
+ "verdicts": {
+  "tree-identical": 943,
+  "both-failed-as-expected": 9,
+  "tree-differs": 8
+ },
+ "namedEqualsPositional": 959,
+ "namedNotEqualPositional": [
+  {
+   "rel": "tier1-equivalence/policies/entry_annotation.aster",
+   "case": 1,
+   "pos": "ok",
+   "named": "evaluation_failed: Policy evaluation failed"
+  }
+ ],
+ "canonicalFailed": [
+  {
+   "rel": "tier1-equivalence/policies/08-arithmetic-divide.aster",
+   "case": 1,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "3.5"
+  },
+  {
+   "rel": "tier1-equivalence/policies/08-arithmetic-divide.aster",
+   "case": 3,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "66.66666666666667"
+  },
+  {
+   "rel": "tier1-equivalence/policies/08-arithmetic-divide.aster",
+   "case": 4,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "0.3333333333333333"
+  },
+  {
+   "rel": "tier1-equivalence/policies/08-arithmetic-divide.aster",
+   "case": 5,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "1.4285714285714284E14"
+  },
+  {
+   "rel": "tier1-equivalence/policies/08-arithmetic-divide.aster",
+   "case": 6,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "-3.5"
+  },
+  {
+   "rel": "tier1-equivalence/policies/08-arithmetic-divide.aster",
+   "case": 7,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "-3.5"
+  },
+  {
+   "rel": "tier1-equivalence/policies/cross_compiler_ops.aster",
+   "case": 4,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "2.3333333333333335"
+  },
+  {
+   "rel": "tier1-equivalence/policies/cross_compiler_ops.aster",
+   "case": 12,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "2.3333333333333335"
+  },
+  {
+   "rel": "tier1-equivalence/policies/personal.aster",
+   "case": 7,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "{\"__type\":\"AffordabilityAnalysis\",\"debtToIncomeRatio\":11.6,\"residualIncome\":4420,\"affordabilityGrade\":\"EXCELLENT\",\"maxMo"
+  },
+  {
+   "rel": "tier1-equivalence/policies/personal.aster",
+   "case": 8,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "{\"__type\":\"AffordabilityAnalysis\",\"debtToIncomeRatio\":37.6,\"residualIncome\":3120,\"affordabilityGrade\":\"FAIR\",\"maxMonthly"
+  },
+  {
+   "rel": "tier1-equivalence/policies/personal.aster",
+   "case": 9,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "{\"__type\":\"AffordabilityAnalysis\",\"debtToIncomeRatio\":45.6,\"residualIncome\":2720,\"affordabilityGrade\":\"POOR\",\"maxMonthly"
+  },
+  {
+   "rel": "tier1-equivalence/policies/test_claims.aster",
+   "case": 15,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "266.4"
+  },
+  {
+   "rel": "tier1-equivalence/policies/test_division.aster",
+   "case": 1,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "3.5"
+  },
+  {
+   "rel": "tier1-equivalence/policies/test_eligibility.aster",
+   "case": 17,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "22.5"
+  },
+  {
+   "rel": "tier1-equivalence/policies/double-literals-v2.aster",
+   "case": 0,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "0.1"
+  },
+  {
+   "rel": "tier1-equivalence/policies/double-literals-v2.aster",
+   "case": 2,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "2.5"
+  },
+  {
+   "rel": "tier1-equivalence/policies/double-literals-v2.aster",
+   "case": 3,
+   "reason": "NON_INTEGER_NUMBER",
+   "api": "0.30000000000000004"
+  }
+ ],
+ "byCategory": {
+  "Int": {
+   "cases": 440,
+   "treeIdentical": 439,
+   "textIdentical": 439,
+   "canonicalOk": 440,
+   "example": {
+    "rel": "tier1-equivalence/policies/01-arithmetic-add.aster",
+    "ts": "3",
+    "api": "3"
+   },
+   "diffExample": {
+    "rel": "tier1-equivalence/policies/entry_annotation.aster",
+    "case": 1,
+    "ts": "42",
+    "api": "22"
+   }
+  },
+  "Text": {
+   "cases": 104,
+   "treeIdentical": 104,
+   "textIdentical": 104,
+   "canonicalOk": 104,
+   "example": {
+    "rel": "tier1-equivalence/policies/03-if-else.aster",
+    "ts": "\"A\"",
+    "api": "\"A\""
+   },
+   "diffExample": null
+  },
+  "Bool": {
+   "cases": 176,
+   "treeIdentical": 176,
+   "textIdentical": 176,
+   "canonicalOk": 176,
+   "example": {
+    "rel": "tier1-equivalence/policies/05-comparison.aster",
+    "ts": "true",
+    "api": "true"
+   },
+   "diffExample": null
+  },
+  "Double": {
+   "cases": 14,
+   "treeIdentical": 14,
+   "textIdentical": 13,
+   "canonicalOk": 0,
+   "example": {
+    "rel": "tier1-equivalence/policies/08-arithmetic-divide.aster",
+    "ts": "3.5",
+    "api": "3.5"
+   },
+   "diffExample": {
+    "rel": "tier1-equivalence/policies/08-arithmetic-divide.aster",
+    "case": 5,
+    "ts": "142857142857142.84",
+    "api": "1.4285714285714284E14"
+   }
+  },
+  "Object(__type,outcome)": {
+   "cases": 48,
+   "treeIdentical": 48,
+   "textIdentical": 48,
+   "canonicalOk": 48,
+   "example": {
+    "rel": "tier1-equivalence/policies/credit-pilot.aster",
+    "ts": "{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}",
+    "api": "{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,outcome,reason)": {
+   "cases": 46,
+   "treeIdentical": 46,
+   "textIdentical": 46,
+   "canonicalOk": 46,
+   "example": {
+    "rel": "tier1-equivalence/policies/credit-pilot.aster",
+    "ts": "{\"__type\":\"Verdict\",\"outcome\":\"DENY\",\"reason\":\"active_default\"}",
+    "api": "{\"__type\":\"Verdict\",\"outcome\":\"DENY\",\"reason\":\"active_default\"}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,outcome,role)": {
+   "cases": 4,
+   "treeIdentical": 4,
+   "textIdentical": 4,
+   "canonicalOk": 4,
+   "example": {
+    "rel": "tier1-equivalence/policies/credit-pilot.aster",
+    "ts": "{\"__type\":\"Verdict\",\"outcome\":\"REQUIRE_APPROVAL\",\"role\":\"Credit Officer\",\"reason\":\"large_exposure\"}",
+    "api": "{\"__type\":\"Verdict\",\"outcome\":\"REQUIRE_APPROVAL\",\"role\":\"Credit Officer\",\"reason\":\"large_exposure\"}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,approved,reason)": {
+   "cases": 5,
+   "treeIdentical": 5,
+   "textIdentical": 5,
+   "canonicalOk": 5,
+   "example": {
+    "rel": "tier1-equivalence/policies/creditcard.aster",
+    "ts": "{\"__type\":\"ApprovalDecision\",\"approved\":false,\"reason\":\"Applicant under 21 requires independent ability to pay or cosigner\",\"approvedLimit\":0,\"interestRateAPR\":0,\"monthlyFee\":0,\"creditLine\":0,\"require",
+    "api": "{\"__type\":\"ApprovalDecision\",\"approved\":false,\"reason\":\"Applicant under 21 requires independent ability to pay or cosigner\",\"approvedLimit\":0,\"interestRateAPR\":0,\"monthlyFee\":0,\"creditLine\":0,\"require"
+   },
+   "diffExample": null
+  },
+  "Object(__type,currentRatio,quickRatio)": {
+   "cases": 4,
+   "treeIdentical": 4,
+   "textIdentical": 4,
+   "canonicalOk": 4,
+   "example": {
+    "rel": "tier1-equivalence/policies/enterprise.aster",
+    "ts": "{\"__type\":\"LiquidityAnalysis\",\"currentRatio\":300,\"quickRatio\":300,\"isHealthy\":true,\"recommendation\":\"Excellent liquidity\"}",
+    "api": "{\"__type\":\"LiquidityAnalysis\",\"currentRatio\":300,\"quickRatio\":300,\"isHealthy\":true,\"recommendation\":\"Excellent liquidity\"}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,debtToEquity,debtToAssets)": {
+   "cases": 5,
+   "treeIdentical": 5,
+   "textIdentical": 5,
+   "canonicalOk": 5,
+   "example": {
+    "rel": "tier1-equivalence/policies/enterprise.aster",
+    "ts": "{\"__type\":\"LeverageAnalysis\",\"debtToEquity\":0,\"debtToAssets\":0,\"riskLevel\":\"CRITICAL\",\"maxLoanCapacity\":0}",
+    "api": "{\"__type\":\"LeverageAnalysis\",\"debtToEquity\":0,\"debtToAssets\":0,\"riskLevel\":\"CRITICAL\",\"maxLoanCapacity\":0}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,returnOnAssets,returnOnEquity)": {
+   "cases": 4,
+   "treeIdentical": 4,
+   "textIdentical": 4,
+   "canonicalOk": 4,
+   "example": {
+    "rel": "tier1-equivalence/policies/enterprise.aster",
+    "ts": "{\"__type\":\"ProfitabilityAnalysis\",\"returnOnAssets\":15,\"returnOnEquity\":15,\"profitabilityGrade\":\"EXCELLENT\",\"repaymentCapacity\":3600}",
+    "api": "{\"__type\":\"ProfitabilityAnalysis\",\"returnOnAssets\":15,\"returnOnEquity\":15,\"profitabilityGrade\":\"EXCELLENT\",\"repaymentCapacity\":3600}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,riskScore)": {
+   "cases": 2,
+   "treeIdentical": 2,
+   "textIdentical": 2,
+   "canonicalOk": 2,
+   "example": {
+    "rel": "tier1-equivalence/policies/fraud-simple-test.aster",
+    "ts": "{\"__type\":\"FraudResult\",\"riskScore\":500}",
+    "api": "{\"__type\":\"FraudResult\",\"riskScore\":500}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,_enum,value)": {
+   "cases": 7,
+   "treeIdentical": 0,
+   "textIdentical": 0,
+   "canonicalOk": 7,
+   "example": {
+    "rel": "tier1-equivalence/policies/g1-lowercase-keywords.aster",
+    "ts": "{\"__type\":\"?\",\"_enum\":\"Tier\",\"value\":\"Gold\",\"variant\":\"Gold\",\"args\":[]}",
+    "api": "{\"_enum\":\"Tier\",\"value\":\"Gold\",\"variant\":\"Gold\",\"args\":[]}"
+   },
+   "diffExample": {
+    "rel": "tier1-equivalence/policies/g1-lowercase-keywords.aster",
+    "case": 0,
+    "ts": "{\"__type\":\"?\",\"_enum\":\"Tier\",\"value\":\"Gold\",\"variant\":\"Gold\",\"args\":[]}",
+    "api": "{\"_enum\":\"Tier\",\"value\":\"Gold\",\"variant\":\"Gold\",\"args\":[]}"
+   }
+  },
+  "Object(__type,value)": {
+   "cases": 34,
+   "treeIdentical": 34,
+   "textIdentical": 34,
+   "canonicalOk": 34,
+   "example": {
+    "rel": "tier1-equivalence/policies/g3-apply-call.aster",
+    "ts": "{\"__type\":\"Some\",\"value\":9}",
+    "api": "{\"__type\":\"Some\",\"value\":9}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,level_name,can_view_demographics)": {
+   "cases": 5,
+   "treeIdentical": 5,
+   "textIdentical": 5,
+   "canonicalOk": 5,
+   "example": {
+    "rel": "tier1-equivalence/policies/hipaa-validation-demo.aster",
+    "ts": "{\"__type\":\"AccessLevel\",\"level_name\":\"FULL\",\"can_view_demographics\":true,\"can_view_medical\":true,\"can_view_financial\":false,\"can_modify\":true}",
+    "api": "{\"__type\":\"AccessLevel\",\"level_name\":\"FULL\",\"can_view_demographics\":true,\"can_view_medical\":true,\"can_view_financial\":false,\"can_modify\":true}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,category,sensitivity)": {
+   "cases": 5,
+   "treeIdentical": 5,
+   "textIdentical": 5,
+   "canonicalOk": 5,
+   "example": {
+    "rel": "tier1-equivalence/policies/hipaa-validation-demo.aster",
+    "ts": "{\"__type\":\"PHICategory\",\"category\":\"DEMOGRAPHICS\",\"sensitivity\":\"L2\",\"requires_consent\":false,\"retention_years\":6}",
+    "api": "{\"__type\":\"PHICategory\",\"category\":\"DEMOGRAPHICS\",\"sensitivity\":\"L2\",\"requires_consent\":false,\"retention_years\":6}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,is_compliant,passed_count)": {
+   "cases": 5,
+   "treeIdentical": 5,
+   "textIdentical": 5,
+   "canonicalOk": 5,
+   "example": {
+    "rel": "tier1-equivalence/policies/hipaa-validation-demo.aster",
+    "ts": "{\"__type\":\"HIPAAValidation\",\"is_compliant\":true,\"passed_count\":3,\"failed_count\":0,\"message\":\"All HIPAA checks passed\"}",
+    "api": "{\"__type\":\"HIPAAValidation\",\"is_compliant\":true,\"passed_count\":3,\"failed_count\":0,\"message\":\"All HIPAA checks passed\"}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,is_valid,reason)": {
+   "cases": 3,
+   "treeIdentical": 3,
+   "textIdentical": 3,
+   "canonicalOk": 3,
+   "example": {
+    "rel": "tier1-equivalence/policies/patient-record.aster",
+    "ts": "{\"__type\":\"ConsentResult\",\"is_valid\":false,\"reason\":\"Patient consent not obtained\"}",
+    "api": "{\"__type\":\"ConsentResult\",\"is_valid\":false,\"reason\":\"Patient consent not obtained\"}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,scoreGrade,historyGrade)": {
+   "cases": 4,
+   "treeIdentical": 4,
+   "textIdentical": 4,
+   "canonicalOk": 4,
+   "example": {
+    "rel": "tier1-equivalence/policies/personal.aster",
+    "ts": "{\"__type\":\"CreditAssessment\",\"scoreGrade\":\"EXCELLENT\",\"historyGrade\":\"STRONG\",\"utilizationRatio\":20,\"negativeMarks\":0,\"riskIndicator\":\"LOW\",\"maxLoanAmount\":50000}",
+    "api": "{\"__type\":\"CreditAssessment\",\"scoreGrade\":\"EXCELLENT\",\"historyGrade\":\"STRONG\",\"utilizationRatio\":20,\"negativeMarks\":0,\"riskIndicator\":\"LOW\",\"maxLoanAmount\":50000}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,totalMonthlyIncome,stabilityGrade)": {
+   "cases": 3,
+   "treeIdentical": 3,
+   "textIdentical": 3,
+   "canonicalOk": 3,
+   "example": {
+    "rel": "tier1-equivalence/policies/personal.aster",
+    "ts": "{\"__type\":\"IncomeAssessment\",\"totalMonthlyIncome\":1000,\"stabilityGrade\":\"GOOD\",\"adequacy\":\"ADEQUATE\",\"loanCapacity\":6000}",
+    "api": "{\"__type\":\"IncomeAssessment\",\"totalMonthlyIncome\":1000,\"stabilityGrade\":\"GOOD\",\"adequacy\":\"ADEQUATE\",\"loanCapacity\":6000}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,debtToIncomeRatio,residualIncome)": {
+   "cases": 3,
+   "treeIdentical": 3,
+   "textIdentical": 3,
+   "canonicalOk": 0,
+   "example": {
+    "rel": "tier1-equivalence/policies/personal.aster",
+    "ts": "{\"__type\":\"AffordabilityAnalysis\",\"debtToIncomeRatio\":11.6,\"residualIncome\":4420,\"affordabilityGrade\":\"EXCELLENT\",\"maxMonthlyPayment\":1500}",
+    "api": "{\"__type\":\"AffordabilityAnalysis\",\"debtToIncomeRatio\":11.6,\"residualIncome\":4420,\"affordabilityGrade\":\"EXCELLENT\",\"maxMonthlyPayment\":1500}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,email,name)": {
+   "cases": 1,
+   "treeIdentical": 1,
+   "textIdentical": 1,
+   "canonicalOk": 1,
+   "example": {
+    "rel": "tier1-equivalence/policies/pii_type_in_data.aster",
+    "ts": "{\"__type\":\"User\",\"email\":\"test@example.com\",\"name\":\"John\"}",
+    "api": "{\"__type\":\"User\",\"email\":\"test@example.com\",\"name\":\"John\"}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,step_name,passed)": {
+   "cases": 4,
+   "treeIdentical": 4,
+   "textIdentical": 4,
+   "canonicalOk": 4,
+   "example": {
+    "rel": "tier1-equivalence/policies/prescription-workflow.aster",
+    "ts": "{\"__type\":\"VerificationStep\",\"step_name\":\"validate_prescriber\",\"passed\":false,\"message\":\"Prescriber ID required\"}",
+    "api": "{\"__type\":\"VerificationStep\",\"step_name\":\"validate_prescriber\",\"passed\":false,\"message\":\"Prescriber ID required\"}"
+   },
+   "diffExample": null
+  },
+  "List": {
+   "cases": 3,
+   "treeIdentical": 3,
+   "textIdentical": 3,
+   "canonicalOk": 3,
+   "example": {
+    "rel": "tier1-equivalence/policies/stdlib_collections.aster",
+    "ts": "[1,2,3]",
+    "api": "[1,2,3]"
+   },
+   "diffExample": null
+  },
+  "Object(__type)": {
+   "cases": 1,
+   "treeIdentical": 1,
+   "textIdentical": 1,
+   "canonicalOk": 1,
+   "example": {
+    "rel": "tier1-equivalence/policies/stdlib_collections.aster",
+    "ts": "{\"__type\":\"None\"}",
+    "api": "{\"__type\":\"None\"}"
+   },
+   "diffExample": null
+  },
+  "Decimal": {
+   "cases": 11,
+   "treeIdentical": 11,
+   "textIdentical": 11,
+   "canonicalOk": 11,
+   "example": {
+    "rel": "tier1-equivalence/policies/stdlib_decimal.aster",
+    "ts": "\"15.41\"",
+    "api": "\"15.41\""
+   },
+   "diffExample": null
+  },
+  "Object(__type,value,message)": {
+   "cases": 3,
+   "treeIdentical": 3,
+   "textIdentical": 3,
+   "canonicalOk": 3,
+   "example": {
+    "rel": "tier1-equivalence/policies/test-operators.aster",
+    "ts": "{\"__type\":\"TestResult\",\"value\":5,\"message\":\"greater than 10\"}",
+    "api": "{\"__type\":\"TestResult\",\"value\":5,\"message\":\"greater than 10\"}"
+   },
+   "diffExample": null
+  },
+  "Object(__type,eligible,reason)": {
+   "cases": 7,
+   "treeIdentical": 7,
+   "textIdentical": 7,
+   "canonicalOk": 7,
+   "example": {
+    "rel": "tier1-equivalence/policies/test_eligibility.aster",
+    "ts": "{\"__type\":\"EligibilityCheck\",\"eligible\":false,\"reason\":\"No insurance on file\",\"coveragePercent\":0,\"estimatedCost\":200,\"requiresPreAuth\":false}",
+    "api": "{\"__type\":\"EligibilityCheck\",\"eligible\":false,\"reason\":\"No insurance on file\",\"coveragePercent\":0,\"estimatedCost\":200,\"requiresPreAuth\":false}"
+   },
+   "diffExample": null
+  }
+ }
+}
