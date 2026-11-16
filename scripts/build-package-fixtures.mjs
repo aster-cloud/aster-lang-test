@@ -25,7 +25,7 @@ import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import {
   ANCHOR_JWKS, TEST_KEY, TEST_KID, UNTRUSTED_KID, buildPackage, buildTamper, inputInvalidCase, jsonFile, keyFiles, loadSources,
-  packageCases, positionFreeVectors, signingVectors, stdoutNormalizeVectors, tamperCases, tamperTarget, valueJsonVectors, writeZipOf, anchorFiles, testTimeCases, extraForms,
+  packageCases, positionFreeVectors, signingVectors, stdoutNormalizeVectors, tamperCases, tamperTarget, valueJsonVectors, writeZipOf, anchorFiles, testTimeCases, extraForms, compileFixtures,
 } from './lib/package-v1/fixtures.mjs';
 import { canonicalJson } from './lib/package-v1/canonical.mjs';
 import { parseValueTree, valueJson } from './lib/package-v1/value-json.mjs';
@@ -38,7 +38,7 @@ import { parseStrictJson } from './lib/package-v1/strict-json.mjs';
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PKG = join(ROOT, 'conformance', 'package-v1');
 const SRC = join(PKG, 'src');
-const GENERATED_DIRS = ['packages', 'tamper', 'inputs-invalid', 'vectors', 'anchors'];
+const GENERATED_DIRS = ['packages', 'tamper', 'inputs-invalid', 'vectors', 'anchors', 'compile'];
 const GENERATED_KEY_FILES = ['keys/test-ed25519.priv.b64u', 'keys/test-ed25519.pub.b64u', 'keys/test-jwks.json'];
 
 const argv = process.argv.slice(2);
@@ -87,6 +87,8 @@ function generate() {
   }
   put('tamper/cases.json', jsonFile({ description: tampers.description, cases: tamperRows }));
   put('tamper/test-time.json', jsonFile(testTimeCases(pkgs, exitCodes)));
+
+  for (const [rel, bytes] of compileFixtures(SRC, pkgs, exitCodes)) put(rel, bytes);
 
   const invalid = JSON.parse(readFileSync(join(SRC, 'inputs-invalid.json'), 'utf8'));
   put('inputs-invalid/cases.json', jsonFile({ description: invalid.description, cases: invalid.cases.map((c) => inputInvalidCase(c, pkgs, exitCodes)) }));
@@ -334,10 +336,36 @@ function tsValueJson(ts, value) {
   return valueJson(drop(parseValueTree(ts.serializeGuestValue(value))));
 }
 
-function tsEval(ts, coreJson, entry, input) {
+/**
+ * 一条探针是否与期望相符（README「tests/probes.json」）：entry 必须是 manifest 中的入口、input 必须通过「输入」规则、
+ * expected 必须恰为 {"ok":true,"value":V} 或 {"code":"EVAL_ERROR","ok":false}；求值以步数上限代替超时（参照实现不跑 Worker），
+ * 超出即视为超时 → 不符。任何一项不满足都是 PROBE_MISMATCH。p 来自 parseValueTree（整数为 BigInt）。
+ */
+const PROBE_STEP_LIMIT = 20_000_000;
+function probeMatches(ts, coreJson, manifest, p) {
+  const ir = JSON.parse(coreJson);
+  if (typeof p.entry !== 'string' || !manifest.policy.entries.some((e) => e.function === p.entry)) return false;
+  const e = p.expected;
+  const keys = e !== null && typeof e === 'object' && !Array.isArray(e) ? Object.keys(e).sort().join(',') : '';
+  const okShape = keys === 'ok,value' && e.ok === true;
+  const errShape = keys === 'code,ok' && e.ok === false && e.code === 'EVAL_ERROR';
+  if (!okShape && !errShape) return false;
+  let input;
+  try {
+    input = validateInput(utf8(valueJson(p.input)), ir, p.entry);
+  } catch (err) {
+    if (err instanceof InputError) return false;
+    throw err;
+  }
+  const r = tsEval(ts, coreJson, p.entry, input, PROBE_STEP_LIMIT);
+  if (r.error && /step/i.test(r.error)) return false;
+  return okShape ? r.ok && r.value === valueJson(e.value) : !r.ok;
+}
+
+function tsEval(ts, coreJson, entry, input, maxSteps = Number.MAX_SAFE_INTEGER) {
   const ir = JSON.parse(coreJson);
   const func = ir.decls.find((d) => d.kind === 'Func' && d.name === entry);
-  const r = ts.evaluate(ts.readCoreIr(coreJson), entry, tsContext(ts, input, func, ir), { maxSteps: Number.MAX_SAFE_INTEGER });
+  const r = ts.evaluate(ts.readCoreIr(coreJson), entry, tsContext(ts, input, func, ir), { maxSteps });
   return r.success ? { ok: true, value: tsValueJson(ts, r.value) } : { ok: false, error: r.error };
 }
 
@@ -481,9 +509,9 @@ async function verifyEngines() {
     // 无损读取：整数 token 解析为 BigInt，期望值按值规范 JSON 重新写出后逐字节比较（README「tests/probes.json」）
     const probes = parseValueTree(pkg.files.get('tests/probes.json').toString('utf8')).probes;
     probes.forEach((p, i) => {
-      const r = tsEval(ts, pkg.def.platformCore, p.entry, p.input);
-      const same = p.expected.ok ? r.ok && r.value === valueJson(p.expected.value) : !r.ok && p.expected.code === 'EVAL_ERROR';
-      expect(pkg.def.corruptProbe?.index === i ? !same : same, `${pkg.name}: probes[${i}] ts 结果 ${r.value ?? r.error} 与期望不符`);
+      const same = probeMatches(ts, pkg.def.platformCore, pkg.manifest, p);
+      const broken = pkg.def.corruptProbe?.index === i || (pkg.def.probeEdits ?? []).some((e) => e.index === i);
+      expect(broken ? !same : same, `${pkg.name}: probes[${i}] 的复算结果与期望不符`);
     });
     count();
   }
@@ -495,6 +523,7 @@ async function verifyEngines() {
     for (const c of JSON.parse(v.bytes.toString('utf8')).cases) rows.push({ rel, c });
   }
   for (const { rel, c } of rows) {
+    if (c.expectedStdout === null || c.expectedStdout === '') continue; // compile 成功：只比较投影哈希（见 compile 一节）
     const env = JSON.parse(c.expectedStdout);
     expect(envelopeSchema(env), `${rel}/${c.name}: expectedStdout 不符合 envelope schema ${JSON.stringify(envelopeSchema.errors).slice(0, 300)}`);
     expect(c.expectedStdout.endsWith('\n') && !c.expectedStdout.slice(0, -1).includes('\n'), `${rel}/${c.name}: stdout 必须是一行 + \\n`);
@@ -654,10 +683,7 @@ async function verifyEngines() {
         }
         if (core !== null) {
           const probes = parseValueTree(r.files.get('tests/probes.json').toString('utf8')).probes;
-          const allOk = probes.every((p) => {
-            const t = tsEval(ts, core, p.entry, p.input);
-            return p.expected.ok ? t.ok && t.value === valueJson(p.expected.value) : !t.ok;
-          });
+          const allOk = probes.every((p) => probeMatches(ts, core, m, p));
           if (allOk) checks.push({ name: 'probes', ok: true });
           else stop('probes', 'PROBE_MISMATCH');
         }
@@ -666,6 +692,52 @@ async function verifyEngines() {
     const wantStdout = `${canonicalJson({ checks, meta: { cliVersion: '<CLI_VERSION>', engine: '<ENGINE>', ...meta }, ok: failed === null })}\n`;
     expect(c.expectedStdout === wantStdout, `${name}: verify 期望与盘上包的独立复算不符\n      期望 ${c.expectedStdout.trim()}\n      复算 ${wantStdout.trim()}`);
     expect(c.expectedExit === (failed === null ? 0 : exitCodes[failed].exit), `${name}: verify 退出码`);
+    count();
+  }
+
+  // 3c. compile：源码类成功用例由 ts 本地编译复算投影哈希（ts 尚无 aliasSet 校验，校验失败类用例的期望来自平台采集）；
+  //     包类用例先过参照流水线，再从盘上 policy/ 编译复算；包类失败用例的错误码由参照流水线判定
+  const compileRows = JSON.parse(out.get('compile/cases.json').bytes.toString('utf8')).cases;
+  const VALUED_COMPILE = new Set(['--locale', '--alias-set', '--vocabulary', '--out', '--jwks', '--pubkey']);
+  for (const c of compileRows) {
+    const cwd = join(PKG, 'compile');
+    const positional = [];
+    const opts = {};
+    for (let i = 1; i < c.args.length; i++) {
+      if (VALUED_COMPILE.has(c.args[i])) opts[c.args[i]] = c.args[++i];
+      else if (c.args[i].startsWith('--')) opts[c.args[i]] = true;
+      else positional.push(c.args[i]);
+    }
+    const target = join(cwd, positional[0]);
+    const isSource = positional[0].endsWith('.aster');
+    const name = `compile/${c.name}`;
+    if (c.code === 'USAGE') {
+      count();
+      continue;
+    }
+    if (isSource) {
+      if (c.code === 'COMPILE_ERROR') {
+        if (!opts['--alias-set']) expect(tsCompileFiles(ts, { source: { locale: opts['--locale'] ?? 'en-US' } }, new Map([['policy/policy.aster', readFileSync(target)], ['policy/compile/alias-set.json', utf8('null')]])) === null, `${name}: ts 应编译失败`);
+      } else {
+        const files = new Map([['policy/policy.aster', readFileSync(target)], ['policy/compile/alias-set.json', opts['--alias-set'] ? readFileSync(join(cwd, opts['--alias-set'])) : utf8('null')]]);
+        if (opts['--vocabulary']) files.set('policy/compile/vocabulary.json', readFileSync(join(cwd, opts['--vocabulary'])));
+        const core = tsCompileFiles(ts, { source: { locale: opts['--locale'] ?? 'en-US' } }, files);
+        expect(core !== null && sha256Hex(utf8(ts.canonicalJson(positionFreeTree(JSON.parse(core))))) === c.expectedPositionFreeSha256, `${name}: ts 编译的投影哈希与期望不符`);
+      }
+      count();
+      continue;
+    }
+    const anchor = opts['--jwks'] ? loadAnchor(cwd, ['--jwks', opts['--jwks']]) : opts['--pubkey'] ? loadAnchor(cwd, ['--pubkey', opts['--pubkey']]) : { kind: 'jwks', keys: new Map() };
+    const r = checkPackage(target, { ...refOpts, anchor, allowUnsigned: opts['--allow-unsigned'] === true });
+    if (c.code) {
+      expect(!r.ok && r.code === c.code, `${name}: 参照流水线得 ${r.ok ? '通过' : r.code}，期望 ${c.code}`);
+    } else {
+      expect(r.ok || r.stage === 'ir', `${name}: 参照流水线应通过包检查，得 ${r.code}@${r.stage}`);
+      if (r.manifest) {
+        const core = tsCompileFiles(ts, r.manifest, r.files);
+        expect(core !== null && sha256Hex(utf8(ts.canonicalJson(positionFreeTree(JSON.parse(core))))) === c.expectedPositionFreeSha256, `${name}: 盘上 policy/ 编译的投影哈希与期望不符`);
+      }
+    }
     count();
   }
 
@@ -777,12 +849,40 @@ function entryOfArgs(flags, manifest) {
   return flags[i].startsWith('--entry=') ? flags[i].slice(8) : flags[i + 1];
 }
 
+/** --capture-compile：以平台编译序列采集 compile/ 源码类用例的结果（成功取投影哈希，失败记错误）。 */
+function captureCompile() {
+  const cpFile = opt('--cp-file');
+  if (!cpFile) usage('--capture-compile 需要 --cp-file');
+  const dir = join(SRC, 'compile');
+  const doc = JSON.parse(readFileSync(join(dir, 'compile.json'), 'utf8'));
+  const reqs = doc.cases.filter((c) => c.platform).map((c) => ({
+    id: c.name,
+    source: readFileSync(join(dir, c.platform.source), 'utf8'),
+    locale: c.platform.locale,
+    aliasSet: c.platform.aliasSet ? JSON.parse(readFileSync(join(dir, c.platform.aliasSet), 'utf8')) : null,
+    vocabulary: c.platform.vocabulary ? JSON.parse(readFileSync(join(dir, c.platform.vocabulary), 'utf8')) : null,
+    allowStructural: c.platform.allowStructural === true,
+  }));
+  const cp = readFileSync(cpFile, 'utf8').trim();
+  const r = spawnSync('java', ['-cp', cp, join(ROOT, 'scripts/package-v1/PlatformCompile.java')], { input: `${reqs.map((q) => JSON.stringify(q)).join('\n')}\n`, encoding: 'utf8', maxBuffer: 1 << 28 });
+  if (r.status !== 0) throw new Error(r.stderr.slice(-2000));
+  const out = {};
+  for (const line of r.stdout.split('\n').filter((l) => l.startsWith('{'))) {
+    const o = JSON.parse(line);
+    out[o.id] = o.ok ? { ok: true, positionFreeSha256: sha256Hex(utf8(canonicalJson(positionFreeTree(JSON.parse(o.coreJson))))) } : { ok: false, error: o.error };
+  }
+  writeFileSync(join(dir, 'expected.json'), `${JSON.stringify(out, null, 2)}\n`);
+  console.log(`captured ${Object.keys(out).length} compile cases`);
+}
+
 function usage(msg) {
   console.error(`build-package-fixtures: ${msg}`);
   process.exit(2);
 }
 
-if (has('--capture')) {
+if (has('--capture-compile')) {
+  captureCompile();
+} else if (has('--capture')) {
   await capture();
 } else if (has('--verify-engines')) {
   await verifyEngines();

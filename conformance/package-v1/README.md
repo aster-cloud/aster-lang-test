@@ -21,10 +21,11 @@ CLI 行为定死为可执行的字节：两个 `aster` CLI（Node T2–T5、JVM 
 | `vectors/value-json.json` | 值规范 JSON 向量（平台采集 + 边界值 + 嵌套层级 + 两组各 10 000 个随机 double） | 生成 |
 | `vectors/position-free-hash.json` | `coreIr.positionFreeSha256` 向量（含一对只差 col 的 Java / ts IR） | 生成 |
 | `vectors/stdout-normalize.json` | 归一向量 | 生成 |
-| `packages/<name>/` + `packages/<name>.cases.json` | 11 个黄金包（目录形态）与用例；`b-credit-limit.zip`、`b-zh.zip` 为 zip 形态；`b-credit-limit-dir.zip/`（目录）与 `b-credit-limit-zip-no-extension`（zip）验证按文件类型而非扩展名判形态 | 生成 |
+| `packages/<name>/` + `packages/<name>.cases.json` | 15 个黄金包（目录形态）与用例；`b-credit-limit.zip`、`b-zh.zip` 为 zip 形态；`b-credit-limit-dir.zip/`（目录）与 `b-credit-limit-zip-no-extension`（zip）验证按文件类型而非扩展名判形态 | 生成 |
 | `tamper/<name>/`、`tamper/<name>.zip`、`tamper/cases.json` | 篡改与畸形 zip 夹具，每个夹具 run / verify / inspect 各一条用例 | 生成 |
 | `tamper/test-time.json` | 体积类夹具的生成配方（几十 MiB，不入库，由 CLI 测试运行时生成） | 生成 |
 | `inputs-invalid/cases.json` | `INPUT_INVALID` 夹具（作用于黄金包） | 生成 |
+| `compile/` | `compile` 子命令夹具：源码与 aliasSet / 词汇文件、`cases.json`（见「compile」） | 生成（源码类期望由 `--capture-compile` 采集） |
 | `src/` | 生成器的输入：源码、`fixture.json`、采集的平台 IR（`platform-core.json`）与期望值（`expected.json`）、篡改与非法输入定义 | 手写 + `--capture` |
 
 生成与校验（Node ≥ 24，无 npm 依赖）：
@@ -76,6 +77,7 @@ CI 中的兄弟仓固定在被测版本（aster-lang-ts `v3.2.0`、aster-guard `
 - 先用 `normalize-stdout.mjs`（JVM：`StdoutNormalizer.java`，跑 `vectors/stdout-normalize.json`）归一实际 stdout，再与 `expectedStdout`
   逐字节比较；退出码与 `expectedExit` 比较。`code` 是期望的错误码（成功为 `null`；`verify` 为第一项失败检查的码），供只断言错误码的单测使用。
 - `engines` 字段保留给只适用于一侧的用例；v1 夹具没有这样的用例，**全部用例两侧都跑**。
+- `compile/cases.json` 的成功用例以 `expectedPositionFreeSha256` 代替逐字节比较 stdout（见「compile」）。
 - `tamper/cases.json` 的每条另带 `base`（派生自哪个黄金包）。`tamper/test-time.json` 的用例带 `recipe`，由测试在临时目录生成包或输入后运行（见「体积上限」）。
 
 ## 输出
@@ -124,7 +126,10 @@ CI 中的兄弟仓固定在被测版本（aster-lang-ts `v3.2.0`、aster-guard `
 - 检查项依次为 `schema`、`signature`、`integrity`、`ir`（**仅 A 包**：严格读入 `compiled/core.json`，失败码 `PKG_UNSUPPORTED_IR`，与 `run` 一致，对应 ADR §4.1 的「运行时兼容」）、`recompile`（仅 `--recompile`）、`probes`（仅 `--probes`），**在第一项失败处停止**，之后的项不输出。
 - `recompile`：对 A、B 都按 manifest 本地编译 `policy/`，按 `positionFreeSha256` 比对，失败码 `PKG_IR_DRIFT`。
 - `probes`：按 `tests/probes.json` 逐条以 `run` 的 entry → input → eval 路径求值（B 包先本地编译，失败码 `PKG_IR_DRIFT`；A 包严格读入
-  `compiled/core.json`，失败码 `PKG_UNSUPPORTED_IR`），每条的超时为 `--timeout`（缺省 5 s，按条计），结果与期望不符（见「probes」）即 `PROBE_MISMATCH`。
+  `compiled/core.json`，失败码 `PKG_UNSUPPORTED_IR`），每条的超时为 `--timeout`（缺省 5 s，按条计）。**任何一条不符都报 `PROBE_MISMATCH`**：结果与期望不同、
+  条目本身不合法（`entry` 不是 manifest 中的入口、`input` 不符合「输入」规则、`expected` 不是下文两种形状之一）、求值超时或资源耗尽、期望成功却求值失败
+  （夹具 `a-probe-bad-entry`、`a-probe-bad-input`、`a-probe-bad-expectation`、`a-probe-timeout`）。
+- A 包给了 `--recompile` 时，`probes` 仍然对 `compiled/core.json` 求值（本地编译只用于 `recompile` 比对，不替换平台 IR；夹具 `a-decimal/verify-recompile-and-probes`）。
 - 退出码 = 失败检查项的错误码对应的退出码，全部通过为 0。
 - 无签名且 `--allow-unsigned` 时 `signature` 记为 `{"name":"signature","ok":true}`，由 `meta.signed=false` 表明未验签。
 
@@ -197,18 +202,28 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 | zip 文件本身 | 64 MiB（先 `stat` 判断，再读入内存） | `PKG_INTEGRITY`（read） |
 | 解压后单个条目 / 累计 | 64 MiB | `PKG_INTEGRITY`（read） |
 | 目录形态的单个文件 / 文件累计 | 64 MiB（先 `stat` 判断，不得先读入再判断） | `PKG_INTEGRITY`（read） |
+| 目录形态的普通文件数 | 1 024 | `PKG_INTEGRITY`（read） |
+| zip 的条目数（EOCD 记录的总数，含目录条目） | 1 024 | `PKG_INTEGRITY`（read） |
 | `manifest.json` | 1 MiB | `PKG_INVALID_MANIFEST`（manifest） |
 | `manifest.sig.json` | 64 KiB | `PKG_SIGNATURE`（signature） |
 | `--input` | 16 MiB | `INPUT_INVALID`（input） |
+
+**文件数与大小的先后（两侧必须相同，失败信封才一致）：**
+- 目录形态：每层目录内按名字的 UTF-8 字节序遍历（先判符号链接，子目录递归）；每遇到一个普通文件，**先**把文件数加一并判是否超过 1 024，**再**判该文件大小与累计大小。
+  任一项超出立即失败，不再继续遍历。
+- zip：先按 `stat` 判文件大小，读入后找 EOCD，**再**判 EOCD 记录的条目数，之后才解析中央目录与解压（夹具 `zip-too-many-entries`）。
+- 上限取 1 024：v1 包最多十几个文件；1 024 个各 64 KiB 的文件恰好等于 64 MiB 的总量上限，两项上限不会互相掩盖常见情形。
 
 几十 MiB 的夹具不入库：`tamper/test-time.json` 给出配方（复制黄金包目录后写入指定大小的零字节文件；或生成超长输入），由各 CLI 的测试在临时目录生成。
 
 ## 信任锚
 
-信任锚的读取与校验属于 usage 阶段：锚文件不可读或不合法一律 `USAGE`（在读包之前）。
+信任锚的读取与校验属于 usage 阶段：锚文件不可读或不合法一律 `USAGE`（在读包之前）。JWKS 与 JWK 文件按「严格 JSON」读
+（BOM、重复键、值之后的多余内容都是 `USAGE`；夹具 `usage-jwks-bom`、`usage-jwks-duplicate-json-key`、`usage-jwk-pubkey-trailing-garbage`）。
 
 - 不给锚：使用内置 `export-jwks.json`（P1 为 `{"keys":[]}`，所以任何签名包都是 `PKG_UNTRUSTED_KID`）。
-- `--jwks <file|url>`：JWKS。每个 key 必须 `kty:"OKP"`、`crv:"Ed25519"`、`x` 为 32 字节的规范 base64url、`kid` 为非空字符串；`alg` 若给出必须是 `EdDSA`、`use` 若给出必须是 `sig`；
+- `--jwks <file|url>`：以 `https://` 开头即按 URL 取（10 s 超时，只跟随 https 重定向；取不到、非 2xx、超时都是 `USAGE`），其他协议（含 `http://`）为 `USAGE`
+  （夹具 `usage-jwks-http-url`，不会发出请求），否则按本地文件读。JWKS：每个 key 必须 `kty:"OKP"`、`crv:"Ed25519"`、`x` 为 32 字节的规范 base64url、`kid` 为非空字符串；`alg` 若给出必须是 `EdDSA`、`use` 若给出必须是 `sig`；
   `kid` 不得重复；任何一个 key 不合法都使整个文件不合法。按签名文件的 `kid` 查找，找不到为 `PKG_UNTRUSTED_KID`。
 - `--pubkey <file>`：两种形态，按首个非空白字符区分：
   - 原始公钥：文件内容恰为 32 字节公钥的规范 base64url（无填充），后面至多一个 `\n`（不接受 `\r\n`、空格或 `=`）。**不看 kid**：任何 kid 都用这把钥验签（夹具 `raw-pubkey-ignores-kid`）。
@@ -219,8 +234,13 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 
 - 子命令 `compile`、`run`、`verify`、`inspect`、`version`；未知子命令为 `USAGE`。`run` / `verify` / `inspect` 恰有一个位置参数（包路径）。
 - 带值选项：`--entry`、`--input`、`--timeout`、`--jwks`、`--pubkey`（`compile` 另有 `--locale`、`--alias-set`、`--vocabulary`、`--out`）；开关：`--allow-unsigned`、
-  `--recompile`、`--probes`、`--allow-structural`。带值选项可写成 `--opt value` 或 `--opt=value`；选项与位置参数的先后任意；**同一选项出现两次为 `USAGE`**；未知选项为 `USAGE`。
+  `--recompile`、`--probes`、`--allow-structural`。带值选项可写成 `--opt value` 或 `--opt=value`；选项与位置参数的先后任意；**同一选项出现两次为 `USAGE`**；未知选项为 `USAGE`
+  （「未知」按子命令判：`compile --entry` 是 `USAGE`）。
+- `--opt value` 形式下，若下一个参数是**本子命令认识的选项**（`--input`、`--allow-unsigned` 等），视为缺值，`USAGE`；带值选项位于最末尾同样是缺值（夹具
+  `usage-option-value-is-another-option`、`usage-option-missing-value-at-end`）。要传以 `--` 开头的值，用 `--opt=value`。
 - `run` 必须给出 `--input`（`-` 表示 stdin）。`verify` 接受 `--timeout`（probes 每条的上限）。
+- **超时的计时起点是求值开始**：输入校验通过后，把入口与实参交给求值器的那一刻（Node：主线程向求值 Worker 投递任务时；JVM：开始建 Context、加载 IR 并执行入口时）。
+  读包、验签、本地编译、输入校验以及 Worker / Engine 的启动都不计入。超时后输出 `TIMEOUT`，进程正常退出。`verify --probes` 每条探针各自计时。
 - `--timeout` 匹配 `^(0|[1-9][0-9]*)(ms|s)(?![\s\S])`，值必须 > 0 且 ≤ 300 s（`300000ms` 可以，`300001ms`、`0s`、`1.5s`、`01s`、`5` 都是 `USAGE`）；缺省 `5s`。
 
 ## 输入
@@ -254,6 +274,21 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 但这依赖宿主转换与具体 builtin，不是可承诺的语义。包格式因此把 Int 入参限定在 int32，超出即 `INPUT_INVALID`，需要大值时用 Long。
 两引擎的整数宽度一致性（ts number 在 2⁵³ 之上失真、JVM 精确）另由 aster-cloud/aster-lang-truffle#183 跟踪。
 
+## compile
+
+`aster compile <pkg|file.aster> […]`，夹具在 `compile/`（`compile/cases.json`，路径相对该目录）：
+
+- **两种形态按位置参数判**：是普通文件且名字以 `.aster` 结尾 → 源码形态；否则 → 包形态（目录或 zip，同「包路径」）。
+- **源码形态**：可用 `--locale`（缺省 `en-US`）、`--alias-set <file>`（严格 JSON，`{"<SemanticTokenKind>":[别名…]}`）、`--vocabulary <file>`（严格 JSON）、
+  `--allow-structural`（只能与 `--alias-set` 同用）、`--out`。`--jwks`、`--pubkey`、`--allow-unsigned` 是 `USAGE`；源码或这些文件不存在、不可读、不是严格 JSON 都是 `USAGE`。
+  aliasSet 按 aster-api `UserAliasValidator` 的规则校验（多词、规范形、结构词需 `--allow-structural` 等），不通过与源码编译失败一样是 `COMPILE_ERROR`。
+- **包形态**：走 usage → read → manifest → signature → integrity（接受 `--jwks`、`--pubkey`、`--allow-unsigned`），编译输入一律取自 manifest 与 `policy/`
+  （A 包同样本地编译 `policy/`，不读 `compiled/`）；不与 `positionFreeSha256` 比对（漂移的包照常输出本地 IR，供排查；夹具 `package-drift-still-compiles`）。
+  `--locale`、`--alias-set`、`--vocabulary`、`--allow-structural` 是 `USAGE`。本地编译失败为 `COMPILE_ERROR`。
+- **输出**：成功时 stdout 为本地编译的规范 Core IR 字节加一个 `\n`；给 `--out <file>` 时把不带换行的规范 IR 字节写入该文件、stdout 为空。退出码 0。
+  两侧 IR 只差 origin 列（修订 1 A2），所以成功用例只比较投影哈希：`expectedStdout` 为 `null`（或 `--out` 时为 `""`）、`expectedPositionFreeSha256` 给出期望，
+  `outFile` 表示要读 `<OUT>` 处的文件（测试把 `<OUT>` 换成临时路径）。失败时输出与 `run` 相同的错误信封（`meta` 按阶段，源码形态恒为 null / false）。
+
 ## tests/probes.json
 
 严格 JSON，按值规范 JSON 写出：`{"probes":[{"entry":S,"expected":E,"input":{…}}…]}`，`E` 为 `{"ok":true,"value":V}` 或
@@ -279,6 +314,8 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 | `b-alias` | B，非空 aliasSet，`allowStructural=true`，node | 别名多词规范形、过 `UserAliasValidator`；投影哈希下两侧都成功 |
 | `a-decimal` | A，node | Decimal 字符串入参、HALF_EVEN 舍入、`verify --probes`、`verify --recompile` |
 | `a-bad-probe` | A（派生自 a-decimal） | probes 第 2 条期望被改坏并重新签名：`verify` 通过、`verify --probes` → `PROBE_MISMATCH` |
+| `a-probe-bad-entry` / `a-probe-bad-input` / `a-probe-bad-expectation` | A（派生自 a-decimal） | 探针条目不合法：`verify` 通过、`verify --probes` → `PROBE_MISMATCH` |
+| `a-probe-timeout` | A（派生自 a-timeout） | 探针超时：`verify --probes --timeout 1s` → `PROBE_MISMATCH`（不是 `TIMEOUT`） |
 | `a-inputs` | A，jre | Double / Long / List / Map / Maybe / Enum / Text 入参形态、int32 边界、结果超出 2⁵³ 的无损 probes |
 | `a-multi-entry` | A，jre | 多个入口（无 `main`）、缺省与 `--entry`、Double 结果、0 参入口、`EVAL_ERROR`、`ENTRY_NOT_FOUND`、期望失败的 probe、命令行语法与 `USAGE` |
 | `a-timeout` | A，node | `spin(60)` 在 `--timeout 1s` 下 `TIMEOUT` |

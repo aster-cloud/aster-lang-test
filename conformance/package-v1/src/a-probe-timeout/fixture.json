@@ -1,0 +1,27 @@
+{
+  "description": "与 a-timeout 相同，但探针输入改为 spin(60)：verify --probes --timeout 1s 时该探针超时，以 PROBE_MISMATCH 失败（不是 TIMEOUT）。",
+  "base": "a-timeout",
+  "probeEdits": [
+    {
+      "index": 0,
+      "input": {
+        "n": 60
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "verify",
+      "command": "verify"
+    },
+    {
+      "name": "verify-probes-mismatch",
+      "command": "verify",
+      "args": [
+        "--probes",
+        "--timeout",
+        "1s"
+      ]
+    }
+  ]
+}

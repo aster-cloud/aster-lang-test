@@ -419,6 +419,38 @@
       "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 2,
       "code": "USAGE"
+    },
+    {
+      "name": "usage-option-value-is-another-option",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--entry",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-option-missing-value-at-end",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json",
+        "--entry"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
     }
   ]
 }

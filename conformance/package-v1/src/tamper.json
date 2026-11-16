@@ -760,6 +760,14 @@
       "zip": "dir-entry-with-data",
       "code": "PKG_INTEGRITY",
       "stage": "read"
+    },
+    {
+      "name": "zip-too-many-entries",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "too-many-entries",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
     }
   ]
 }

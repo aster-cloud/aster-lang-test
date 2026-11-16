@@ -1,0 +1,31 @@
+{
+  "description": "与 a-decimal 相同，但第 1 条探针的 input 把 Decimal 写成 JSON 数字（不符合输入规则）：verify --probes 以 PROBE_MISMATCH 失败。",
+  "package": "a-probe-bad-input",
+  "cases": [
+    {
+      "name": "verify",
+      "args": [
+        "verify",
+        "a-probe-bad-input",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"ir\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-probes-mismatch",
+      "args": [
+        "verify",
+        "a-probe-bad-input",
+        "--probes",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"ir\",\"ok\":true},{\"code\":\"PROBE_MISMATCH\",\"name\":\"probes\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 1,
+      "code": "PROBE_MISMATCH"
+    }
+  ]
+}

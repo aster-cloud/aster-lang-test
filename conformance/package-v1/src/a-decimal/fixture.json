@@ -6,18 +6,82 @@
   "aliasSet": null,
   "allowStructural": false,
   "claimedRefVersion": 4,
-  "entries": [{ "function": "withTax", "default": true }],
+  "entries": [
+    {
+      "function": "withTax",
+      "default": true
+    }
+  ],
   "probes": [
-    { "entry": "withTax", "input": { "amount": "10" } },
-    { "entry": "withTax", "input": { "amount": "30" } },
-    { "entry": "withTax", "input": { "amount": "50" } }
+    {
+      "entry": "withTax",
+      "input": {
+        "amount": "10"
+      }
+    },
+    {
+      "entry": "withTax",
+      "input": {
+        "amount": "30"
+      }
+    },
+    {
+      "entry": "withTax",
+      "input": {
+        "amount": "50"
+      }
+    }
   ],
   "cases": [
-    { "name": "half-even-down", "command": "run", "input": { "amount": "10" }, "expect": "platform" },
-    { "name": "half-even-up", "command": "run", "input": { "amount": "30" }, "expect": "platform" },
-    { "name": "fractional-input", "command": "run", "input": { "amount": "12.34" }, "expect": "ts" },
-    { "name": "verify", "command": "verify" },
-    { "name": "verify-probes", "command": "verify", "args": ["--probes"] },
-    { "name": "verify-recompile", "command": "verify", "args": ["--recompile"] }
+    {
+      "name": "half-even-down",
+      "command": "run",
+      "input": {
+        "amount": "10"
+      },
+      "expect": "platform"
+    },
+    {
+      "name": "half-even-up",
+      "command": "run",
+      "input": {
+        "amount": "30"
+      },
+      "expect": "platform"
+    },
+    {
+      "name": "fractional-input",
+      "command": "run",
+      "input": {
+        "amount": "12.34"
+      },
+      "expect": "ts"
+    },
+    {
+      "name": "verify",
+      "command": "verify"
+    },
+    {
+      "name": "verify-probes",
+      "command": "verify",
+      "args": [
+        "--probes"
+      ]
+    },
+    {
+      "name": "verify-recompile",
+      "command": "verify",
+      "args": [
+        "--recompile"
+      ]
+    },
+    {
+      "name": "verify-recompile-and-probes",
+      "command": "verify",
+      "args": [
+        "--recompile",
+        "--probes"
+      ]
+    }
   ]
 }

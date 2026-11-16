@@ -1,0 +1,279 @@
+{
+  "description": "compile 子命令夹具（README「compile」）。source 用例的期望由 --capture-compile 以平台编译序列（PlatformCompile.java）采集，写入 expected.json；成功用例只比较投影哈希（两侧 IR 只差 origin 列，修订 1 A2），失败用例比较错误信封。",
+  "cases": [
+    {
+      "name": "source-en",
+      "args": [
+        "compile",
+        "sources/credit.aster"
+      ],
+      "expectedStdout": null,
+      "expectedExit": 0,
+      "code": null,
+      "expectedPositionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469"
+    },
+    {
+      "name": "source-en-out-file",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--out",
+        "<OUT>"
+      ],
+      "expectedStdout": "",
+      "expectedExit": 0,
+      "code": null,
+      "expectedPositionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469",
+      "outFile": "<OUT>"
+    },
+    {
+      "name": "source-locale-and-vocabulary",
+      "args": [
+        "compile",
+        "sources/vocab-de.aster",
+        "--locale",
+        "de-DE",
+        "--vocabulary",
+        "sources/vocab-de.vocabulary.json"
+      ],
+      "expectedStdout": null,
+      "expectedExit": 0,
+      "code": null,
+      "expectedPositionFreeSha256": "8a13f5ab2fb5822b8974c279b5f7e41ddd350ce263a2452fa246d017c34d14f5"
+    },
+    {
+      "name": "source-alias-set-structural",
+      "args": [
+        "compile",
+        "sources/alias.aster",
+        "--alias-set",
+        "sources/alias-set.json",
+        "--allow-structural"
+      ],
+      "expectedStdout": null,
+      "expectedExit": 0,
+      "code": null,
+      "expectedPositionFreeSha256": "5ea3f458252c32143a771e07c7c4371e3f91057e8cb4cd28ebb250a315e1e635"
+    },
+    {
+      "name": "source-structural-alias-not-allowed",
+      "args": [
+        "compile",
+        "sources/alias.aster",
+        "--alias-set",
+        "sources/alias-set.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "COMPILE_ERROR"
+    },
+    {
+      "name": "source-single-word-alias",
+      "args": [
+        "compile",
+        "sources/alias.aster",
+        "--alias-set",
+        "sources/alias-set-single-word.json",
+        "--allow-structural"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "COMPILE_ERROR"
+    },
+    {
+      "name": "source-syntax-error",
+      "args": [
+        "compile",
+        "sources/syntax-error.aster"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "COMPILE_ERROR"
+    },
+    {
+      "name": "usage-source-missing",
+      "args": [
+        "compile",
+        "sources/does-not-exist.aster"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-alias-set-not-json",
+      "args": [
+        "compile",
+        "sources/alias.aster",
+        "--alias-set",
+        "sources/alias-set-not-json.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-source-with-anchor",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-source-with-allow-unsigned",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--allow-unsigned"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-allow-structural-without-alias-set",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--allow-structural"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-package-with-locale",
+      "args": [
+        "compile",
+        "../packages/b-credit-limit",
+        "--locale",
+        "en-US",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-package-with-alias-set",
+      "args": [
+        "compile",
+        "../packages/b-credit-limit",
+        "--alias-set",
+        "sources/alias-set.json",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-unknown-option",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--entry",
+        "decide"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "package-b",
+      "args": [
+        "compile",
+        "../packages/b-credit-limit",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": null,
+      "expectedExit": 0,
+      "code": null,
+      "expectedPositionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469"
+    },
+    {
+      "name": "package-a-compiles-policy-not-compiled-dir",
+      "args": [
+        "compile",
+        "../packages/a-decimal",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": null,
+      "expectedExit": 0,
+      "code": null,
+      "expectedPositionFreeSha256": "338d6614ab8f13aea526b4d90a883d2031a333bff75787885dd3fec269ed1b32"
+    },
+    {
+      "name": "package-zip",
+      "args": [
+        "compile",
+        "../packages/b-zh.zip",
+        "--jwks",
+        "../keys/test-jwks.json",
+        "--out",
+        "<OUT>"
+      ],
+      "expectedStdout": "",
+      "expectedExit": 0,
+      "code": null,
+      "expectedPositionFreeSha256": "fc0be7c27828f59ff5f73d109e9d78a88c41e658d8f7ce29abcf0436d2136a3d",
+      "outFile": "<OUT>"
+    },
+    {
+      "name": "package-drift-still-compiles",
+      "args": [
+        "compile",
+        "../tamper/b-position-free-hash-wrong",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": null,
+      "expectedExit": 0,
+      "code": null,
+      "expectedPositionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469"
+    },
+    {
+      "name": "package-bad-signature",
+      "args": [
+        "compile",
+        "../tamper/signature-bit-flipped",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "package-builtin-anchor-is-empty",
+      "args": [
+        "compile",
+        "../packages/b-credit-limit"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_UNTRUSTED_KID\",\"message\":\"signing key id is not in the trust anchor\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_UNTRUSTED_KID"
+    },
+    {
+      "name": "package-unsigned-allowed",
+      "args": [
+        "compile",
+        "../packages/unsigned",
+        "--allow-unsigned"
+      ],
+      "expectedStdout": null,
+      "expectedExit": 0,
+      "code": null,
+      "expectedPositionFreeSha256": "f9b0c381276d5dca1b9236fdce5d06254e164ec467223c81cc2a94c46a157484"
+    }
+  ]
+}

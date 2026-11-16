@@ -20,6 +20,8 @@ import { publicKeyFromRaw, verifyManifest } from './signing.mjs';
 export const MAX_PACKAGE_BYTES = 64 * 1024 * 1024;
 export const MAX_MANIFEST_BYTES = 1024 * 1024;
 export const MAX_SIG_BYTES = 64 * 1024;
+/** 包内文件 / zip 条目数上限（目录形态数普通文件，zip 数中央目录条目，含目录条目）。 */
+export const MAX_PACKAGE_FILES = 1024;
 const META_FILES = new Set(['manifest.json', 'manifest.sig.json', 'SHA256SUMS']);
 const PATH = /^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*(?![\s\S])/;
 const FORMAT_VERSION = /^(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})(?![\s\S])/;
@@ -55,8 +57,11 @@ export function isSafeRoot(r) {
 function readDirectory(root) {
   const files = new Map();
   let total = 0;
+  let count = 0;
+  // 遍历顺序固定为每层目录内按名字的 UTF-8 字节序（两侧失败时报的是同一个条目）；每个普通文件先计数、再判大小
   const walk = (dir, rel) => {
-    for (const name of readdirSync(dir)) {
+    const names = readdirSync(dir).sort((a, b) => Buffer.compare(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8')));
+    for (const name of names) {
       const abs = join(dir, name);
       const r = rel ? `${rel}/${name}` : name;
       const st = lstatSync(abs);
@@ -66,6 +71,8 @@ function readDirectory(root) {
         continue;
       }
       if (!st.isFile()) fail('read', 'PKG_INTEGRITY', `不是普通文件 ${r}`);
+      count += 1;
+      if (count > MAX_PACKAGE_FILES) fail('read', 'PKG_INTEGRITY', `文件数超过 ${MAX_PACKAGE_FILES}`);
       if (st.size > MAX_PACKAGE_BYTES || total + st.size > MAX_PACKAGE_BYTES) fail('read', 'PKG_INTEGRITY', '目录形态超过 64 MiB');
       total += st.size;
       files.set(r, readFileSync(abs));
@@ -98,6 +105,7 @@ function readZip(buf) {
   if (count === 0xffff || cdSize === 0xffffffff || cdOff === 0xffffffff) z('ZIP64');
   if (cdOff + cdSize !== e) z('中央目录与 EOCD 之间有间隙');
   if (count === 0) z('空 zip');
+  if (count > MAX_PACKAGE_FILES) z(`条目数超过 ${MAX_PACKAGE_FILES}`);
   // 中央目录
   const cds = [];
   let p = cdOff;

@@ -1,0 +1,25 @@
+{
+  "description": "与 a-decimal 相同，但第 1 条探针的 input 把 Decimal 写成 JSON 数字（不符合输入规则）：verify --probes 以 PROBE_MISMATCH 失败。",
+  "base": "a-decimal",
+  "probeEdits": [
+    {
+      "index": 0,
+      "input": {
+        "amount": 10
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "verify",
+      "command": "verify"
+    },
+    {
+      "name": "verify-probes-mismatch",
+      "command": "verify",
+      "args": [
+        "--probes"
+      ]
+    }
+  ]
+}

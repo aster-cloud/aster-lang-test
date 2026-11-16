@@ -244,14 +244,22 @@ function probesFile(def) {
   const probes = def.probes.map((p, i) => {
     const exp = def.expected.probes[i];
     if (!exp || (exp.value === undefined && exp.error === undefined)) throw new Error(`${def.name}: probes[${i}] 缺少采集的期望值（先跑 --capture）`);
+    let expected;
     // 期望求值失败的探针（只允许 EVAL_ERROR；超时与资源耗尽不在承诺内，P2 生成时丢弃这类探针）
     if (exp.error !== undefined) {
       if (p.expect !== 'EVAL_ERROR') throw new Error(`${def.name}: probes[${i}] 在平台上失败但未声明 expect:"EVAL_ERROR"`);
-      return `{"entry":${canonicalJson(p.entry)},"expected":{"code":"EVAL_ERROR","ok":false},"input":${inputJson(p.input)}}`;
+      expected = '{"code":"EVAL_ERROR","ok":false}';
+    } else {
+      let value = exp.value;
+      if (def.corruptProbe && def.corruptProbe.index === i) value = valueJson(def.corruptProbe.value);
+      expected = `{"ok":true,"value":${value}}`;
     }
-    let value = exp.value;
-    if (def.corruptProbe && def.corruptProbe.index === i) value = valueJson(def.corruptProbe.value);
-    return `{"entry":${canonicalJson(p.entry)},"expected":{"ok":true,"value":${value}},"input":${inputJson(p.input)}}`;
+    // probeEdits：派生夹具改坏某条探针的入口、输入或期望形状（verify --probes 一律 PROBE_MISMATCH）
+    const edit = (def.probeEdits ?? []).find((e) => e.index === i) ?? {};
+    const entry = edit.entry ?? p.entry;
+    const input = edit.input !== undefined ? edit.input : p.input;
+    if (edit.expectedRaw !== undefined) expected = edit.expectedRaw;
+    return `{"entry":${canonicalJson(entry)},"expected":${expected},"input":${inputJson(input)}}`;
   });
   return utf8(`{"probes":[${probes.join(',')}]}`);
 }
@@ -465,7 +473,7 @@ export function verifyOutput(pkg, flags, failure, exitCodes) {
   }
   if (flags.includes('--probes')) {
     if (irFails('probes')) return fail('probes', failure.code);
-    if (pkg.def.corruptProbe) return fail('probes', 'PROBE_MISMATCH');
+    if (pkg.def.corruptProbe || pkg.def.probeEdits) return fail('probes', 'PROBE_MISMATCH');
     checks.push({ name: 'probes', ok: true });
   }
   return done(true, null);
@@ -682,6 +690,12 @@ function malformedZip(base, kind, pkgs) {
       return writeZip([...entries, { name: '../x', data: utf8('x') }]);
     case 'root-dotdot':
       return writeZip([...entries, { name: `${root}/../x`, data: utf8('x') }]);
+    case 'too-many-entries': {
+      // 中央目录条目（含目录条目）超过 1024：在解压任何条目之前即拒绝
+      const extra = [];
+      for (let i = 0; extra.length + entries.length <= 1024; i++) extra.push({ name: `${root}/extra/${String(i).padStart(4, '0')}.txt`, data: Buffer.alloc(0) });
+      return writeZip(sorted([...entries, ...extra]));
+    }
     case 'root-double-slash':
       // 去掉根与末尾 / 之后为空、但不是根目录条目本身
       return writeZip(sorted([...entries, { name: `${root}//`, directory: true }]));
@@ -1160,6 +1174,10 @@ export function anchorFiles() {
     ['anchors/jwks-short-x.json', jsonFile({ keys: [{ ...jwk, x: base64url(TEST_KEY.publicRaw.subarray(0, 31)) }] })],
     ['anchors/jwks-wrong-alg.json', jsonFile({ keys: [{ ...jwk, alg: 'ES256' }] })],
     ['anchors/jwks-not-json.json', utf8('{"keys":[\n')],
+    // 锚文件按严格 JSON 读：重复键、BOM、值之后的多余内容都是 USAGE
+    ['anchors/jwks-duplicate-json-key.json', utf8(`{"keys":${JSON.stringify([jwk])},"keys":${JSON.stringify([jwk])}}\n`)],
+    ['anchors/jwks-bom.json', Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), jsonFile({ keys: [jwk] })])],
+    ['anchors/test-pub-trailing-garbage.jwk.json', utf8(`${JSON.stringify(jwk)} {}\n`)],
     ['anchors/pub-padded.b64u', utf8(`${Buffer.from(TEST_KEY.publicRaw).toString('base64')}\n`)],
     ['anchors/pub-crlf.b64u', utf8(`${x}\r\n`)],
     ['anchors/pub-31-bytes.b64u', utf8(`${base64url(TEST_KEY.publicRaw.subarray(0, 31))}\n`)],
@@ -1197,6 +1215,7 @@ export function testTimeCases(pkgs, exitCodes) {
     cases: [
       pkgFail('dir-single-file-over-64MiB', [{ path: 'big.bin', size: 64 * MiB + 1 }]),
       pkgFail('dir-cumulative-over-64MiB', [{ path: 'a.bin', size: 40 * MiB }, { path: 'b.bin', size: 40 * MiB }]),
+      pkgFail('dir-too-many-files', Array.from({ length: 1024 }, (_, i) => ({ path: `extra/${String(i).padStart(4, '0')}.txt`, size: 0 }))),
       {
         name: 'zip-file-over-64MiB',
         recipe: { copyZip: 'packages/b-credit-limit.zip', appendZeros: 64 * MiB },
@@ -1217,4 +1236,38 @@ export function testTimeCases(pkgs, exitCodes) {
       },
     ],
   };
+}
+
+/**
+ * compile/：compile 子命令夹具（README「compile」）。源码类成功用例的投影哈希由平台编译序列采集
+ * （src/compile/expected.json，--capture-compile）；包类成功用例取对应黄金包 manifest 的 positionFreeSha256
+ * （compile 只本地编译 policy/，不比对、不读 compiled/）。成功用例：stdout 为规范 Core IR 字节 + \n（给 --out 时 stdout 为空、
+ * 文件内容为不带换行的规范 IR 字节），两侧 IR 只差 origin 列，因此只比较投影哈希（expectedPositionFreeSha256），expectedStdout 为 null；
+ * 失败用例比较错误信封。
+ */
+export function compileFixtures(srcDir, pkgs, exitCodes) {
+  const dir = join(srcDir, 'compile');
+  const doc = JSON.parse(readFileSync(join(dir, 'compile.json'), 'utf8'));
+  const captured = existsSync(join(dir, 'expected.json')) ? JSON.parse(readFileSync(join(dir, 'expected.json'), 'utf8')) : {};
+  const files = new Map();
+  for (const name of readdirSync(join(dir, 'sources')).sort()) files.set(`compile/sources/${name}`, readFileSync(join(dir, 'sources', name)));
+  const usageMeta = { cliVersion: '<CLI_VERSION>', coreIrSha256: null, engine: '<ENGINE>', entry: null, irRecompiled: false, signed: false };
+  const base = pkgs.get('b-credit-limit');
+  const success = (c, pf) => {
+    const out = c.args.includes('--out');
+    return { name: c.name, args: c.args, expectedStdout: out ? '' : null, expectedExit: 0, code: null, expectedPositionFreeSha256: pf, ...(out ? { outFile: '<OUT>' } : {}) };
+  };
+  const failure = (c, code, meta) => ({ name: c.name, args: c.args, expectedStdout: errorEnvelope(code, meta, exitCodes), expectedExit: exitCodes[code].exit, code });
+  const cases = doc.cases.map((c) => {
+    if (c.platform) {
+      const got = captured[c.name];
+      if (!got) throw new Error(`compile/${c.name}: 缺少平台采集结果（先跑 --capture-compile）`);
+      return got.ok ? success(c, got.positionFreeSha256) : failure(c, 'COMPILE_ERROR', usageMeta);
+    }
+    if (c.package) return success(c, pkgs.get(c.package).manifest.coreIr.positionFreeSha256);
+    const { code } = c.expect;
+    return failure(c, code, code === 'USAGE' ? usageMeta : runMeta(base, DEFAULT_STAGE[code], { entry: null, allowUnsigned: false }));
+  });
+  files.set('compile/cases.json', jsonFile({ description: doc.description, cases }));
+  return files;
 }

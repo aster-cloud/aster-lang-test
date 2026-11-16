@@ -4049,6 +4049,48 @@
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-too-many-entries",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-too-many-entries.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-too-many-entries (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-too-many-entries.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-too-many-entries (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-too-many-entries.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
     }
   ]
 }
