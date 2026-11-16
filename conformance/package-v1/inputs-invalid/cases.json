@@ -736,6 +736,38 @@
       "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"lookup\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
       "expectedExit": 2,
       "code": "INPUT_INVALID"
+    },
+    {
+      "name": "long-string-trailing-newline",
+      "args": [
+        "run",
+        "../packages/a-inputs",
+        "--entry",
+        "bump",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"l\":\"5\\n\"}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"bump\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "decimal-trailing-newline",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\\n\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
     }
   ]
 }

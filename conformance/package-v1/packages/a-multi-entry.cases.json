@@ -161,7 +161,7 @@
         "--jwks",
         "../keys/test-jwks.json"
       ],
-      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"probes\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"ir\",\"ok\":true},{\"name\":\"probes\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
       "expectedExit": 0,
       "code": null
     },
@@ -402,6 +402,23 @@
       "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":70}\n",
       "expectedExit": 0,
       "code": null
+    },
+    {
+      "name": "usage-timeout-trailing-newline",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--timeout",
+        "1s\n",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
     }
   ]
 }

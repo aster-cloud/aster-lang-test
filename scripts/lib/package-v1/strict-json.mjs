@@ -22,7 +22,6 @@ export class StrictJsonError extends Error {
 
 const WS = new Set([0x20, 0x09, 0x0a, 0x0d]);
 const NUMBER = /^-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?/;
-const STRING = /^"(?:[^"\\\u0000-\u001f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*"/;
 
 /** bytes（Buffer / Uint8Array）或已解码的字符串 → 值。 */
 export function parseStrictJson(input, { maxDepth = 64, lossless = false } = {}) {
@@ -41,11 +40,42 @@ export function parseStrictJson(input, { maxDepth = 64, lossless = false } = {})
   const ws = () => {
     while (i < text.length && WS.has(text.charCodeAt(i))) i++;
   };
+  // 字符串按字符逐个扫描（不用 `(?:…|…)*` 形式的正则：V8 对长输入回溯会栈溢出，16 MiB 以内的合法字符串也会触发）
+  const ESCAPES = { '"': '"', '\\': '\\', '/': '/', b: '\b', f: '\f', n: '\n', r: '\r', t: '\t' };
   const str = () => {
-    const m = STRING.exec(text.slice(i, i + Math.min(text.length - i, 1 << 26)));
-    if (!m) throw new StrictJsonError('syntax', `非法字符串（位置 ${i}）`);
-    i += m[0].length;
-    const s = JSON.parse(m[0]);
+    if (text[i] !== '"') throw new StrictJsonError('syntax', `期望字符串（位置 ${i}）`);
+    i++;
+    const parts = [];
+    let start = i;
+    for (;;) {
+      if (i >= text.length) throw new StrictJsonError('syntax', '字符串未结束');
+      const c = text.charCodeAt(i);
+      if (c === 0x22) {
+        parts.push(text.slice(start, i));
+        i++;
+        break;
+      }
+      if (c < 0x20) throw new StrictJsonError('syntax', `字符串内有未转义的控制字符（位置 ${i}）`);
+      if (c !== 0x5c) {
+        i++;
+        continue;
+      }
+      parts.push(text.slice(start, i));
+      const e = text[i + 1];
+      if (e === 'u') {
+        const hex = text.slice(i + 2, i + 6);
+        if (!/^[0-9a-fA-F]{4}$/.test(hex)) throw new StrictJsonError('syntax', `非法 \\u 转义（位置 ${i}）`);
+        parts.push(String.fromCharCode(parseInt(hex, 16)));
+        i += 6;
+      } else if (e !== undefined && Object.hasOwn(ESCAPES, e)) {
+        parts.push(ESCAPES[e]);
+        i += 2;
+      } else {
+        throw new StrictJsonError('syntax', `非法转义（位置 ${i}）`);
+      }
+      start = i;
+    }
+    const s = parts.join('');
     if (!s.isWellFormed()) throw new StrictJsonError('surrogate', '字符串含孤立代理项');
     return s;
   };

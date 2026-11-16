@@ -21,8 +21,8 @@ export const MAX_PACKAGE_BYTES = 64 * 1024 * 1024;
 export const MAX_MANIFEST_BYTES = 1024 * 1024;
 export const MAX_SIG_BYTES = 64 * 1024;
 const META_FILES = new Set(['manifest.json', 'manifest.sig.json', 'SHA256SUMS']);
-const PATH = /^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*$/;
-const FORMAT_VERSION = /^(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})$/;
+const PATH = /^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*(?![\s\S])/;
+const FORMAT_VERSION = /^(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})(?![\s\S])/;
 const B64U_86 = /^[A-Za-z0-9_-]{86}$/;
 
 const sha256 = (b) => createHash('sha256').update(b).digest('hex');
@@ -173,11 +173,16 @@ function readZip(buf) {
       let data;
       if (method === 0) data = raw;
       else {
+        let consumed;
         try {
-          data = inflateRawSync(raw, { maxOutputLength: Math.min(cd.usize, budget) + 1 });
+          const r = inflateRawSync(raw, { maxOutputLength: Math.min(cd.usize, budget) + 1, info: true });
+          data = r.buffer;
+          consumed = r.engine.bytesWritten;
         } catch {
           z(`解压失败或超过声明大小 / 64 MiB：${name}`);
         }
+        // 压缩数据必须恰好是一个完整的 deflate 流：最终块之后、csize 之内不得有多余字节
+        if (consumed !== raw.length) z(`deflate 流之后有多余字节：${name}`);
       }
       if (data.length !== cd.usize) z(`实际大小与声明不符：${name}`);
       if (data.length > budget) z('累计解压超过 64 MiB');

@@ -12,7 +12,7 @@ import { canonicalJson } from './canonical.mjs';
 import { parseValueTree, valueJson, bitsOfDouble, doubleFromBits } from './value-json.mjs';
 import { positionFreeSha256 } from './position-free.mjs';
 import { keyPairFromSeed, signManifest, base64url } from './signing.mjs';
-import { writeZip, deflateZeros, crc32 } from './zip.mjs';
+import { writeZip, deflateZeros, deflateStored, crc32 } from './zip.mjs';
 
 export const sha256Hex = (bytes) => createHash('sha256').update(bytes).digest('hex');
 const utf8 = (s) => Buffer.from(s, 'utf8');
@@ -420,7 +420,7 @@ const META_PLACEHOLDERS = { cliVersion: '<CLI_VERSION>', engine: '<ENGINE>' };
  *   - usage → 与 run 相同的错误信封；
  *   - read → 唯一一项 integrity 失败（缺 manifest.json 时为 schema 失败）；
  *   - manifest → schema 失败；signature → schema 通过、signature 失败；integrity → 前两项通过、integrity 失败；
- *   - ir → 普通 verify 不取 IR，照常通过；只有 failsIn 列出的 recompile / probes 检查以该码失败。
+ *   - ir → A 包的 compiled/core.json 读不出时普通 verify 即在 ir 检查项失败；B 包的漂移只在 failsIn 列出的 recompile / probes 检查中失败。
  * 在第一项失败处停止。
  */
 export function verifyOutput(pkg, flags, failure, exitCodes) {
@@ -452,6 +452,11 @@ export function verifyOutput(pkg, flags, failure, exitCodes) {
   if (failure?.stage === 'integrity') return fail('integrity', failure.code);
   integrity = true;
   checks.push({ name: 'integrity', ok: true });
+  // A 包：普通 verify 也严格读入 compiled/core.json（ADR §4.1「运行时兼容」），失败即 PKG_UNSUPPORTED_IR，与 run 一致
+  if (pkg.manifest.mode === 'a') {
+    if (failure?.stage === 'ir' && failure.code === 'PKG_UNSUPPORTED_IR') return fail('ir', failure.code);
+    checks.push({ name: 'ir', ok: true });
+  }
   const irFails = (name) => failure?.stage === 'ir' && (failure.failsIn ?? []).includes(name);
   if (flags.includes('--recompile')) {
     if (irFails('recompile')) return fail('recompile', failure.code);
@@ -595,6 +600,7 @@ const MANIFEST_EDITS = {
   'format-01.0': (m) => { m.formatVersion = '01.0'; },
   'format-1.0.0': (m) => { m.formatVersion = '1.0.0'; },
   'format-1': (m) => { m.formatVersion = '1'; },
+  'format-1.1-trailing-newline': (m) => { m.formatVersion = '1.1\n'; },
   'format-huge-major': (m) => { m.formatVersion = '99999999999999999999.0'; },
   'format-version-number': (m) => { m.formatVersion = 1; },
   'core-ir-3': (m) => { m.coreIr.version = 3; },
@@ -706,6 +712,14 @@ function malformedZip(base, kind, pkgs) {
       return writeZip(replace('README.md', { cd: { name: `${root}/READMF.md` } }));
     case 'lfh-cd-size-mismatch':
       return writeZip(replace('README.md', { cd: { uncompressedSize: readme.length + 7 } }));
+    case 'lfh-name-wrong':
+      // 本地头名字错、中央目录对：只读中央目录的实现（java.util.zip.ZipFile、fflate unzipSync）会照常通过，必须被拒绝
+      return writeZip(replace('README.md', { lfh: { name: `${root}/READMF.md` } }));
+    case 'lfh-size-wrong':
+      return writeZip(replace('README.md', { lfh: { uncompressedSize: readme.length + 7 } }));
+    case 'deflate-trailing-bytes':
+      // deflate 流的最终块结束后、csize 之内还有多余字节：Node inflateRawSync 静默忽略，java.util.zip 会把它们当作下一个头
+      return writeZip(replace('README.md', { method: 8, compressed: Buffer.concat([deflateStored(readme), utf8('JUNK')]) }));
     case 'prepended-bytes':
       return writeZip(entries, { prefix: utf8('#!/bin/sh\nexit 0\n') });
     case 'trailing-bytes':

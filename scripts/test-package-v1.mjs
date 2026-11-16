@@ -352,5 +352,17 @@ check('value-json: 嵌套层级上限 64（与 ts SERIALIZE_MAX_DEPTH 相同）'
   assert.throws(() => vj('"\\ud800"'), ValueJsonError);
 });
 
+check('长字符串（N1）：1 200 万字符的字符串值，严格 JSON、--input 校验与 stdout 归一都正常工作（不依赖会回溯溢栈的正则）', () => {
+  const big = 'a'.repeat(12_000_000);
+  const escaped = `${'\\"'.repeat(1_000_000)}${big}`;
+  assert.strictEqual(parseStrictJson(Buffer.from(`{"s":"${big}"}`)).s.length, 12_000_000);
+  assert.strictEqual(parseStrictJson(Buffer.from(`"${escaped}"`)).length, 13_000_000);
+  const textIr = { decls: [{ kind: 'Func', name: 'echo', params: [{ name: 's', type: { kind: 'TypeName', name: 'Text' } }] }] };
+  assert.strictEqual(validateInput(Buffer.from(`{"s":"${big}"}`), textIr, 'echo').s.length, 12_000_000);
+  const stdout = `{"meta":{"cliVersion":"3.3.0","coreIrSha256":null,"engine":"aster-lang-ts-interpreter","entry":"echo","irRecompiled":false,"signed":true},"ok":true,"value":"${big}"}\n`;
+  const want = stdout.replace('"3.3.0"', '"<CLI_VERSION>"').replace('"aster-lang-ts-interpreter"', '"<ENGINE>"');
+  assert.ok(normalizeStdout(stdout) === want, '归一结果不对');
+});
+
 console.log(`test-package-v1: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;

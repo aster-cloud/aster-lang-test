@@ -160,6 +160,7 @@
             "schema",
             "signature",
             "integrity",
+            "ir",
             "recompile",
             "probes"
           ]

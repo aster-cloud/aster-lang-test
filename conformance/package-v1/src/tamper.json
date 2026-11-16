@@ -698,6 +698,39 @@
       "bytes": "unsafe-integer",
       "resign": true,
       "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "zip-lfh-name-wrong-cd-right",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "lfh-name-wrong",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-lfh-size-wrong-cd-right",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "lfh-size-wrong",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-deflate-trailing-bytes",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "deflate-trailing-bytes",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "format-version-trailing-newline",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "format-1.1-trailing-newline",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "format"
     }
   ]
 }
