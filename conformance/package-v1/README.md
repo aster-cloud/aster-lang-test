@@ -109,7 +109,7 @@ CI 中的兄弟仓固定在被测版本（aster-lang-ts `v3.2.0`、aster-guard `
 |---|---|---|---|
 | usage | 命令行语法（见「命令行」）；信任锚文件的读取与校验（见「信任锚」）；环境变量 `ASTER_TRUFFLE_FUNC` 已设置（仅 JVM，修订 A5） | `USAGE` | 不输出 checks，输出错误信封 |
 | read | 读包（见「包路径」「zip 规则」「体积上限」）；没有 `manifest.json` | `PKG_INTEGRITY`；缺 manifest 为 `PKG_INVALID_MANIFEST` | `integrity`（缺 manifest 为 `schema`），唯一一项 |
-| manifest | ① 大小 ≤ 1 MiB ② 严格 JSON（见「严格 JSON」，深度 ≤ 64）③ 所有数字都是 ±(2⁵³−1) 内的整数（规范 JSON 的数字域；用任意精度整数读入的实现也必须拒绝超出者，夹具 `manifest-unsafe-integer`），且**文件字节**逐字节等于其解析结果的规范 JSON 的 UTF-8 ④ `format` 为字符串 `aster-policy-package`，`formatVersion` 为字符串且匹配 `^(0\|[1-9][0-9]{0,8})\.(0\|[1-9][0-9]{0,8})$` ⑤ 主版本 = 1 且次版本 ≤ 0 ⑥ schema ⑦ 语义规则（见「manifest 语义规则」）⑧ `coreIr.version` = 2 | ⑤ `PKG_UNSUPPORTED_FORMAT`；⑧ `PKG_UNSUPPORTED_IR`；其余 `PKG_INVALID_MANIFEST` | `schema` |
+| manifest | ① 大小 ≤ 1 MiB ② 严格 JSON（见「严格 JSON」，深度 ≤ 64）③ 所有数字都是 ±(2⁵³−1) 内的整数（规范 JSON 的数字域；用任意精度整数读入的实现也必须拒绝超出者，夹具 `manifest-unsafe-integer`），且**文件字节**逐字节等于其解析结果的规范 JSON 的 UTF-8 ④ `format` 为字符串 `aster-policy-package`，`formatVersion` 为字符串且匹配 `^(0\|[1-9][0-9]{0,8})\.(0\|[1-9][0-9]{0,8})(?![\s\S])` ⑤ 主版本 = 1 且次版本 ≤ 0 ⑥ schema ⑦ 语义规则（见「manifest 语义规则」）⑧ `coreIr.version` = 2 | ⑤ `PKG_UNSUPPORTED_FORMAT`；⑧ `PKG_UNSUPPORTED_IR`；其余 `PKG_INVALID_MANIFEST` | `schema` |
 | signature | 无 `manifest.sig.json`：`--allow-unsigned` 时继续（`signed=false`），否则失败。有签名文件（即使给了 `--allow-unsigned` 也必须成立）：大小 ≤ 64 KiB → 严格 JSON → sig schema → `sig` 为规范 base64url（解码后重新编码与原文相同）→ 按「信任锚」取公钥（取不到为 `PKG_UNTRUSTED_KID`）→ Ed25519 验签 manifest 文件字节（RFC 8032：拒绝 S ≥ L） | `PKG_UNSIGNED`；`PKG_UNTRUSTED_KID`；其余 `PKG_SIGNATURE` | `signature` |
 | integrity | `files[]` 每项存在、大小与 SHA-256 相符；包内除三个元文件外没有 `files[]` 以外的文件；`SHA256SUMS` 存在且逐字节等于由 `files[]` + `manifest.json` 生成的内容（GNU 格式 `<hex>␠␠<path>\n`，按路径 UTF-8 字节序）；A 包 `compiled/core.json` 的 SHA-256 = `coreIr.sha256`；`source.sha256` = `policy/policy.aster` 的 SHA-256；`tests.probesSha256` = `tests/probes.json` 的 SHA-256；`tests.probes` = 该文件（严格 JSON）中 `probes` 的条数 | `PKG_INTEGRITY` | `integrity` |
 | ir | A：严格读入 `compiled/core.json`（ts `readCoreIr` / core `CoreIrJson.read`）。B：按 manifest 的 locale / aliasSet / allowStructural / 词汇本地编译（含 aliasSet 校验），按 `positionFreeSha256` 比对 | A 读入失败 `PKG_UNSUPPORTED_IR`；B 编译失败或不等 `PKG_IR_DRIFT` | A 包：`ir`（普通 `verify` 也做）；B 包不在普通 `verify` 中编译，只在 `recompile` / `probes` 中出现 |
@@ -147,7 +147,7 @@ schema 表达不了、但两侧都必须判的规则，失败一律 `PKG_INVALID
 
 **正则语义（I1）：** 两份 schema 中的模式都以 `(?![\s\S])` 而不是 `$` 收尾。ECMA-262（ajv）中二者等价，但 `java.util.regex`（networknt 的缺省
 `Matcher.find()`）里 `$` 还会匹配末尾换行之前，`"test-2026-11\n"` 这样的值会在 JVM 上通过 schema。两侧各自用自己的正则引擎即可，无需切换到
-ECMA 引擎；schema 不得再出现以 `$` 收尾的模式（夹具 `signature-kid-trailing-newline`、`manifest-sha256-trailing-newline`）。
+ECMA 引擎；schema 不得再出现以 `$` 收尾的模式（夹具 `signature-kid-trailing-newline`、`manifest-sha256-trailing-newline`）。本 README 中 schema 之外的规则（`formatVersion`、`--timeout`、Long / Decimal 字符串）同样要求整体匹配、不接受末尾换行，文中的模式也都以 `(?![\s\S])` 收尾（夹具 `format-version-trailing-newline`、`usage-timeout-trailing-newline`、`long-string-trailing-newline`、`decimal-trailing-newline`）。
 
 ## 严格 JSON
 
@@ -221,7 +221,7 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 - 带值选项：`--entry`、`--input`、`--timeout`、`--jwks`、`--pubkey`（`compile` 另有 `--locale`、`--alias-set`、`--vocabulary`、`--out`）；开关：`--allow-unsigned`、
   `--recompile`、`--probes`、`--allow-structural`。带值选项可写成 `--opt value` 或 `--opt=value`；选项与位置参数的先后任意；**同一选项出现两次为 `USAGE`**；未知选项为 `USAGE`。
 - `run` 必须给出 `--input`（`-` 表示 stdin）。`verify` 接受 `--timeout`（probes 每条的上限）。
-- `--timeout` 匹配 `^(0|[1-9][0-9]*)(ms|s)$`，值必须 > 0 且 ≤ 300 s（`300000ms` 可以，`300001ms`、`0s`、`1.5s`、`01s`、`5` 都是 `USAGE`）；缺省 `5s`。
+- `--timeout` 匹配 `^(0|[1-9][0-9]*)(ms|s)(?![\s\S])`，值必须 > 0 且 ≤ 300 s（`300000ms` 可以，`300001ms`、`0s`、`1.5s`、`01s`、`5` 都是 `USAGE`）；缺省 `5s`。
 
 ## 输入
 
@@ -236,9 +236,9 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 | Core IR 类型 | 输入形态 | `schema/input.json` |
 |---|---|---|
 | Int | 整数 token（不含 `.` `e` `E`；`7.0`、`7e0` 都不行），范围 **int32**（−2³¹ … 2³¹−1） | `{"type":"integer","minimum":-2147483648,"maximum":2147483647}` |
-| Long | 整数 token 且在 ±(2⁵³−1) 内；或十进制字符串 `^-?(0\|[1-9][0-9]{0,18})$` 且在 int64 内 | `{"anyOf":[{"type":"integer",…±(2⁵³−1)},{"type":"string","pattern":…}]}` |
+| Long | 整数 token 且在 ±(2⁵³−1) 内；或十进制字符串 `^-?(0\|[1-9][0-9]{0,18})(?![\s\S])` 且在 int64 内 | `{"anyOf":[{"type":"integer",…±(2⁵³−1)},{"type":"string","pattern":…}]}` |
 | Double | 任意有限 JSON 数字（整数 token 也可以，转为 double guest 值） | `{"type":"number"}` |
-| Decimal | 字符串 `^-?(0\|[1-9][0-9]*)(\.[0-9]+)?$`，数字（不计符号与小数点）至多 **80** 位（与 ts decimal.js `precision: 80` 一致）；JSON 数字不行 | `{"type":"string","pattern":…}` |
+| Decimal | 字符串 `^-?(0\|[1-9][0-9]*)(\.[0-9]+)?(?![\s\S])`，数字（不计符号与小数点）至多 **80** 位（与 ts decimal.js `precision: 80` 一致）；JSON 数字不行 | `{"type":"string","pattern":…}` |
 | Text / Bool | JSON 字符串 / 布尔 | `string` / `boolean` |
 | List&lt;T&gt; | 数组，元素为 T 的形态 | `{"type":"array","items":…}` |
 | Map&lt;Text, V&gt; | 对象，值为 V 的形态 | `{"type":"object","additionalProperties":…}` |

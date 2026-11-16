@@ -3881,6 +3881,48 @@
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "format-version-trailing-newline",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "format-version-trailing-newline",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-trailing-newline (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "format-version-trailing-newline",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-trailing-newline (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "format-version-trailing-newline",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
     }
   ]
 }

@@ -299,6 +299,20 @@
         "lookup"
       ],
       "stdin": "{\"m\":[]}"
+    },
+    {
+      "name": "long-string-trailing-newline",
+      "package": "a-inputs",
+      "args": [
+        "--entry",
+        "bump"
+      ],
+      "stdin": "{\"l\":\"5\\n\"}"
+    },
+    {
+      "name": "decimal-trailing-newline",
+      "package": "b-credit-limit",
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\\n\",\"requestedAmount\":\"20000\"}}"
     }
   ]
 }

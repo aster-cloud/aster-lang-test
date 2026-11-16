@@ -600,6 +600,7 @@ const MANIFEST_EDITS = {
   'format-01.0': (m) => { m.formatVersion = '01.0'; },
   'format-1.0.0': (m) => { m.formatVersion = '1.0.0'; },
   'format-1': (m) => { m.formatVersion = '1'; },
+  'format-1.1-trailing-newline': (m) => { m.formatVersion = '1.1\n'; },
   'format-huge-major': (m) => { m.formatVersion = '99999999999999999999.0'; },
   'format-version-number': (m) => { m.formatVersion = 1; },
   'core-ir-3': (m) => { m.coreIr.version = 3; },

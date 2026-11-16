@@ -722,6 +722,15 @@
       "zip": "deflate-trailing-bytes",
       "code": "PKG_INTEGRITY",
       "stage": "read"
+    },
+    {
+      "name": "format-version-trailing-newline",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "format-1.1-trailing-newline",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "format"
     }
   ]
 }

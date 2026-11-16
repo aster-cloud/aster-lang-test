@@ -386,6 +386,20 @@
       "stdin": " {\"x\": 7}\n",
       "expect": "platform",
       "sameAs": "default-entry"
+    },
+    {
+      "name": "usage-timeout-trailing-newline",
+      "command": "run",
+      "args": [
+        "--timeout",
+        "1s\n"
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": {
+        "code": "USAGE"
+      }
     }
   ]
 }

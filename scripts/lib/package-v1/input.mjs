@@ -17,8 +17,8 @@ const INT32_MAX = 2147483647n;
 const INT64_MIN = -9223372036854775808n;
 const INT64_MAX = 9223372036854775807n;
 const SAFE = BigInt(Number.MAX_SAFE_INTEGER);
-const DECIMAL = /^-?(0|[1-9][0-9]*)(\.[0-9]+)?$/;
-const LONG_STRING = /^-?(0|[1-9][0-9]{0,18})$/;
+const DECIMAL = /^-?(0|[1-9][0-9]*)(\.[0-9]+)?(?![\s\S])/;
+const LONG_STRING = /^-?(0|[1-9][0-9]{0,18})(?![\s\S])/;
 
 export class InputError extends Error {
   constructor(message) {
