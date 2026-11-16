@@ -26,6 +26,11 @@ on:
         description: 'release train 标识（审计用）'
         required: false
         type: string
+      forceTests:
+        description: '发布 run 跑完整测试而不要求 main CI 已通过（ADR 0053 修订 A2 的逃生口）'
+        required: false
+        type: boolean
+        default: false
 
 # dispatch(vX) 与 tag-push(vX) 同 concurrency group（inputs.version 补 v 前缀对齐
 # ref_name），串行化同版本的 create-tag 与 publish；cancel-in-progress:false 避免
@@ -62,6 +67,7 @@ jobs:
       - name: Create & push release tag
         env:
           VERSION: ${{ inputs.version }}
+          FORCE_TESTS: ${{ inputs.forceTests }}
         run: |
           RESOLVED=$(cd packages/jvm && ./gradlew -q properties | sed -n 's/^version: //p' | head -n1)
           if [ "$VERSION" != "$RESOLVED" ]; then
@@ -79,7 +85,12 @@ jobs:
             fi
             echo "::error::$TAG exists but points to $TAG_SHA, not HEAD $HEAD_SHA"; exit 1
           fi
-          git tag "$TAG"
+          # ADR 0053 修订 A2：forceTests 时打 annotated tag，消息带标记，tag-push 的发布 run 据此跑完整测试。
+          if [ "$FORCE_TESTS" = "true" ]; then
+            git tag -a "$TAG" -m "release-gate: force-tests"
+          else
+            git tag "$TAG"
+          fi
           git push origin "$TAG"
 
   publish:
@@ -87,6 +98,8 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     permissions:
+      # ADR 0053 修订 A2：main CI 门禁读本仓的 CI run 与 job。
+      actions: read
       contents: read
       packages: write
     steps:
@@ -121,6 +134,31 @@ jobs:
             echo "match=false" >> "$GITHUB_OUTPUT"
             echo "::notice::tag v$TAG_VERSION != JVM package version $PKG_VERSION → skip Maven publish"
           fi
+      # ADR 0053 修订 A2：发布的 commit 必须已在 main CI 上通过，发布 run 不再重跑测试。
+      # 必需 job 见 .github/main-ci-gate.json；tag 带「release-gate: force-tests」时门禁跳过、本 run 跑完整测试。
+      - name: Require main CI green for this commit
+        id: ci-gate
+        if: steps.gate.outputs.match == 'true'
+        uses: aster-cloud/aster-lang-platform/.github/actions/require-main-ci-green@main
+      # force-tests：按 main CI 的 Build & test (JDK) 跑一遍。
+      - name: Test (force-tests only)
+        if: steps.gate.outputs.match == 'true' && steps.ci-gate.outputs.force-tests == 'true'
+        working-directory: packages/jvm
+        run: ./gradlew test
+      - if: steps.gate.outputs.match == 'true'
+        working-directory: packages/jvm
+        run: ./gradlew jar
+      # jar 级冒烟：主 jar 存在、版本与 tag 一致、带语料与 loader 类。
+      - name: Verify jar contents
+        if: steps.gate.outputs.match == 'true'
+        uses: aster-cloud/aster-lang-platform/.github/actions/verify-jar-contents@main
+        with:
+          working-directory: packages/jvm
+          jars: build/libs/*.jar
+          version: ${{ github.ref_name }}
+          entries: |
+            ^corpus/tier1-equivalence/
+            ^cloud/aster/.*\.class$
       - if: steps.gate.outputs.match == 'true'
         working-directory: packages/jvm
         run: ./gradlew publish
