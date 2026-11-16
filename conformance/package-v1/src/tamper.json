@@ -736,6 +736,30 @@
       "resign": true,
       "code": "PKG_INVALID_MANIFEST",
       "layer": "format"
+    },
+    {
+      "name": "zip-root-double-slash",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "root-double-slash",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-dir-entry-bad-crc",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "dir-entry-bad-crc",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-dir-entry-with-data",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "dir-entry-with-data",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
     }
   ]
 }

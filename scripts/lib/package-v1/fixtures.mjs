@@ -682,6 +682,15 @@ function malformedZip(base, kind, pkgs) {
       return writeZip([...entries, { name: '../x', data: utf8('x') }]);
     case 'root-dotdot':
       return writeZip([...entries, { name: `${root}/../x`, data: utf8('x') }]);
+    case 'root-double-slash':
+      // 去掉根与末尾 / 之后为空、但不是根目录条目本身
+      return writeZip(sorted([...entries, { name: `${root}//`, directory: true }]));
+    case 'dir-entry-bad-crc':
+      // 存储的目录条目：无数据、声明大小 0，但 crc 不是空数据的 CRC-32（0）
+      return writeZip(entries.map((e) => (e.name === `${root}/policy/` ? { ...e, crc: 0x1234abcd } : e)));
+    case 'dir-entry-with-data':
+      // 目录条目带 1 字节数据（声明大小与 CRC 都与该数据一致），违反「目录条目大小为 0」
+      return writeZip(entries.map((e) => (e.name === `${root}/policy/` ? { ...e, dirData: utf8('x') } : e)));
     case 'dir-entry-dotdot':
       return writeZip([...entries, { name: `${root}/../`, directory: true }]);
     case 'absolute':

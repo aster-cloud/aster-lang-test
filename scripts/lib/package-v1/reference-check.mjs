@@ -163,33 +163,32 @@ function readZip(buf) {
     const rest = name.slice(slash + 1);
     const isDir = rest === '' || rest.endsWith('/');
     const rel = isDir ? rest.slice(0, -1) : rest;
-    if (rel !== '' && !isPackagePath(rel)) z(`条目路径不合法：${name}`);
+    // 去掉根之后只有根目录条目本身（`<root>/`）可以为空；`<root>//` 之类去掉末尾 / 后为空的条目一律拒绝
+    if (rel === '' ? rest !== '' : !isPackagePath(rel)) z(`条目路径不合法：${name}`);
     if (seen.has(name)) z(`重复条目 ${name}`);
     seen.add(name);
-    if (isDir) {
-      if (cd.usize !== 0) z('目录条目带数据');
-    } else {
-      const raw = buf.subarray(dataAt, dataAt + cd.csize);
-      let data;
-      if (method === 0) data = raw;
-      else {
-        let consumed;
-        try {
-          const r = inflateRawSync(raw, { maxOutputLength: Math.min(cd.usize, budget) + 1, info: true });
-          data = r.buffer;
-          consumed = r.engine.bytesWritten;
-        } catch {
-          z(`解压失败或超过声明大小 / 64 MiB：${name}`);
-        }
-        // 压缩数据必须恰好是一个完整的 deflate 流：最终块之后、csize 之内不得有多余字节
-        if (consumed !== raw.length) z(`deflate 流之后有多余字节：${name}`);
+    // 逐条目的大小 / CRC / deflate 消耗规则对目录条目同样适用；目录条目只是不进入文件表
+    if (isDir && cd.usize !== 0) z(`目录条目的声明大小不为 0：${name}`);
+    const raw = buf.subarray(dataAt, dataAt + cd.csize);
+    let data;
+    if (method === 0) data = raw;
+    else {
+      let consumed;
+      try {
+        const r = inflateRawSync(raw, { maxOutputLength: Math.min(cd.usize, budget) + 1, info: true });
+        data = r.buffer;
+        consumed = r.engine.bytesWritten;
+      } catch {
+        z(`解压失败或超过声明大小 / 64 MiB：${name}`);
       }
-      if (data.length !== cd.usize) z(`实际大小与声明不符：${name}`);
-      if (data.length > budget) z('累计解压超过 64 MiB');
-      budget -= data.length;
-      if (crc32(data) !== cd.crc) z(`CRC 不符：${name}`);
-      entries.push([rel, data]);
+      // 压缩数据必须恰好是一个完整的 deflate 流：最终块之后、csize 之内不得有多余字节
+      if (consumed !== raw.length) z(`deflate 流之后有多余字节：${name}`);
     }
+    if (data.length !== cd.usize) z(`实际大小与声明不符：${name}`);
+    if (data.length > budget) z('累计解压超过 64 MiB');
+    budget -= data.length;
+    if (crc32(data) !== cd.crc) z(`CRC 不符：${name}`);
+    if (!isDir) entries.push([rel, data]);
     at = next;
   }
   if (at !== cdOff) z('最后一个条目与中央目录之间有多余字节');
