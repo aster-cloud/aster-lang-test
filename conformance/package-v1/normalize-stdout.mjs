@@ -17,6 +17,9 @@ export const ENGINE_PLACEHOLDER = '"<ENGINE>"';
 export const CLI_VERSION_PLACEHOLDER = '"<CLI_VERSION>"';
 const PLACEHOLDERS = { engine: ENGINE_PLACEHOLDER, cliVersion: CLI_VERSION_PLACEHOLDER };
 
+/** 标量 token（sticky：从 lastIndex 处匹配，不复制剩余文本）。 */
+const SCALAR = /(?:true|false|null|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)/y;
+
 /** 最小 JSON 扫描器：只需记录顶层 `meta` 对象直接成员的值区间；任何语法错误抛出。 */
 class Scanner {
   constructor(text) {
@@ -57,7 +60,8 @@ class Scanner {
       const key = this.string();
       return { start, end: this.i, type: 'string', text: key };
     }
-    const m = /^(?:true|false|null|-?(?:0|[1-9][0-9]*)(?:\.[0-9]+)?(?:[eE][+-]?[0-9]+)?)/.exec(this.s.slice(this.i));
+    SCALAR.lastIndex = this.i;
+    const m = SCALAR.exec(this.s);
     if (!m) this.fail();
     this.i += m[0].length;
     return { start, end: this.i, type: 'scalar' };
@@ -87,11 +91,36 @@ class Scanner {
     }
   }
 
+  /**
+   * 字符串按字符逐个扫描（不用 `(?:…|…)*` 形式的正则：V8 对长输入回溯会栈溢出，CLI 输出一个很长的 Text 值时
+   * 归一会静默失效）。只在扫描通过后才用 JSON.parse 解码这一段。
+   */
   string() {
-    const m = /^"(?:[^"\\\u0000-\u001f]|\\(?:["\\/bfnrt]|u[0-9a-fA-F]{4}))*"/.exec(this.s.slice(this.i));
-    if (!m) this.fail();
-    this.i += m[0].length;
-    return JSON.parse(m[0]);
+    const s = this.s;
+    const start = this.i;
+    if (s[this.i] !== '"') this.fail();
+    let i = this.i + 1;
+    for (;;) {
+      if (i >= s.length) this.fail();
+      const c = s.charCodeAt(i);
+      if (c === 0x22) break;
+      if (c < 0x20) this.fail();
+      if (c === 0x5c) {
+        const e = s[i + 1];
+        if (e === 'u') {
+          if (!/^[0-9a-fA-F]{4}$/.test(s.slice(i + 2, i + 6))) this.fail();
+          i += 6;
+        } else if (e !== undefined && '"\\/bfnrt'.includes(e)) {
+          i += 2;
+        } else {
+          this.fail();
+        }
+        continue;
+      }
+      i++;
+    }
+    this.i = i + 1;
+    return JSON.parse(s.slice(start, this.i));
   }
 }
 

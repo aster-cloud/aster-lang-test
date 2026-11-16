@@ -120,7 +120,7 @@ export function deflateZeros(n) {
  *   对 DEFLATED 条目的写法）；utf8：置通用标志位 11（ZipOutputStream 对非 ASCII 名的写法）；flags：额外或上的标志位；
  *   畸形开关：rawMethod（头部写入的方法号，如 12）、compressed（直接给出压缩后字节）、crc、declaredUncompressedSize、
  *   declaredCompressedSize（头部写入的值，不必与实际相符）；cd：只覆盖中央目录中的字段（name / crc /
- *   compressedSize / uncompressedSize），用于本地头与中央目录不一致；zip64：大小字段写 0xFFFFFFFF 并带 ZIP64 extra；
+ *   compressedSize / uncompressedSize），用于本地头与中央目录不一致；lfh：反过来只覆盖本地头（name / uncompressedSize）；zip64：大小字段写 0xFFFFFFFF 并带 ZIP64 extra；
  *   rawName：直接给出条目名字节（可为非法 UTF-8）。
  * 归档级 opts：prefix（首个本地头之前的字节）、comment（EOCD 注释）、suffix（EOCD 之后的字节）。
  * 不给任何开关时输出与本模块此前版本逐字节相同。
@@ -132,6 +132,9 @@ export function writeZip(entries, opts = {}) {
   let offset = prefix.length;
   for (const e of entries) {
     const name = e.rawName ?? Buffer.from(e.name, 'utf8');
+    // lfh：只覆盖本地头中的字段（name / uncompressedSize），与 cd 相反方向的不一致
+    const lfh = e.lfh ?? {};
+    const localName = lfh.name !== undefined ? Buffer.from(lfh.name, 'utf8') : name;
     const data = e.directory ? Buffer.alloc(0) : (e.data ?? Buffer.alloc(0));
     const method = e.rawMethod ?? (e.directory ? 0 : (e.method ?? 0));
     const compressed = e.compressed ?? (method === 8 ? deflateStored(data) : data);
@@ -158,10 +161,10 @@ export function writeZip(entries, opts = {}) {
     local.writeUInt16LE(DOS_DATE, 12);
     local.writeUInt32LE(e.descriptor ? 0 : crc, 14);
     local.writeUInt32LE(e.descriptor ? 0 : (e.zip64 ? big : csize), 18);
-    local.writeUInt32LE(e.descriptor ? 0 : (e.zip64 ? big : usize), 22);
-    local.writeUInt16LE(name.length, 26);
+    local.writeUInt32LE(e.descriptor ? 0 : (e.zip64 ? big : (lfh.uncompressedSize ?? usize)), 22);
+    local.writeUInt16LE(localName.length, 26);
     local.writeUInt16LE(extra.length, 28);
-    locals.push(local, name, extra, compressed);
+    locals.push(local, localName, extra, compressed);
     let descriptorLen = 0;
     if (e.descriptor) {
       const dd = Buffer.alloc(16);
@@ -195,7 +198,7 @@ export function writeZip(entries, opts = {}) {
     central.writeUInt32LE(offset, 42);
     centrals.push(central, cdName, extra);
 
-    offset += local.length + name.length + extra.length + compressed.length + descriptorLen;
+    offset += local.length + localName.length + extra.length + compressed.length + descriptorLen;
   }
   const cd = Buffer.concat(centrals);
   const comment = opts.comment ?? Buffer.alloc(0);

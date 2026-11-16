@@ -26,6 +26,9 @@
 - Long 超出 2⁵³ 时消费方需用大数 JSON 解析器读取 `value`。
 - **嵌套层级上限 64**：顶层值为第 0 层，容器的元素 / 成员比容器深一层，任何值位于第 65 层或更深即 `EVAL_ERROR`
   （与 ts `serializeGuestValue` 的 `SERIALIZE_MAX_DEPTH = 64` 相同；JVM 侧须显式实现同一计数）。向量 `depth-*` 给出两侧边界。
+  注意与输入侧的两种计数不同：严格 JSON（`--input`、manifest、probes 的**读入**）数的是**容器层数**，至多 64 层嵌套的对象 / 数组；
+  这里（结果的**写出**）数的是**值所在的层级**，空容器本身也是一个值，所以 65 层嵌套、最内层为空数组的结果仍可写出（最深的值在第 64 层），
+  而 65 层包住一个标量则不行。向量 `depth-64-arrays-around-scalar`、`depth-65-empty-arrays`（可）与 `depth-65-arrays-around-scalar`、`depth-66-empty-arrays`（不可）钉住这一边界。
 
 ## 3. 逐类型树形（平台为准）
 

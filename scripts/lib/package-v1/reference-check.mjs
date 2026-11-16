@@ -173,11 +173,16 @@ function readZip(buf) {
       let data;
       if (method === 0) data = raw;
       else {
+        let consumed;
         try {
-          data = inflateRawSync(raw, { maxOutputLength: Math.min(cd.usize, budget) + 1 });
+          const r = inflateRawSync(raw, { maxOutputLength: Math.min(cd.usize, budget) + 1, info: true });
+          data = r.buffer;
+          consumed = r.engine.bytesWritten;
         } catch {
           z(`解压失败或超过声明大小 / 64 MiB：${name}`);
         }
+        // 压缩数据必须恰好是一个完整的 deflate 流：最终块之后、csize 之内不得有多余字节
+        if (consumed !== raw.length) z(`deflate 流之后有多余字节：${name}`);
       }
       if (data.length !== cd.usize) z(`实际大小与声明不符：${name}`);
       if (data.length > budget) z('累计解压超过 64 MiB');
