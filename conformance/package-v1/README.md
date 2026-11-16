@@ -237,7 +237,7 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
   `--recompile`、`--probes`、`--allow-structural`。带值选项可写成 `--opt value` 或 `--opt=value`；选项与位置参数的先后任意；**同一选项出现两次为 `USAGE`**；未知选项为 `USAGE`
   （「未知」按子命令判：`compile --entry` 是 `USAGE`）。
 - `--opt value` 形式下，若下一个参数是**本子命令认识的选项**（`--input`、`--allow-unsigned` 等），视为缺值，`USAGE`；带值选项位于最末尾同样是缺值（夹具
-  `usage-option-value-is-another-option`、`usage-option-missing-value-at-end`）。要传以 `--` 开头的值，用 `--opt=value`。
+  `usage-option-value-is-another-option`、`usage-option-value-is-a-known-switch`、`usage-option-missing-value-at-end`；若不判这条，`--entry --allow-unsigned` 会把开关当成入口名，得到 `ENTRY_NOT_FOUND`）。要传以 `--` 开头的值，用 `--opt=value`。
 - `run` 必须给出 `--input`（`-` 表示 stdin）。`verify` 接受 `--timeout`（probes 每条的上限）。
 - **超时的计时起点是求值开始**：输入校验通过后，把入口与实参交给求值器的那一刻（Node：主线程向求值 Worker 投递任务时；JVM：开始建 Context、加载 IR 并执行入口时）。
   读包、验签、本地编译、输入校验以及 Worker / Engine 的启动都不计入。超时后输出 `TIMEOUT`，进程正常退出。`verify --probes` 每条探针各自计时。

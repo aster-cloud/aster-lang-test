@@ -438,6 +438,26 @@
       "expect": {
         "code": "USAGE"
       }
+    },
+    {
+      "name": "usage-option-value-is-a-known-switch",
+      "command": "run",
+      "rawArgs": [
+        "run",
+        "{pkg}",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json",
+        "--entry",
+        "--allow-unsigned"
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": {
+        "code": "USAGE"
+      }
     }
   ]
 }

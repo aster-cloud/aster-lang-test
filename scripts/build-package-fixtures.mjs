@@ -34,6 +34,7 @@ import { publicKeyFromRaw, verifyManifest } from './lib/package-v1/signing.mjs';
 import { checkPackage } from './lib/package-v1/reference-check.mjs';
 import { InputError, validateInput } from './lib/package-v1/input.mjs';
 import { parseStrictJson } from './lib/package-v1/strict-json.mjs';
+import { parseCommand } from './lib/package-v1/argv.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PKG = join(ROOT, 'conformance', 'package-v1');
@@ -695,6 +696,23 @@ async function verifyEngines() {
     count();
   }
 
+  const compileCaptured = JSON.parse(readFileSync(join(SRC, 'compile', 'expected.json'), 'utf8'));
+  const cpFile = opt('--cp-file');
+  const liveCompile = cpFile ? (() => {
+    const dir = join(SRC, 'compile');
+    const doc = JSON.parse(readFileSync(join(dir, 'compile.json'), 'utf8'));
+    const reqs = doc.cases.filter((c) => c.platform).map((c) => ({
+      id: c.name, source: readFileSync(join(dir, c.platform.source), 'utf8'), locale: c.platform.locale,
+      aliasSet: c.platform.aliasSet ? JSON.parse(readFileSync(join(dir, c.platform.aliasSet), 'utf8')) : null,
+      vocabulary: c.platform.vocabulary ? JSON.parse(readFileSync(join(dir, c.platform.vocabulary), 'utf8')) : null,
+      allowStructural: c.platform.allowStructural === true,
+    }));
+    const res = spawnSync('java', ['-cp', readFileSync(cpFile, 'utf8').trim(), join(ROOT, 'scripts/package-v1/PlatformCompile.java')], { input: `${reqs.map((q) => JSON.stringify(q)).join('\n')}\n`, encoding: 'utf8', maxBuffer: 1 << 28 });
+    return new Map(res.stdout.split('\n').filter((l) => l.startsWith('{')).map((l) => JSON.parse(l)).map((o) => [o.id, o.ok]));
+  })() : null;
+  /** 平台编译序列对某个 compile 用例的结论：有 --cp-file 时现场重算，否则读采集结果。 */
+  const platformCompile = (id) => (liveCompile ? liveCompile.get(id) : compileCaptured[id]?.ok);
+
   // 3c. compile：源码类成功用例由 ts 本地编译复算投影哈希（ts 尚无 aliasSet 校验，校验失败类用例的期望来自平台采集）；
   //     包类用例先过参照流水线，再从盘上 policy/ 编译复算；包类失败用例的错误码由参照流水线判定
   const compileRows = JSON.parse(out.get('compile/cases.json').bytes.toString('utf8')).cases;
@@ -713,16 +731,20 @@ async function verifyEngines() {
     const name = `compile/${c.name}`;
     if (c.code === 'USAGE') {
       count();
-      continue;
+      continue; // 由 3d 的命令行参照实现判定
     }
     if (isSource) {
       if (c.code === 'COMPILE_ERROR') {
         if (!opts['--alias-set']) expect(tsCompileFiles(ts, { source: { locale: opts['--locale'] ?? 'en-US' } }, new Map([['policy/policy.aster', readFileSync(target)], ['policy/compile/alias-set.json', utf8('null')]])) === null, `${name}: ts 应编译失败`);
+        // aliasSet 校验失败类：ts 尚无 UserAliasValidator，期望来自平台编译序列——这里确认生成的行与采集结果一致；
+        // 给出 --cp-file 时再以平台编译序列现场重算（本地；CI 无 aster-api）
+        else expect(platformCompile(c.name) === false, `${name}: 平台编译序列应拒绝该 aliasSet`);
       } else {
         const files = new Map([['policy/policy.aster', readFileSync(target)], ['policy/compile/alias-set.json', opts['--alias-set'] ? readFileSync(join(cwd, opts['--alias-set'])) : utf8('null')]]);
         if (opts['--vocabulary']) files.set('policy/compile/vocabulary.json', readFileSync(join(cwd, opts['--vocabulary'])));
         const core = tsCompileFiles(ts, { source: { locale: opts['--locale'] ?? 'en-US' } }, files);
         expect(core !== null && sha256Hex(utf8(ts.canonicalJson(positionFreeTree(JSON.parse(core))))) === c.expectedPositionFreeSha256, `${name}: ts 编译的投影哈希与期望不符`);
+        if (opts['--alias-set']) expect(platformCompile(c.name) === true, `${name}: 平台编译序列应接受该 aliasSet`);
       }
       count();
       continue;
@@ -739,6 +761,17 @@ async function verifyEngines() {
       }
     }
     count();
+  }
+
+  // 3d. 命令行与信任锚（usage 阶段）：参照实现 argv.mjs 独立判定每条用例是否 USAGE
+  for (const [rel, v] of out) {
+    if (!rel.endsWith('cases.json')) continue;
+    const cwd = join(PKG, dirname(rel));
+    for (const c of JSON.parse(v.bytes.toString('utf8')).cases) {
+      const r = parseCommand(c.args, cwd);
+      expect(r.usage === (c.code === 'USAGE'), `${rel}/${c.name}: 命令行参照实现判定 ${r.usage ? `USAGE（${r.why}）` : '通过'}，期望 ${c.code ?? '成功'}`);
+      count();
+    }
   }
 
   // 黄金包本身（目录与 zip 形态）参照流水线必须通过

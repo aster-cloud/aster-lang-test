@@ -451,6 +451,23 @@
       "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 2,
       "code": "USAGE"
+    },
+    {
+      "name": "usage-option-value-is-a-known-switch",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json",
+        "--entry",
+        "--allow-unsigned"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
     }
   ]
 }
