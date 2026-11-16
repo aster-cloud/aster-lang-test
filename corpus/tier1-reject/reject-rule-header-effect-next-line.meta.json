@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "规则头跨行（aster-lang-core#266）：`produce T.` 与 `It performs` 分两行。core 在句点处结束无体声明、第 4 行是顶层非法记号；ts 此前跨行接上效果声明。两引擎都必须拒绝"
+}

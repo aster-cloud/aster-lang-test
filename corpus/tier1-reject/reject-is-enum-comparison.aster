@@ -1,0 +1,6 @@
+Module reject.isEnumComparison.
+
+Define Level as one of High, Low.
+
+Rule f given x as Level, produce Bool:
+  Return x is High.

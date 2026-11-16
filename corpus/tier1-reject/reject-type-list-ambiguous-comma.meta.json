@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "括号类型表里 `result of A, B` 的逗号可以是失败类型也可以是下一个函数参数（parity 清扫 1.0.48）：修复前 core 读作 (Result<Int,Text>) -> Bool、ts 读作 (Result<Int,Text>, Text) -> Bool。真歧义，两引擎都报 E064（写 `and` 或给 result 加括号）"
+}

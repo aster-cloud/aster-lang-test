@@ -1,0 +1,6 @@
+Module reject.ruleHeaderGivenMultiline.
+
+Rule summarize given
+  first as Text,
+  second as Text, produce Text:
+  Return Text.concat(first, second).

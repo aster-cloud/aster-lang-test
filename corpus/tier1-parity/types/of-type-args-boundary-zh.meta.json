@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "of-type-args-boundary 的 zh-CN 写法：「名字 作为」是形参边界，「结果 A，B」与「并且」同义",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定形参 / 字段 / 返回类型的 Core IR；规则体都返回常量，类型不改变求值结果"
+}

@@ -1,0 +1,10 @@
+模块 parity.types.ofargsboundaryzh。
+
+规则 resultComma 给定 x 作为 结果 整数，文本，产出 整数：
+  返回 1。
+
+规则 resultCommaParam 给定 x 作为 结果 整数，y 作为 文本，产出 整数：
+  返回 1。
+
+规则 resultAndParam 给定 x 作为 结果 整数 并且 y 作为 文本，产出 整数：
+  返回 1。

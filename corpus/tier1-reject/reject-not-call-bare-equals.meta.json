@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "`equals` 单独不是运算符（aster-lang-ts#324）：相等写 `equals to`。core 挂错误监听器后同样拒绝（此前的 Java 测试没挂监听器，静默吞了错误）。两引擎都必须拒绝"
+}
