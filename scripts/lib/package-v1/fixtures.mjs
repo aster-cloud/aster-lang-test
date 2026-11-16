@@ -657,6 +657,7 @@ const MANIFEST_BYTE_VARIANTS = {
   'duplicate-key': (base, text) => utf8(text.replace('"tenantId":"tenant-fixture"', '"tenantId":"tenant-fixture","tenantId":"tenant-fixture"')),
   'deep-nesting': (base, text) => utf8(text.replace('"tenant-fixture"', `${'['.repeat(10000)}${']'.repeat(10000)}`)),
   oversize: (base, text) => utf8(text.replace('"tenant-fixture"', `"${'x'.repeat(1024 * 1024)}"`)),
+  'unsafe-integer': (base, text) => utf8(text.replace(`"status":"APPROVED","version":${base.manifest.source.claimedRef.version}}`, '"status":"APPROVED","version":9007199254740993}')),
 };
 
 function malformedZip(base, kind, pkgs) {
@@ -1148,7 +1149,7 @@ export function extraForms(pkg) {
 
 /**
  * tamper/test-time.json：体积类夹具不入库（几十 MiB），由各 CLI 的测试按 recipe 在临时目录里生成后运行。
- * recipe：copy 黄金包目录 → 按 add 写入指定大小的零字节文件（不列入 files[]）；或按 stdin 生成超大输入。
+ * recipe：copyPackage 复制黄金包目录后按 add 写入指定大小的零字节文件（不列入 files[]）；copyZip 复制 zip 后追加 appendZeros 个零字节（必须在读入之前按文件大小拒绝）；或按 stdinRecipe 生成超大输入。
  */
 export function testTimeCases(pkgs, exitCodes) {
   const base = pkgs.get('b-credit-limit');
@@ -1168,6 +1169,15 @@ export function testTimeCases(pkgs, exitCodes) {
     cases: [
       pkgFail('dir-single-file-over-64MiB', [{ path: 'big.bin', size: 64 * MiB + 1 }]),
       pkgFail('dir-cumulative-over-64MiB', [{ path: 'a.bin', size: 40 * MiB }, { path: 'b.bin', size: 40 * MiB }]),
+      {
+        name: 'zip-file-over-64MiB',
+        recipe: { copyZip: 'packages/b-credit-limit.zip', appendZeros: 64 * MiB },
+        args: ['run', '<PKG>', '--input', '-', '--jwks', '<PACKAGE_V1>/keys/test-jwks.json'],
+        stdin: inputJson(firstRun.input),
+        expectedStdout: errorEnvelope('PKG_INTEGRITY', runMeta(base, 'read', { entry: null, allowUnsigned: false }), exitCodes),
+        expectedExit: exitCodes.PKG_INTEGRITY.exit,
+        code: 'PKG_INTEGRITY',
+      },
       {
         name: 'input-over-16MiB',
         recipe: { usePackage: 'packages/b-credit-limit' },

@@ -690,6 +690,14 @@
       "zip": "windows-reserved-name",
       "code": "PKG_INVALID_MANIFEST",
       "layer": "schema"
+    },
+    {
+      "name": "manifest-unsafe-integer",
+      "base": "b-credit-limit",
+      "kind": "manifest-bytes",
+      "bytes": "unsafe-integer",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST"
     }
   ]
 }

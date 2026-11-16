@@ -297,6 +297,8 @@ export function checkPackage(path, opts) {
   try {
     if (!existsSync(path)) fail('read', 'PKG_INTEGRITY', '包路径不存在');
     const st = statSync(path);
+    // zip 先按 stat 的大小判上限，再读入内存（不得先读入再判断）
+    if (st.isFile() && st.size > MAX_PACKAGE_BYTES) fail('read', 'PKG_INTEGRITY', 'zip 超过 64 MiB');
     const files = st.isDirectory() ? readDirectory(path) : st.isFile() ? readZip(readFileSync(path)) : fail('read', 'PKG_INTEGRITY', '既不是目录也不是文件');
     const manifestBytes = files.get('manifest.json');
     if (!manifestBytes) fail('read', 'PKG_INVALID_MANIFEST', '缺 manifest.json');

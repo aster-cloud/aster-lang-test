@@ -3,7 +3,7 @@
 规范来源（aster-api 仓）：`docs/adr/0059-executable-policy-export.md`、`docs/adr/0059-amendment-1-p0-findings.md`（修订 1，A0–A5）、
 实施计划 `docs/superpowers/plans/2026-11-16-adr0059-p0-p1.md`（Global Constraints、Review Focus、T1）。本目录把其中的包格式与
 CLI 行为定死为可执行的字节：两个 `aster` CLI（Node T2–T5、JVM T6–T9）与跨 CLI 一致性门（T11）只消费这里的文件。
-**本 README 中标为「裁决」的条目细化或修正了计划原文，实现以本 README 为准**（计划与 ADR 的同步修订见 aster-api 的配套文档 PR）。
+**本 README 中标为「裁决」的条目细化或修正了计划原文，实现以本 README 为准**（计划与 ADR 的同步修订见 wontlost-ltd/aster-api#559，ADR 0059 修订 2，PROPOSED 待用户确认）。
 
 ## 目录
 
@@ -109,7 +109,7 @@ CI 中的兄弟仓固定在被测版本（aster-lang-ts `v3.2.0`、aster-guard `
 |---|---|---|---|
 | usage | 命令行语法（见「命令行」）；信任锚文件的读取与校验（见「信任锚」）；环境变量 `ASTER_TRUFFLE_FUNC` 已设置（仅 JVM，修订 A5） | `USAGE` | 不输出 checks，输出错误信封 |
 | read | 读包（见「包路径」「zip 规则」「体积上限」）；没有 `manifest.json` | `PKG_INTEGRITY`；缺 manifest 为 `PKG_INVALID_MANIFEST` | `integrity`（缺 manifest 为 `schema`），唯一一项 |
-| manifest | ① 大小 ≤ 1 MiB ② 严格 JSON（见「严格 JSON」，深度 ≤ 64）③ **文件字节**逐字节等于其解析结果的规范 JSON 的 UTF-8 ④ `format` 为字符串 `aster-policy-package`，`formatVersion` 为字符串且匹配 `^(0\|[1-9][0-9]{0,8})\.(0\|[1-9][0-9]{0,8})$` ⑤ 主版本 = 1 且次版本 ≤ 0 ⑥ schema ⑦ 语义规则（见「manifest 语义规则」）⑧ `coreIr.version` = 2 | ⑤ `PKG_UNSUPPORTED_FORMAT`；⑧ `PKG_UNSUPPORTED_IR`；其余 `PKG_INVALID_MANIFEST` | `schema` |
+| manifest | ① 大小 ≤ 1 MiB ② 严格 JSON（见「严格 JSON」，深度 ≤ 64）③ 所有数字都是 ±(2⁵³−1) 内的整数（规范 JSON 的数字域；用任意精度整数读入的实现也必须拒绝超出者，夹具 `manifest-unsafe-integer`），且**文件字节**逐字节等于其解析结果的规范 JSON 的 UTF-8 ④ `format` 为字符串 `aster-policy-package`，`formatVersion` 为字符串且匹配 `^(0\|[1-9][0-9]{0,8})\.(0\|[1-9][0-9]{0,8})$` ⑤ 主版本 = 1 且次版本 ≤ 0 ⑥ schema ⑦ 语义规则（见「manifest 语义规则」）⑧ `coreIr.version` = 2 | ⑤ `PKG_UNSUPPORTED_FORMAT`；⑧ `PKG_UNSUPPORTED_IR`；其余 `PKG_INVALID_MANIFEST` | `schema` |
 | signature | 无 `manifest.sig.json`：`--allow-unsigned` 时继续（`signed=false`），否则失败。有签名文件（即使给了 `--allow-unsigned` 也必须成立）：大小 ≤ 64 KiB → 严格 JSON → sig schema → `sig` 为规范 base64url（解码后重新编码与原文相同）→ 按「信任锚」取公钥（取不到为 `PKG_UNTRUSTED_KID`）→ Ed25519 验签 manifest 文件字节（RFC 8032：拒绝 S ≥ L） | `PKG_UNSIGNED`；`PKG_UNTRUSTED_KID`；其余 `PKG_SIGNATURE` | `signature` |
 | integrity | `files[]` 每项存在、大小与 SHA-256 相符；包内除三个元文件外没有 `files[]` 以外的文件；`SHA256SUMS` 存在且逐字节等于由 `files[]` + `manifest.json` 生成的内容（GNU 格式 `<hex>␠␠<path>\n`，按路径 UTF-8 字节序）；A 包 `compiled/core.json` 的 SHA-256 = `coreIr.sha256`；`source.sha256` = `policy/policy.aster` 的 SHA-256；`tests.probesSha256` = `tests/probes.json` 的 SHA-256；`tests.probes` = 该文件（严格 JSON）中 `probes` 的条数 | `PKG_INTEGRITY` | `integrity` |
 | ir | A：严格读入 `compiled/core.json`（ts `readCoreIr` / core `CoreIrJson.read`）。B：按 manifest 的 locale / aliasSet / allowStructural / 词汇本地编译（含 aliasSet 校验），按 `positionFreeSha256` 比对 | A 读入失败 `PKG_UNSUPPORTED_IR`；B 编译失败或不等 `PKG_IR_DRIFT` | 普通 `verify` 不取 IR；只在 `recompile` / `probes` 中出现 |
@@ -193,7 +193,7 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 
 | 对象 | 上限 | 超出时 |
 |---|---|---|
-| zip 文件本身 | 64 MiB | `PKG_INTEGRITY`（read） |
+| zip 文件本身 | 64 MiB（先 `stat` 判断，再读入内存） | `PKG_INTEGRITY`（read） |
 | 解压后单个条目 / 累计 | 64 MiB | `PKG_INTEGRITY`（read） |
 | 目录形态的单个文件 / 文件累计 | 64 MiB（先 `stat` 判断，不得先读入再判断） | `PKG_INTEGRITY`（read） |
 | `manifest.json` | 1 MiB | `PKG_INVALID_MANIFEST`（manifest） |

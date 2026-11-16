@@ -54,6 +54,25 @@
       "code": "PKG_INTEGRITY"
     },
     {
+      "name": "zip-file-over-64MiB",
+      "recipe": {
+        "copyZip": "packages/b-credit-limit.zip",
+        "appendZeros": 67108864
+      },
+      "args": [
+        "run",
+        "<PKG>",
+        "--input",
+        "-",
+        "--jwks",
+        "<PACKAGE_V1>/keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
       "name": "input-over-16MiB",
       "recipe": {
         "usePackage": "packages/b-credit-limit"
