@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.2.0
+
+### 新增
+
+- tier1 parity 样本（`X of` 元数与边界，aster-lang-core#256 与 ADR 0056 修订 A1）：`types/of-type-arity`、
+  `types/of-type-args-boundary` 及其 de / zh 版本进入 manifest（#208、#209）。
+- tier1 必拒样本（ADR 0056 修订 A1）：`reject-rule-header-newline-after-comma`、`reject-rule-header-given-multiline`、
+  `reject-rule-header-effect-next-line`（规则头必须写在一行）、`reject-is-enum-comparison`、`reject-not-call-bare-equals`、
+  `reject-type-list-ambiguous-comma`、`reject-type-list-ambiguous-comma-generic`（括号类型表里的歧义逗号报 E064）（#209）。
+- 这些样本的期望依赖 aster-lang-core 1.0.48 与 aster-lang-ts 3.1.0。包入口 API 无变化。
+
 ## 2.1.0
 
 ### 新增
