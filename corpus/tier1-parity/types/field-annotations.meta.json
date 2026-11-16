@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "字段前置注解（aster-lang-ts#334，ADR 0056 修订 A3）：`has @pii(L1, email) email as Text`，与形参注解（#328）同法。`Pair of Int, @pii(…) y as Text` 里注解开始下一个字段；多个注解、命名与位置参数、无类型字段、带约束字段、多行字段表都可带注解。Field.annotations 先列前置注解、再列类型最外层的 @pii（与 core AstBuilder.visitField 一致）。注解后不是「名字 as」时是带注解的类型参数。修复前 ts 报 E055 Expected field name，core 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定字段注解的 Core IR；注解不参与求值"
+}

@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 5,
+  "source": "多行字段表里的大写字段名（aster-lang-ts#334）：两引擎都在第 5 行的字段名上报 E055 Expected field name。修复前 core 接受，ts 报 E055"
+}

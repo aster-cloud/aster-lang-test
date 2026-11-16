@@ -1,5 +1,17 @@
 # Changelog
 
+## Unreleased
+
+### 新增
+
+- tier1 parity 样本（aster-lang-ts#334，ADR 0056 修订 A3）：`types/field-annotations`、`types/field-annotations-zh`
+  （字段前置注解，Field.annotations 两引擎逐字节一致）、`syntax/use-keyword-case`（`Use` / `use` / `USE` / `uSe` 同义，
+  `USE` 仍可作类型名）、`tier1-equivalence/policies/lambda_inline_body`（lambda 单行体，带 2 个 eval case）进入 manifest。
+- tier1 必拒样本（aster-lang-ts#334）：`reject-field-name-capitalized`、`reject-field-name-capitalized-multiline`（E055 字段名）、
+  `reject-rule-name-capitalized`（E055 规则名）、`reject-identifier-leading-underscore`（E050）、
+  `reject-of-type-arg-bare-lowercase`（E055，`Pair of Int, y` 的 `y`）。
+- 这些样本的期望依赖同车次的 aster-lang-core 与 aster-lang-ts（#334）。包入口 API 无变化。
+
 ## 2.3.0
 
 ### 新增

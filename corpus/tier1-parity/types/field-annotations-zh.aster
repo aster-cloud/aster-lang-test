@@ -1,0 +1,3 @@
+模块 parity.types.fieldannotationszh。
+
+定义 Customer 包含 @pii(L1, email) email 作为 文本，@audit name 作为 @pii(L1, name) 文本 并且 @tag(k: 1) note。

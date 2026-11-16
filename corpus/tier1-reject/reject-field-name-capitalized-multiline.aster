@@ -1,0 +1,5 @@
+Module reject.fieldNameCapitalizedMultiline.
+
+Define Order has
+  id as Text,
+  Amount as Int.

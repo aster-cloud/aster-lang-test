@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "字段名不能以大写字母开头（aster-lang-ts#334）：大写名字是类型名，两引擎都在字段名上报 E055 Expected field name。修复前 core 接受，ts 报 E055"
+}

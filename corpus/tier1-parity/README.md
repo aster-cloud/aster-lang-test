@@ -77,7 +77,7 @@
   `vocab: true` 条目必须有词汇文件，`tier1-parity/` 下的 `.aster` 与 `inputs/*.cases.json` 必须能被 manifest 加载到，
   带词汇负例必须声明 `expectCode`。
 
-非词汇样本同样放在 `tier1-parity/` 的子目录（字符串条目）：`workflow/`（多步 workflow、compensate、单步）与 `types/`（函数类型）。
+非词汇样本同样放在 `tier1-parity/` 的子目录（字符串条目）：`workflow/`（多步 workflow、compensate、单步）、`types/`（函数类型等类型语法）与 `syntax/`（声明关键词等其余语法，如 `syntax/use-keyword-case`）。
 这类样本没有 `inputs/` golden（`<dir>/inputs/*.cases.json` 只给带词汇条目加载），因此在 meta 里标 `evalExempt` 并写明原因，
 只比较 parse 与 IR。依赖的兄弟仓修复：
 

@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "lambda 的单行体（aster-lang-ts#334，ADR 0056 修订 A3）：`function given x as Int, produce Int: Return x times 2.`，冒号后同一行写单条 Return，与 core 文法 lambdaExpr 的 `COLON (returnStmt | NEWLINE block)` 一致；返回类型可省、形参引导词 given / with 同义、无形参也可，与块形混用。外层形参 b 记入 captures。修复前 ts 报 E055 Expected newline，core 接受",
+  "capabilities": [
+    "cases-golden"
+  ]
+}

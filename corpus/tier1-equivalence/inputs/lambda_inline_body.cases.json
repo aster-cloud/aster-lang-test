@@ -1,0 +1,22 @@
+{
+  "policy": "tier1-equivalence/policies/lambda_inline_body.aster",
+  "entry": "combine",
+  "cases": [
+    {
+      "name": "单行体与块形组合：(3×2+4)−1+7",
+      "input": [
+        3,
+        4
+      ],
+      "expectedOutput": 16
+    },
+    {
+      "name": "负数形参：(−5×2+0)−1+7",
+      "input": [
+        -5,
+        0
+      ],
+      "expectedOutput": -4
+    }
+  ]
+}

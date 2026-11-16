@@ -1,0 +1,9 @@
+Module demo.lambdainlinebody.
+
+Rule combine given a as Int, b as Int, produce Int:
+  Let double be function given x as Int, produce Int: Return x times 2.
+  Let addB be function with x as Int, produce: Return x plus b.
+  Let seven be function, produce Int: Return 7.
+  Let block be function given x as Int, produce Int:
+    Return x minus 1.
+  Return block(addB(double(a))) plus seven().

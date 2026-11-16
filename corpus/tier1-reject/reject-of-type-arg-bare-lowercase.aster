@@ -1,0 +1,4 @@
+Module reject.ofTypeArgBareLowercase.
+
+Rule f given x as Pair of Int, y, produce Int:
+  Return 1.
