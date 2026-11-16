@@ -1,0 +1,156 @@
+{
+  "description": "A 包，四个入口（含 0 参入口 answer）（score 为 default），--entry 选择与缺省；模块内没有名为 main 的函数（P0 结果 §3 / 修订 A5 E737）。ratio(7) 产出 Double，ratio(0) 两侧都是求值错误。另含 USAGE 用例。",
+  "package": "a-multi-entry",
+  "cases": [
+    {
+      "name": "default-entry",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":70}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "entry-label",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--entry",
+        "label",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"label\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"high\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "entry-label-low",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--entry",
+        "label",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":2}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"label\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"low\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "entry-double-result",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--entry",
+        "ratio",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"ratio\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":14.285714285714286}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "zero-param-entry",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--entry",
+        "answer",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"answer\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":42}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "eval-error-division-by-zero",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--entry",
+        "ratio",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":0}",
+      "expectedStdout": "{\"error\":{\"code\":\"EVAL_ERROR\",\"message\":\"policy evaluation failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"ratio\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 1,
+      "code": "EVAL_ERROR"
+    },
+    {
+      "name": "entry-not-in-manifest",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--entry",
+        "nosuch",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"ENTRY_NOT_FOUND\",\"message\":\"entry function not found or not runnable\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"nosuch\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "ENTRY_NOT_FOUND"
+    },
+    {
+      "name": "usage-timeout-over-limit",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--timeout",
+        "301s",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-unknown-option",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--no-such-option",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "description": "A 包，线性递归 deep(20000)：两侧都期望 RESOURCE_EXHAUSTED / 5（Node 由 maxCallDepth=10000 截住，Worker stackSizeMb=32；JVM 在缺省线程栈约 2 000 层溢出；修订 A4）。平台 /evaluate-json 同样报 Resource exhausted。",
+  "mode": "a",
+  "target": "jre",
+  "locale": "en-US",
+  "aliasSet": null,
+  "allowStructural": false,
+  "claimedRefVersion": 1,
+  "entries": [{ "function": "deep", "default": true }],
+  "probes": [{ "entry": "deep", "input": { "n": 10 } }],
+  "cases": [
+    { "name": "depth-20000", "command": "run", "input": { "n": 20000 }, "expect": { "code": "RESOURCE_EXHAUSTED", "platform": "error" } },
+    { "name": "depth-10", "command": "run", "input": { "n": 10 }, "expect": "platform" }
+  ]
+}

@@ -1,0 +1,154 @@
+{
+  "description": "A 包，四个入口（含 0 参入口 answer）（score 为 default），--entry 选择与缺省；模块内没有名为 main 的函数（P0 结果 §3 / 修订 A5 E737）。ratio(7) 产出 Double，ratio(0) 两侧都是求值错误。另含 USAGE 用例。",
+  "mode": "a",
+  "target": "jre",
+  "locale": "en-US",
+  "aliasSet": null,
+  "allowStructural": false,
+  "claimedRefVersion": 1,
+  "entries": [
+    {
+      "function": "score",
+      "default": true
+    },
+    {
+      "function": "label",
+      "default": false
+    },
+    {
+      "function": "ratio",
+      "default": false
+    },
+    {
+      "function": "answer",
+      "default": false
+    }
+  ],
+  "probes": [
+    {
+      "entry": "score",
+      "input": {
+        "x": 7
+      }
+    },
+    {
+      "entry": "label",
+      "input": {
+        "x": 7
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "default-entry",
+      "command": "run",
+      "input": {
+        "x": 7
+      },
+      "expect": "platform",
+      "platformEntry": "score"
+    },
+    {
+      "name": "entry-label",
+      "command": "run",
+      "args": [
+        "--entry",
+        "label"
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": "platform"
+    },
+    {
+      "name": "entry-label-low",
+      "command": "run",
+      "args": [
+        "--entry",
+        "label"
+      ],
+      "input": {
+        "x": 2
+      },
+      "expect": "platform"
+    },
+    {
+      "name": "entry-double-result",
+      "command": "run",
+      "args": [
+        "--entry",
+        "ratio"
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": "platform"
+    },
+    {
+      "name": "zero-param-entry",
+      "command": "run",
+      "args": [
+        "--entry",
+        "answer"
+      ],
+      "input": {},
+      "expect": "platform"
+    },
+    {
+      "name": "eval-error-division-by-zero",
+      "command": "run",
+      "args": [
+        "--entry",
+        "ratio"
+      ],
+      "input": {
+        "x": 0
+      },
+      "expect": {
+        "code": "EVAL_ERROR",
+        "platform": "error"
+      }
+    },
+    {
+      "name": "entry-not-in-manifest",
+      "command": "run",
+      "args": [
+        "--entry",
+        "nosuch"
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": {
+        "code": "ENTRY_NOT_FOUND"
+      }
+    },
+    {
+      "name": "usage-timeout-over-limit",
+      "command": "run",
+      "args": [
+        "--timeout",
+        "301s"
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-unknown-option",
+      "command": "run",
+      "args": [
+        "--no-such-option"
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": {
+        "code": "USAGE"
+      }
+    }
+  ]
+}

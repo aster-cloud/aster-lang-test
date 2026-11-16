@@ -1,0 +1,89 @@
+{
+  "description": "A 包（compiled/core.json 为平台 IR；runtime/ 留空——P1 只测 compiled 路径），Decimal 入参（只接受字符串）与 HALF_EVEN 舍入；tests/probes.json 3 条，verify --probes 通过。小数入参 \"12.34\" 的期望值取自 ts（平台 /evaluate-json 无法传入非整数 Decimal，见 README「期望值来源」）。",
+  "package": "a-decimal",
+  "cases": [
+    {
+      "name": "half-even-down",
+      "args": [
+        "run",
+        "a-decimal",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"amount\":\"10\"}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"10.82\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "half-even-up",
+      "args": [
+        "run",
+        "a-decimal",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"amount\":\"30\"}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"32.48\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "fractional-input",
+      "args": [
+        "run",
+        "a-decimal",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"amount\":\"12.34\"}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"13.36\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify",
+      "args": [
+        "verify",
+        "a-decimal",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-probes",
+      "args": [
+        "verify",
+        "a-decimal",
+        "--probes",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"probes\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-recompile",
+      "args": [
+        "verify",
+        "a-decimal",
+        "--recompile",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":true,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    }
+  ]
+}

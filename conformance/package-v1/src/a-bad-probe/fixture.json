@@ -1,0 +1,9 @@
+{
+  "description": "与 a-decimal 相同，但 tests/probes.json 第 2 条（下标 1）的期望值被改成 \"99.99\" 后照常计算 probesSha256 并签名：verify 通过，verify --probes 以 PROBE_MISMATCH / 1 失败。",
+  "base": "a-decimal",
+  "corruptProbe": { "index": 1, "value": "99.99" },
+  "cases": [
+    { "name": "verify", "command": "verify" },
+    { "name": "verify-probes-mismatch", "command": "verify", "args": ["--probes"] }
+  ]
+}

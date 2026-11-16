@@ -1,0 +1,246 @@
+{
+  "description": "INPUT_INVALID / 2 夹具（实施计划 Review Focus 4 + P0 结果 §3 三条输入规则）。每条对 package 跑 run --input -（或 args 给出的 --input），stdin 原样喂给 CLI。全部在取得 IR、选定入口之后、求值之前失败。",
+  "cases": [
+    {
+      "name": "missing-key",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "extra-key",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"},\"extra\":1}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "type-mismatch",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":\"760\",\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "decimal-as-json-number",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":9000,\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "decimal-malformed-string",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9,000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "nested-missing-field",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "nested-extra-field",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\",\"x\":1}}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "top-level-array",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "[{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}]",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "top-level-string",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "\"applicant\"",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "empty-stdin",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "not-json",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "unsafe-integer-nested",
+      "args": [
+        "run",
+        "../packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":9007199254740993,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "unsafe-integer-top-level",
+      "args": [
+        "run",
+        "../packages/a-multi-entry",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":9007199254740993}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "integer-as-float-token",
+      "args": [
+        "run",
+        "../packages/a-multi-entry",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7.5}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "zero-param-entry-rejects-keys",
+      "args": [
+        "run",
+        "../packages/a-multi-entry",
+        "--entry",
+        "answer",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":1}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"answer\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "input-file-missing",
+      "args": [
+        "run",
+        "../packages/a-multi-entry",
+        "--input",
+        "does-not-exist.json",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    }
+  ]
+}

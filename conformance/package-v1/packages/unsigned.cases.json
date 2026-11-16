@@ -1,0 +1,62 @@
+{
+  "description": "无签名包（没有 manifest.sig.json；载荷同 a-multi-entry）：缺省拒绝（PKG_UNSIGNED / 3）；--allow-unsigned 时照常运行且 meta.signed=false。",
+  "package": "unsigned",
+  "cases": [
+    {
+      "name": "rejected-by-default",
+      "args": [
+        "run",
+        "unsigned",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_UNSIGNED\",\"message\":\"package is unsigned; pass --allow-unsigned to accept it\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_UNSIGNED"
+    },
+    {
+      "name": "allow-unsigned",
+      "args": [
+        "run",
+        "unsigned",
+        "--allow-unsigned",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":false},\"ok\":true,\"value\":70}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-rejected-by-default",
+      "args": [
+        "verify",
+        "unsigned",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_UNSIGNED\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_UNSIGNED"
+    },
+    {
+      "name": "verify-allow-unsigned",
+      "args": [
+        "verify",
+        "unsigned",
+        "--allow-unsigned",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":false},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    }
+  ]
+}

@@ -1,0 +1,2 @@
+# 包格式 v1 夹具按字节签名与哈希：禁止任何换行符转换（Windows autocrlf 会改坏哈希与签名）。
+conformance/package-v1/** -text

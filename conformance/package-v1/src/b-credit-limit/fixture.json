@@ -1,0 +1,29 @@
+{
+  "description": "B 包，en-US，单个 Data 入参（含 Decimal 字段），Verdict 输出；另有 zip 形态、--pubkey 与缺信任锚、inspect、verify --recompile 用例。源码取自 corpus/tier1-equivalence/policies/credit-pilot.aster。",
+  "mode": "b",
+  "target": "jre",
+  "locale": "en-US",
+  "aliasSet": null,
+  "allowStructural": false,
+  "claimedRefVersion": 3,
+  "zip": true,
+  "entries": [{ "function": "decide", "default": true }],
+  "probes": [
+    { "entry": "decide", "input": { "applicant": { "activeDefaults": 0, "creditScore": 760, "monthlyDebt": "2000", "monthlyIncome": "9000", "requestedAmount": "20000" } } },
+    { "entry": "decide", "input": { "applicant": { "activeDefaults": 1, "creditScore": 760, "monthlyDebt": "2000", "monthlyIncome": "9000", "requestedAmount": "20000" } } }
+  ],
+  "cases": [
+    { "name": "allow", "command": "run", "input": { "applicant": { "activeDefaults": 0, "creditScore": 760, "monthlyDebt": "2000", "monthlyIncome": "9000", "requestedAmount": "20000" } }, "expect": "platform" },
+    { "name": "deny-active-default", "command": "run", "input": { "applicant": { "activeDefaults": 1, "creditScore": 760, "monthlyDebt": "2000", "monthlyIncome": "9000", "requestedAmount": "20000" } }, "expect": "platform" },
+    { "name": "deny-dti", "command": "run", "input": { "applicant": { "activeDefaults": 0, "creditScore": 760, "monthlyDebt": "5000", "monthlyIncome": "9000", "requestedAmount": "20000" } }, "expect": "platform" },
+    { "name": "require-approval", "command": "run", "input": { "applicant": { "activeDefaults": 0, "creditScore": 700, "monthlyDebt": "1000", "monthlyIncome": "8000", "requestedAmount": "60000" } }, "expect": "platform" },
+    { "name": "escalate", "command": "run", "input": { "applicant": { "activeDefaults": 0, "creditScore": 650, "monthlyDebt": "1000", "monthlyIncome": "8000", "requestedAmount": "10000" } }, "expect": "platform" },
+    { "name": "explicit-entry", "command": "run", "args": ["--entry", "decide"], "input": { "applicant": { "activeDefaults": 0, "creditScore": 760, "monthlyDebt": "2000", "monthlyIncome": "9000", "requestedAmount": "20000" } }, "expect": "platform", "sameAs": "allow" },
+    { "name": "zip-allow", "command": "run", "package": "zip", "input": { "applicant": { "activeDefaults": 0, "creditScore": 760, "monthlyDebt": "2000", "monthlyIncome": "9000", "requestedAmount": "20000" } }, "expect": "platform", "sameAs": "allow" },
+    { "name": "pubkey-raw-anchor", "command": "run", "anchor": "pubkey", "input": { "applicant": { "activeDefaults": 0, "creditScore": 760, "monthlyDebt": "2000", "monthlyIncome": "9000", "requestedAmount": "20000" } }, "expect": "platform", "sameAs": "allow" },
+    { "name": "builtin-anchor-is-empty", "command": "run", "anchor": "none", "input": { "applicant": { "activeDefaults": 0, "creditScore": 760, "monthlyDebt": "2000", "monthlyIncome": "9000", "requestedAmount": "20000" } }, "expect": { "code": "PKG_UNTRUSTED_KID" } },
+    { "name": "inspect", "command": "inspect" },
+    { "name": "verify", "command": "verify" },
+    { "name": "verify-recompile", "command": "verify", "args": ["--recompile"] }
+  ]
+}

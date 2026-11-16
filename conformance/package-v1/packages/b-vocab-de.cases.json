@@ -1,0 +1,36 @@
+{
+  "description": "B 包，de-DE + 冻结词汇（policy/compile/vocabulary.json）。源码与词汇取自 corpus/tier1-parity/vocab-de/case-only-fields.*：同一 struct 的两个词条 Alter / alter 只差大小写。",
+  "package": "b-vocab-de",
+  "cases": [
+    {
+      "name": "case-only-fields",
+      "args": [
+        "run",
+        "b-vocab-de",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"p\":{\"age\":42,\"ageGroup\":3}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"d922ea1246731c5b2c9a2512ef7e6a8ade940463bfd5d6426a19773931ea0c38\",\"engine\":\"<ENGINE>\",\"entry\":\"kennzahl\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":342}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "zero",
+      "args": [
+        "run",
+        "b-vocab-de",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"p\":{\"age\":0,\"ageGroup\":0}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"d922ea1246731c5b2c9a2512ef7e6a8ade940463bfd5d6426a19773931ea0c38\",\"engine\":\"<ENGINE>\",\"entry\":\"kennzahl\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":0}\n",
+      "expectedExit": 0,
+      "code": null
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "description": "INPUT_INVALID / 2 夹具（实施计划 Review Focus 4 + P0 结果 §3 三条输入规则）。每条对 package 跑 run --input -（或 args 给出的 --input），stdin 原样喂给 CLI。全部在取得 IR、选定入口之后、求值之前失败。",
+  "cases": [
+    { "name": "missing-key", "package": "b-credit-limit", "stdin": "{}" },
+    { "name": "extra-key", "package": "b-credit-limit", "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"},\"extra\":1}" },
+    { "name": "type-mismatch", "package": "b-credit-limit", "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":\"760\",\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}" },
+    { "name": "decimal-as-json-number", "package": "b-credit-limit", "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":9000,\"requestedAmount\":\"20000\"}}" },
+    { "name": "decimal-malformed-string", "package": "b-credit-limit", "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9,000\",\"requestedAmount\":\"20000\"}}" },
+    { "name": "nested-missing-field", "package": "b-credit-limit", "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\"}}" },
+    { "name": "nested-extra-field", "package": "b-credit-limit", "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\",\"x\":1}}" },
+    { "name": "top-level-array", "package": "b-credit-limit", "stdin": "[{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}]" },
+    { "name": "top-level-string", "package": "b-credit-limit", "stdin": "\"applicant\"" },
+    { "name": "empty-stdin", "package": "b-credit-limit", "stdin": "" },
+    { "name": "not-json", "package": "b-credit-limit", "stdin": "{" },
+    { "name": "unsafe-integer-nested", "package": "b-credit-limit", "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":9007199254740993,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}" },
+    { "name": "unsafe-integer-top-level", "package": "a-multi-entry", "stdin": "{\"x\":9007199254740993}" },
+    { "name": "integer-as-float-token", "package": "a-multi-entry", "stdin": "{\"x\":7.5}" },
+    { "name": "zero-param-entry-rejects-keys", "package": "a-multi-entry", "args": ["--entry", "answer"], "stdin": "{\"x\":1}" },
+    { "name": "input-file-missing", "package": "a-multi-entry", "inputFile": "does-not-exist.json" }
+  ]
+}

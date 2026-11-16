@@ -101,6 +101,53 @@ jobs:
         run: ./gradlew publishToMavenLocal
       - run: ./gradlew test
 
+  # ADR 0059 P1 T1：包格式 v1 真相源（conformance/package-v1/）。
+  #   1. 生成器部件单测（规范 JSON、值规范 JSON、手写 deflate / zip、签名、stdout 归一）；
+  #   2. --check：从 src/ 重新生成全部夹具并与仓内逐字节比较（含符号链接与多余文件）——夹具被手改或生成器改了
+  #      却没重新生成都会变红；
+  #   3. --verify-engines：用兄弟仓 aster-lang-ts（ajv strict、canonicalJson、编译器、解释器）与 aster-guard jcs.ts
+  #      交叉验证 schema、规范字节、投影哈希与期望值。两个 CLI（T2–T9）把这里当规范继承，错在这里就是两侧一起错。
+  package-v1:
+    name: Package format v1 fixtures
+    runs-on: ubuntu-latest
+    steps:
+      - name: Self checkout
+        uses: actions/checkout@v6
+        with:
+          path: aster-lang-test
+      - name: Checkout aster-lang-ts
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
+        with:
+          repository: aster-cloud/aster-lang-ts
+          path: aster-lang-ts
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - name: Checkout aster-guard
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
+        with:
+          repository: aster-cloud/aster-guard
+          path: aster-guard
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: aster-lang-ts/pnpm-lock.yaml
+      - name: Unit tests (generator parts)
+        working-directory: aster-lang-test
+        run: node scripts/test-package-v1.mjs
+      - name: Fixtures are byte-identical to the generator output
+        working-directory: aster-lang-test
+        run: node scripts/build-package-fixtures.mjs --check
+      - name: Build aster-lang-ts
+        working-directory: aster-lang-ts
+        run: pnpm install --frozen-lockfile && pnpm build
+      - name: Cross-check fixtures against ts and aster-guard
+        working-directory: aster-lang-test
+        run: node scripts/build-package-fixtures.mjs --verify-engines --ts ../aster-lang-ts --guard ../aster-guard
+
   # Cross-engine inventory gate is enforced on the consumer side:
   #   - aster-lang-ts CI runs `node scripts/java-corpus-parse-inventory.mjs`
   #   - aster-lang-core CI runs `./gradlew test --tests TsSampleParseInventoryTest`

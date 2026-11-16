@@ -1,0 +1,36 @@
+{
+  "description": "A 包，线性递归 deep(20000)：两侧都期望 RESOURCE_EXHAUSTED / 5（Node 由 maxCallDepth=10000 截住，Worker stackSizeMb=32；JVM 在缺省线程栈约 2 000 层溢出；修订 A4）。平台 /evaluate-json 同样报 Resource exhausted。",
+  "package": "a-deep-recursion",
+  "cases": [
+    {
+      "name": "depth-20000",
+      "args": [
+        "run",
+        "a-deep-recursion",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"n\":20000}",
+      "expectedStdout": "{\"error\":{\"code\":\"RESOURCE_EXHAUSTED\",\"message\":\"evaluation exhausted a resource limit\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"8d5c4728b9db2a9121c25f6524d0f1ef09025547d267ed034cfa36840ccd3510\",\"engine\":\"<ENGINE>\",\"entry\":\"deep\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 5,
+      "code": "RESOURCE_EXHAUSTED"
+    },
+    {
+      "name": "depth-10",
+      "args": [
+        "run",
+        "a-deep-recursion",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"n\":10}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"8d5c4728b9db2a9121c25f6524d0f1ef09025547d267ed034cfa36840ccd3510\",\"engine\":\"<ENGINE>\",\"entry\":\"deep\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":10}\n",
+      "expectedExit": 0,
+      "code": null
+    }
+  ]
+}
