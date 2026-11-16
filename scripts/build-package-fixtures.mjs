@@ -83,7 +83,7 @@ function generate() {
       for (const [p, bytes] of built.files) put(`tamper/${t.name}/${p}`, bytes);
       for (const [p, target] of built.links ?? []) out.set(`tamper/${t.name}/${p}`, { link: target });
     }
-    tamperRows.push(...tamperCases(t, pkgs, exitCodes));
+    tamperRows.push(...tamperCases(t, pkgs, exitCodes, built));
   }
   put('tamper/cases.json', jsonFile({ description: tampers.description, cases: tamperRows }));
   put('tamper/test-time.json', jsonFile(testTimeCases(pkgs, exitCodes)));
@@ -276,6 +276,15 @@ function overlay(base, aliasSet) {
     for (const a of v) if (!merged[k].includes(a)) merged[k].push(a);
   }
   return { ...base, aliases: merged };
+}
+
+/** 按盘上包的 manifest 与 policy/ 文件本地编译（verify --recompile / --probes 的参照）；编译失败返回 null。 */
+function tsCompileFiles(ts, manifest, files) {
+  const source = files.get('policy/policy.aster').toString('utf8');
+  const aliasSet = JSON.parse(files.get('policy/compile/alias-set.json').toString('utf8'));
+  const vocab = files.get('policy/compile/vocabulary.json');
+  const c = ts.compile(source, { lexicon: overlay(ts.lexicon(manifest.source.locale), aliasSet), ...(vocab ? { vocabulary: JSON.parse(vocab.toString('utf8')) } : {}) });
+  return c.success ? c.coreJson : null;
 }
 
 function tsCompile(ts, def) {
@@ -540,6 +549,8 @@ async function verifyEngines() {
       continue;
     }
     const entry = entryOfArgs(flags, r.manifest);
+    // 取得 IR 之后的 meta 一律由盘上 manifest 推导
+    expect(env.meta.coreIrSha256 === r.manifest.coreIr.sha256 && env.meta.irRecompiled === (r.manifest.mode === 'b') && env.meta.signed === r.signed && env.meta.entry === entry, `${name}: run meta 与盘上 manifest 不符`);
     if (!ir.decls.some((d) => d.kind === 'Func' && d.name === entry) || !r.manifest.policy.entries.some((e) => e.function === entry)) {
       expect(c.code === 'ENTRY_NOT_FOUND', `${name}: 入口 ${entry} 不存在，应为 ENTRY_NOT_FOUND`);
       count();
@@ -567,6 +578,97 @@ async function verifyEngines() {
     }
     count();
   }
+  // 3b. verify / inspect 的期望一律由**目标包在盘上的字节**独立推导（不用生成器的 base 包对象）：
+  //     参照流水线给出失败阶段与已通过校验的 manifest / 文件；之后按 README 的 verify 规则逐项复算
+  //     （A 包 ir、--recompile 的投影哈希、--probes 的求值），并比对 meta 与 inspect 内容。
+  const CHECK_OF_STAGE = { manifest: 'schema', signature: 'signature', integrity: 'integrity' };
+  for (const { rel, c } of rows) {
+    const cmd = c.args[0];
+    if (!['verify', 'inspect'].includes(cmd) || rel === 'tamper/test-time.json' || c.code === 'USAGE') continue;
+    const cwd = join(PKG, dirname(rel));
+    const { positional, flags } = splitArgs(c.args.slice(1));
+    const r = checkPackage(join(cwd, positional[0]), { ...refOpts, anchor: loadAnchor(cwd, flags), allowUnsigned: flags.includes('--allow-unsigned') });
+    const env = JSON.parse(c.expectedStdout);
+    const name = `${rel}/${c.name}`;
+    const early = !r.ok && r.stage !== 'ir';
+    if (cmd === 'inspect') {
+      if (early) {
+        expect(env.ok === false && env.error?.code === r.code, `${name}: 参照流水线得 ${r.code}@${r.stage}，inspect 期望 ${env.error?.code ?? '成功'}`);
+      } else {
+        const m = r.manifest;
+        const want = {
+          effects: m.effects, governance: m.governance, policy: m.policy, runtime: m.runtime,
+          schemas: { input: JSON.parse(r.files.get('schema/input.json').toString('utf8')), output: JSON.parse(r.files.get('schema/output.json').toString('utf8')) },
+          tests: m.tests,
+        };
+        expect(env.ok === true && canonicalJson(env.inspect) === canonicalJson(want), `${name}: inspect 内容与盘上 manifest / schema 不符`);
+        expect(env.meta?.coreIrSha256 === m.coreIr.sha256 && env.meta.entry === m.policy.entries.find((e) => e.default).function && env.meta.signed === r.signed && env.meta.irRecompiled === false, `${name}: inspect meta 与盘上 manifest 不符`);
+      }
+      count();
+      continue;
+    }
+    // verify：独立复算检查项序列
+    const checks = [];
+    let meta = { coreIrSha256: null, entry: null, irRecompiled: false, signed: false };
+    let failed = null;
+    if (early) {
+      const nm = r.stage === 'read' ? (r.code === 'PKG_INVALID_MANIFEST' ? 'schema' : 'integrity') : CHECK_OF_STAGE[r.stage];
+      for (const k of ['schema', 'signature', 'integrity']) {
+        if (k === nm) break;
+        if (r.stage !== 'read') checks.push({ name: k, ok: true });
+      }
+      checks.push({ code: r.code, name: nm, ok: false });
+      failed = r.code;
+      meta.signed = r.stage === 'integrity';
+    } else {
+      const m = r.manifest;
+      checks.push({ name: 'schema', ok: true }, { name: 'signature', ok: true }, { name: 'integrity', ok: true });
+      meta = { coreIrSha256: m.coreIr.sha256, entry: m.policy.entries.find((e) => e.default).function, irRecompiled: false, signed: r.signed };
+      const stop = (nameK, code) => {
+        checks.push({ code, name: nameK, ok: false });
+        failed = code;
+      };
+      if (m.mode === 'a') {
+        if (!r.ok) stop('ir', 'PKG_UNSUPPORTED_IR');
+        else checks.push({ name: 'ir', ok: true });
+      }
+      const localIr = () => tsCompileFiles(ts, m, r.files);
+      const pfOf = (core) => sha256Hex(utf8(ts.canonicalJson(positionFreeTree(JSON.parse(core)))));
+      if (!failed && flags.includes('--recompile')) {
+        const core = localIr();
+        if (core === null || pfOf(core) !== m.coreIr.positionFreeSha256) stop('recompile', 'PKG_IR_DRIFT');
+        else {
+          checks.push({ name: 'recompile', ok: true });
+          meta.irRecompiled = true;
+        }
+      }
+      if (!failed && flags.includes('--probes')) {
+        let core = null;
+        if (m.mode === 'a') core = r.files.get('compiled/core.json').toString('utf8');
+        else {
+          core = localIr();
+          if (core === null || pfOf(core) !== m.coreIr.positionFreeSha256) {
+            stop('probes', 'PKG_IR_DRIFT');
+            core = null;
+          }
+        }
+        if (core !== null) {
+          const probes = parseValueTree(r.files.get('tests/probes.json').toString('utf8')).probes;
+          const allOk = probes.every((p) => {
+            const t = tsEval(ts, core, p.entry, p.input);
+            return p.expected.ok ? t.ok && t.value === valueJson(p.expected.value) : !t.ok;
+          });
+          if (allOk) checks.push({ name: 'probes', ok: true });
+          else stop('probes', 'PROBE_MISMATCH');
+        }
+      }
+    }
+    const wantStdout = `${canonicalJson({ checks, meta: { cliVersion: '<CLI_VERSION>', engine: '<ENGINE>', ...meta }, ok: failed === null })}\n`;
+    expect(c.expectedStdout === wantStdout, `${name}: verify 期望与盘上包的独立复算不符\n      期望 ${c.expectedStdout.trim()}\n      复算 ${wantStdout.trim()}`);
+    expect(c.expectedExit === (failed === null ? 0 : exitCodes[failed].exit), `${name}: verify 退出码`);
+    count();
+  }
+
   // 黄金包本身（目录与 zip 形态）参照流水线必须通过
   for (const [rel] of out) {
     const m = /^packages\/([^/]+)\/manifest\.json$/.exec(rel);

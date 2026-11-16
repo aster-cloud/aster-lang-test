@@ -855,11 +855,16 @@ export function tamperTarget(t) {
  * 篡改用例：每个夹具 run、verify、inspect 各一条（全部在求值之前失败；ir 阶段的夹具 verify / inspect 照常通过，
  * 另加 verify --recompile 与 verify --probes 两条）。stdin 用 base 第一个成功 run 用例的输入。
  */
-export function tamperCases(t, pkgs, exitCodes) {
+export function tamperCases(t, pkgs, exitCodes, built) {
   const base = pkgs.get(t.base);
+  // 期望输出一律由**篡改后**的包推导（manifest、文件、签名状态）：目录形态的篡改夹具 buildTamper 返回完整的包视图；
+  // zip 与不存在的路径都在 read / manifest 阶段失败，输出不依赖 manifest 内容，退回 base 只为取入口与输入。
+  if (!built) throw new Error(`${t.name}: tamperCases 需要 buildTamper 的结果`);
+  const pkg = built.kind === 'dir' ? built : base;
   const target = tamperTarget(t);
   const firstRun = base.def.cases.find((c) => c.command === 'run' && typeof c.expect === 'string');
   const failure = { stage: t.stage ?? DEFAULT_STAGE[t.code], code: t.code, failsIn: t.failsIn };
+  if (failure.stage === 'ir' && !Array.isArray(t.failsIn)) throw new Error(`${t.name}: ir 阶段的篡改夹具必须用 failsIn 列出在哪些 verify 检查项中失败`);
   const extra = t.args ?? [];
   const anchor = ['--jwks', ANCHOR_JWKS];
   const allowUnsigned = extra.includes('--allow-unsigned');
@@ -869,13 +874,13 @@ export function tamperCases(t, pkgs, exitCodes) {
     if (stdin !== undefined) row.stdin = stdin;
     rows.push(Object.assign(row, { expectedStdout: out.stdout, expectedExit: out.exit, code: out.code }));
   };
-  const runMetaFor = runMeta(base, failure.stage, { entry: entryOf(extra, base.def), allowUnsigned });
+  const runMetaFor = runMeta(pkg, failure.stage, { entry: entryOf(extra, pkg.def), allowUnsigned });
   push(t.name, 'run', [...extra, '--input', '-'], errorOut(t.code, runMetaFor, exitCodes), inputJson(firstRun.input));
-  push(`${t.name} (verify)`, 'verify', extra, verifyOutput(base, extra, failure, exitCodes));
-  push(`${t.name} (inspect)`, 'inspect', extra, inspectOutput(base, extra, failure, exitCodes));
+  push(`${t.name} (verify)`, 'verify', extra, verifyOutput(pkg, extra, failure, exitCodes));
+  push(`${t.name} (inspect)`, 'inspect', extra, inspectOutput(pkg, extra, failure, exitCodes));
   if (failure.stage === 'ir') {
-    push(`${t.name} (verify --recompile)`, 'verify', [...extra, '--recompile'], verifyOutput(base, [...extra, '--recompile'], failure, exitCodes));
-    push(`${t.name} (verify --probes)`, 'verify', [...extra, '--probes'], verifyOutput(base, [...extra, '--probes'], failure, exitCodes));
+    push(`${t.name} (verify --recompile)`, 'verify', [...extra, '--recompile'], verifyOutput(pkg, [...extra, '--recompile'], failure, exitCodes));
+    push(`${t.name} (verify --probes)`, 'verify', [...extra, '--probes'], verifyOutput(pkg, [...extra, '--probes'], failure, exitCodes));
   }
   return rows;
 }

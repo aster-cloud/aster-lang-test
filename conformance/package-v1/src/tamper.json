@@ -199,7 +199,12 @@
       "kind": "edit-manifest",
       "edit": "position-free-wrong",
       "resign": true,
-      "code": "PKG_IR_DRIFT"
+      "code": "PKG_IR_DRIFT",
+      "stage": "ir",
+      "failsIn": [
+        "recompile",
+        "probes"
+      ]
     },
     {
       "name": "a-core-sha256-mismatch",

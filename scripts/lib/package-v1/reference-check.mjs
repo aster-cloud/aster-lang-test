@@ -314,7 +314,8 @@ export function checkPackage(path, opts) {
       try {
         opts.readCoreIr(files.get('compiled/core.json').toString('utf8'));
       } catch (e) {
-        fail('ir', 'PKG_UNSUPPORTED_IR', `compiled/core.json 严格读入失败：${e.message}`);
+        // ir 阶段失败时仍带回已通过完整性校验的 manifest 与文件（inspect 不取 IR，verify 的前三项照常通过）
+        return { ok: false, stage: 'ir', code: 'PKG_UNSUPPORTED_IR', why: `compiled/core.json 严格读入失败：${e.message}`, files, manifest, signed };
       }
     }
     return { ok: true, files, manifest, signed };
