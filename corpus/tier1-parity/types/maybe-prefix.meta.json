@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "前缀可空 `maybe T`（≡ `T?`，aster-lang-ts#328）：maybe 是各 lexicon 的类型构造关键词（MAYBE，与 option of / result of 同类），大小写不敏感，内层可带注解（`Maybe @pii(L1, email) Text`）。字段 / 形参类型最外层的 @pii 同时记入 annotations（与 core AstBuilder 一致）。修复前 ts 接受、core 拒绝",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定字段 / 形参 / 返回类型的 Core IR"
+}

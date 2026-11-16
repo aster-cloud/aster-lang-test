@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "`list of Int and Text`：list 只接一个参数，`and` 之后的 Text 只能是下一个形参名，而形参名不能大写，两引擎都报 E055（aster-lang-ts#328）。修复前 core 把 Text 读成无类型形参，ts 报 E055"
+}

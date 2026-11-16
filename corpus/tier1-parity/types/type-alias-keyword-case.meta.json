@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "类型别名关键词大小写不敏感（aster-lang-ts#328），与 Define / Rule / Use 等声明关键词一致：`Type` / `TYPE` / `type` 同义。`Type` 不是硬关键词，作 Data 名与形参类型照旧可用。修复前 core 拒绝首字母大写的 `Type`（ts 格式化器输出的就是 `Type`），ts 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定别名解析后的形参类型；规则体返回形参本身"
+}

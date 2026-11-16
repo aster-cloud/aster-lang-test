@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "`maybe` 不带 of（aster-lang-ts#328）：写 `maybe Text` 或 `Text?`。两引擎都在 of 上报 E061。修复前 core 把它读成名为 maybe 的泛型（TypeApp），ts 以解析错误拒绝"
+}

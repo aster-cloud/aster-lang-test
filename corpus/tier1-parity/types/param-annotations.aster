@@ -1,0 +1,26 @@
+Module parity.types.paramannotations.
+
+Define Pair has a as Int.
+
+Rule pairThenAnnotated given x as Pair of Int, @pii(L1, email) y as Text, produce Text:
+  Return y.
+
+Rule pairAndAnnotated given x as Pair of Int and @audit y as Text, produce Text:
+  Return y.
+
+Rule stacked given @pii(L2, phone) @audit p as Text and q as @pii(L1, email) Text, produce Text:
+  Return p.
+
+Rule mixedArgs given @tag(name: "k", 3, true) z, produce Text:
+  Return z.
+
+Rule annotatedConstraint given @source(form: "loan") amount as Int between 1 and 100, produce Int:
+  Return amount.
+
+Rule annotatedTypeArg given x as Pair of Int, @pii(L1, email) Text, produce Int:
+  Return 1.
+
+Rule annotatedLambda given x as Int, produce Int:
+  Let f be function given @seen n as Int required, produce Int:
+    Return n.
+  Return x.
