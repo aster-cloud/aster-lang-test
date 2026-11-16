@@ -115,16 +115,23 @@ export function deflateZeros(n) {
 /**
  * 写出 zip。entry 字段：
  *   name（必填）、directory（目录条目，无数据）、data（未压缩字节）、method（0 存储 / 8 deflate，缺省 0；
- *   8 用 deflateStored）；畸形开关：rawMethod（头部写入的方法号，如 12）、compressed（直接给出压缩后字节）、
- *   crc、declaredUncompressedSize、declaredCompressedSize（头部写入的值，不必与实际相符）。
- * 本地头与中央目录写入相同的值。
+ *   8 用 deflateStored）；
+ *   descriptor：置通用标志位 3，本地头的 crc / 大小写 0，数据后跟带签名的数据描述符（java.util.zip.ZipOutputStream
+ *   对 DEFLATED 条目的写法）；utf8：置通用标志位 11（ZipOutputStream 对非 ASCII 名的写法）；flags：额外或上的标志位；
+ *   畸形开关：rawMethod（头部写入的方法号，如 12）、compressed（直接给出压缩后字节）、crc、declaredUncompressedSize、
+ *   declaredCompressedSize（头部写入的值，不必与实际相符）；cd：只覆盖中央目录中的字段（name / crc /
+ *   compressedSize / uncompressedSize），用于本地头与中央目录不一致；zip64：大小字段写 0xFFFFFFFF 并带 ZIP64 extra；
+ *   rawName：直接给出条目名字节（可为非法 UTF-8）。
+ * 归档级 opts：prefix（首个本地头之前的字节）、comment（EOCD 注释）、suffix（EOCD 之后的字节）。
+ * 不给任何开关时输出与本模块此前版本逐字节相同。
  */
-export function writeZip(entries) {
+export function writeZip(entries, opts = {}) {
   const locals = [];
   const centrals = [];
-  let offset = 0;
+  const prefix = opts.prefix ?? Buffer.alloc(0);
+  let offset = prefix.length;
   for (const e of entries) {
-    const name = Buffer.from(e.name, 'utf8');
+    const name = e.rawName ?? Buffer.from(e.name, 'utf8');
     const data = e.directory ? Buffer.alloc(0) : (e.data ?? Buffer.alloc(0));
     const method = e.rawMethod ?? (e.directory ? 0 : (e.method ?? 0));
     const compressed = e.compressed ?? (method === 8 ? deflateStored(data) : data);
@@ -132,44 +139,66 @@ export function writeZip(entries) {
     const csize = e.declaredCompressedSize ?? compressed.length;
     const usize = e.declaredUncompressedSize ?? data.length;
     const mode = e.directory ? 0o40755 : 0o100644;
+    const flags = (e.flags ?? 0) | (e.descriptor ? 0x0008 : 0) | (e.utf8 ? 0x0800 : 0);
+    const big = 0xffffffff;
+    const extra = e.zip64 ? Buffer.alloc(20) : Buffer.alloc(0);
+    if (e.zip64) {
+      extra.writeUInt16LE(0x0001, 0);
+      extra.writeUInt16LE(16, 2);
+      extra.writeBigUInt64LE(BigInt(usize), 4);
+      extra.writeBigUInt64LE(BigInt(csize), 12);
+    }
 
     const local = Buffer.alloc(30);
     local.writeUInt32LE(0x04034b50, 0);
-    local.writeUInt16LE(VERSION, 4);
-    local.writeUInt16LE(0, 6);
+    local.writeUInt16LE(e.zip64 ? 45 : VERSION, 4);
+    local.writeUInt16LE(flags, 6);
     local.writeUInt16LE(method, 8);
     local.writeUInt16LE(DOS_TIME, 10);
     local.writeUInt16LE(DOS_DATE, 12);
-    local.writeUInt32LE(crc, 14);
-    local.writeUInt32LE(csize, 18);
-    local.writeUInt32LE(usize, 22);
+    local.writeUInt32LE(e.descriptor ? 0 : crc, 14);
+    local.writeUInt32LE(e.descriptor ? 0 : (e.zip64 ? big : csize), 18);
+    local.writeUInt32LE(e.descriptor ? 0 : (e.zip64 ? big : usize), 22);
     local.writeUInt16LE(name.length, 26);
-    local.writeUInt16LE(0, 28);
-    locals.push(local, name, compressed);
+    local.writeUInt16LE(extra.length, 28);
+    locals.push(local, name, extra, compressed);
+    let descriptorLen = 0;
+    if (e.descriptor) {
+      const dd = Buffer.alloc(16);
+      dd.writeUInt32LE(0x08074b50, 0);
+      dd.writeUInt32LE(crc, 4);
+      dd.writeUInt32LE(csize, 8);
+      dd.writeUInt32LE(usize, 12);
+      locals.push(dd);
+      descriptorLen = dd.length;
+    }
 
+    const cd = e.cd ?? {};
+    const cdName = cd.name !== undefined ? Buffer.from(cd.name, 'utf8') : name;
     const central = Buffer.alloc(46);
     central.writeUInt32LE(0x02014b50, 0);
     central.writeUInt16LE(VERSION_MADE_BY, 4);
-    central.writeUInt16LE(VERSION, 6);
-    central.writeUInt16LE(0, 8);
+    central.writeUInt16LE(e.zip64 ? 45 : VERSION, 6);
+    central.writeUInt16LE(flags, 8);
     central.writeUInt16LE(method, 10);
     central.writeUInt16LE(DOS_TIME, 12);
     central.writeUInt16LE(DOS_DATE, 14);
-    central.writeUInt32LE(crc, 16);
-    central.writeUInt32LE(csize, 20);
-    central.writeUInt32LE(usize, 24);
-    central.writeUInt16LE(name.length, 28);
-    central.writeUInt16LE(0, 30); // extra
+    central.writeUInt32LE(cd.crc ?? crc, 16);
+    central.writeUInt32LE(e.zip64 ? big : (cd.compressedSize ?? csize), 20);
+    central.writeUInt32LE(e.zip64 ? big : (cd.uncompressedSize ?? usize), 24);
+    central.writeUInt16LE(cdName.length, 28);
+    central.writeUInt16LE(extra.length, 30); // extra
     central.writeUInt16LE(0, 32); // comment
     central.writeUInt16LE(0, 34); // disk
     central.writeUInt16LE(0, 36); // internal attr
     central.writeUInt32LE((mode << 16) >>> 0, 38);
     central.writeUInt32LE(offset, 42);
-    centrals.push(central, name);
+    centrals.push(central, cdName, extra);
 
-    offset += local.length + name.length + compressed.length;
+    offset += local.length + name.length + extra.length + compressed.length + descriptorLen;
   }
   const cd = Buffer.concat(centrals);
+  const comment = opts.comment ?? Buffer.alloc(0);
   const eocd = Buffer.alloc(22);
   eocd.writeUInt32LE(0x06054b50, 0);
   eocd.writeUInt16LE(0, 4);
@@ -178,8 +207,8 @@ export function writeZip(entries) {
   eocd.writeUInt16LE(entries.length, 10);
   eocd.writeUInt32LE(cd.length, 12);
   eocd.writeUInt32LE(offset, 16);
-  eocd.writeUInt16LE(0, 20);
-  return Buffer.concat([...locals, cd, eocd]);
+  eocd.writeUInt16LE(comment.length, 20);
+  return Buffer.concat([prefix, ...locals, cd, eocd, comment, opts.suffix ?? Buffer.alloc(0)]);
 }
 
 /** 读回中央目录与各条目的压缩字节（测试用；不做任何合法性判断）。 */
@@ -204,6 +233,7 @@ export function readZipHeaders(buf) {
       compressedSize: buf.readUInt32LE(p + 20),
       uncompressedSize: buf.readUInt32LE(p + 24),
       externalAttr: buf.readUInt32LE(p + 38),
+      flags: buf.readUInt16LE(p + 8),
     };
     const dataAt = localAt + 30 + buf.readUInt16LE(localAt + 26) + buf.readUInt16LE(localAt + 28);
     h.compressed = buf.subarray(dataAt, dataAt + h.compressedSize);

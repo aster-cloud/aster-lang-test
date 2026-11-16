@@ -50,8 +50,12 @@ function string(s) {
   return JSON.stringify(s);
 }
 
+/** 值的最大嵌套层级：顶层值为第 0 层，容器的元素 / 成员比容器深一层；任何值位于第 65 层及更深即报错（与 ts serializeGuestValue 的 SERIALIZE_MAX_DEPTH = 64 相同）。 */
+export const MAX_VALUE_LEVEL = 64;
+
 /** 值树 → 值规范 JSON 文本。 */
-export function valueJson(value) {
+export function valueJson(value, level = 0) {
+  if (level > MAX_VALUE_LEVEL) throw new ValueJsonError(`值嵌套超过 ${MAX_VALUE_LEVEL} 层`);
   if (value === null) return 'null';
   switch (typeof value) {
     case 'boolean':
@@ -65,9 +69,9 @@ export function valueJson(value) {
     case 'string':
       return string(value);
     case 'object': {
-      if (Array.isArray(value)) return `[${value.map(valueJson).join(',')}]`;
+      if (Array.isArray(value)) return `[${value.map((v) => valueJson(v, level + 1)).join(',')}]`;
       const keys = Object.keys(value).sort(compareByCodePoint);
-      return `{${keys.map((k) => `${string(k)}:${valueJson(value[k])}`).join(',')}}`;
+      return `{${keys.map((k) => `${string(k)}:${valueJson(value[k], level + 1)}`).join(',')}}`;
     }
     default:
       throw new ValueJsonError(`不支持的值类型：${typeof value}`);

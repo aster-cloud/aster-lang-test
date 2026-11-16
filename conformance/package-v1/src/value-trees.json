@@ -134,6 +134,36 @@
       "treeJson": "{\"__type\":\"Verdict\",\"outcome\":\"REQUIRE_APPROVAL\",\"role\":\"Credit Officer\",\"reason\":\"large exposure\"}"
     },
     {
+      "name": "decimal-trailing-zero-stripped",
+      "category": "Decimal",
+      "source": "platform",
+      "treeJson": "\"43.3\""
+    },
+    {
+      "name": "decimal-zero",
+      "category": "Decimal",
+      "source": "platform",
+      "treeJson": "\"0\""
+    },
+    {
+      "name": "decimal-negative",
+      "category": "Decimal",
+      "source": "platform",
+      "treeJson": "\"-1.5\""
+    },
+    {
+      "name": "decimal-small",
+      "category": "Decimal",
+      "source": "platform",
+      "treeJson": "\"0.000001\""
+    },
+    {
+      "name": "double-integral-from-division",
+      "category": "Double",
+      "source": "platform",
+      "treeJson": "2"
+    },
+    {
       "name": "double-3.5",
       "category": "Double",
       "source": "synthetic",
@@ -234,6 +264,73 @@
       "category": "List",
       "source": "synthetic",
       "treeJson": "[{\"__type\":\"Some\",\"value\":{\"__type\":\"Ok\",\"value\":2.5E-8}},{\"__type\":\"None\"},[],{}]"
+    },
+    {
+      "name": "double-2.0",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "2.0"
+    },
+    {
+      "name": "double-minus-1.0",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "-1.0"
+    },
+    {
+      "name": "double-10.0",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "10.0"
+    },
+    {
+      "name": "double-123.0",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "123.0"
+    },
+    {
+      "name": "double-1e15",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "1.0E15"
+    },
+    {
+      "name": "double-2^53",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "9.007199254740992E15"
+    },
+    {
+      "name": "double-1e21-minus-ulp",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "9.999999999999999E20"
+    },
+    {
+      "name": "double-1.2345678901234568E20",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "1.2345678901234568E20"
+    },
+    {
+      "name": "double-0.001",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "0.001"
+    },
+    {
+      "name": "double-1.0E-4",
+      "category": "Double",
+      "source": "synthetic",
+      "treeJson": "1.0E-4"
+    },
+    {
+      "name": "text-lone-surrogate",
+      "category": "Text",
+      "source": "synthetic",
+      "treeJson": "\"\\ud800\"",
+      "error": true
     }
   ]
 }

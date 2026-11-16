@@ -62,3 +62,15 @@ Rule verdictDeny given x, produce Verdict:
 
 Rule verdictApproval given x, produce Verdict:
   Return Verdict.require_approval("Credit Officer", "large exposure").
+
+Rule decimalTrailing given x, produce:
+  Return x times 1.0825m.
+
+Rule decimalZero given x, produce:
+  Return 0.00m.
+
+Rule decimalNegative given x, produce:
+  Return 0m minus 1.50m.
+
+Rule decimalSmall given x, produce:
+  Return 0.000001m.

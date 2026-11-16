@@ -29,7 +29,7 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"x\":7}",
-      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":false},\"ok\":true,\"value\":70}\n",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":false},\"ok\":true,\"value\":70}\n",
       "expectedExit": 0,
       "code": null
     },
@@ -54,7 +54,7 @@
         "--jwks",
         "../keys/test-jwks.json"
       ],
-      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":false},\"ok\":true}\n",
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":false},\"ok\":true}\n",
       "expectedExit": 0,
       "code": null
     }

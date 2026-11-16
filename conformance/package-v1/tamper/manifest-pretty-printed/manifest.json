@@ -31,8 +31,8 @@
     },
     {
       "path": "schema/input.json",
-      "sha256": "93110998a9eae436d5bdef8d0c700a8bd32a674e1d321f49ae577d67083e7d60",
-      "size": 842
+      "sha256": "043668b9a560cfd3395c1a5650790edc10eccc3666027f4d8b290fecd7ec7909",
+      "size": 851
     },
     {
       "path": "schema/output.json",

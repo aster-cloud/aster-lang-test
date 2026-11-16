@@ -132,6 +132,36 @@
       "category": "Verdict",
       "entry": "verdictApproval",
       "contextJson": "{\"x\":1}"
+    },
+    {
+      "name": "decimal-trailing-zero-stripped",
+      "category": "Decimal",
+      "entry": "decimalTrailing",
+      "contextJson": "{\"x\":40}"
+    },
+    {
+      "name": "decimal-zero",
+      "category": "Decimal",
+      "entry": "decimalZero",
+      "contextJson": "{\"x\":0}"
+    },
+    {
+      "name": "decimal-negative",
+      "category": "Decimal",
+      "entry": "decimalNegative",
+      "contextJson": "{\"x\":0}"
+    },
+    {
+      "name": "decimal-small",
+      "category": "Decimal",
+      "entry": "decimalSmall",
+      "contextJson": "{\"x\":0}"
+    },
+    {
+      "name": "double-integral-from-division",
+      "category": "Double",
+      "entry": "halfValue",
+      "contextJson": "{\"x\":4}"
     }
   ],
   "synthetic": [
@@ -219,6 +249,62 @@
       "name": "nested-list-of-maybe",
       "category": "List",
       "treeJson": "[{\"__type\":\"Some\",\"value\":{\"__type\":\"Ok\",\"value\":2.5E-8}},{\"__type\":\"None\"},[],{}]"
+    },
+    {
+      "name": "double-2.0",
+      "category": "Double",
+      "treeJson": "2.0"
+    },
+    {
+      "name": "double-minus-1.0",
+      "category": "Double",
+      "treeJson": "-1.0"
+    },
+    {
+      "name": "double-10.0",
+      "category": "Double",
+      "treeJson": "10.0"
+    },
+    {
+      "name": "double-123.0",
+      "category": "Double",
+      "treeJson": "123.0"
+    },
+    {
+      "name": "double-1e15",
+      "category": "Double",
+      "treeJson": "1.0E15"
+    },
+    {
+      "name": "double-2^53",
+      "category": "Double",
+      "treeJson": "9.007199254740992E15"
+    },
+    {
+      "name": "double-1e21-minus-ulp",
+      "category": "Double",
+      "treeJson": "9.999999999999999E20"
+    },
+    {
+      "name": "double-1.2345678901234568E20",
+      "category": "Double",
+      "treeJson": "1.2345678901234568E20"
+    },
+    {
+      "name": "double-0.001",
+      "category": "Double",
+      "treeJson": "0.001"
+    },
+    {
+      "name": "double-1.0E-4",
+      "category": "Double",
+      "treeJson": "1.0E-4"
+    },
+    {
+      "name": "text-lone-surrogate",
+      "category": "Text",
+      "treeJson": "\"\\ud800\"",
+      "error": true
     }
   ]
 }

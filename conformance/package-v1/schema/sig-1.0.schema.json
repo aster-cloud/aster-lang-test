@@ -6,7 +6,7 @@
   "type": "object",
   "additionalProperties": false,
   "propertyNames": {
-    "pattern": "^[A-Za-z0-9_]+$"
+    "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
   },
   "required": [
     "alg",
@@ -24,11 +24,11 @@
     },
     "kid": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9._-]+$"
+      "pattern": "^[A-Za-z0-9._-]+(?![\\s\\S])"
     },
     "sig": {
       "type": "string",
-      "pattern": "^[A-Za-z0-9_-]{86}$"
+      "pattern": "^[A-Za-z0-9_-]{86}(?![\\s\\S])"
     }
   }
 }

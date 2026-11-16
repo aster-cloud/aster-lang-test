@@ -14,12 +14,15 @@ import { inflateRawSync } from 'node:zlib';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { canonicalJson, CanonicalError, isCanonicalJsonText } from './lib/package-v1/canonical.mjs';
+import { canonicalJson, CanonicalError, isCanonicalJsonBytes } from './lib/package-v1/canonical.mjs';
 import { parseValueTree, valueJson, doubleFromBits, ValueJsonError } from './lib/package-v1/value-json.mjs';
 import { deflateStored, deflateZeros, writeZip, readZipHeaders, crc32 } from './lib/package-v1/zip.mjs';
 import { positionFreeTree, positionFreeSha256 } from './lib/package-v1/position-free.mjs';
 import { keyPairFromSeed, signManifest, base64url } from './lib/package-v1/signing.mjs';
 import { normalizeStdout } from '../conformance/package-v1/normalize-stdout.mjs';
+import { parseStrictJson, StrictJsonError } from './lib/package-v1/strict-json.mjs';
+import { validateInput, InputError } from './lib/package-v1/input.mjs';
+import { isPackagePath, isSafeRoot } from './lib/package-v1/reference-check.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -58,13 +61,14 @@ check('canonical: 拒绝非整数、超安全整数、NaN、孤立代理项', ()
   assert.strictEqual(canonicalJson(Number.MAX_SAFE_INTEGER), '9007199254740991');
 });
 
-check('canonical: isCanonicalJsonText 识别键重排、空白与末尾换行', () => {
-  assert.strictEqual(isCanonicalJsonText('{"a":1,"b":2}'), true);
-  assert.strictEqual(isCanonicalJsonText('{"b":2,"a":1}'), false);
-  assert.strictEqual(isCanonicalJsonText('{"a":1, "b":2}'), false);
-  assert.strictEqual(isCanonicalJsonText('{"a":1,"b":2}\n'), false);
-  assert.strictEqual(isCanonicalJsonText('{"a":1,"a":1}'), false);
-  assert.strictEqual(isCanonicalJsonText('not json'), false);
+check('canonical: isCanonicalJsonBytes 按字节识别键重排、空白、末尾换行、重复键、BOM、非法 UTF-8、孤立代理项', () => {
+  const B = (s) => Buffer.from(s, 'utf8');
+  assert.strictEqual(isCanonicalJsonBytes(B('{"a":1,"b":"é"}')), true);
+  for (const bad of [
+    B('{"b":2,"a":1}'), B('{"a":1, "b":2}'), B('{"a":1,"b":2}\n'), B('{"a":1,"a":1}'), B('not json'),
+    Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), B('{"a":1}')]), Buffer.from([0x7b, 0x22, 0x61, 0x22, 0x3a, 0x22, 0xff, 0x22, 0x7d]),
+    B('{"a":"\\ud800"}'), B('{"a":1.0}'),
+  ]) assert.strictEqual(isCanonicalJsonBytes(bad), false, bad.toString('hex'));
 });
 
 // ---- value-json.mjs：值规范 JSON（ADR 0059 修订 1 A1） ----
@@ -259,6 +263,93 @@ check('normalize-stdout: 共享向量全部通过', () => {
   const doc = JSON.parse(readFileSync(join(ROOT, 'conformance/package-v1/vectors/stdout-normalize.json'), 'utf8'));
   assert.ok(doc.vectors.length >= 4);
   for (const v of doc.vectors) assert.strictEqual(normalizeStdout(v.stdout), v.expected, v.name);
+});
+
+
+// ---- strict-json.mjs：manifest / 签名文件 / probes / --input 共用的严格 JSON ----
+
+check('strict-json: 拒绝 BOM、非法 UTF-8、尾随内容、重复键、孤立代理项、超深嵌套、溢出、未转义控制字符', () => {
+  const bad = [
+    Buffer.from([0xef, 0xbb, 0xbf, 0x7b, 0x7d]),
+    Buffer.from([0x22, 0xff, 0x22]),
+    Buffer.from('{"a":1} {"b":2}'),
+    Buffer.from('{"a":1,"a":2}'),
+    Buffer.from('"\\ud800"'),
+    Buffer.from(`${'['.repeat(65)}${']'.repeat(65)}`),
+    Buffer.from('1e400'),
+    Buffer.from('"a\u0001b"'),
+    Buffer.from(''),
+    Buffer.from('{"a":01}'),
+  ];
+  for (const b of bad) assert.throws(() => parseStrictJson(b), StrictJsonError, b.toString('hex'));
+});
+
+check('strict-json: 接受前后空白；lossless 时整数 token 为 BigInt，小数 token 为 double', () => {
+  assert.deepStrictEqual(parseStrictJson(Buffer.from(' {"x": [1, 2.5, "\\u00e9"]}\n'), { lossless: true }), { x: [1n, 2.5, 'é'] });
+  assert.strictEqual(parseStrictJson(Buffer.from('9007199254740993'), { lossless: true }), 9007199254740993n);
+  assert.doesNotThrow(() => parseStrictJson(Buffer.from(`${'['.repeat(64)}${']'.repeat(64)}`)));
+});
+
+// ---- input.mjs：--input 规则 ----
+
+const IR = {
+  decls: [
+    { kind: 'Enum', name: 'Tier', variants: ['Gold', 'Silver'] },
+    { kind: 'Func', name: 'f', params: [
+      { name: 'i', type: { kind: 'TypeName', name: 'Int' } },
+      { name: 'l', type: { kind: 'TypeName', name: 'Long' } },
+      { name: 'd', type: { kind: 'TypeName', name: 'Decimal' } },
+      { name: 'm', type: { kind: 'Maybe', type: { kind: 'TypeName', name: 'Tier' } } },
+    ] },
+  ],
+};
+const inp = (o) => Buffer.from(o);
+
+check('input: 合法输入通过（Long 字符串、Decimal 字符串、Maybe null、Enum 变体名）', () => {
+  validateInput(inp('{"i":2147483647,"l":"-9223372036854775808","d":"1.50","m":null}'), IR, 'f');
+  validateInput(inp('{"i":-2147483648,"l":9007199254740991,"d":"0","m":"Gold"}'), IR, 'f');
+});
+
+check('input: int32 / int64 / 2⁵³ / Decimal 80 位 / 整数形态 / Enum / 键集合', () => {
+  const bad = [
+    '{"i":2147483648,"l":1,"d":"1","m":null}',
+    '{"i":7.0,"l":1,"d":"1","m":null}',
+    '{"i":1,"l":"9223372036854775808","d":"1","m":null}',
+    '{"i":1,"l":9007199254740992,"d":"1","m":null}',
+    `{"i":1,"l":1,"d":"${'9'.repeat(81)}","m":null}`,
+    '{"i":1,"l":1,"d":1,"m":null}',
+    '{"i":1,"l":1,"d":"1","m":"Bronze"}',
+    '{"i":1,"l":1,"d":"1"}',
+    '{"i":1,"l":1,"d":"1","m":null,"x":0}',
+  ];
+  for (const b of bad) assert.throws(() => validateInput(inp(b), IR, 'f'), InputError, b);
+  assert.doesNotThrow(() => validateInput(inp(`{"i":1,"l":1,"d":"${'9'.repeat(80)}","m":null}`), IR, 'f'));
+});
+
+// ---- reference-check.mjs：路径与 zip 根规则 ----
+
+check('reference: 包路径（ASCII 段、无 . / .. 段）与 zip 根（NFC、无分隔符与控制字符）', () => {
+  for (const ok of ['README.md', 'policy/compile/alias-set.json', 'a.b-c_d']) assert.ok(isPackagePath(ok), ok);
+  for (const bad of ['', '/x', 'x/', '../x', 'a/./b', 'a\\b', 'é.txt', 'a//b']) assert.ok(!isPackagePath(bad), bad);
+  for (const ok of ['块.遮蔽-v1-node-b', 'aster.pilot.credit-v3-jre-b', 'ü']) assert.ok(isSafeRoot(ok), ok);
+  for (const bad of ['', '.', '..', 'a/b', 'a\\b', 'a\u0001', 'a\u0085', 'u\u0308']) assert.ok(!isSafeRoot(bad), JSON.stringify(bad));
+});
+
+check('zip: ZipOutputStream 风格（数据描述符 + UTF-8 标志）可被 zlib 还原、本地头大小为 0', () => {
+  const z = writeZip([{ name: '根/a.txt', data: Buffer.from('hello'), method: 8, descriptor: true, utf8: true }]);
+  const [h] = readZipHeaders(z);
+  assert.strictEqual(h.flags, 0x0808);
+  assert.strictEqual(z.readUInt32LE(18), 0, '本地头 compressed size');
+  assert.deepStrictEqual(inflateRawSync(h.compressed), Buffer.from('hello'));
+});
+
+check('value-json: 嵌套层级上限 64（与 ts SERIALIZE_MAX_DEPTH 相同）', () => {
+  const nest = (n, inner) => '['.repeat(n) + inner + ']'.repeat(n);
+  assert.doesNotThrow(() => vj(nest(64, '1')));
+  assert.throws(() => vj(nest(65, '1')), ValueJsonError);
+  assert.doesNotThrow(() => vj(nest(65, '')));
+  assert.throws(() => vj(nest(66, '')), ValueJsonError);
+  assert.throws(() => vj('"\\ud800"'), ValueJsonError);
 });
 
 console.log(`test-package-v1: ${pass} passed, ${fail} failed`);

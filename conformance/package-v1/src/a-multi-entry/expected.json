@@ -33,6 +33,10 @@
     {
       "source": "platform",
       "value": "\"high\""
+    },
+    {
+      "source": "platform",
+      "error": "evaluation_failed Policy evaluation failed"
     }
   ]
 }

@@ -8,7 +8,7 @@ Rule label given x as Int, produce Text:
     Return "high".
   Return "low".
 
-Rule ratio given x as Int, produce Int:
+Rule ratio given x as Int, produce Double:
   Return 100 divided by x.
 
 Rule answer produce Int:

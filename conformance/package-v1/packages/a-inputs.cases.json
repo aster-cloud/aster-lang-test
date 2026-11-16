@@ -1,0 +1,270 @@
+{
+  "description": "A 包，覆盖各类入参的输入形态（评审 I4）：Double（整数 token 与小数 token）、Long（安全整数 token 与 int64 十进制字符串，结果超出 2⁵³ 用于无损比较）、List、Map（Text 键）、Maybe（null 为 None）、无载荷 Enum（变体名字符串）、Int 的 int32 边界。字符串形态 Long 的期望值取自 ts（平台 /evaluate-json 把 JSON 字符串当 Text）。",
+  "package": "a-inputs",
+  "cases": [
+    {
+      "name": "double-integer-token",
+      "args": [
+        "run",
+        "a-inputs",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"d\":3}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"half\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":1.5}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "double-fraction-token",
+      "args": [
+        "run",
+        "a-inputs",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"d\":3.5}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"half\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":1.75}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "long-integer-token",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "bump",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"l\":5}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"bump\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":6}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "long-decimal-string-beyond-2^53",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "bump",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"l\":\"9007199254740993\"}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"bump\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":9007199254740994}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "long-decimal-string-min",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "bump",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"l\":\"-9223372036854775808\"}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"bump\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":-9223372036854775807}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "list",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "count",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"xs\":[1,2,3]}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"count\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":3}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "list-empty",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "count",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"xs\":[]}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"count\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":0}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "map-some",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "lookup",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"m\":{\"a\":7,\"b\":8}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"lookup\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Some\",\"value\":7}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "map-none",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "lookup",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"m\":{}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"lookup\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"None\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "maybe-some",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "orZero",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"t\":5}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"orZero\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":5}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "maybe-none-is-null",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "orZero",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"t\":null}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"orZero\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":0}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "enum-variant-name",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "tierCode",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"tier\":\"Silver\"}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"tierCode\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"s\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "int32-max",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "widen",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":2147483647}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"widen\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":2147483647}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "int32-min",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "widen",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":-2147483648}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"widen\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":-2147483648}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "text-non-ascii",
+      "args": [
+        "run",
+        "a-inputs",
+        "--entry",
+        "echo",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"s\":\"Grüße, 世界 😀\"}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"echo\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"Grüße, 世界 😀\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-probes-lossless",
+      "args": [
+        "verify",
+        "a-inputs",
+        "--probes",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"probes\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"2d206cb0607afed95bdf1309a327d86c99fdb5e6023ee285d4f6a96f89d7aa07\",\"engine\":\"<ENGINE>\",\"entry\":\"half\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    }
+  ]
+}

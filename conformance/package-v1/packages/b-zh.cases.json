@@ -1,0 +1,123 @@
+{
+  "description": "B 包，zh-CN + 冻结词汇，模块名与入口函数名为中文（块.遮蔽 / 分支遮蔽 / 嵌套遮蔽；评审 C1）。zip 形态按 java.util.zip.ZipOutputStream 的写法生成（全部条目 UTF-8 标志、DEFLATED 条目带数据描述符），根目录名为非 ASCII 的「块.遮蔽-v1-node-b」。源码与词汇取自 corpus/tier1-parity/vocab-zh/block-scope-shadowing.*。",
+  "package": "b-zh",
+  "cases": [
+    {
+      "name": "shadowing-n0",
+      "args": [
+        "run",
+        "b-zh",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"n\":0}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"78c5ebd05d2c74464460bd9f4ce25c63de761f072ba33bd282a40ea51188c69c\",\"engine\":\"<ENGINE>\",\"entry\":\"分支遮蔽\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":201}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "writeback-n5",
+      "args": [
+        "run",
+        "b-zh",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"n\":5}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"78c5ebd05d2c74464460bd9f4ce25c63de761f072ba33bd282a40ea51188c69c\",\"engine\":\"<ENGINE>\",\"entry\":\"分支遮蔽\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":6}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "nested-entry",
+      "args": [
+        "run",
+        "b-zh",
+        "--entry",
+        "嵌套遮蔽",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"n\":0}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"78c5ebd05d2c74464460bd9f4ce25c63de761f072ba33bd282a40ea51188c69c\",\"engine\":\"<ENGINE>\",\"entry\":\"嵌套遮蔽\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":10}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "zip-shadowing-n0",
+      "args": [
+        "run",
+        "b-zh.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"n\":0}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"78c5ebd05d2c74464460bd9f4ce25c63de761f072ba33bd282a40ea51188c69c\",\"engine\":\"<ENGINE>\",\"entry\":\"分支遮蔽\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":201}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "zip-nested-entry",
+      "args": [
+        "run",
+        "b-zh.zip",
+        "--entry",
+        "嵌套遮蔽",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"n\":0}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"78c5ebd05d2c74464460bd9f4ce25c63de761f072ba33bd282a40ea51188c69c\",\"engine\":\"<ENGINE>\",\"entry\":\"嵌套遮蔽\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":10}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "zip-verify-probes",
+      "args": [
+        "verify",
+        "b-zh.zip",
+        "--recompile",
+        "--probes",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true},{\"name\":\"probes\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"78c5ebd05d2c74464460bd9f4ce25c63de761f072ba33bd282a40ea51188c69c\",\"engine\":\"<ENGINE>\",\"entry\":\"分支遮蔽\",\"irRecompiled\":true,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "zip-inspect",
+      "args": [
+        "inspect",
+        "b-zh.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":false},\"policy\":{\"controls\":[],\"entries\":[{\"default\":true,\"function\":\"分支遮蔽\",\"inputSchema\":\"#/$defs/entry.分支遮蔽\",\"outputSchema\":\"#/$defs/entry.分支遮蔽\"},{\"default\":false,\"function\":\"嵌套遮蔽\",\"inputSchema\":\"#/$defs/entry.嵌套遮蔽\",\"outputSchema\":\"#/$defs/entry.嵌套遮蔽\"}],\"moduleName\":\"块.遮蔽\",\"profile\":null,\"ruleId\":null},\"runtime\":{\"cli\":{\"name\":\"@aster-cloud/aster-lang-ts\",\"version\":\"3.2.0\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-ts-interpreter\",\"requires\":{\"node\":\">=24\"}},\"schemas\":{\"input\":{\"$defs\":{\"entry.分支遮蔽\":{\"additionalProperties\":false,\"properties\":{\"n\":{\"maximum\":2147483647,\"minimum\":-2147483648,\"type\":\"integer\"}},\"required\":[\"n\"],\"type\":\"object\"},\"entry.嵌套遮蔽\":{\"additionalProperties\":false,\"properties\":{\"n\":{\"maximum\":2147483647,\"minimum\":-2147483648,\"type\":\"integer\"}},\"required\":[\"n\"],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"块.遮蔽 entry inputs\"},\"output\":{\"$defs\":{\"entry.分支遮蔽\":{\"type\":\"integer\"},\"entry.嵌套遮蔽\":{\"type\":\"integer\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"块.遮蔽 entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":2,\"probesSha256\":\"23e50b32b14ed4a838308af07556cc1d074fbf77f95243377b8b9e747544c10d\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"78c5ebd05d2c74464460bd9f4ce25c63de761f072ba33bd282a40ea51188c69c\",\"engine\":\"<ENGINE>\",\"entry\":\"分支遮蔽\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "inspect",
+      "args": [
+        "inspect",
+        "b-zh",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":false},\"policy\":{\"controls\":[],\"entries\":[{\"default\":true,\"function\":\"分支遮蔽\",\"inputSchema\":\"#/$defs/entry.分支遮蔽\",\"outputSchema\":\"#/$defs/entry.分支遮蔽\"},{\"default\":false,\"function\":\"嵌套遮蔽\",\"inputSchema\":\"#/$defs/entry.嵌套遮蔽\",\"outputSchema\":\"#/$defs/entry.嵌套遮蔽\"}],\"moduleName\":\"块.遮蔽\",\"profile\":null,\"ruleId\":null},\"runtime\":{\"cli\":{\"name\":\"@aster-cloud/aster-lang-ts\",\"version\":\"3.2.0\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-ts-interpreter\",\"requires\":{\"node\":\">=24\"}},\"schemas\":{\"input\":{\"$defs\":{\"entry.分支遮蔽\":{\"additionalProperties\":false,\"properties\":{\"n\":{\"maximum\":2147483647,\"minimum\":-2147483648,\"type\":\"integer\"}},\"required\":[\"n\"],\"type\":\"object\"},\"entry.嵌套遮蔽\":{\"additionalProperties\":false,\"properties\":{\"n\":{\"maximum\":2147483647,\"minimum\":-2147483648,\"type\":\"integer\"}},\"required\":[\"n\"],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"块.遮蔽 entry inputs\"},\"output\":{\"$defs\":{\"entry.分支遮蔽\":{\"type\":\"integer\"},\"entry.嵌套遮蔽\":{\"type\":\"integer\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"块.遮蔽 entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":2,\"probesSha256\":\"23e50b32b14ed4a838308af07556cc1d074fbf77f95243377b8b9e747544c10d\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"78c5ebd05d2c74464460bd9f4ce25c63de761f072ba33bd282a40ea51188c69c\",\"engine\":\"<ENGINE>\",\"entry\":\"分支遮蔽\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    }
+  ]
+}

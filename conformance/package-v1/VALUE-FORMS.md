@@ -24,6 +24,8 @@
   JVM 侧：`Double.toString`（JDK 19 起为最短往返位数）取有效数字与指数后按 ECMAScript 规则重排。
 - NaN / ±Infinity 不可能出现在值里；出现即 `EVAL_ERROR`。
 - Long 超出 2⁵³ 时消费方需用大数 JSON 解析器读取 `value`。
+- **嵌套层级上限 64**：顶层值为第 0 层，容器的元素 / 成员比容器深一层，任何值位于第 65 层或更深即 `EVAL_ERROR`
+  （与 ts `serializeGuestValue` 的 `SERIALIZE_MAX_DEPTH = 64` 相同；JVM 侧须显式实现同一计数）。向量 `depth-*` 给出两侧边界。
 
 ## 3. 逐类型树形（平台为准）
 
@@ -32,8 +34,8 @@
 | Int | JSON 整数 | 无 | `int`、`int-division-exact` |
 | Long | JSON 整数（超出 2⁵³ 也是裸数字） | 无（bigint → 十进制） | `long`、`long-from-unsafe-integer-input`、`long-2^53+1`、`long-min/max` |
 | Double | JSON 数字 | 无（树相等；字节由本规范统一） | `double-*` |
-| Decimal | 字符串，如 `"15.41"` | 无 | `decimal` |
-| Text | 字符串 | 无 | `text-non-ascii`、`text-escapes` |
+| Decimal | 字符串：普通十进制写法（无指数），去掉小数部分末尾的 0，整数值不带小数点，零为 `"0"`，负数带 `-`（Truffle `AsterDecimalValue` 的 `stripTrailingZeros().toPlainString()`、ts decimal.js 同一写法） | 无 | `decimal`、`decimal-trailing-zero-stripped`（`"43.3"`）、`decimal-zero`、`decimal-negative`、`decimal-small` |
+| Text | 字符串（含孤立代理项即 `EVAL_ERROR`） | 无 | `text-non-ascii`、`text-escapes`、`text-lone-surrogate`（error） |
 | Bool | `true` / `false` | 无 | `bool` |
 | List | 数组 | 无 | `list`、`nested-list-of-maybe` |
 | Map | 对象（平台为插入序；规范形重排） | 无 | `map-insertion-order`、`map-non-bmp-keys` |
@@ -58,5 +60,9 @@
   token 是精确整数**（解析为 BigInt / BigInteger），其余数字 token 是 IEEE-754 double。`source=platform` 的 `treeJson` 是
   本地 aster-api `/evaluate-json` 响应中 `result` 的原文（采集清单 `src/value-probes.json`），`source=synthetic` 是按
   Jackson / `Double.toString` 写法构造的边界值。
+- `error: true` 的向量（`expected` 为 `null`）必须序列化失败，CLI 报 `EVAL_ERROR`。
 - `randomDoubles`：splitmix64（种子见文件）生成的 10 000 个 64 位位模式（大端十六进制 `bits`），排除 NaN / ±Infinity，
-  `expected` 为 ECMAScript `String(x)`。两侧由位模式构造 double 后序列化，逐条比较。
+  `expected` 为 ECMAScript `String(x)`。均匀位模式绝大多数落在指数写法区间，所以另有：
+- `randomPlainDoubles`：10 000 个落在普通小数区间的 double（53 位随机尾数 × 10^k，k ∈ [−9, 22]，以及随机整数之商），覆盖 JVM 侧
+  `Double.toString` → ECMAScript 写法重排最容易出错的区间；固定向量另含 `2.0`、`-1.0`、`1.0E15`、`2⁵³`、`1e21 − ulp` 等整数值 double。
+  两组都是由位模式构造 double 后序列化，逐条比较。

@@ -7,15 +7,16 @@
   "$defs": {
     "Sha256": {
       "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
     },
     "NonEmptyString": {
       "type": "string",
       "minLength": 1
     },
     "Identifier": {
+      "description": "函数名：与两侧 canonicalizer 的完整标识符 token 同一规则（ts canonicalizer.ts `[\\p{L}_][\\p{L}\\p{M}\\p{Nd}_]*`，Java Canonicalizer.isIdentifierPart），覆盖 zh-CN / de-DE / hi-IN 标识符（如 加倍）。CLI 另要求字符串为 NFC。",
       "type": "string",
-      "pattern": "^[A-Za-z_][A-Za-z0-9_]*$"
+      "pattern": "^[\\p{L}_][\\p{L}\\p{M}\\p{Nd}_]*(?![\\s\\S])"
     },
     "StringSet": {
       "type": "array",
@@ -25,14 +26,22 @@
       "uniqueItems": true
     },
     "PackagePath": {
-      "description": "包根下的相对路径：段只含 [A-Za-z0-9._-]，无 . / .. 段，不得是三个元文件。",
+      "description": "包根下的相对路径：段只含 [A-Za-z0-9._-]；无 . / .. 段、无以 . 结尾的段、无 Windows 保留名（CON、PRN、AUX、NUL、COM0–9、LPT0–9，大小写不敏感，含扩展名）；不得是三个元文件。大小写不敏感的重复路径由 CLI 判（README「manifest 语义规则」）。",
       "type": "string",
-      "pattern": "^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*$",
+      "pattern": "^[A-Za-z0-9._-]+(/[A-Za-z0-9._-]+)*(?![\\s\\S])",
       "not": {
         "anyOf": [
           {
             "type": "string",
-            "pattern": "(^|/)\\.\\.?(/|$)"
+            "pattern": "(^|/)\\.\\.?(/|(?![\\s\\S]))"
+          },
+          {
+            "type": "string",
+            "pattern": "\\.(/|(?![\\s\\S]))"
+          },
+          {
+            "type": "string",
+            "pattern": "(^|/)([cC][oO][nN]|[pP][rR][nN]|[aA][uU][xX]|[nN][uU][lL]|[cC][oO][mM][0-9]|[lL][pP][tT][0-9])(\\.[^/]*)?(/|(?![\\s\\S]))"
           },
           {
             "enum": [
@@ -49,7 +58,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "function",
@@ -65,12 +74,14 @@
           "type": "boolean"
         },
         "inputSchema": {
+          "description": "必须恰为 #/$defs/entry.<function>（CLI 判，README「manifest 语义规则」）。",
           "type": "string",
-          "pattern": "^#/"
+          "pattern": "^#/\\$defs/entry\\.[^\\u0000-\\u001f/]+(?![\\s\\S])"
         },
         "outputSchema": {
+          "description": "必须恰为 #/$defs/entry.<function>（CLI 判，README「manifest 语义规则」）。",
           "type": "string",
-          "pattern": "^#/"
+          "pattern": "^#/\\$defs/entry\\.[^\\u0000-\\u001f/]+(?![\\s\\S])"
         }
       }
     },
@@ -79,7 +90,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "moduleName",
@@ -90,7 +101,7 @@
       ],
       "properties": {
         "moduleName": {
-          "$ref": "#/$defs/NonEmptyString"
+          "$ref": "#/$defs/ModuleName"
         },
         "entries": {
           "type": "array",
@@ -134,7 +145,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "policyId",
@@ -166,7 +177,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "claimedRef",
@@ -191,7 +202,7 @@
         },
         "locale": {
           "type": "string",
-          "pattern": "^[a-z]{2,3}-[A-Z]{2}$"
+          "pattern": "^[a-z]{2,3}-[A-Z]{2}(?![\\s\\S])"
         },
         "allowStructural": {
           "type": "boolean"
@@ -206,7 +217,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "version",
@@ -236,7 +247,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "declared",
@@ -247,7 +258,7 @@
           "$ref": "#/$defs/StringSet"
         },
         "io": {
-          "type": "boolean"
+          "const": false
         }
       }
     },
@@ -256,7 +267,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "enforced",
@@ -280,7 +291,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "name",
@@ -306,7 +317,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "engine",
@@ -328,7 +339,7 @@
           "type": "object",
           "propertyNames": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9_]+$"
+            "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
           },
           "oneOf": [
             {
@@ -367,7 +378,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "checkedBy",
@@ -392,7 +403,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "probes",
@@ -425,7 +436,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "path",
@@ -450,7 +461,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "issuer",
@@ -473,7 +484,7 @@
       "additionalProperties": false,
       "propertyNames": {
         "type": "string",
-        "pattern": "^[A-Za-z0-9_]+$"
+        "pattern": "^[A-Za-z0-9_]+(?![\\s\\S])"
       },
       "required": [
         "format",
@@ -773,6 +784,11 @@
           }
         }
       ]
+    },
+    "ModuleName": {
+      "description": "模块名：以 . 连接的 Identifier（如 aster.pilot.credit、块.遮蔽）。CLI 另要求字符串为 NFC。",
+      "type": "string",
+      "pattern": "^[\\p{L}_][\\p{L}\\p{M}\\p{Nd}_]*(\\.[\\p{L}_][\\p{L}\\p{M}\\p{Nd}_]*)*(?![\\s\\S])"
     }
   }
 }

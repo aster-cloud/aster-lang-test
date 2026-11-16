@@ -23,7 +23,7 @@
   "$defs": {
     "Sha256": {
       "type": "string",
-      "pattern": "^[0-9a-f]{64}$"
+      "pattern": "^[0-9a-f]{64}(?![\\s\\S])"
     },
     "ErrorCode": {
       "enum": [
@@ -240,7 +240,7 @@
           "const": true
         },
         "inspect": {
-          "description": "manifest 的 effects、governance、policy、runtime、tests 五个成员原样（规范 JSON）。",
+          "description": "manifest 的 effects、governance、policy、runtime、tests 五个成员原样，另加 schemas：包内 schema/input.json 与 schema/output.json 的内容（ADR 0059 §4.1「打印入口、输入输出 schema」）。",
           "type": "object",
           "additionalProperties": false,
           "required": [
@@ -248,6 +248,7 @@
             "governance",
             "policy",
             "runtime",
+            "schemas",
             "tests"
           ],
           "properties": {
@@ -265,6 +266,22 @@
             },
             "tests": {
               "type": "object"
+            },
+            "schemas": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "input",
+                "output"
+              ],
+              "properties": {
+                "input": {
+                  "type": "object"
+                },
+                "output": {
+                  "type": "object"
+                }
+              }
             }
           }
         },

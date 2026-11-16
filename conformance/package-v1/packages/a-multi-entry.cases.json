@@ -1,5 +1,5 @@
 {
-  "description": "A 包，四个入口（含 0 参入口 answer）（score 为 default），--entry 选择与缺省；模块内没有名为 main 的函数（P0 结果 §3 / 修订 A5 E737）。ratio(7) 产出 Double，ratio(0) 两侧都是求值错误。另含 USAGE 用例。",
+  "description": "A 包，四个入口（含 0 参入口 answer）（score 为 default），--entry 选择与缺省；模块内没有名为 main 的函数（P0 结果 §3 / 修订 A5 E737）。ratio(7) 产出 Double，ratio(0) 两侧都是求值错误。另含 USAGE 用例。 probes 含一条期望 EVAL_ERROR 的探针（ratio(0)）。命令行语法用例（README「命令行」）：重复选项、--opt=value、选项在位置参数之前、--timeout 语法、未知子命令、缺参数、--pubkey 与 --jwks 同时给出。",
   "package": "a-multi-entry",
   "cases": [
     {
@@ -13,7 +13,7 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"x\":7}",
-      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":70}\n",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":70}\n",
       "expectedExit": 0,
       "code": null
     },
@@ -30,7 +30,7 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"x\":7}",
-      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"label\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"high\"}\n",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"label\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"high\"}\n",
       "expectedExit": 0,
       "code": null
     },
@@ -47,7 +47,7 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"x\":2}",
-      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"label\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"low\"}\n",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"label\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"low\"}\n",
       "expectedExit": 0,
       "code": null
     },
@@ -64,7 +64,7 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"x\":7}",
-      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"ratio\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":14.285714285714286}\n",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"ratio\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":14.285714285714286}\n",
       "expectedExit": 0,
       "code": null
     },
@@ -81,7 +81,7 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{}",
-      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"answer\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":42}\n",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"answer\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":42}\n",
       "expectedExit": 0,
       "code": null
     },
@@ -98,7 +98,7 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"x\":0}",
-      "expectedStdout": "{\"error\":{\"code\":\"EVAL_ERROR\",\"message\":\"policy evaluation failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"ratio\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedStdout": "{\"error\":{\"code\":\"EVAL_ERROR\",\"message\":\"policy evaluation failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"ratio\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
       "expectedExit": 1,
       "code": "EVAL_ERROR"
     },
@@ -115,7 +115,7 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"x\":7}",
-      "expectedStdout": "{\"error\":{\"code\":\"ENTRY_NOT_FOUND\",\"message\":\"entry function not found or not runnable\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"e318170c7097f031be8e0b511f6817f53417654eb2e6713f2d7f644ea745a36e\",\"engine\":\"<ENGINE>\",\"entry\":\"nosuch\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedStdout": "{\"error\":{\"code\":\"ENTRY_NOT_FOUND\",\"message\":\"entry function not found or not runnable\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"nosuch\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
       "expectedExit": 2,
       "code": "ENTRY_NOT_FOUND"
     },
@@ -151,6 +151,257 @@
       "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 2,
       "code": "USAGE"
+    },
+    {
+      "name": "verify-probes-with-expected-error",
+      "args": [
+        "verify",
+        "a-multi-entry",
+        "--probes",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"probes\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "option-equals-form",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--entry=label",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"label\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"high\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "options-before-positional",
+      "args": [
+        "run",
+        "--entry",
+        "label",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json",
+        "a-multi-entry"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"label\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"high\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "timeout-300000ms-is-the-limit",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--timeout",
+        "300000ms",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":70}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "usage-repeated-option",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--entry",
+        "label",
+        "--entry",
+        "score",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-timeout-300001ms",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--timeout",
+        "300001ms",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-timeout-zero",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--timeout",
+        "0s",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-timeout-fraction",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--timeout",
+        "1.5s",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-timeout-leading-zero",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--timeout",
+        "01s",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-timeout-no-unit",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--timeout",
+        "5",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-unknown-subcommand",
+      "args": [
+        "frobnicate",
+        "a-multi-entry"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-missing-input-option",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-missing-package",
+      "args": [
+        "run",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-extra-positional",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "a-multi-entry",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-pubkey-and-jwks",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json",
+        "--pubkey",
+        "../keys/test-ed25519.pub.b64u"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "stdin-with-surrounding-whitespace",
+      "args": [
+        "run",
+        "a-multi-entry",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": " {\"x\": 7}\n",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3d667550cb0af5862369347cdedc4c993575b61d6f66479e5cdefd9039981334\",\"engine\":\"<ENGINE>\",\"entry\":\"score\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":70}\n",
+      "expectedExit": 0,
+      "code": null
     }
   ]
 }

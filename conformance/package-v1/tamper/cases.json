@@ -1,5 +1,5 @@
 {
-  "description": "篡改与畸形 zip 夹具（实施计划 Review Focus 2、T1 Step 4 / 4a）。每条由 base 黄金包经 kind 指定的变换生成；resign=true 表示改完 manifest 后用测试密钥重新签名（签名与完整性都成立，只剩被测的那一处错误）。stage 是失败发生的检查阶段（决定 meta，见 README「检查顺序」）；省略时按错误码取缺省阶段。全部必须在求值之前失败。",
+  "description": "篡改与畸形 zip 夹具（实施计划 Review Focus 2、T1 Step 4 / 4a）。每条由 base 黄金包经 kind 指定的变换生成；resign=true 表示改完 manifest 后用测试密钥重新签名（签名与完整性都成立，只剩被测的那一处错误）。stage 是失败发生的检查阶段（决定 meta，见 README「检查顺序」）；省略时按错误码取缺省阶段。全部必须在求值之前失败。 每个夹具生成 run / verify / inspect 三条用例（ir 阶段另加 verify --recompile 与 --probes）；layer 标出 manifest 阶段内的子层（format / schema / semantic），供 --verify-engines 断言。",
   "cases": [
     {
       "name": "payload-byte-flipped",
@@ -13,6 +13,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "payload-byte-flipped (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "payload-byte-flipped",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "payload-byte-flipped (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "payload-byte-flipped",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
@@ -34,6 +60,32 @@
       "code": "PKG_INTEGRITY"
     },
     {
+      "name": "payload-file-missing (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "payload-file-missing",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "payload-file-missing (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "payload-file-missing",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
       "name": "extra-file",
       "base": "b-credit-limit",
       "args": [
@@ -45,6 +97,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "extra-file (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "extra-file",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "extra-file (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "extra-file",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
@@ -66,6 +144,32 @@
       "code": "PKG_INTEGRITY"
     },
     {
+      "name": "extra-runtime-file (verify)",
+      "base": "a-decimal",
+      "args": [
+        "verify",
+        "extra-runtime-file",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "extra-runtime-file (inspect)",
+      "base": "a-decimal",
+      "args": [
+        "inspect",
+        "extra-runtime-file",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
       "name": "sha256sums-mismatch",
       "base": "b-credit-limit",
       "args": [
@@ -77,6 +181,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "sha256sums-mismatch (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "sha256sums-mismatch",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "sha256sums-mismatch (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "sha256sums-mismatch",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
@@ -98,6 +228,32 @@
       "code": "PKG_INTEGRITY"
     },
     {
+      "name": "sha256sums-missing (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "sha256sums-missing",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "sha256sums-missing (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "sha256sums-missing",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
       "name": "symlinked-payload",
       "base": "b-credit-limit",
       "args": [
@@ -109,6 +265,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "symlinked-payload (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "symlinked-payload",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "symlinked-payload (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "symlinked-payload",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
@@ -130,6 +312,32 @@
       "code": "PKG_SIGNATURE"
     },
     {
+      "name": "manifest-byte-changed (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-byte-changed",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_SIGNATURE\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "manifest-byte-changed (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-byte-changed",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
       "name": "signature-missing",
       "base": "b-credit-limit",
       "args": [
@@ -141,6 +349,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_UNSIGNED\",\"message\":\"package is unsigned; pass --allow-unsigned to accept it\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_UNSIGNED"
+    },
+    {
+      "name": "signature-missing (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-missing",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_UNSIGNED\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_UNSIGNED"
+    },
+    {
+      "name": "signature-missing (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-missing",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_UNSIGNED\",\"message\":\"package is unsigned; pass --allow-unsigned to accept it\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_UNSIGNED"
@@ -162,6 +396,32 @@
       "code": "PKG_SIGNATURE"
     },
     {
+      "name": "signature-swapped (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-swapped",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_SIGNATURE\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-swapped (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-swapped",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
       "name": "signature-bit-flipped",
       "base": "b-credit-limit",
       "args": [
@@ -173,6 +433,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-bit-flipped (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-bit-flipped",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_SIGNATURE\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-bit-flipped (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-bit-flipped",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_SIGNATURE"
@@ -194,6 +480,32 @@
       "code": "PKG_SIGNATURE"
     },
     {
+      "name": "signature-non-canonical-base64url (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-non-canonical-base64url",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_SIGNATURE\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-non-canonical-base64url (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-non-canonical-base64url",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
       "name": "signature-alg-wrong",
       "base": "b-credit-limit",
       "args": [
@@ -205,6 +517,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-alg-wrong (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-alg-wrong",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_SIGNATURE\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-alg-wrong (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-alg-wrong",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_SIGNATURE"
@@ -226,6 +564,32 @@
       "code": "PKG_UNTRUSTED_KID"
     },
     {
+      "name": "signature-untrusted-kid (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-untrusted-kid",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_UNTRUSTED_KID\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_UNTRUSTED_KID"
+    },
+    {
+      "name": "signature-untrusted-kid (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-untrusted-kid",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_UNTRUSTED_KID\",\"message\":\"signing key id is not in the trust anchor\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_UNTRUSTED_KID"
+    },
+    {
       "name": "manifest-missing",
       "base": "b-credit-limit",
       "args": [
@@ -237,6 +601,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-missing (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-missing",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-missing (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-missing",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 4,
       "code": "PKG_INVALID_MANIFEST"
@@ -258,6 +648,32 @@
       "code": "PKG_INVALID_MANIFEST"
     },
     {
+      "name": "manifest-keys-reordered (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-keys-reordered",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-keys-reordered (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-keys-reordered",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
       "name": "manifest-pretty-printed",
       "base": "b-credit-limit",
       "args": [
@@ -269,6 +685,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-pretty-printed (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-pretty-printed",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-pretty-printed (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-pretty-printed",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 4,
       "code": "PKG_INVALID_MANIFEST"
@@ -290,6 +732,32 @@
       "code": "PKG_INVALID_MANIFEST"
     },
     {
+      "name": "manifest-trailing-newline (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-trailing-newline",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-trailing-newline (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-trailing-newline",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
       "name": "manifest-unknown-field",
       "base": "b-credit-limit",
       "args": [
@@ -301,6 +769,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-unknown-field (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-unknown-field",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-unknown-field (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-unknown-field",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 4,
       "code": "PKG_INVALID_MANIFEST"
@@ -322,6 +816,32 @@
       "code": "PKG_INVALID_MANIFEST"
     },
     {
+      "name": "manifest-two-default-entries (verify)",
+      "base": "a-multi-entry",
+      "args": [
+        "verify",
+        "manifest-two-default-entries",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-two-default-entries (inspect)",
+      "base": "a-multi-entry",
+      "args": [
+        "inspect",
+        "manifest-two-default-entries",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
       "name": "manifest-non-integer-number",
       "base": "b-credit-limit",
       "args": [
@@ -333,6 +853,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-non-integer-number (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-non-integer-number",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-non-integer-number (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-non-integer-number",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 4,
       "code": "PKG_INVALID_MANIFEST"
@@ -354,6 +900,32 @@
       "code": "PKG_INVALID_MANIFEST"
     },
     {
+      "name": "format-name-wrong (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "format-name-wrong",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-name-wrong (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "format-name-wrong",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
       "name": "format-version-1.1",
       "base": "b-credit-limit",
       "args": [
@@ -365,6 +937,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_UNSUPPORTED_FORMAT\",\"message\":\"package format version is not supported\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_UNSUPPORTED_FORMAT"
+    },
+    {
+      "name": "format-version-1.1 (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "format-version-1.1",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_UNSUPPORTED_FORMAT\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_UNSUPPORTED_FORMAT"
+    },
+    {
+      "name": "format-version-1.1 (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "format-version-1.1",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_UNSUPPORTED_FORMAT\",\"message\":\"package format version is not supported\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 4,
       "code": "PKG_UNSUPPORTED_FORMAT"
@@ -386,6 +984,32 @@
       "code": "PKG_UNSUPPORTED_FORMAT"
     },
     {
+      "name": "format-version-1.1-with-new-field (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "format-version-1.1-with-new-field",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_UNSUPPORTED_FORMAT\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_UNSUPPORTED_FORMAT"
+    },
+    {
+      "name": "format-version-1.1-with-new-field (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "format-version-1.1-with-new-field",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_UNSUPPORTED_FORMAT\",\"message\":\"package format version is not supported\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_UNSUPPORTED_FORMAT"
+    },
+    {
       "name": "format-version-2.0",
       "base": "b-credit-limit",
       "args": [
@@ -397,6 +1021,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_UNSUPPORTED_FORMAT\",\"message\":\"package format version is not supported\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_UNSUPPORTED_FORMAT"
+    },
+    {
+      "name": "format-version-2.0 (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "format-version-2.0",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_UNSUPPORTED_FORMAT\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_UNSUPPORTED_FORMAT"
+    },
+    {
+      "name": "format-version-2.0 (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "format-version-2.0",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_UNSUPPORTED_FORMAT\",\"message\":\"package format version is not supported\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 4,
       "code": "PKG_UNSUPPORTED_FORMAT"
@@ -418,6 +1068,32 @@
       "code": "PKG_UNSUPPORTED_IR"
     },
     {
+      "name": "core-ir-version-3 (verify)",
+      "base": "a-decimal",
+      "args": [
+        "verify",
+        "core-ir-version-3",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_UNSUPPORTED_IR\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_UNSUPPORTED_IR"
+    },
+    {
+      "name": "core-ir-version-3 (inspect)",
+      "base": "a-decimal",
+      "args": [
+        "inspect",
+        "core-ir-version-3",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_UNSUPPORTED_IR\",\"message\":\"Core IR version is not supported\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_UNSUPPORTED_IR"
+    },
+    {
       "name": "b-position-free-hash-wrong",
       "base": "b-credit-limit",
       "args": [
@@ -434,6 +1110,60 @@
       "code": "PKG_IR_DRIFT"
     },
     {
+      "name": "b-position-free-hash-wrong (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "b-position-free-hash-wrong",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "b-position-free-hash-wrong (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "b-position-free-hash-wrong",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":true},\"policy\":{\"controls\":[\"EU_AI_ACT:ART14\",\"GDPR:ART22\"],\"entries\":[{\"default\":true,\"function\":\"decide\",\"inputSchema\":\"#/$defs/entry.decide\",\"outputSchema\":\"#/$defs/entry.decide\"}],\"moduleName\":\"aster.pilot.credit\",\"profile\":null,\"ruleId\":\"CP-DECIDE\"},\"runtime\":{\"cli\":{\"name\":\"cloud.aster-lang:aster-cli\",\"version\":\"1.0.49\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-truffle\",\"requires\":{\"java\":\">=25\"}},\"schemas\":{\"input\":{\"$defs\":{\"data.Applicant\":{\"additionalProperties\":false,\"properties\":{\"activeDefaults\":{\"maximum\":2147483647,\"minimum\":-2147483648,\"type\":\"integer\"},\"creditScore\":{\"maximum\":2147483647,\"minimum\":-2147483648,\"type\":\"integer\"},\"monthlyDebt\":{\"pattern\":\"^-?(0|[1-9][0-9]*)(\\\\.[0-9]+)?(?![\\\\s\\\\S])\",\"type\":\"string\"},\"monthlyIncome\":{\"pattern\":\"^-?(0|[1-9][0-9]*)(\\\\.[0-9]+)?(?![\\\\s\\\\S])\",\"type\":\"string\"},\"requestedAmount\":{\"pattern\":\"^-?(0|[1-9][0-9]*)(\\\\.[0-9]+)?(?![\\\\s\\\\S])\",\"type\":\"string\"}},\"required\":[\"creditScore\",\"monthlyIncome\",\"monthlyDebt\",\"requestedAmount\",\"activeDefaults\"],\"type\":\"object\"},\"entry.decide\":{\"additionalProperties\":false,\"properties\":{\"applicant\":{\"$ref\":\"#/$defs/data.Applicant\"}},\"required\":[\"applicant\"],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"aster.pilot.credit entry inputs\"},\"output\":{\"$defs\":{\"entry.decide\":{\"additionalProperties\":false,\"properties\":{\"__type\":{\"const\":\"Verdict\"},\"outcome\":{\"enum\":[\"ALLOW\",\"DENY\",\"REQUIRE_APPROVAL\",\"ESCALATE\"]},\"reason\":{\"type\":\"string\"},\"role\":{\"type\":\"string\"}},\"required\":[\"__type\",\"outcome\"],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"aster.pilot.credit entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":2,\"probesSha256\":\"c36bcb5c19759e219b5e0d0501bd71b746d7a40559fe4698758e4e4f55e930ed\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "b-position-free-hash-wrong (verify --recompile)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "b-position-free-hash-wrong",
+        "--recompile",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "b-position-free-hash-wrong (verify --probes)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "b-position-free-hash-wrong",
+        "--probes",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"probes\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
       "name": "a-core-sha256-mismatch",
       "base": "a-decimal",
       "args": [
@@ -445,6 +1175,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"amount\":\"10\"}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "a-core-sha256-mismatch (verify)",
+      "base": "a-decimal",
+      "args": [
+        "verify",
+        "a-core-sha256-mismatch",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "a-core-sha256-mismatch (inspect)",
+      "base": "a-decimal",
+      "args": [
+        "inspect",
+        "a-core-sha256-mismatch",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
@@ -466,6 +1222,32 @@
       "code": "PKG_INTEGRITY"
     },
     {
+      "name": "zip-not-a-zip (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-not-a-zip.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-not-a-zip (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-not-a-zip.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
       "name": "zip-dotdot-entry",
       "base": "b-credit-limit",
       "args": [
@@ -477,6 +1259,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-dotdot-entry (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-dotdot-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-dotdot-entry (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-dotdot-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
@@ -498,6 +1306,32 @@
       "code": "PKG_INTEGRITY"
     },
     {
+      "name": "zip-dotdot-under-root (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-dotdot-under-root.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-dotdot-under-root (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-dotdot-under-root.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
       "name": "zip-absolute-entry",
       "base": "b-credit-limit",
       "args": [
@@ -509,6 +1343,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-absolute-entry (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-absolute-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-absolute-entry (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-absolute-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
@@ -530,6 +1390,32 @@
       "code": "PKG_INTEGRITY"
     },
     {
+      "name": "zip-backslash-entry (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-backslash-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-backslash-entry (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-backslash-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
       "name": "zip-two-roots",
       "base": "b-credit-limit",
       "args": [
@@ -541,6 +1427,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-two-roots (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-two-roots.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-two-roots (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-two-roots.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
@@ -562,6 +1474,32 @@
       "code": "PKG_INTEGRITY"
     },
     {
+      "name": "zip-duplicate-entry (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-duplicate-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-duplicate-entry (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-duplicate-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
       "name": "zip-method-bzip2",
       "base": "b-credit-limit",
       "args": [
@@ -573,6 +1511,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-method-bzip2 (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-method-bzip2.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-method-bzip2 (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-method-bzip2.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
@@ -594,6 +1558,32 @@
       "code": "PKG_INTEGRITY"
     },
     {
+      "name": "zip-declared-size-mismatch (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-declared-size-mismatch.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-declared-size-mismatch (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-declared-size-mismatch.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
       "name": "zip-bomb-single-entry",
       "base": "b-credit-limit",
       "args": [
@@ -605,6 +1595,32 @@
         "../keys/test-jwks.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-bomb-single-entry (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-bomb-single-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-bomb-single-entry (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-bomb-single-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
@@ -626,6 +1642,32 @@
       "code": "PKG_INTEGRITY"
     },
     {
+      "name": "zip-bomb-many-entries (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-bomb-many-entries.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-bomb-many-entries (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-bomb-many-entries.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
       "name": "zip-extra-entry",
       "base": "b-credit-limit",
       "args": [
@@ -640,6 +1682,2037 @@
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-extra-entry (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-extra-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-extra-entry (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-extra-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "manifest-bom",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "manifest-bom",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-bom (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-bom",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-bom (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-bom",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-invalid-utf8",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "manifest-invalid-utf8",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-invalid-utf8 (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-invalid-utf8",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-invalid-utf8 (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-invalid-utf8",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-lone-surrogate",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "manifest-lone-surrogate",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-lone-surrogate (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-lone-surrogate",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-lone-surrogate (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-lone-surrogate",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-duplicate-key",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "manifest-duplicate-key",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-duplicate-key (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-duplicate-key",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-duplicate-key (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-duplicate-key",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-deep-nesting",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "manifest-deep-nesting",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-deep-nesting (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-deep-nesting",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-deep-nesting (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-deep-nesting",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-oversize",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "manifest-oversize",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-oversize (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-oversize",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-oversize (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-oversize",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-1.00",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "format-version-1.00",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-1.00 (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "format-version-1.00",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-1.00 (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "format-version-1.00",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-01.0",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "format-version-01.0",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-01.0 (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "format-version-01.0",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-01.0 (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "format-version-01.0",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-1.0.0",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "format-version-1.0.0",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-1.0.0 (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "format-version-1.0.0",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-1.0.0 (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "format-version-1.0.0",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-1",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "format-version-1",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-1 (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "format-version-1",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-1 (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "format-version-1",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-huge-major",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "format-version-huge-major",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-huge-major (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "format-version-huge-major",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-huge-major (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "format-version-huge-major",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-number",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "format-version-number",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-number (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "format-version-number",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-number (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "format-version-number",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-sha256-trailing-newline",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "manifest-sha256-trailing-newline",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-sha256-trailing-newline (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-sha256-trailing-newline",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-sha256-trailing-newline (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-sha256-trailing-newline",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-sha256-trailing-newline-unsigned",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "manifest-sha256-trailing-newline-unsigned",
+        "--allow-unsigned",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-sha256-trailing-newline-unsigned (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-sha256-trailing-newline-unsigned",
+        "--allow-unsigned",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-sha256-trailing-newline-unsigned (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-sha256-trailing-newline-unsigned",
+        "--allow-unsigned",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-files-duplicate",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "manifest-files-duplicate",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-files-duplicate (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-files-duplicate",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-files-duplicate (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-files-duplicate",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-files-unsorted",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "manifest-files-unsorted",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-files-unsorted (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-files-unsorted",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-files-unsorted (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-files-unsorted",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-duplicate-entry-function",
+      "base": "a-multi-entry",
+      "args": [
+        "run",
+        "manifest-duplicate-entry-function",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"x\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-duplicate-entry-function (verify)",
+      "base": "a-multi-entry",
+      "args": [
+        "verify",
+        "manifest-duplicate-entry-function",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-duplicate-entry-function (inspect)",
+      "base": "a-multi-entry",
+      "args": [
+        "inspect",
+        "manifest-duplicate-entry-function",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-entry-schema-pointer-wrong",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "manifest-entry-schema-pointer-wrong",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-entry-schema-pointer-wrong (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-entry-schema-pointer-wrong",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-entry-schema-pointer-wrong (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-entry-schema-pointer-wrong",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-module-name-not-nfc",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "manifest-module-name-not-nfc",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-module-name-not-nfc (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "manifest-module-name-not-nfc",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-module-name-not-nfc (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "manifest-module-name-not-nfc",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "signature-kid-trailing-newline",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "signature-kid-trailing-newline",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-kid-trailing-newline (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-kid-trailing-newline",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_SIGNATURE\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-kid-trailing-newline (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-kid-trailing-newline",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-value-trailing-newline",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "signature-value-trailing-newline",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-value-trailing-newline (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-value-trailing-newline",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_SIGNATURE\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-value-trailing-newline (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-value-trailing-newline",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-malleated-s-plus-l",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "signature-malleated-s-plus-l",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-malleated-s-plus-l (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-malleated-s-plus-l",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_SIGNATURE\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-malleated-s-plus-l (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-malleated-s-plus-l",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-not-json",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "signature-file-not-json",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-not-json (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-file-not-json",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_SIGNATURE\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-not-json (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-file-not-json",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-duplicate-key",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "signature-file-duplicate-key",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-duplicate-key (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-file-duplicate-key",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_SIGNATURE\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-duplicate-key (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-file-duplicate-key",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-extra-field",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "signature-file-extra-field",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-extra-field (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-file-extra-field",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_SIGNATURE\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-extra-field (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-file-extra-field",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-bom",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "signature-file-bom",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-bom (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "signature-file-bom",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"code\":\"PKG_SIGNATURE\",\"name\":\"signature\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-bom (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "signature-file-bom",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_SIGNATURE\",\"message\":\"manifest signature is invalid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "source-sha256-mismatch",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "source-sha256-mismatch",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "source-sha256-mismatch (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "source-sha256-mismatch",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "source-sha256-mismatch (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "source-sha256-mismatch",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "probes-sha256-mismatch",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "probes-sha256-mismatch",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "probes-sha256-mismatch (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "probes-sha256-mismatch",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "probes-sha256-mismatch (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "probes-sha256-mismatch",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "probes-count-mismatch",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "probes-count-mismatch",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "probes-count-mismatch (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "probes-count-mismatch",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "probes-count-mismatch (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "probes-count-mismatch",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "a-compiled-core-unreadable",
+      "base": "a-decimal",
+      "args": [
+        "run",
+        "a-compiled-core-unreadable",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"amount\":\"10\"}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_UNSUPPORTED_IR\",\"message\":\"Core IR version is not supported\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_UNSUPPORTED_IR"
+    },
+    {
+      "name": "a-compiled-core-unreadable (verify)",
+      "base": "a-decimal",
+      "args": [
+        "verify",
+        "a-compiled-core-unreadable",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "a-compiled-core-unreadable (inspect)",
+      "base": "a-decimal",
+      "args": [
+        "inspect",
+        "a-compiled-core-unreadable",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":false},\"policy\":{\"controls\":[],\"entries\":[{\"default\":true,\"function\":\"withTax\",\"inputSchema\":\"#/$defs/entry.withTax\",\"outputSchema\":\"#/$defs/entry.withTax\"}],\"moduleName\":\"fixture.decimal\",\"profile\":null,\"ruleId\":null},\"runtime\":{\"cli\":{\"name\":\"@aster-cloud/aster-lang-ts\",\"sha256\":\"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\",\"version\":\"3.2.0\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-ts-interpreter\",\"requires\":{\"node\":\">=24\"}},\"schemas\":{\"input\":{\"$defs\":{\"entry.withTax\":{\"additionalProperties\":false,\"properties\":{\"amount\":{\"pattern\":\"^-?(0|[1-9][0-9]*)(\\\\.[0-9]+)?(?![\\\\s\\\\S])\",\"type\":\"string\"}},\"required\":[\"amount\"],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"fixture.decimal entry inputs\"},\"output\":{\"$defs\":{\"entry.withTax\":{\"type\":\"string\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"fixture.decimal entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":3,\"probesSha256\":\"40843723468bdc7801b42630355c15eae0df9fee6bbdda51041d559b2d08047a\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "a-compiled-core-unreadable (verify --recompile)",
+      "base": "a-decimal",
+      "args": [
+        "verify",
+        "a-compiled-core-unreadable",
+        "--recompile",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":true,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "a-compiled-core-unreadable (verify --probes)",
+      "base": "a-decimal",
+      "args": [
+        "verify",
+        "a-compiled-core-unreadable",
+        "--probes",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"code\":\"PKG_UNSUPPORTED_IR\",\"name\":\"probes\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_UNSUPPORTED_IR"
+    },
+    {
+      "name": "nonexistent-package",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "nonexistent-package",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "nonexistent-package (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "nonexistent-package",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "nonexistent-package (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "nonexistent-package",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-empty-archive",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-empty-archive.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-empty-archive (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-empty-archive.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-empty-archive (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-empty-archive.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-dir-entry-dotdot",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-dir-entry-dotdot.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-dir-entry-dotdot (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-dir-entry-dotdot.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-dir-entry-dotdot (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-dir-entry-dotdot.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-root-not-nfc",
+      "base": "b-zh",
+      "args": [
+        "run",
+        "zip-root-not-nfc.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"n\":0}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-root-not-nfc (verify)",
+      "base": "b-zh",
+      "args": [
+        "verify",
+        "zip-root-not-nfc.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-root-not-nfc (inspect)",
+      "base": "b-zh",
+      "args": [
+        "inspect",
+        "zip-root-not-nfc.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-root-control-char",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-root-control-char.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-root-control-char (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-root-control-char.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-root-control-char (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-root-control-char.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-root-dot",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-root-dot.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-root-dot (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-root-dot.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-root-dot (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-root-dot.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-name-invalid-utf8",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-name-invalid-utf8.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-name-invalid-utf8 (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-name-invalid-utf8.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-name-invalid-utf8 (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-name-invalid-utf8.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-encrypted-flag",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-encrypted-flag.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-encrypted-flag (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-encrypted-flag.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-encrypted-flag (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-encrypted-flag.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-zip64-entry",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-zip64-entry.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-zip64-entry (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-zip64-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-zip64-entry (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-zip64-entry.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-lfh-cd-name-mismatch",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-lfh-cd-name-mismatch.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-lfh-cd-name-mismatch (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-lfh-cd-name-mismatch.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-lfh-cd-name-mismatch (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-lfh-cd-name-mismatch.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-lfh-cd-size-mismatch",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-lfh-cd-size-mismatch.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-lfh-cd-size-mismatch (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-lfh-cd-size-mismatch.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-lfh-cd-size-mismatch (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-lfh-cd-size-mismatch.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-prepended-bytes",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-prepended-bytes.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-prepended-bytes (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-prepended-bytes.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-prepended-bytes (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-prepended-bytes.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-trailing-bytes",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-trailing-bytes.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-trailing-bytes (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-trailing-bytes.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-trailing-bytes (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-trailing-bytes.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-archive-comment",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-archive-comment.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-archive-comment (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-archive-comment.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-archive-comment (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-archive-comment.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-bomb-listed-file",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-bomb-listed-file.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-bomb-listed-file (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-bomb-listed-file.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INTEGRITY\",\"name\":\"integrity\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-bomb-listed-file (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-bomb-listed-file.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-case-colliding-paths",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-case-colliding-paths.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "zip-case-colliding-paths (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-case-colliding-paths.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "zip-case-colliding-paths (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-case-colliding-paths.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "zip-windows-reserved-name",
+      "base": "b-credit-limit",
+      "args": [
+        "run",
+        "zip-windows-reserved-name.zip",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "zip-windows-reserved-name (verify)",
+      "base": "b-credit-limit",
+      "args": [
+        "verify",
+        "zip-windows-reserved-name.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "zip-windows-reserved-name (inspect)",
+      "base": "b-credit-limit",
+      "args": [
+        "inspect",
+        "zip-windows-reserved-name.zip",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
     }
   ]
 }

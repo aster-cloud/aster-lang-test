@@ -1,45 +1,695 @@
 {
-  "description": "篡改与畸形 zip 夹具（实施计划 Review Focus 2、T1 Step 4 / 4a）。每条由 base 黄金包经 kind 指定的变换生成；resign=true 表示改完 manifest 后用测试密钥重新签名（签名与完整性都成立，只剩被测的那一处错误）。stage 是失败发生的检查阶段（决定 meta，见 README「检查顺序」）；省略时按错误码取缺省阶段。全部必须在求值之前失败。",
+  "description": "篡改与畸形 zip 夹具（实施计划 Review Focus 2、T1 Step 4 / 4a）。每条由 base 黄金包经 kind 指定的变换生成；resign=true 表示改完 manifest 后用测试密钥重新签名（签名与完整性都成立，只剩被测的那一处错误）。stage 是失败发生的检查阶段（决定 meta，见 README「检查顺序」）；省略时按错误码取缺省阶段。全部必须在求值之前失败。 每个夹具生成 run / verify / inspect 三条用例（ir 阶段另加 verify --recompile 与 --probes）；layer 标出 manifest 阶段内的子层（format / schema / semantic），供 --verify-engines 断言。",
   "cases": [
-    { "name": "payload-byte-flipped", "base": "b-credit-limit", "kind": "flip-file-byte", "path": "policy/policy.aster", "code": "PKG_INTEGRITY" },
-    { "name": "payload-file-missing", "base": "b-credit-limit", "kind": "remove-file", "path": "schema/output.json", "code": "PKG_INTEGRITY" },
-    { "name": "extra-file", "base": "b-credit-limit", "kind": "add-file", "path": "notes.txt", "code": "PKG_INTEGRITY" },
-    { "name": "extra-runtime-file", "base": "a-decimal", "kind": "add-file", "path": "runtime/aster.mjs", "code": "PKG_INTEGRITY" },
-    { "name": "sha256sums-mismatch", "base": "b-credit-limit", "kind": "corrupt-sha256sums", "code": "PKG_INTEGRITY" },
-    { "name": "sha256sums-missing", "base": "b-credit-limit", "kind": "remove-file", "path": "SHA256SUMS", "code": "PKG_INTEGRITY" },
-    { "name": "symlinked-payload", "base": "b-credit-limit", "kind": "symlink-file", "path": "README.md", "code": "PKG_INTEGRITY", "stage": "read" },
-    { "name": "manifest-byte-changed", "base": "b-credit-limit", "kind": "edit-manifest", "edit": "tenantId", "resign": false, "code": "PKG_SIGNATURE" },
-    { "name": "signature-missing", "base": "b-credit-limit", "kind": "remove-file", "path": "manifest.sig.json", "code": "PKG_UNSIGNED" },
-    { "name": "signature-swapped", "base": "b-credit-limit", "kind": "signature-from", "from": "a-decimal", "code": "PKG_SIGNATURE" },
-    { "name": "signature-bit-flipped", "base": "b-credit-limit", "kind": "flip-signature-bit", "code": "PKG_SIGNATURE" },
-    { "name": "signature-non-canonical-base64url", "base": "b-credit-limit", "kind": "non-canonical-signature", "code": "PKG_SIGNATURE" },
-    { "name": "signature-alg-wrong", "base": "b-credit-limit", "kind": "signature-field", "field": "alg", "value": "EdDSA", "code": "PKG_SIGNATURE" },
-    { "name": "signature-untrusted-kid", "base": "b-credit-limit", "kind": "resign-kid", "kid": "test-2026-11-untrusted", "code": "PKG_UNTRUSTED_KID" },
-    { "name": "manifest-missing", "base": "b-credit-limit", "kind": "remove-file", "path": "manifest.json", "code": "PKG_INVALID_MANIFEST" },
-    { "name": "manifest-keys-reordered", "base": "b-credit-limit", "kind": "manifest-bytes", "bytes": "reordered", "code": "PKG_INVALID_MANIFEST" },
-    { "name": "manifest-pretty-printed", "base": "b-credit-limit", "kind": "manifest-bytes", "bytes": "pretty", "code": "PKG_INVALID_MANIFEST" },
-    { "name": "manifest-trailing-newline", "base": "b-credit-limit", "kind": "manifest-bytes", "bytes": "trailing-newline", "code": "PKG_INVALID_MANIFEST" },
-    { "name": "manifest-unknown-field", "base": "b-credit-limit", "kind": "edit-manifest", "edit": "unknown-field", "resign": true, "code": "PKG_INVALID_MANIFEST" },
-    { "name": "manifest-two-default-entries", "base": "a-multi-entry", "kind": "edit-manifest", "edit": "two-defaults", "resign": true, "code": "PKG_INVALID_MANIFEST" },
-    { "name": "manifest-non-integer-number", "base": "b-credit-limit", "kind": "manifest-bytes", "bytes": "float-version", "code": "PKG_INVALID_MANIFEST" },
-    { "name": "format-name-wrong", "base": "b-credit-limit", "kind": "edit-manifest", "edit": "format-name", "resign": true, "code": "PKG_INVALID_MANIFEST" },
-    { "name": "format-version-1.1", "base": "b-credit-limit", "kind": "edit-manifest", "edit": "format-1.1", "resign": true, "code": "PKG_UNSUPPORTED_FORMAT" },
-    { "name": "format-version-1.1-with-new-field", "base": "b-credit-limit", "kind": "edit-manifest", "edit": "format-1.1-new-field", "resign": true, "code": "PKG_UNSUPPORTED_FORMAT" },
-    { "name": "format-version-2.0", "base": "b-credit-limit", "kind": "edit-manifest", "edit": "format-2.0", "resign": true, "code": "PKG_UNSUPPORTED_FORMAT" },
-    { "name": "core-ir-version-3", "base": "a-decimal", "kind": "edit-manifest", "edit": "core-ir-3", "resign": true, "code": "PKG_UNSUPPORTED_IR" },
-    { "name": "b-position-free-hash-wrong", "base": "b-credit-limit", "kind": "edit-manifest", "edit": "position-free-wrong", "resign": true, "code": "PKG_IR_DRIFT" },
-    { "name": "a-core-sha256-mismatch", "base": "a-decimal", "kind": "edit-manifest", "edit": "core-sha-wrong", "resign": true, "code": "PKG_INTEGRITY" },
-    { "name": "zip-not-a-zip", "base": "b-credit-limit", "kind": "zip", "zip": "garbage", "code": "PKG_INTEGRITY", "stage": "read" },
-    { "name": "zip-dotdot-entry", "base": "b-credit-limit", "kind": "zip", "zip": "dotdot", "code": "PKG_INTEGRITY", "stage": "read" },
-    { "name": "zip-dotdot-under-root", "base": "b-credit-limit", "kind": "zip", "zip": "root-dotdot", "code": "PKG_INTEGRITY", "stage": "read" },
-    { "name": "zip-absolute-entry", "base": "b-credit-limit", "kind": "zip", "zip": "absolute", "code": "PKG_INTEGRITY", "stage": "read" },
-    { "name": "zip-backslash-entry", "base": "b-credit-limit", "kind": "zip", "zip": "backslash", "code": "PKG_INTEGRITY", "stage": "read" },
-    { "name": "zip-two-roots", "base": "b-credit-limit", "kind": "zip", "zip": "two-roots", "code": "PKG_INTEGRITY", "stage": "read" },
-    { "name": "zip-duplicate-entry", "base": "b-credit-limit", "kind": "zip", "zip": "duplicate", "code": "PKG_INTEGRITY", "stage": "read" },
-    { "name": "zip-method-bzip2", "base": "b-credit-limit", "kind": "zip", "zip": "bzip2", "code": "PKG_INTEGRITY", "stage": "read" },
-    { "name": "zip-declared-size-mismatch", "base": "b-credit-limit", "kind": "zip", "zip": "size-mismatch", "code": "PKG_INTEGRITY", "stage": "read" },
-    { "name": "zip-bomb-single-entry", "base": "b-credit-limit", "kind": "zip", "zip": "bomb-single", "code": "PKG_INTEGRITY", "stage": "read" },
-    { "name": "zip-bomb-many-entries", "base": "b-credit-limit", "kind": "zip", "zip": "bomb-many", "code": "PKG_INTEGRITY", "stage": "read" },
-    { "name": "zip-extra-entry", "base": "b-credit-limit", "kind": "zip", "zip": "extra-entry", "code": "PKG_INTEGRITY" }
+    {
+      "name": "payload-byte-flipped",
+      "base": "b-credit-limit",
+      "kind": "flip-file-byte",
+      "path": "policy/policy.aster",
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "payload-file-missing",
+      "base": "b-credit-limit",
+      "kind": "remove-file",
+      "path": "schema/output.json",
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "extra-file",
+      "base": "b-credit-limit",
+      "kind": "add-file",
+      "path": "notes.txt",
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "extra-runtime-file",
+      "base": "a-decimal",
+      "kind": "add-file",
+      "path": "runtime/aster.mjs",
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "sha256sums-mismatch",
+      "base": "b-credit-limit",
+      "kind": "corrupt-sha256sums",
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "sha256sums-missing",
+      "base": "b-credit-limit",
+      "kind": "remove-file",
+      "path": "SHA256SUMS",
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "symlinked-payload",
+      "base": "b-credit-limit",
+      "kind": "symlink-file",
+      "path": "README.md",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "manifest-byte-changed",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "tenantId",
+      "resign": false,
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-missing",
+      "base": "b-credit-limit",
+      "kind": "remove-file",
+      "path": "manifest.sig.json",
+      "code": "PKG_UNSIGNED"
+    },
+    {
+      "name": "signature-swapped",
+      "base": "b-credit-limit",
+      "kind": "signature-from",
+      "from": "a-decimal",
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-bit-flipped",
+      "base": "b-credit-limit",
+      "kind": "flip-signature-bit",
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-non-canonical-base64url",
+      "base": "b-credit-limit",
+      "kind": "non-canonical-signature",
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-alg-wrong",
+      "base": "b-credit-limit",
+      "kind": "signature-field",
+      "field": "alg",
+      "value": "EdDSA",
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-untrusted-kid",
+      "base": "b-credit-limit",
+      "kind": "resign-kid",
+      "kid": "test-2026-11-untrusted",
+      "code": "PKG_UNTRUSTED_KID"
+    },
+    {
+      "name": "manifest-missing",
+      "base": "b-credit-limit",
+      "kind": "remove-file",
+      "path": "manifest.json",
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-keys-reordered",
+      "base": "b-credit-limit",
+      "kind": "manifest-bytes",
+      "bytes": "reordered",
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-pretty-printed",
+      "base": "b-credit-limit",
+      "kind": "manifest-bytes",
+      "bytes": "pretty",
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-trailing-newline",
+      "base": "b-credit-limit",
+      "kind": "manifest-bytes",
+      "bytes": "trailing-newline",
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-unknown-field",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "unknown-field",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "schema"
+    },
+    {
+      "name": "manifest-two-default-entries",
+      "base": "a-multi-entry",
+      "kind": "edit-manifest",
+      "edit": "two-defaults",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "schema"
+    },
+    {
+      "name": "manifest-non-integer-number",
+      "base": "b-credit-limit",
+      "kind": "manifest-bytes",
+      "bytes": "float-version",
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-name-wrong",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "format-name",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "format"
+    },
+    {
+      "name": "format-version-1.1",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "format-1.1",
+      "resign": true,
+      "code": "PKG_UNSUPPORTED_FORMAT"
+    },
+    {
+      "name": "format-version-1.1-with-new-field",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "format-1.1-new-field",
+      "resign": true,
+      "code": "PKG_UNSUPPORTED_FORMAT"
+    },
+    {
+      "name": "format-version-2.0",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "format-2.0",
+      "resign": true,
+      "code": "PKG_UNSUPPORTED_FORMAT"
+    },
+    {
+      "name": "core-ir-version-3",
+      "base": "a-decimal",
+      "kind": "edit-manifest",
+      "edit": "core-ir-3",
+      "resign": true,
+      "code": "PKG_UNSUPPORTED_IR"
+    },
+    {
+      "name": "b-position-free-hash-wrong",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "position-free-wrong",
+      "resign": true,
+      "code": "PKG_IR_DRIFT"
+    },
+    {
+      "name": "a-core-sha256-mismatch",
+      "base": "a-decimal",
+      "kind": "edit-manifest",
+      "edit": "core-sha-wrong",
+      "resign": true,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "zip-not-a-zip",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "garbage",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-dotdot-entry",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "dotdot",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-dotdot-under-root",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "root-dotdot",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-absolute-entry",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "absolute",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-backslash-entry",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "backslash",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-two-roots",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "two-roots",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-duplicate-entry",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "duplicate",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-method-bzip2",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "bzip2",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-declared-size-mismatch",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "size-mismatch",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-bomb-single-entry",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "bomb-single",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-bomb-many-entries",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "bomb-many",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-extra-entry",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "extra-entry",
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "manifest-bom",
+      "base": "b-credit-limit",
+      "kind": "manifest-bytes",
+      "bytes": "bom",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-invalid-utf8",
+      "base": "b-credit-limit",
+      "kind": "manifest-bytes",
+      "bytes": "invalid-utf8",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-lone-surrogate",
+      "base": "b-credit-limit",
+      "kind": "manifest-bytes",
+      "bytes": "lone-surrogate",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-duplicate-key",
+      "base": "b-credit-limit",
+      "kind": "manifest-bytes",
+      "bytes": "duplicate-key",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-deep-nesting",
+      "base": "b-credit-limit",
+      "kind": "manifest-bytes",
+      "bytes": "deep-nesting",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "manifest-oversize",
+      "base": "b-credit-limit",
+      "kind": "manifest-bytes",
+      "bytes": "oversize",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "format-version-1.00",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "format-1.00",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "format"
+    },
+    {
+      "name": "format-version-01.0",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "format-01.0",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "format"
+    },
+    {
+      "name": "format-version-1.0.0",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "format-1.0.0",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "format"
+    },
+    {
+      "name": "format-version-1",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "format-1",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "format"
+    },
+    {
+      "name": "format-version-huge-major",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "format-huge-major",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "format"
+    },
+    {
+      "name": "format-version-number",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "format-version-number",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "format"
+    },
+    {
+      "name": "manifest-sha256-trailing-newline",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "file-sha256-trailing-newline",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "schema"
+    },
+    {
+      "name": "manifest-sha256-trailing-newline-unsigned",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "file-sha256-trailing-newline",
+      "unsigned": true,
+      "args": [
+        "--allow-unsigned"
+      ],
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "schema"
+    },
+    {
+      "name": "manifest-files-duplicate",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "files-duplicate",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "semantic"
+    },
+    {
+      "name": "manifest-files-unsorted",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "files-unsorted",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "semantic"
+    },
+    {
+      "name": "manifest-duplicate-entry-function",
+      "base": "a-multi-entry",
+      "kind": "edit-manifest",
+      "edit": "duplicate-entry-function",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "semantic"
+    },
+    {
+      "name": "manifest-entry-schema-pointer-wrong",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "entry-schema-pointer-wrong",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "semantic"
+    },
+    {
+      "name": "manifest-module-name-not-nfc",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "module-name-not-nfc",
+      "resign": true,
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "semantic"
+    },
+    {
+      "name": "signature-kid-trailing-newline",
+      "base": "b-credit-limit",
+      "kind": "signature-field",
+      "field": "kid",
+      "value": "test-2026-11\n",
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-value-trailing-newline",
+      "base": "b-credit-limit",
+      "kind": "signature-field",
+      "field": "sig",
+      "value": "@SIG@\n",
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-malleated-s-plus-l",
+      "base": "b-credit-limit",
+      "kind": "malleated-signature",
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-not-json",
+      "base": "b-credit-limit",
+      "kind": "signature-bytes",
+      "bytes": "not-json",
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-duplicate-key",
+      "base": "b-credit-limit",
+      "kind": "signature-bytes",
+      "bytes": "duplicate-key",
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-extra-field",
+      "base": "b-credit-limit",
+      "kind": "signature-bytes",
+      "bytes": "extra-field",
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "signature-file-bom",
+      "base": "b-credit-limit",
+      "kind": "signature-bytes",
+      "bytes": "bom",
+      "code": "PKG_SIGNATURE"
+    },
+    {
+      "name": "source-sha256-mismatch",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "source-sha-wrong",
+      "resign": true,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "probes-sha256-mismatch",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "probes-sha-wrong",
+      "resign": true,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "probes-count-mismatch",
+      "base": "b-credit-limit",
+      "kind": "edit-manifest",
+      "edit": "probes-count-wrong",
+      "resign": true,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "a-compiled-core-unreadable",
+      "base": "a-decimal",
+      "kind": "replace-compiled-core",
+      "code": "PKG_UNSUPPORTED_IR",
+      "stage": "ir",
+      "failsIn": [
+        "probes"
+      ]
+    },
+    {
+      "name": "nonexistent-package",
+      "base": "b-credit-limit",
+      "kind": "none",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-empty-archive",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "empty-zip",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-dir-entry-dotdot",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "dir-entry-dotdot",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-root-not-nfc",
+      "base": "b-zh",
+      "kind": "zip",
+      "zip": "root-not-nfc",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-root-control-char",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "root-control-char",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-root-dot",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "root-dot",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-name-invalid-utf8",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "name-invalid-utf8",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-encrypted-flag",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "encrypted",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-zip64-entry",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "zip64",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-lfh-cd-name-mismatch",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "lfh-cd-name-mismatch",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-lfh-cd-size-mismatch",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "lfh-cd-size-mismatch",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-prepended-bytes",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "prepended-bytes",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-trailing-bytes",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "trailing-bytes",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-archive-comment",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "archive-comment",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-bomb-listed-file",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "bomb-listed",
+      "code": "PKG_INTEGRITY",
+      "stage": "read"
+    },
+    {
+      "name": "zip-case-colliding-paths",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "case-collision",
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "semantic"
+    },
+    {
+      "name": "zip-windows-reserved-name",
+      "base": "b-credit-limit",
+      "kind": "zip",
+      "zip": "windows-reserved-name",
+      "code": "PKG_INVALID_MANIFEST",
+      "layer": "schema"
+    }
   ]
 }

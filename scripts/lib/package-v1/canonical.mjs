@@ -9,6 +9,7 @@
  *
  * 本模块是夹具生成器自用的参照实现，不进任何 CLI；值（求值结果）的序列化用 value-json.mjs，不用这里。
  */
+import { parseStrictJson } from './strict-json.mjs';
 
 export class CanonicalError extends Error {
   constructor(message) {
@@ -66,18 +67,19 @@ export function canonicalJson(value) {
 }
 
 /**
- * 文本是否恰为其解析结果的规范形（CLI 对 manifest.json 的第一道检查，否则 PKG_INVALID_MANIFEST）。
- * 重复键在 JSON.parse 后只剩一个，重新序列化必然与原文不同，因此同样判为非规范。
+ * manifest.json 的第一道检查（否则 PKG_INVALID_MANIFEST）：**文件字节**按严格 JSON 读入后，其规范 JSON 的 UTF-8 字节必须与原字节
+ * 逐字节相同。按字节而不是按解码后的文本比较：BOM、非法 UTF-8、转义的孤立代理项在文本比较下可能被解码器吞掉或替换。
+ * 重复键在严格 JSON 阶段即失败。
  */
-export function isCanonicalJsonText(text) {
+export function isCanonicalJsonBytes(bytes) {
   let tree;
   try {
-    tree = JSON.parse(text);
+    tree = parseStrictJson(bytes, { maxDepth: 64 });
   } catch {
     return false;
   }
   try {
-    return canonicalJson(tree) === text;
+    return Buffer.from(canonicalJson(tree), 'utf8').equals(Buffer.from(bytes));
   } catch {
     return false;
   }
