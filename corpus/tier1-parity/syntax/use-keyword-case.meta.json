@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "导入关键词大小写不敏感（aster-lang-ts#334，ADR 0056 修订 A3），与 Define / Rule / Type 一致：`Use` / `use` / `USE` / `uSe` 同义。`USE` 不是硬关键词，作 Data 名与形参类型照旧可用。修复前 core 只认 `Use` / `use`（`USE` 报 E063），ts 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定 Import 声明与同名 Data 的 Core IR"
+}

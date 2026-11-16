@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "字段前置注解（aster-lang-ts#334）的 zh-CN 版本：注解写在字段名前，与类型上的 @pii、无类型字段并存。修复前 ts 报 E055，core 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定字段注解的 Core IR；注解不参与求值"
+}

@@ -1,0 +1,3 @@
+Module reject.fieldNameCapitalized.
+
+Define Order has Id as Text, amount as Int.

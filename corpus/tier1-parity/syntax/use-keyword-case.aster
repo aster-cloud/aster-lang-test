@@ -1,0 +1,11 @@
+Module parity.syntax.usekeywordcase.
+
+Use lib.alpha as Alpha.
+use lib.beta as Beta.
+USE lib.gamma as Gamma.
+uSe lib.delta.
+
+Define USE has x as Int.
+
+Rule pick given u as USE, produce Int:
+  Return u.x.

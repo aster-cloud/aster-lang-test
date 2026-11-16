@@ -1,0 +1,4 @@
+Module reject.ruleNameCapitalized.
+
+Rule Approve given x as Int, produce Int:
+  Return x.

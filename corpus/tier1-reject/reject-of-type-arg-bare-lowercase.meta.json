@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "`X of A` 的分隔符之后的裸小写名字（aster-lang-ts#334）：`y` 既可读作 Pair 的下一个类型参数，也可读作下一个无类型形参。core 的类型名只收大写开头，报 E055；ts 此前把 `y` 静默读成类型参数，现在同样报 E055。写 `y as <Type>`，或给泛型加括号 `(Pair of Int), y`"
+}

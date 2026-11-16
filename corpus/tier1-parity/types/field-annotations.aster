@@ -1,0 +1,20 @@
+Module parity.types.fieldannotations.
+
+Define Pair has a as Int.
+
+Define Customer has @pii(L1, email) email as Text, @audit name as @pii(L1, name) Text.
+
+Define Boundary has x as Pair of Int, @pii(L1, email) y as Text and z as Pair of Int and @audit w as Text.
+
+Define Stacked has @pii(L2, phone) @audit phone as Text, @tag(name: "k", 3, true) note.
+
+Define Constrained has @source(form: "loan") amount as Int between 1 and 100, @audit code required.
+
+Define Multiline has
+  @pii(L1, email) contact as Text,
+  @audit score as Int.
+
+Define TypeArg has p as Pair of Int, @pii(L1, email) Text.
+
+Rule firstEmail given c as Customer, produce Text:
+  Return c.email.

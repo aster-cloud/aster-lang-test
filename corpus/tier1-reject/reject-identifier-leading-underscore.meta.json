@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "标识符不能以下划线开头（aster-lang-ts#334）：下划线只能出现在首字符之后（a_b、x_），两引擎词法都在 `_` 上报 E050。`_` 另是裸表达式语句降级出的丢弃绑定名。修复前 core 接受，ts 报 E050"
+}

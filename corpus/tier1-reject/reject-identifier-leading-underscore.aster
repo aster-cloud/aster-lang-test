@@ -1,0 +1,5 @@
+Module reject.identifierLeadingUnderscore.
+
+Rule f given x as Int, produce Int:
+  Let _y be x.
+  Return _y.

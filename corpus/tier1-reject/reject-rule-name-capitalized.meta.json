@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "规则名不能以大写字母开头（aster-lang-ts#334）：与形参名（#328）一致，两引擎都在规则名上报 E055 Expected identifier。修复前 core 接受，ts 报 E055"
+}
