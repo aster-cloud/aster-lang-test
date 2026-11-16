@@ -183,7 +183,7 @@ ECMA 引擎；schema 不得再出现以 `$` 收尾的模式（夹具 `signature-
 - 同名条目重复即失败；
 - 解压时边读边计数：单条实际解压字节 ≠ 声明大小、或累计实际解压字节 > 64 MiB 即失败（夹具：声明 1 KiB 实际 1 GiB 的单条目；1 000 个各 1 MiB 的条目；
   列在 `files[]` 中、声明大小正确却解压出 1 GiB 的 `README.md`）；解压后的 CRC-32 必须等于中央目录的 crc；
-- deflate 条目的压缩数据必须**恰好**是一个完整的 deflate 流：最终块结束后、`csize` 之内还有字节即失败（夹具 `zip-deflate-trailing-bytes`；Node `inflateRawSync` 会静默忽略这些字节，`java.util.zip` 则可能把它们当成下一个头，两侧必须显式比较已消耗的输入字节数与 `csize`）；
+- deflate 条目的压缩数据必须**恰好**是一个完整的 deflate 流：最终块结束后、`csize` 之内还有字节即失败（夹具 `zip-deflate-trailing-bytes`；Node `inflateRawSync` 会静默忽略这些字节，`java.util.zip` 则可能把它们当成下一个头，两侧必须显式比较已消耗的输入字节数与 `csize`：Node 用 `node:zlib` `inflateRawSync(…, { info: true })` 的 `engine.bytesWritten`，JVM 用 `Inflater.getBytesRead()`；fflate 不公开该计数，不能用来实现这条）；
 - 符号链接条目只是普通字节，不会被跟随（必然成为多余文件或哈希不符）。
 
 zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除外）。`b-credit-limit.zip` 为本地头带大小的形态；`b-zh.zip` 按 aster-api 导出时
