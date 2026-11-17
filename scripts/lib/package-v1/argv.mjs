@@ -72,7 +72,12 @@ function checkAnchor(options, cwd) {
   const jwks = options['--jwks'];
   if (jwks !== undefined) {
     if (URL_LIKE.test(jwks) && !jwks.startsWith('https://')) usage('--jwks 只接受 https:// URL');
-    if (jwks.startsWith('https://')) return; // 参照实现不联网；夹具不含 https URL
+    if (jwks.startsWith('https://')) {
+      // 初始 URL 与 Location 同一套规则：先是合法 URI-reference（字符级），再满足请求目标规则；违反即 usage 阶段 USAGE，不发任何请求
+      if (!URI_REFERENCE_CHARS.test(jwks)) usage(`--jwks URL 不是合法的 URI-reference：${JSON.stringify(jwks)}`);
+      validateRequestTarget(jwks);
+      return; // 参照实现在 parseCommand 里不联网
+    }
     let doc;
     try {
       doc = parseStrictJson(readFileOrUsage(join(cwd, jwks), '--jwks 文件', MAX_ANCHOR_FILE_BYTES), { maxDepth: 8 });
@@ -295,14 +300,15 @@ export function resolveReference(baseUrl, reference) {
  * 任何失败都抛 Usage（调用方报 USAGE）。
  */
 /**
- * 重定向目标在发出请求之前的合法性（README「信任锚」）：解析出的 https URL 必须有非空 host；port 可选，十进制 1–65535；
- * 不得含 userinfo（`u:p@`、`u@`、`@`）；`[` `]` 只能作为 IP-literal host 的边界出现（`https://[::1]/`），其他位置一律拒绝。任何违反都是 USAGE。
+ * 请求目标在发出请求之前的合法性（README「信任锚」），初始 --jwks URL 与每个解析出的重定向目标都适用：https URL 必须有非空 host；
+ * port 可选，十进制 1–65535；不得含 userinfo（`u:p@`、`u@`、`@`）；`[` `]` 只能作为 IP-literal host 的边界出现（`https://[::1]/`），
+ * 其他位置一律拒绝；非 IP-literal 的 host 不得含 `:`（`a:b:443`、`h::443`）。任何违反都是 USAGE。
  */
 export function validateRequestTarget(url) {
   const m = /^https:\/\/([^/?#]*)([^?#]*)(\?[^#]*)?(#.*)?$/.exec(url);
-  if (!m) usage(`重定向目标不是 https URL：${url}`);
+  if (!m) usage(`请求目标不是 https URL：${url}`);
   const [, authority, path, query = '', fragment = ''] = m;
-  if (authority.includes('@')) usage(`重定向目标不得含 userinfo：${url}`);
+  if (authority.includes('@')) usage(`请求目标不得含 userinfo：${url}`);
   let host = authority;
   let port;
   if (authority.startsWith('[')) {
@@ -321,9 +327,10 @@ export function validateRequestTarget(url) {
       port = authority.slice(colon + 1);
     }
     if (/[[\]]/.test(host)) usage(`[ ] 只能用于 IP-literal host：${url}`);
+    if (host.includes(':')) usage(`非 IP-literal 的 host 不得含 ':'：${url}`);
   }
-  if (host === '') usage(`重定向目标的 host 为空：${url}`);
-  if (port !== undefined && (!/^[0-9]{1,5}$/.test(port) || Number(port) < 1 || Number(port) > 65535)) usage(`重定向目标的端口不合法：${url}`);
+  if (host === '') usage(`请求目标的 host 为空：${url}`);
+  if (port !== undefined && (!/^[0-9]{1,5}$/.test(port) || Number(port) < 1 || Number(port) > 65535)) usage(`请求目标的端口不合法：${url}`);
   if (/[[\]]/.test(path + query + fragment)) usage(`[ ] 只能用于 IP-literal host：${url}`);
   return url;
 }
