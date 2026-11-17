@@ -510,7 +510,7 @@ await httpsAnchorTests();
       console.error(`✗ 重定向目标应接受 ${ok}：${e.message}`);
     }
   }
-  for (const bad of ['https:///x', 'https://:443/x', 'https://h:0/x', 'https://h:65536/x', 'https://h:/x', 'https://h:8a/x', 'https://u:p@h/x', 'https://u@h/x', 'https://@h/x', 'https://h/a[b]', 'https://h/x?a]', 'https://h[::1]/x', 'https://[::1/x']) {
+  for (const bad of ['https:///x', 'https://:443/x', 'https://h:0/x', 'https://h:65536/x', 'https://h:/x', 'https://h:8a/x', 'https://u:p@h/x', 'https://u@h/x', 'https://@h/x', 'https://h/a[b]', 'https://h/x?a]', 'https://h[::1]/x', 'https://[::1/x', 'https://a:b:443/x', 'https://h::443/x', 'https://a:b/x']) {
     try {
       validateRequestTarget(bad);
       fail++;
@@ -570,6 +570,23 @@ await httpsAnchorTests();
   check(groups.size === 2, `两种 routes 应分成 2 组，得到 ${groups.size}`);
   check(groups.get(routeSetKey(r1)) === r1, '组内取到声明的 routes');
   check(routeSetKey({ '/b': 1, '/a': 2 }) === routeSetKey({ '/a': 2, '/b': 1 }), 'routes 键序不影响分组');
+}
+
+// ---- 初始 --jwks URL 在 usage 阶段校验（README「信任锚」V-1） ----
+{
+  const { parseCommand } = await import('./lib/package-v1/argv.mjs');
+  const cwd = join(ROOT, 'conformance/package-v1/packages');
+  const run = (url) => parseCommand(['run', 'b-credit-limit', '--input', '-', '--jwks', url], cwd);
+  for (const ok of ['https://localhost:1/jwks.json', 'https://[::1]:8443/x?q=1#f', 'https://h/%5B', 'https://h']) {
+    const r = run(ok);
+    if (!r.usage) pass++;
+    else (fail++, console.error(`✗ 初始 URL 应接受 ${ok}：${r.why}`));
+  }
+  for (const bad of ['https://localhost:1/é', 'https://localhost:1/a b', 'https://localhost:1/%zz', 'https://localhost:1/\\x', 'https://a:b:443/x', 'https://h::443/x', 'https://u@localhost:1/x', 'https://h:/x', 'https://h:0/x', 'https:///x', 'https://h/a[b]', 'https://localhost:1/x\u0001']) {
+    const r = run(bad);
+    if (r.usage) pass++;
+    else (fail++, console.error(`✗ 初始 URL 应在 usage 阶段拒绝 ${JSON.stringify(bad)}`));
+  }
 }
 
 console.log(`test-package-v1: ${pass} passed, ${fail} failed`);

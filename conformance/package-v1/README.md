@@ -238,7 +238,12 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 
 - 不给锚：使用内置 `export-jwks.json`（P1 为 `{"keys":[]}`，所以任何签名包都是 `PKG_UNTRUSTED_KID`）。
 - `--jwks <file|url>`：参数匹配 `^[A-Za-z][A-Za-z0-9+.-]*://` 即视为 URL，否则按本地文件读。URL 必须以字面量小写 `https://` 开头，其他（含 `http://`、`ftp://`、
-  大写 `HTTPS://`）一律 `USAGE` 且不发请求（夹具 `usage-jwks-http-url`、`usage-jwks-ftp-url`、`usage-jwks-uppercase-scheme`）。https 取回的规则：
+  大写 `HTTPS://`）一律 `USAGE` 且不发请求（夹具 `usage-jwks-http-url`、`usage-jwks-ftp-url`、`usage-jwks-uppercase-scheme`）。
+  **初始 `--jwks` URL** 与 `Location` 受同一套规则，且在 usage 阶段、发出任何请求之前判定，违反即 usage 阶段的 `USAGE`（退出码 2）：
+  ① 字符级与下文 `Location` 相同，必须是合法的 RFC 3986 URI-reference（原始空格、反斜杠、控制字符、原始非 ASCII 字符、非法 `%XX` 一律拒绝，不得悄悄编码或修正）；
+  ② 满足下文的请求目标规则（host 非空、端口 1–65535 且不得为空、无 userinfo、`[` `]` 只用于 IP-literal），且非 IP-literal 的 host 不得含 `:`
+  （`https://a:b:443/`、`https://h::443/`）。参照实现 `argv.mjs` 的 `checkAnchor`（`URI_REFERENCE_CHARS` + `validateRequestTarget`）；
+  夹具 `usage-jwks-url-non-ascii`、`-space`、`-bad-percent`、`-backslash`、`-colon-in-host`、`-double-colon-port`、`-userinfo`、`-empty-port`。https 取回的规则：
   - **总**时限 10 s：从第一次请求开始，到读完最后一个响应体为止（含连接、TLS、全部重定向），不是套接字空闲超时——细水长流的响应体到点同样失败；只认 2xx；响应体 ≤ 1 MiB（超出即中止；恰好 1 MiB 可以）；
   - 请求带 `Accept-Encoding: identity`；响应的 `Content-Encoding` 缺省或为 `identity` 才接受，其他（如 `gzip`）为 `USAGE`（上限因此作用于未解码的字节）；
   - 重定向只认 301、302、303、307、308，其他 3xx（如 300）按非 2xx 处理为 `USAGE`；至多跟随 3 次，每一跳都必须是 https（https → http 失败）；
@@ -249,9 +254,9 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
       `../../x` → `https://h/x`；
     - `Location` 中的 scheme **不区分大小写**（`HTTPS://…` 视为 https 并跟随）；`--jwks` 参数本身仍只认字面量小写 `https://`；
     - **空的 `Location`（含只有空白的值）为 `USAGE`**：这是有意偏离 RFC 3986（RFC 3986 会把空引用解析为基准 URL 本身），以免同一 URL 无限重定向；
-    - **解析出的目标在发出请求之前**还要满足：host 非空（`https:///x` 拒绝）；端口可省略，给出时必须是十进制 1–65535，**空端口**（`https://h:/x`，RFC 3986 允许）同样拒绝；
+    - **解析出的目标在发出请求之前**还要满足（与初始 URL 相同的请求目标规则）：host 非空（`https:///x` 拒绝）；端口可省略，给出时必须是十进制 1–65535，**空端口**（`https://h:/x`，RFC 3986 允许）同样拒绝；
       **不得含 userinfo**（`u:p@`、`u@`，以及空的 `@`）；`[` `]` 只能作为 IP-literal host 的边界（`https://[::1]/`），路径、查询、片段或普通 host 中出现即拒绝
-      （`https://h/a[b]`）。任何违反都是 `USAGE`（参照实现 `validateRequestTarget`；配方 `https-jwks-redirect-empty-host`、`-port-out-of-range`、`-empty-port`、
+      （`https://h/a[b]`）；非 IP-literal 的 host 不得含 `:`（按最后一个 `:` 拆出端口后 host 仍含 `:`，如 `https://a:b:443/`）。任何违反都是 `USAGE`（参照实现 `validateRequestTarget`；配方 `https-jwks-redirect-empty-host`、`-port-out-of-range`、`-empty-port`、
       `-userinfo`、`-empty-userinfo`、`-brackets-outside-ip-literal`）；
     - 配方：`https-jwks-location-query-only-ok`、`https-jwks-location-dotdot-ok`、`https-jwks-location-uppercase-scheme-ok`（通过），
       `https-jwks-location-invalid`（含空格）、`https-jwks-location-backslash`（`USAGE`）。

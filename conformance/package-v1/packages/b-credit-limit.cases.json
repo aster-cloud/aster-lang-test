@@ -441,6 +441,126 @@
       "code": "USAGE"
     },
     {
+      "name": "usage-jwks-url-non-ascii",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://127.0.0.1:9/jwks-é.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-jwks-url-space",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://127.0.0.1:9/jwks .json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-jwks-url-bad-percent",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://127.0.0.1:9/jwks%zz.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-jwks-url-backslash",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://127.0.0.1:9\\jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-jwks-url-colon-in-host",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://a:b:443/jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-jwks-url-double-colon-port",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://h::443/jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-jwks-url-userinfo",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://u@127.0.0.1:9/jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-jwks-url-empty-port",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://127.0.0.1:/jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
       "name": "usage-jwks-duplicate-json-key",
       "args": [
         "run",
