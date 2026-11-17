@@ -384,6 +384,13 @@ async function httpsAnchorTests() {
     const jwks = readFileSync(join(ROOT, 'conformance/package-v1/keys/test-jwks.json'));
     let port;
     const server = https.createServer({ key: readFileSync(join(dir, 'key.pem')), cert: readFileSync(join(dir, 'cert.pem')) }, (req, res) => {
+      if (req.url === '/trickle') {
+        // 只给单测：头立即返回，之后每 100 ms 一字节——空闲超时永远不触发，只有总时限能截住
+        res.writeHead(200);
+        const iv = setInterval(() => res.write(' '), 100);
+        res.on('close', () => clearInterval(iv));
+        return undefined;
+      }
       const r = routes[req.url];
       if (!r) return res.writeHead(404).end();
       if (r.location) return res.writeHead(r.status, { location: r.location.replace('<PORT>', port) }).end();
@@ -418,6 +425,23 @@ async function httpsAnchorTests() {
         }
       }
     }
+    // 总时限（不是套接字空闲超时）：细水长流的响应体在总时限到点时必须失败
+    {
+      const t0 = Date.now();
+      try {
+        await fetchJwks(`https://localhost:${port}/trickle`, { extraCa, timeoutMs: 600 });
+        fail++;
+        console.error('✗ https: 总时限未生效（trickle 成功了）');
+      } catch (e) {
+        const took = Date.now() - t0;
+        if (e instanceof Usage && took < 2000) pass++;
+        else {
+          fail++;
+          console.error(`✗ https: 总时限 ${took} ms：${e.message}`);
+        }
+      }
+    }
+    server.closeAllConnections?.();
     server.close();
   } finally {
     rmSync(dir, { recursive: true, force: true });
@@ -469,6 +493,33 @@ await httpsAnchorTests();
       else {
         fail++;
         console.error(`✗ RFC 3986 ${JSON.stringify(bad)} 抛了非 Usage：${e.message}`);
+      }
+    }
+  }
+}
+
+// ---- 重定向目标在发出请求之前的合法性（README「信任锚」N-1） ----
+{
+  const { validateRequestTarget, Usage } = await import('./lib/package-v1/argv.mjs');
+  for (const ok of ['https://h/x', 'https://h:1/x', 'https://h:65535/x', 'https://[::1]:8443/x', 'https://[v1.fe]/x', 'https://h', 'https://h/x?q#f']) {
+    try {
+      validateRequestTarget(ok);
+      pass++;
+    } catch (e) {
+      fail++;
+      console.error(`✗ 重定向目标应接受 ${ok}：${e.message}`);
+    }
+  }
+  for (const bad of ['https:///x', 'https://:443/x', 'https://h:0/x', 'https://h:65536/x', 'https://h:/x', 'https://h:8a/x', 'https://u:p@h/x', 'https://u@h/x', 'https://@h/x', 'https://h/a[b]', 'https://h/x?a]', 'https://h[::1]/x', 'https://[::1/x']) {
+    try {
+      validateRequestTarget(bad);
+      fail++;
+      console.error(`✗ 重定向目标应拒绝 ${bad}`);
+    } catch (e) {
+      if (e instanceof Usage) pass++;
+      else {
+        fail++;
+        console.error(`✗ ${bad} 抛了非 Usage：${e.message}`);
       }
     }
   }
