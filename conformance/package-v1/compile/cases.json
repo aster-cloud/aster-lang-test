@@ -505,6 +505,30 @@
       "expectedExit": 4,
       "code": "COMPILE_ERROR",
       "knownEngineDivergence": "aster-cloud/aster-lang-ts#348"
+    },
+    {
+      "name": "package-a-blank-policy",
+      "args": [
+        "compile",
+        "../packages/a-blank-policy",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "COMPILE_ERROR"
+    },
+    {
+      "name": "package-b-blank-policy",
+      "args": [
+        "compile",
+        "../packages/b-blank-policy",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "COMPILE_ERROR"
     }
   ]
 }

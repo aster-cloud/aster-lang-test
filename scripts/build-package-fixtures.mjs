@@ -581,8 +581,9 @@ async function verifyEngines() {
     if (!r.ok) continue;
     const ir = JSON.parse(r.manifest.mode === 'a' ? r.files.get('compiled/core.json').toString('utf8') : defsByModule(pkgs, r.manifest).def.platformCore);
     if (c.code === 'PKG_IR_DRIFT') {
-      const own = defsByModule(pkgs, r.manifest);
-      const pf = sha256Hex(utf8(ts.canonicalJson(positionFreeTree(JSON.parse(tsCompile(ts, own.def))))));
+      // 从盘上的 policy/ 本地编译：编译失败或投影哈希与 manifest 不同都是漂移
+      const core = tsCompileFiles(ts, r.manifest, r.files);
+      const pf = core === null ? null : sha256Hex(utf8(ts.canonicalJson(positionFreeTree(JSON.parse(core)))));
       expect(pf !== r.manifest.coreIr.positionFreeSha256, `${name}: ts 重编译的投影哈希与 manifest 相等，不是漂移`);
       count();
       continue;
@@ -767,7 +768,10 @@ async function verifyEngines() {
     }
     const anchor = opts['--jwks'] ? loadAnchor(cwd, ['--jwks', opts['--jwks']]) : opts['--pubkey'] ? loadAnchor(cwd, ['--pubkey', opts['--pubkey']]) : { kind: 'jwks', keys: new Map() };
     const r = checkPackage(target, { ...refOpts, anchor, allowUnsigned: opts['--allow-unsigned'] === true });
-    if (c.code) {
+    if (c.code === 'COMPILE_ERROR') {
+      // 包检查通过、盘上 policy/ 本地编译失败
+      expect((r.ok || r.stage === 'ir') && r.manifest && tsCompileFiles(ts, r.manifest, r.files) === null, `${name}: 应包检查通过而本地编译失败`);
+    } else if (c.code) {
       expect(!r.ok && r.code === c.code, `${name}: 参照流水线得 ${r.ok ? '通过' : r.code}，期望 ${c.code}`);
     } else {
       expect(r.ok || r.stage === 'ir', `${name}: 参照流水线应通过包检查，得 ${r.code}@${r.stage}`);

@@ -1,0 +1,59 @@
+{
+  "description": "与 a-decimal 相同（compiled/core.json 仍是平台 IR），但 policy/policy.aster 只含 ASCII 空白，照常计算哈希并签名（README「compile」空白源码规则同样作用于包形态）：run 读 compiled/core.json 不受影响；verify 通过；verify --recompile 本地编译失败即 PKG_IR_DRIFT；verify --probes 仍对 compiled/core.json 求值而通过；compile <pkg> 为 COMPILE_ERROR（compile/cases.json）。",
+  "package": "a-blank-policy",
+  "cases": [
+    {
+      "name": "run-uses-compiled-ir",
+      "args": [
+        "run",
+        "a-blank-policy",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"amount\":\"10\"}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true,\"value\":\"10.82\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify",
+      "args": [
+        "verify",
+        "a-blank-policy",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"ir\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-recompile-drift",
+      "args": [
+        "verify",
+        "a-blank-policy",
+        "--recompile",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"ir\",\"ok\":true},{\"code\":\"PKG_IR_DRIFT\",\"name\":\"recompile\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_IR_DRIFT"
+    },
+    {
+      "name": "verify-probes-uses-compiled-ir",
+      "args": [
+        "verify",
+        "a-blank-policy",
+        "--probes",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"ir\",\"ok\":true},{\"name\":\"probes\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be34ed26e42f2032e5e03ad6f6279848dbb34d23ce3796dec4de3ee9ba25f7f8\",\"engine\":\"<ENGINE>\",\"entry\":\"withTax\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    }
+  ]
+}

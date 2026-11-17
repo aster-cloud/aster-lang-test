@@ -275,7 +275,8 @@ function readme(def, ir) {
 /** 构建一个黄金包：返回 { name, manifest, manifestBytes, sig, files: Map<path, Buffer>, signed, entries }。 */
 export function buildPackage(def) {
   const ir = JSON.parse(def.platformCore);
-  const sourceBytes = readFileSync(join(def.sourceDir, 'policy.aster'));
+  // policyOverride：派生夹具把 policy/policy.aster 换成给定文本（如只含 ASCII 空白），其余载荷（含 A 包的 compiled/core.json）照旧
+  const sourceBytes = def.policyOverride !== undefined ? utf8(def.policyOverride) : readFileSync(join(def.sourceDir, 'policy.aster'));
   const schemas = entrySchemas(ir, def.entries);
   const payload = new Map();
   payload.set('README.md', readme(def, ir));
@@ -465,14 +466,18 @@ export function verifyOutput(pkg, flags, failure, exitCodes) {
     if (failure?.stage === 'ir' && failure.code === 'PKG_UNSUPPORTED_IR') return fail('ir', failure.code);
     checks.push({ name: 'ir', ok: true });
   }
-  const irFails = (name) => failure?.stage === 'ir' && (failure.failsIn ?? []).includes(name);
+  // localCompileFails：派生夹具的 policy/ 本地编译必然失败（如空白源码）——recompile 失败，B 包的 probes 也因取不到 IR 失败
+  const localFails = pkg.def.localCompileFails === true;
+  const irFails = (name) => (failure?.stage === 'ir' && (failure.failsIn ?? []).includes(name))
+    || (localFails && (name === 'recompile' || (name === 'probes' && pkg.manifest.mode === 'b')));
+  const irCode = failure?.stage === 'ir' ? failure.code : 'PKG_IR_DRIFT';
   if (flags.includes('--recompile')) {
-    if (irFails('recompile')) return fail('recompile', failure.code);
+    if (irFails('recompile')) return fail('recompile', irCode);
     checks.push({ name: 'recompile', ok: true });
     recompiled = true;
   }
   if (flags.includes('--probes')) {
-    if (irFails('probes')) return fail('probes', failure.code);
+    if (irFails('probes')) return fail('probes', irCode);
     if (pkg.def.corruptProbe || pkg.def.probeEdits) return fail('probes', 'PROBE_MISMATCH');
     checks.push({ name: 'probes', ok: true });
   }
@@ -1346,7 +1351,9 @@ export function compileFixtures(srcDir, pkgs, exitCodes) {
     }
     if (c.package) return success(c, pkgs.get(c.package).manifest.coreIr.positionFreeSha256);
     const { code } = c.expect;
-    return failure(c, code, code === 'USAGE' ? usageMeta : runMeta(base, DEFAULT_STAGE[code], { entry: null, allowUnsigned: false }));
+    // 包形态的 COMPILE_ERROR：包检查（含签名）已通过、本地编译失败，meta 取 ir 阶段（signed:true，未取得 IR）
+    const pkgOf = c.expect.package ? pkgs.get(c.expect.package) : base;
+    return failure(c, code, code === 'USAGE' ? usageMeta : runMeta(pkgOf, c.expect.stage ?? DEFAULT_STAGE[code], { entry: null, allowUnsigned: false }));
   });
   files.set('compile/cases.json', jsonFile({ description: doc.description, cases }));
   return files;
