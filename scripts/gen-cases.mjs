@@ -164,7 +164,8 @@ function runJava(reqs) {
   );
   const res = spawnSync(
     './gradlew',
-    ['test', '--tests', 'CoreIrEvalCli', '--rerun-tasks', '-q', `-Dparity.eval.input=${inFile}`, `-Dparity.eval.output=${outFile}`],
+    // 只跑根项目的 :test（truffle 的 cli 子项目没有 CoreIrEvalCli，:cli:test 过滤后无匹配会失败）
+    [':test', '--tests', 'CoreIrEvalCli', '--rerun-tasks', '-q', `-Dparity.eval.input=${inFile}`, `-Dparity.eval.output=${outFile}`],
     { cwd: TRUFFLE_REPO, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] },
   );
   if (!existsSync(outFile)) {

@@ -1105,7 +1105,8 @@ function runJavaEval(requests) {
   const result = spawnSync(
     './gradlew',
     [
-      'test',
+      // 只跑根项目的 :test：truffle 有 cli 子项目后，不带项目路径的 test 也会执行 :cli:test，按 --tests 过滤后无匹配即失败
+      ':test',
       '--tests',
       'CoreIrEvalCli',
       '--rerun-tasks',
