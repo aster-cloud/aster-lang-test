@@ -260,7 +260,11 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 - **超时的计时起点**：在**执行求值的线程里、紧挨着求值调用之前**开始计时。Node：在 Worker 内、IR 已读入（`readCoreIr`）且实参已转换之后、调用 `evaluate` 之前；
   JVM：Context 已创建、IR 已加载并选好入口之后、调用 `eval` / 执行入口之前。Engine / Context / Worker 的创建与 IR 读入都**不**计入，读包、验签、本地编译、
   输入校验同样不计入。到点由主线程 / 看门狗终止求值（Node `worker.terminate()`，JVM `context.close(true)`），输出 `TIMEOUT`，进程正常退出。
-  `verify --probes` 每条探针各自计时。贴近边界的超时（求值耗时与上限相差无几）不在逐字节一致的承诺内（修订 1 A4 / ADR §5.3 的资源类结果）。
+  `verify --probes` 每条探针各自计时。
+- **求值前看门狗**：计时起点之前的阶段（Worker / Engine / Context 的创建、IR 读入与加载、实参转换）合计以 **60 s** 为界，超过即输出
+  `RESOURCE_EXHAUSTED`（与求值阶段的资源耗尽同码）。这一结果与机器负载有关，和其他资源类结果一样不在逐字节一致的承诺内（修订 1 A4 / ADR §5.3），
+  夹具不覆盖它（正常的包在这些阶段远低于 1 s；构造一个稳定超过 60 s 的合法包不现实）。两侧 CLI 各自用单元测试注入一个很慢的阶段（或把界限调小）验证。
+  贴近边界的超时（求值耗时与上限相差无几）不在逐字节一致的承诺内（修订 1 A4 / ADR §5.3 的资源类结果）。
 - `--timeout` 匹配 `^(0|[1-9][0-9]*)(ms|s)(?![\s\S])`，值必须 > 0 且 ≤ 300 s（`300000ms` 可以，`300001ms`、`0s`、`1.5s`、`01s`、`5` 都是 `USAGE`）；缺省 `5s`。
 
 ## 输入
@@ -302,6 +306,10 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
   否则 → 包形态（目录或 zip，同「包路径」）。
 - **源码的解码**：按严格 UTF-8 解码，非法字节为 `USAGE`（夹具 `usage-source-invalid-utf8`）；去掉**至多一个**开头的 BOM（U+FEFF）（`source-leading-bom-is-stripped`
   与 `credit.aster` 得到同一投影哈希）。包形态的 `policy/policy.aster` 按同一规则解码（非法 UTF-8 为本地编译失败）。
+- **空白源码规则同样作用于包形态的 `policy/policy.aster`**（严格 UTF-8 解码、去掉至多一个开头 BOM 之后，只含 ASCII 空白即本地编译失败）：
+  `compile <pkg>` 为 `COMPILE_ERROR`（meta 为 ir 阶段：`signed:true`，`entry` / `coreIrSha256` 为 null）；`verify --recompile` 为 `PKG_IR_DRIFT`；普通 `verify` 不编译而通过；
+  A 包的 `run` 与 `verify --probes` 读 `compiled/core.json`，不受影响；B 包的 `run` 与 `verify --probes` 靠本地编译取 IR，为 `PKG_IR_DRIFT`
+  （黄金包 `a-blank-policy`、`b-blank-policy`，以及 `compile/package-a-blank-policy`、`compile/package-b-blank-policy`）。
 - **`compile` 只解析与降级，不做类型检查**（与 B 包本地重编译同一语义；aster-api `PolicyCompiler` 另跑 TypeChecker，包格式不采用）：有类型错误但语法正确的源码照常输出 IR
   （夹具 `source-type-error-is-not-checked`）。源码（解码并去掉 BOM 之后）为空或只含 **ASCII 空白**（U+0020、`\t`、`\n`、`\r`）为 `COMPILE_ERROR`
   （`source-empty`、`source-whitespace-only`、`source-only-bom-is-blank`）。U+00A0、U+3000 等其他 Unicode 空白不算空白，源码照常交给编译器

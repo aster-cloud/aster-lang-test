@@ -1,0 +1,59 @@
+{
+  "description": "与 b-credit-limit 相同，但 policy/policy.aster 只含 ASCII 空白，照常计算哈希并签名：B 包靠本地编译取 IR，空白源码编译失败，所以 run 与 verify --recompile / --probes 都是 PKG_IR_DRIFT；普通 verify 不编译而通过；compile <pkg> 为 COMPILE_ERROR（compile/cases.json）。",
+  "package": "b-blank-policy",
+  "cases": [
+    {
+      "name": "run-local-compile-fails",
+      "args": [
+        "run",
+        "b-blank-policy",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_IR_DRIFT\",\"message\":\"locally compiled IR differs from the package; use an A package or the CLI version recorded in runtime.cli.version\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_IR_DRIFT"
+    },
+    {
+      "name": "verify",
+      "args": [
+        "verify",
+        "b-blank-policy",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-recompile-drift",
+      "args": [
+        "verify",
+        "b-blank-policy",
+        "--recompile",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"code\":\"PKG_IR_DRIFT\",\"name\":\"recompile\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_IR_DRIFT"
+    },
+    {
+      "name": "verify-probes-drift",
+      "args": [
+        "verify",
+        "b-blank-policy",
+        "--probes",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"code\":\"PKG_IR_DRIFT\",\"name\":\"probes\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_IR_DRIFT"
+    }
+  ]
+}

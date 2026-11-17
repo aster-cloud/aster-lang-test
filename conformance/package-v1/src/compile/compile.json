@@ -511,6 +511,34 @@
         "locale": "en-US"
       },
       "knownEngineDivergence": "aster-cloud/aster-lang-ts#348"
+    },
+    {
+      "name": "package-a-blank-policy",
+      "args": [
+        "compile",
+        "../packages/a-blank-policy",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expect": {
+        "code": "COMPILE_ERROR",
+        "stage": "ir",
+        "package": "a-blank-policy"
+      }
+    },
+    {
+      "name": "package-b-blank-policy",
+      "args": [
+        "compile",
+        "../packages/b-blank-policy",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expect": {
+        "code": "COMPILE_ERROR",
+        "stage": "ir",
+        "package": "b-blank-policy"
+      }
     }
   ]
 }

@@ -1,0 +1,42 @@
+{
+  "description": "与 b-credit-limit 相同，但 policy/policy.aster 只含 ASCII 空白，照常计算哈希并签名：B 包靠本地编译取 IR，空白源码编译失败，所以 run 与 verify --recompile / --probes 都是 PKG_IR_DRIFT；普通 verify 不编译而通过；compile <pkg> 为 COMPILE_ERROR（compile/cases.json）。",
+  "base": "b-credit-limit",
+  "policyOverride": "\n  \n",
+  "cases": [
+    {
+      "name": "run-local-compile-fails",
+      "command": "run",
+      "input": {
+        "applicant": {
+          "activeDefaults": 0,
+          "creditScore": 760,
+          "monthlyDebt": "2000",
+          "monthlyIncome": "9000",
+          "requestedAmount": "20000"
+        }
+      },
+      "expect": {
+        "code": "PKG_IR_DRIFT"
+      }
+    },
+    {
+      "name": "verify",
+      "command": "verify"
+    },
+    {
+      "name": "verify-recompile-drift",
+      "command": "verify",
+      "args": [
+        "--recompile"
+      ]
+    },
+    {
+      "name": "verify-probes-drift",
+      "command": "verify",
+      "args": [
+        "--probes"
+      ]
+    }
+  ],
+  "localCompileFails": true
+}

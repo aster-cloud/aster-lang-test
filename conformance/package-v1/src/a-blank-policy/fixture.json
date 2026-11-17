@@ -1,0 +1,35 @@
+{
+  "description": "与 a-decimal 相同（compiled/core.json 仍是平台 IR），但 policy/policy.aster 只含 ASCII 空白，照常计算哈希并签名（README「compile」空白源码规则同样作用于包形态）：run 读 compiled/core.json 不受影响；verify 通过；verify --recompile 本地编译失败即 PKG_IR_DRIFT；verify --probes 仍对 compiled/core.json 求值而通过；compile <pkg> 为 COMPILE_ERROR（compile/cases.json）。",
+  "base": "a-decimal",
+  "policyOverride": "  \n\t\r\n",
+  "cases": [
+    {
+      "name": "run-uses-compiled-ir",
+      "command": "run",
+      "input": {
+        "amount": "10"
+      },
+      "expect": "platform",
+      "sameAs": "a-decimal/half-even-down"
+    },
+    {
+      "name": "verify",
+      "command": "verify"
+    },
+    {
+      "name": "verify-recompile-drift",
+      "command": "verify",
+      "args": [
+        "--recompile"
+      ]
+    },
+    {
+      "name": "verify-probes-uses-compiled-ir",
+      "command": "verify",
+      "args": [
+        "--probes"
+      ]
+    }
+  ],
+  "localCompileFails": true
+}
