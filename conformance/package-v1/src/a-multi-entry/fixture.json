@@ -458,6 +458,84 @@
       "expect": {
         "code": "USAGE"
       }
+    },
+    {
+      "name": "double-dash-ends-options",
+      "command": "run",
+      "rawArgs": [
+        "run",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json",
+        "--entry",
+        "label",
+        "--",
+        "{pkg}"
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": "platform",
+      "sameAs": "entry-label"
+    },
+    {
+      "name": "usage-option-after-double-dash",
+      "command": "run",
+      "rawArgs": [
+        "run",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json",
+        "--",
+        "{pkg}",
+        "--entry"
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-empty-equals-value",
+      "command": "run",
+      "rawArgs": [
+        "run",
+        "{pkg}",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json",
+        "--entry="
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-switch-with-value",
+      "command": "run",
+      "rawArgs": [
+        "run",
+        "{pkg}",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json",
+        "--allow-unsigned=true"
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": {
+        "code": "USAGE"
+      }
     }
   ]
 }

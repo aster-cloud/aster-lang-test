@@ -1,5 +1,5 @@
 {
-  "description": "运行时生成的体积类夹具（README「体积上限」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节；stdinRecipe：prefix + padding 个空格 + suffix。",
+  "description": "运行时生成的夹具（README「体积上限」「信任锚」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节（自动建父目录）；addDirs：建空目录；copyZip + appendZeros：复制 zip 后追加零字节；stdinRecipe：prefix + padding 个空格 + suffix。httpsServer：测试在 127.0.0.1 上起一个只用于本用例的 https 服务（自签名证书，CN / SAN 为 localhost 与 127.0.0.1），按 routes 应答；<PORT> 为其端口；env 中的 <CA_PEM> 换成该自签名证书的 PEM 文件路径（ASTER_ANCHOR_CA_FILE 是仅供测试的信任覆盖，见 README）。全程离线。",
   "cases": [
     {
       "name": "dir-single-file-over-64MiB",
@@ -4187,6 +4187,1781 @@
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "dir-depth-over-32",
+      "recipe": {
+        "copyPackage": "packages/b-credit-limit",
+        "add": [
+          {
+            "path": "d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/x.txt",
+            "size": 0
+          }
+        ]
+      },
+      "args": [
+        "run",
+        "<PKG>",
+        "--input",
+        "-",
+        "--jwks",
+        "<PACKAGE_V1>/keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "dir-depth-32-passes-read",
+      "recipe": {
+        "copyPackage": "packages/b-credit-limit",
+        "add": [
+          {
+            "path": "d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/x.txt",
+            "size": 0
+          }
+        ]
+      },
+      "args": [
+        "run",
+        "<PKG>",
+        "--input",
+        "-",
+        "--jwks",
+        "<PACKAGE_V1>/keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "dir-too-many-directories",
+      "recipe": {
+        "copyPackage": "packages/b-credit-limit",
+        "add": [],
+        "addDirs": [
+          "e/0000",
+          "e/0001",
+          "e/0002",
+          "e/0003",
+          "e/0004",
+          "e/0005",
+          "e/0006",
+          "e/0007",
+          "e/0008",
+          "e/0009",
+          "e/0010",
+          "e/0011",
+          "e/0012",
+          "e/0013",
+          "e/0014",
+          "e/0015",
+          "e/0016",
+          "e/0017",
+          "e/0018",
+          "e/0019",
+          "e/0020",
+          "e/0021",
+          "e/0022",
+          "e/0023",
+          "e/0024",
+          "e/0025",
+          "e/0026",
+          "e/0027",
+          "e/0028",
+          "e/0029",
+          "e/0030",
+          "e/0031",
+          "e/0032",
+          "e/0033",
+          "e/0034",
+          "e/0035",
+          "e/0036",
+          "e/0037",
+          "e/0038",
+          "e/0039",
+          "e/0040",
+          "e/0041",
+          "e/0042",
+          "e/0043",
+          "e/0044",
+          "e/0045",
+          "e/0046",
+          "e/0047",
+          "e/0048",
+          "e/0049",
+          "e/0050",
+          "e/0051",
+          "e/0052",
+          "e/0053",
+          "e/0054",
+          "e/0055",
+          "e/0056",
+          "e/0057",
+          "e/0058",
+          "e/0059",
+          "e/0060",
+          "e/0061",
+          "e/0062",
+          "e/0063",
+          "e/0064",
+          "e/0065",
+          "e/0066",
+          "e/0067",
+          "e/0068",
+          "e/0069",
+          "e/0070",
+          "e/0071",
+          "e/0072",
+          "e/0073",
+          "e/0074",
+          "e/0075",
+          "e/0076",
+          "e/0077",
+          "e/0078",
+          "e/0079",
+          "e/0080",
+          "e/0081",
+          "e/0082",
+          "e/0083",
+          "e/0084",
+          "e/0085",
+          "e/0086",
+          "e/0087",
+          "e/0088",
+          "e/0089",
+          "e/0090",
+          "e/0091",
+          "e/0092",
+          "e/0093",
+          "e/0094",
+          "e/0095",
+          "e/0096",
+          "e/0097",
+          "e/0098",
+          "e/0099",
+          "e/0100",
+          "e/0101",
+          "e/0102",
+          "e/0103",
+          "e/0104",
+          "e/0105",
+          "e/0106",
+          "e/0107",
+          "e/0108",
+          "e/0109",
+          "e/0110",
+          "e/0111",
+          "e/0112",
+          "e/0113",
+          "e/0114",
+          "e/0115",
+          "e/0116",
+          "e/0117",
+          "e/0118",
+          "e/0119",
+          "e/0120",
+          "e/0121",
+          "e/0122",
+          "e/0123",
+          "e/0124",
+          "e/0125",
+          "e/0126",
+          "e/0127",
+          "e/0128",
+          "e/0129",
+          "e/0130",
+          "e/0131",
+          "e/0132",
+          "e/0133",
+          "e/0134",
+          "e/0135",
+          "e/0136",
+          "e/0137",
+          "e/0138",
+          "e/0139",
+          "e/0140",
+          "e/0141",
+          "e/0142",
+          "e/0143",
+          "e/0144",
+          "e/0145",
+          "e/0146",
+          "e/0147",
+          "e/0148",
+          "e/0149",
+          "e/0150",
+          "e/0151",
+          "e/0152",
+          "e/0153",
+          "e/0154",
+          "e/0155",
+          "e/0156",
+          "e/0157",
+          "e/0158",
+          "e/0159",
+          "e/0160",
+          "e/0161",
+          "e/0162",
+          "e/0163",
+          "e/0164",
+          "e/0165",
+          "e/0166",
+          "e/0167",
+          "e/0168",
+          "e/0169",
+          "e/0170",
+          "e/0171",
+          "e/0172",
+          "e/0173",
+          "e/0174",
+          "e/0175",
+          "e/0176",
+          "e/0177",
+          "e/0178",
+          "e/0179",
+          "e/0180",
+          "e/0181",
+          "e/0182",
+          "e/0183",
+          "e/0184",
+          "e/0185",
+          "e/0186",
+          "e/0187",
+          "e/0188",
+          "e/0189",
+          "e/0190",
+          "e/0191",
+          "e/0192",
+          "e/0193",
+          "e/0194",
+          "e/0195",
+          "e/0196",
+          "e/0197",
+          "e/0198",
+          "e/0199",
+          "e/0200",
+          "e/0201",
+          "e/0202",
+          "e/0203",
+          "e/0204",
+          "e/0205",
+          "e/0206",
+          "e/0207",
+          "e/0208",
+          "e/0209",
+          "e/0210",
+          "e/0211",
+          "e/0212",
+          "e/0213",
+          "e/0214",
+          "e/0215",
+          "e/0216",
+          "e/0217",
+          "e/0218",
+          "e/0219",
+          "e/0220",
+          "e/0221",
+          "e/0222",
+          "e/0223",
+          "e/0224",
+          "e/0225",
+          "e/0226",
+          "e/0227",
+          "e/0228",
+          "e/0229",
+          "e/0230",
+          "e/0231",
+          "e/0232",
+          "e/0233",
+          "e/0234",
+          "e/0235",
+          "e/0236",
+          "e/0237",
+          "e/0238",
+          "e/0239",
+          "e/0240",
+          "e/0241",
+          "e/0242",
+          "e/0243",
+          "e/0244",
+          "e/0245",
+          "e/0246",
+          "e/0247",
+          "e/0248",
+          "e/0249",
+          "e/0250",
+          "e/0251",
+          "e/0252",
+          "e/0253",
+          "e/0254",
+          "e/0255",
+          "e/0256",
+          "e/0257",
+          "e/0258",
+          "e/0259",
+          "e/0260",
+          "e/0261",
+          "e/0262",
+          "e/0263",
+          "e/0264",
+          "e/0265",
+          "e/0266",
+          "e/0267",
+          "e/0268",
+          "e/0269",
+          "e/0270",
+          "e/0271",
+          "e/0272",
+          "e/0273",
+          "e/0274",
+          "e/0275",
+          "e/0276",
+          "e/0277",
+          "e/0278",
+          "e/0279",
+          "e/0280",
+          "e/0281",
+          "e/0282",
+          "e/0283",
+          "e/0284",
+          "e/0285",
+          "e/0286",
+          "e/0287",
+          "e/0288",
+          "e/0289",
+          "e/0290",
+          "e/0291",
+          "e/0292",
+          "e/0293",
+          "e/0294",
+          "e/0295",
+          "e/0296",
+          "e/0297",
+          "e/0298",
+          "e/0299",
+          "e/0300",
+          "e/0301",
+          "e/0302",
+          "e/0303",
+          "e/0304",
+          "e/0305",
+          "e/0306",
+          "e/0307",
+          "e/0308",
+          "e/0309",
+          "e/0310",
+          "e/0311",
+          "e/0312",
+          "e/0313",
+          "e/0314",
+          "e/0315",
+          "e/0316",
+          "e/0317",
+          "e/0318",
+          "e/0319",
+          "e/0320",
+          "e/0321",
+          "e/0322",
+          "e/0323",
+          "e/0324",
+          "e/0325",
+          "e/0326",
+          "e/0327",
+          "e/0328",
+          "e/0329",
+          "e/0330",
+          "e/0331",
+          "e/0332",
+          "e/0333",
+          "e/0334",
+          "e/0335",
+          "e/0336",
+          "e/0337",
+          "e/0338",
+          "e/0339",
+          "e/0340",
+          "e/0341",
+          "e/0342",
+          "e/0343",
+          "e/0344",
+          "e/0345",
+          "e/0346",
+          "e/0347",
+          "e/0348",
+          "e/0349",
+          "e/0350",
+          "e/0351",
+          "e/0352",
+          "e/0353",
+          "e/0354",
+          "e/0355",
+          "e/0356",
+          "e/0357",
+          "e/0358",
+          "e/0359",
+          "e/0360",
+          "e/0361",
+          "e/0362",
+          "e/0363",
+          "e/0364",
+          "e/0365",
+          "e/0366",
+          "e/0367",
+          "e/0368",
+          "e/0369",
+          "e/0370",
+          "e/0371",
+          "e/0372",
+          "e/0373",
+          "e/0374",
+          "e/0375",
+          "e/0376",
+          "e/0377",
+          "e/0378",
+          "e/0379",
+          "e/0380",
+          "e/0381",
+          "e/0382",
+          "e/0383",
+          "e/0384",
+          "e/0385",
+          "e/0386",
+          "e/0387",
+          "e/0388",
+          "e/0389",
+          "e/0390",
+          "e/0391",
+          "e/0392",
+          "e/0393",
+          "e/0394",
+          "e/0395",
+          "e/0396",
+          "e/0397",
+          "e/0398",
+          "e/0399",
+          "e/0400",
+          "e/0401",
+          "e/0402",
+          "e/0403",
+          "e/0404",
+          "e/0405",
+          "e/0406",
+          "e/0407",
+          "e/0408",
+          "e/0409",
+          "e/0410",
+          "e/0411",
+          "e/0412",
+          "e/0413",
+          "e/0414",
+          "e/0415",
+          "e/0416",
+          "e/0417",
+          "e/0418",
+          "e/0419",
+          "e/0420",
+          "e/0421",
+          "e/0422",
+          "e/0423",
+          "e/0424",
+          "e/0425",
+          "e/0426",
+          "e/0427",
+          "e/0428",
+          "e/0429",
+          "e/0430",
+          "e/0431",
+          "e/0432",
+          "e/0433",
+          "e/0434",
+          "e/0435",
+          "e/0436",
+          "e/0437",
+          "e/0438",
+          "e/0439",
+          "e/0440",
+          "e/0441",
+          "e/0442",
+          "e/0443",
+          "e/0444",
+          "e/0445",
+          "e/0446",
+          "e/0447",
+          "e/0448",
+          "e/0449",
+          "e/0450",
+          "e/0451",
+          "e/0452",
+          "e/0453",
+          "e/0454",
+          "e/0455",
+          "e/0456",
+          "e/0457",
+          "e/0458",
+          "e/0459",
+          "e/0460",
+          "e/0461",
+          "e/0462",
+          "e/0463",
+          "e/0464",
+          "e/0465",
+          "e/0466",
+          "e/0467",
+          "e/0468",
+          "e/0469",
+          "e/0470",
+          "e/0471",
+          "e/0472",
+          "e/0473",
+          "e/0474",
+          "e/0475",
+          "e/0476",
+          "e/0477",
+          "e/0478",
+          "e/0479",
+          "e/0480",
+          "e/0481",
+          "e/0482",
+          "e/0483",
+          "e/0484",
+          "e/0485",
+          "e/0486",
+          "e/0487",
+          "e/0488",
+          "e/0489",
+          "e/0490",
+          "e/0491",
+          "e/0492",
+          "e/0493",
+          "e/0494",
+          "e/0495",
+          "e/0496",
+          "e/0497",
+          "e/0498",
+          "e/0499",
+          "e/0500",
+          "e/0501",
+          "e/0502",
+          "e/0503",
+          "e/0504",
+          "e/0505",
+          "e/0506",
+          "e/0507",
+          "e/0508",
+          "e/0509",
+          "e/0510",
+          "e/0511",
+          "e/0512",
+          "e/0513",
+          "e/0514",
+          "e/0515",
+          "e/0516",
+          "e/0517",
+          "e/0518",
+          "e/0519",
+          "e/0520",
+          "e/0521",
+          "e/0522",
+          "e/0523",
+          "e/0524",
+          "e/0525",
+          "e/0526",
+          "e/0527",
+          "e/0528",
+          "e/0529",
+          "e/0530",
+          "e/0531",
+          "e/0532",
+          "e/0533",
+          "e/0534",
+          "e/0535",
+          "e/0536",
+          "e/0537",
+          "e/0538",
+          "e/0539",
+          "e/0540",
+          "e/0541",
+          "e/0542",
+          "e/0543",
+          "e/0544",
+          "e/0545",
+          "e/0546",
+          "e/0547",
+          "e/0548",
+          "e/0549",
+          "e/0550",
+          "e/0551",
+          "e/0552",
+          "e/0553",
+          "e/0554",
+          "e/0555",
+          "e/0556",
+          "e/0557",
+          "e/0558",
+          "e/0559",
+          "e/0560",
+          "e/0561",
+          "e/0562",
+          "e/0563",
+          "e/0564",
+          "e/0565",
+          "e/0566",
+          "e/0567",
+          "e/0568",
+          "e/0569",
+          "e/0570",
+          "e/0571",
+          "e/0572",
+          "e/0573",
+          "e/0574",
+          "e/0575",
+          "e/0576",
+          "e/0577",
+          "e/0578",
+          "e/0579",
+          "e/0580",
+          "e/0581",
+          "e/0582",
+          "e/0583",
+          "e/0584",
+          "e/0585",
+          "e/0586",
+          "e/0587",
+          "e/0588",
+          "e/0589",
+          "e/0590",
+          "e/0591",
+          "e/0592",
+          "e/0593",
+          "e/0594",
+          "e/0595",
+          "e/0596",
+          "e/0597",
+          "e/0598",
+          "e/0599",
+          "e/0600",
+          "e/0601",
+          "e/0602",
+          "e/0603",
+          "e/0604",
+          "e/0605",
+          "e/0606",
+          "e/0607",
+          "e/0608",
+          "e/0609",
+          "e/0610",
+          "e/0611",
+          "e/0612",
+          "e/0613",
+          "e/0614",
+          "e/0615",
+          "e/0616",
+          "e/0617",
+          "e/0618",
+          "e/0619",
+          "e/0620",
+          "e/0621",
+          "e/0622",
+          "e/0623",
+          "e/0624",
+          "e/0625",
+          "e/0626",
+          "e/0627",
+          "e/0628",
+          "e/0629",
+          "e/0630",
+          "e/0631",
+          "e/0632",
+          "e/0633",
+          "e/0634",
+          "e/0635",
+          "e/0636",
+          "e/0637",
+          "e/0638",
+          "e/0639",
+          "e/0640",
+          "e/0641",
+          "e/0642",
+          "e/0643",
+          "e/0644",
+          "e/0645",
+          "e/0646",
+          "e/0647",
+          "e/0648",
+          "e/0649",
+          "e/0650",
+          "e/0651",
+          "e/0652",
+          "e/0653",
+          "e/0654",
+          "e/0655",
+          "e/0656",
+          "e/0657",
+          "e/0658",
+          "e/0659",
+          "e/0660",
+          "e/0661",
+          "e/0662",
+          "e/0663",
+          "e/0664",
+          "e/0665",
+          "e/0666",
+          "e/0667",
+          "e/0668",
+          "e/0669",
+          "e/0670",
+          "e/0671",
+          "e/0672",
+          "e/0673",
+          "e/0674",
+          "e/0675",
+          "e/0676",
+          "e/0677",
+          "e/0678",
+          "e/0679",
+          "e/0680",
+          "e/0681",
+          "e/0682",
+          "e/0683",
+          "e/0684",
+          "e/0685",
+          "e/0686",
+          "e/0687",
+          "e/0688",
+          "e/0689",
+          "e/0690",
+          "e/0691",
+          "e/0692",
+          "e/0693",
+          "e/0694",
+          "e/0695",
+          "e/0696",
+          "e/0697",
+          "e/0698",
+          "e/0699",
+          "e/0700",
+          "e/0701",
+          "e/0702",
+          "e/0703",
+          "e/0704",
+          "e/0705",
+          "e/0706",
+          "e/0707",
+          "e/0708",
+          "e/0709",
+          "e/0710",
+          "e/0711",
+          "e/0712",
+          "e/0713",
+          "e/0714",
+          "e/0715",
+          "e/0716",
+          "e/0717",
+          "e/0718",
+          "e/0719",
+          "e/0720",
+          "e/0721",
+          "e/0722",
+          "e/0723",
+          "e/0724",
+          "e/0725",
+          "e/0726",
+          "e/0727",
+          "e/0728",
+          "e/0729",
+          "e/0730",
+          "e/0731",
+          "e/0732",
+          "e/0733",
+          "e/0734",
+          "e/0735",
+          "e/0736",
+          "e/0737",
+          "e/0738",
+          "e/0739",
+          "e/0740",
+          "e/0741",
+          "e/0742",
+          "e/0743",
+          "e/0744",
+          "e/0745",
+          "e/0746",
+          "e/0747",
+          "e/0748",
+          "e/0749",
+          "e/0750",
+          "e/0751",
+          "e/0752",
+          "e/0753",
+          "e/0754",
+          "e/0755",
+          "e/0756",
+          "e/0757",
+          "e/0758",
+          "e/0759",
+          "e/0760",
+          "e/0761",
+          "e/0762",
+          "e/0763",
+          "e/0764",
+          "e/0765",
+          "e/0766",
+          "e/0767",
+          "e/0768",
+          "e/0769",
+          "e/0770",
+          "e/0771",
+          "e/0772",
+          "e/0773",
+          "e/0774",
+          "e/0775",
+          "e/0776",
+          "e/0777",
+          "e/0778",
+          "e/0779",
+          "e/0780",
+          "e/0781",
+          "e/0782",
+          "e/0783",
+          "e/0784",
+          "e/0785",
+          "e/0786",
+          "e/0787",
+          "e/0788",
+          "e/0789",
+          "e/0790",
+          "e/0791",
+          "e/0792",
+          "e/0793",
+          "e/0794",
+          "e/0795",
+          "e/0796",
+          "e/0797",
+          "e/0798",
+          "e/0799",
+          "e/0800",
+          "e/0801",
+          "e/0802",
+          "e/0803",
+          "e/0804",
+          "e/0805",
+          "e/0806",
+          "e/0807",
+          "e/0808",
+          "e/0809",
+          "e/0810",
+          "e/0811",
+          "e/0812",
+          "e/0813",
+          "e/0814",
+          "e/0815",
+          "e/0816",
+          "e/0817",
+          "e/0818",
+          "e/0819",
+          "e/0820",
+          "e/0821",
+          "e/0822",
+          "e/0823",
+          "e/0824",
+          "e/0825",
+          "e/0826",
+          "e/0827",
+          "e/0828",
+          "e/0829",
+          "e/0830",
+          "e/0831",
+          "e/0832",
+          "e/0833",
+          "e/0834",
+          "e/0835",
+          "e/0836",
+          "e/0837",
+          "e/0838",
+          "e/0839",
+          "e/0840",
+          "e/0841",
+          "e/0842",
+          "e/0843",
+          "e/0844",
+          "e/0845",
+          "e/0846",
+          "e/0847",
+          "e/0848",
+          "e/0849",
+          "e/0850",
+          "e/0851",
+          "e/0852",
+          "e/0853",
+          "e/0854",
+          "e/0855",
+          "e/0856",
+          "e/0857",
+          "e/0858",
+          "e/0859",
+          "e/0860",
+          "e/0861",
+          "e/0862",
+          "e/0863",
+          "e/0864",
+          "e/0865",
+          "e/0866",
+          "e/0867",
+          "e/0868",
+          "e/0869",
+          "e/0870",
+          "e/0871",
+          "e/0872",
+          "e/0873",
+          "e/0874",
+          "e/0875",
+          "e/0876",
+          "e/0877",
+          "e/0878",
+          "e/0879",
+          "e/0880",
+          "e/0881",
+          "e/0882",
+          "e/0883",
+          "e/0884",
+          "e/0885",
+          "e/0886",
+          "e/0887",
+          "e/0888",
+          "e/0889",
+          "e/0890",
+          "e/0891",
+          "e/0892",
+          "e/0893",
+          "e/0894",
+          "e/0895",
+          "e/0896",
+          "e/0897",
+          "e/0898",
+          "e/0899",
+          "e/0900",
+          "e/0901",
+          "e/0902",
+          "e/0903",
+          "e/0904",
+          "e/0905",
+          "e/0906",
+          "e/0907",
+          "e/0908",
+          "e/0909",
+          "e/0910",
+          "e/0911",
+          "e/0912",
+          "e/0913",
+          "e/0914",
+          "e/0915",
+          "e/0916",
+          "e/0917",
+          "e/0918",
+          "e/0919",
+          "e/0920",
+          "e/0921",
+          "e/0922",
+          "e/0923",
+          "e/0924",
+          "e/0925",
+          "e/0926",
+          "e/0927",
+          "e/0928",
+          "e/0929",
+          "e/0930",
+          "e/0931",
+          "e/0932",
+          "e/0933",
+          "e/0934",
+          "e/0935",
+          "e/0936",
+          "e/0937",
+          "e/0938",
+          "e/0939",
+          "e/0940",
+          "e/0941",
+          "e/0942",
+          "e/0943",
+          "e/0944",
+          "e/0945",
+          "e/0946",
+          "e/0947",
+          "e/0948",
+          "e/0949",
+          "e/0950",
+          "e/0951",
+          "e/0952",
+          "e/0953",
+          "e/0954",
+          "e/0955",
+          "e/0956",
+          "e/0957",
+          "e/0958",
+          "e/0959",
+          "e/0960",
+          "e/0961",
+          "e/0962",
+          "e/0963",
+          "e/0964",
+          "e/0965",
+          "e/0966",
+          "e/0967",
+          "e/0968",
+          "e/0969",
+          "e/0970",
+          "e/0971",
+          "e/0972",
+          "e/0973",
+          "e/0974",
+          "e/0975",
+          "e/0976",
+          "e/0977",
+          "e/0978",
+          "e/0979",
+          "e/0980",
+          "e/0981",
+          "e/0982",
+          "e/0983",
+          "e/0984",
+          "e/0985",
+          "e/0986",
+          "e/0987",
+          "e/0988",
+          "e/0989",
+          "e/0990",
+          "e/0991",
+          "e/0992",
+          "e/0993",
+          "e/0994",
+          "e/0995",
+          "e/0996",
+          "e/0997",
+          "e/0998",
+          "e/0999",
+          "e/1000",
+          "e/1001",
+          "e/1002",
+          "e/1003",
+          "e/1004",
+          "e/1005",
+          "e/1006",
+          "e/1007",
+          "e/1008",
+          "e/1009",
+          "e/1010",
+          "e/1011",
+          "e/1012",
+          "e/1013",
+          "e/1014",
+          "e/1015",
+          "e/1016",
+          "e/1017",
+          "e/1018",
+          "e/1019",
+          "e/1020",
+          "e/1021",
+          "e/1022",
+          "e/1023"
+        ]
+      },
+      "args": [
+        "run",
+        "<PKG>",
+        "--input",
+        "-",
+        "--jwks",
+        "<PACKAGE_V1>/keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "https-jwks-trusted-via-test-ca",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/big.json": {
+              "status": 200,
+              "zeros": 1048577
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/r3a": {
+              "status": 302,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 302,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-untrusted-certificate",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/big.json": {
+              "status": 200,
+              "zeros": 1048577
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/r3a": {
+              "status": 302,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 302,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {}
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-three-redirects-ok",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/big.json": {
+              "status": 200,
+              "zeros": 1048577
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/r3a": {
+              "status": 302,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 302,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/r3a"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-four-redirects",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/big.json": {
+              "status": 200,
+              "zeros": 1048577
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/r3a": {
+              "status": 302,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 302,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/r4a"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-redirect-to-http",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/big.json": {
+              "status": 200,
+              "zeros": 1048577
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/r3a": {
+              "status": 302,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 302,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/to-http"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-response-1MiB-ok",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/big.json": {
+              "status": 200,
+              "zeros": 1048577
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/r3a": {
+              "status": 302,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 302,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/exact-1MiB.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-response-over-1MiB",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/big.json": {
+              "status": 200,
+              "zeros": 1048577
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/r3a": {
+              "status": 302,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 302,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/big.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-404",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/big.json": {
+              "status": 200,
+              "zeros": 1048577
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/r3a": {
+              "status": 302,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 302,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/missing"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-not-json",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/big.json": {
+              "status": 200,
+              "zeros": 1048577
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/r3a": {
+              "status": 302,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 302,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/not-json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
     },
     {
       "name": "input-over-16MiB",

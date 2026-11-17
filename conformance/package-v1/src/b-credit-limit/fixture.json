@@ -559,6 +559,44 @@
       "expect": {
         "code": "USAGE"
       }
+    },
+    {
+      "name": "usage-jwks-uppercase-scheme",
+      "command": "run",
+      "anchor": {
+        "jwks": "HTTPS://127.0.0.1:9/jwks.json"
+      },
+      "input": {
+        "applicant": {
+          "activeDefaults": 0,
+          "creditScore": 760,
+          "monthlyDebt": "2000",
+          "monthlyIncome": "9000",
+          "requestedAmount": "20000"
+        }
+      },
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-jwks-ftp-url",
+      "command": "run",
+      "anchor": {
+        "jwks": "ftp://127.0.0.1/jwks.json"
+      },
+      "input": {
+        "applicant": {
+          "activeDefaults": 0,
+          "creditScore": 760,
+          "monthlyDebt": "2000",
+          "monthlyIncome": "9000",
+          "requestedAmount": "20000"
+        }
+      },
+      "expect": {
+        "code": "USAGE"
+      }
     }
   ]
 }

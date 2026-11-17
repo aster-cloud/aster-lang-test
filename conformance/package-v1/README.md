@@ -25,7 +25,7 @@ CLI 行为定死为可执行的字节：两个 `aster` CLI（Node T2–T5、JVM 
 | `tamper/<name>/`、`tamper/<name>.zip`、`tamper/cases.json` | 篡改与畸形 zip 夹具，每个夹具 run / verify / inspect 各一条用例 | 生成 |
 | `tamper/test-time.json` | 体积类夹具的生成配方（几十 MiB，不入库，由 CLI 测试运行时生成） | 生成 |
 | `inputs-invalid/cases.json` | `INPUT_INVALID` 夹具（作用于黄金包） | 生成 |
-| `compile/` | `compile` 子命令夹具：源码与 aliasSet / 词汇文件、`cases.json`（见「compile」） | 生成（源码类期望由 `--capture-compile` 采集） |
+| `compile/` | `compile` 子命令夹具：源码与 aliasSet / 词汇文件、`cases.json`（见「compile」） | 生成（源码类期望由 `--capture-compile` 按 InProcessCnlParser 解析 + 降级序列 采集） |
 | `src/` | 生成器的输入：源码、`fixture.json`、采集的平台 IR（`platform-core.json`）与期望值（`expected.json`）、篡改与非法输入定义 | 手写 + `--capture` |
 
 生成与校验（Node ≥ 24，无 npm 依赖）：
@@ -167,7 +167,7 @@ ECMA 引擎；schema 不得再出现以 `$` 收尾的模式（夹具 `signature-
 
 - 路径参数指向**目录**即按目录形态读，指向**普通文件**即按 zip 读，与扩展名无关（夹具 `b-credit-limit-dir.zip/`、`b-credit-limit-zip-no-extension`）；不存在或是其他类型（FIFO 等）为 `PKG_INTEGRITY`（read）。
 - 路径参数本身可以是符号链接（照常解析）；**目录内任何位置**的符号链接都使读包失败（`PKG_INTEGRITY`，read），不跟随。
-- 目录形态中的空子目录忽略。
+- 目录形态中的子目录（含空子目录）不进入文件表，但计入条目数上限与深度上限（见「体积上限」）。
 
 ## zip 规则
 
@@ -202,15 +202,17 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 | zip 文件本身 | 64 MiB（先 `stat` 判断，再读入内存） | `PKG_INTEGRITY`（read） |
 | 解压后单个条目 / 累计 | 64 MiB | `PKG_INTEGRITY`（read） |
 | 目录形态的单个文件 / 文件累计 | 64 MiB（先 `stat` 判断，不得先读入再判断） | `PKG_INTEGRITY`（read） |
-| 目录形态的普通文件数 | 1 024 | `PKG_INTEGRITY`（read） |
+| 目录形态的条目数（普通文件与子目录，不含包根） | 1 024 | `PKG_INTEGRITY`（read） |
+| 目录形态的子目录嵌套深度（包根的直接子目录为第 1 层） | 32 | `PKG_INTEGRITY`（read） |
 | zip 的条目数（EOCD 记录的总数，含目录条目） | 1 024 | `PKG_INTEGRITY`（read） |
 | `manifest.json` | 1 MiB | `PKG_INVALID_MANIFEST`（manifest） |
 | `manifest.sig.json` | 64 KiB | `PKG_SIGNATURE`（signature） |
 | `--input` | 16 MiB | `INPUT_INVALID`（input） |
 
 **文件数与大小的先后（两侧必须相同，失败信封才一致）：**
-- 目录形态：每层目录内按名字的 UTF-8 字节序遍历（先判符号链接，子目录递归）；每遇到一个普通文件，**先**把文件数加一并判是否超过 1 024，**再**判该文件大小与累计大小。
-  任一项超出立即失败，不再继续遍历。
+- 目录形态：每层目录内按名字的 UTF-8 字节序遍历，对每个条目依次：符号链接 → 失败；子目录 → **先**判深度（> 32 失败）、**再**计入条目数（> 1 024 失败）、然后递归；
+  普通文件 → **先**计入条目数，**再**判该文件大小与累计大小。任一项超出立即失败，不再继续遍历。深度上限防止两侧在病态嵌套上以不同方式栈溢出
+  （测试时配方 `dir-depth-over-32`、`dir-depth-32-passes-read`、`dir-too-many-directories`、`dir-too-many-files`）。
 - zip：先按 `stat` 判文件大小，读入后找 EOCD，**再**判 EOCD 记录的条目数，之后才解析中央目录与解压（夹具 `zip-too-many-entries`）。
 - 上限取 1 024：v1 包最多十几个文件；1 024 个各 64 KiB 的文件恰好等于 64 MiB 的总量上限，两项上限不会互相掩盖常见情形。
 
@@ -222,8 +224,15 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 （BOM、重复键、值之后的多余内容都是 `USAGE`；夹具 `usage-jwks-bom`、`usage-jwks-duplicate-json-key`、`usage-jwk-pubkey-trailing-garbage`）。
 
 - 不给锚：使用内置 `export-jwks.json`（P1 为 `{"keys":[]}`，所以任何签名包都是 `PKG_UNTRUSTED_KID`）。
-- `--jwks <file|url>`：以 `https://` 开头即按 URL 取（10 s 超时，只跟随 https 重定向；取不到、非 2xx、超时都是 `USAGE`），其他协议（含 `http://`）为 `USAGE`
-  （夹具 `usage-jwks-http-url`，不会发出请求），否则按本地文件读。JWKS：每个 key 必须 `kty:"OKP"`、`crv:"Ed25519"`、`x` 为 32 字节的规范 base64url、`kid` 为非空字符串；`alg` 若给出必须是 `EdDSA`、`use` 若给出必须是 `sig`；
+- `--jwks <file|url>`：参数匹配 `^[A-Za-z][A-Za-z0-9+.-]*://` 即视为 URL，否则按本地文件读。URL 必须以字面量小写 `https://` 开头，其他（含 `http://`、`ftp://`、
+  大写 `HTTPS://`）一律 `USAGE` 且不发请求（夹具 `usage-jwks-http-url`、`usage-jwks-ftp-url`、`usage-jwks-uppercase-scheme`）。https 取回的规则：
+  - 总超时 10 s（含连接、TLS、重定向与读完响应体）；只认 2xx；响应体 ≤ 1 MiB（超出即中止）；
+  - 至多跟随 3 次重定向，且每一跳都必须是 https（https → http 失败）；
+  - TLS 用操作系统 / 运行时的标准信任库（Node：`--use-system-ca` 等价的系统 CA；JVM：缺省 `cacerts`），遵守平台标准代理环境变量 `HTTPS_PROXY` / `https_proxy` 与 `NO_PROXY`；
+  - **仅供测试**的信任覆盖：环境变量 `ASTER_ANCHOR_CA_FILE` 指向一个 PEM 文件时，额外信任其中的证书（只用于取信任锚，不影响别处）；
+  - 任何失败（连接、TLS、超时、非 2xx、超限、重定向违规、不是严格 JSON、JWKS 不合法）都是 `USAGE`。
+  测试时配方 `https-jwks-*`（`tamper/test-time.json`）在 127.0.0.1 上起自签名 https 服务、经 `ASTER_ANCHOR_CA_FILE` 信任，全程离线；参照实现 `argv.mjs` 的 `fetchJwks` 由单测跑同一组路由。
+  JWKS：每个 key 必须 `kty:"OKP"`、`crv:"Ed25519"`、`x` 为 32 字节的规范 base64url、`kid` 为非空字符串；`alg` 若给出必须是 `EdDSA`、`use` 若给出必须是 `sig`；
   `kid` 不得重复；任何一个 key 不合法都使整个文件不合法。按签名文件的 `kid` 查找，找不到为 `PKG_UNTRUSTED_KID`。
 - `--pubkey <file>`：两种形态，按首个非空白字符区分：
   - 原始公钥：文件内容恰为 32 字节公钥的规范 base64url（无填充），后面至多一个 `\n`（不接受 `\r\n`、空格或 `=`）。**不看 kid**：任何 kid 都用这把钥验签（夹具 `raw-pubkey-ignores-kid`）。
@@ -236,11 +245,15 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 - 带值选项：`--entry`、`--input`、`--timeout`、`--jwks`、`--pubkey`（`compile` 另有 `--locale`、`--alias-set`、`--vocabulary`、`--out`）；开关：`--allow-unsigned`、
   `--recompile`、`--probes`、`--allow-structural`。带值选项可写成 `--opt value` 或 `--opt=value`；选项与位置参数的先后任意；**同一选项出现两次为 `USAGE`**；未知选项为 `USAGE`
   （「未知」按子命令判：`compile --entry` 是 `USAGE`）。
+- `--` 结束选项解析：其后的参数一律是位置参数（夹具 `double-dash-ends-options`、`usage-option-after-double-dash`）。
+- 开关不带值：`--allow-unsigned=true` 之类为 `USAGE`；`--opt=` 的值为空为 `USAGE`（夹具 `usage-switch-with-value`、`usage-empty-equals-value`、`compile/usage-out-empty-value`）。
 - `--opt value` 形式下，若下一个参数是**本子命令认识的选项**（`--input`、`--allow-unsigned` 等），视为缺值，`USAGE`；带值选项位于最末尾同样是缺值（夹具
   `usage-option-value-is-another-option`、`usage-option-value-is-a-known-switch`、`usage-option-missing-value-at-end`；若不判这条，`--entry --allow-unsigned` 会把开关当成入口名，得到 `ENTRY_NOT_FOUND`）。要传以 `--` 开头的值，用 `--opt=value`。
 - `run` 必须给出 `--input`（`-` 表示 stdin）。`verify` 接受 `--timeout`（probes 每条的上限）。
-- **超时的计时起点是求值开始**：输入校验通过后，把入口与实参交给求值器的那一刻（Node：主线程向求值 Worker 投递任务时；JVM：开始建 Context、加载 IR 并执行入口时）。
-  读包、验签、本地编译、输入校验以及 Worker / Engine 的启动都不计入。超时后输出 `TIMEOUT`，进程正常退出。`verify --probes` 每条探针各自计时。
+- **超时的计时起点**：在**执行求值的线程里、紧挨着求值调用之前**开始计时。Node：在 Worker 内、IR 已读入（`readCoreIr`）且实参已转换之后、调用 `evaluate` 之前；
+  JVM：Context 已创建、IR 已加载并选好入口之后、调用 `eval` / 执行入口之前。Engine / Context / Worker 的创建与 IR 读入都**不**计入，读包、验签、本地编译、
+  输入校验同样不计入。到点由主线程 / 看门狗终止求值（Node `worker.terminate()`，JVM `context.close(true)`），输出 `TIMEOUT`，进程正常退出。
+  `verify --probes` 每条探针各自计时。贴近边界的超时（求值耗时与上限相差无几）不在逐字节一致的承诺内（修订 1 A4 / ADR §5.3 的资源类结果）。
 - `--timeout` 匹配 `^(0|[1-9][0-9]*)(ms|s)(?![\s\S])`，值必须 > 0 且 ≤ 300 s（`300000ms` 可以，`300001ms`、`0s`、`1.5s`、`01s`、`5` 都是 `USAGE`）；缺省 `5s`。
 
 ## 输入
@@ -278,14 +291,23 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 
 `aster compile <pkg|file.aster> […]`，夹具在 `compile/`（`compile/cases.json`，路径相对该目录）：
 
-- **两种形态按位置参数判**：是普通文件且名字以 `.aster` 结尾 → 源码形态；否则 → 包形态（目录或 zip，同「包路径」）。
-- **源码形态**：可用 `--locale`（缺省 `en-US`）、`--alias-set <file>`（严格 JSON，`{"<SemanticTokenKind>":[别名…]}`）、`--vocabulary <file>`（严格 JSON）、
+- **两种形态按位置参数判**：位置参数以 `.aster` 结尾 → 源码形态；它不存在、是目录或不是普通文件都是 `USAGE`（夹具 `usage-source-missing`、`usage-source-is-a-directory`）。
+  否则 → 包形态（目录或 zip，同「包路径」）。
+- **`compile` 只解析与降级，不做类型检查**（与 B 包本地重编译同一语义；aster-api `PolicyCompiler` 另跑 TypeChecker，包格式不采用）：有类型错误但语法正确的源码照常输出 IR
+  （夹具 `source-type-error-is-not-checked`）。源码为空或只有空白为 `COMPILE_ERROR`（`source-empty`、`source-whitespace-only`）。
+- **源码形态**：可用 `--locale`（缺省 `en-US`；只支持 `en-US`、`zh-CN`、`de-DE`、`hi-IN`，形态合法但不在其中如 `fr-FR` 为 `USAGE`，夹具 `usage-locale-unsupported`）、`--alias-set <file>`（严格 JSON，`{"<SemanticTokenKind>":[别名…]}`）、`--vocabulary <file>`（严格 JSON）、
   `--allow-structural`（只能与 `--alias-set` 同用）、`--out`。`--jwks`、`--pubkey`、`--allow-unsigned` 是 `USAGE`；源码或这些文件不存在、不可读、不是严格 JSON 都是 `USAGE`。
-  aliasSet 按 aster-api `UserAliasValidator` 的规则校验（多词、规范形、结构词需 `--allow-structural` 等），不通过与源码编译失败一样是 `COMPILE_ERROR`。
+  aliasSet 文件是严格 JSON 但形状不对（不是对象、值不是字符串数组、键不是已知的 `SemanticTokenKind`）为 `COMPILE_ERROR`，失败即拒（夹具 `source-alias-set-unknown-kind`、
+  `source-alias-set-wrong-shape`、`source-alias-set-not-an-object`）；文件内容为 `null` 等同于没有 aliasSet。形状正确时按 aster-api `UserAliasValidator` 的规则校验
+  （多词、规范形、结构词需 `--allow-structural` 等），不通过与源码编译失败一样是 `COMPILE_ERROR`。
+- **期望值来源**：源码类用例的期望由 `--capture-compile` 按 aster-api `InProcessCnlParser` 的解析 + 降级序列（`scripts/package-v1/PlatformCompile.java`，
+  不含类型检查，另按本节拒绝空白源码与形状不对的 aliasSet）采集；ts 参照（`--verify-engines`）按同样规则复算可复算的用例。
 - **包形态**：走 usage → read → manifest → signature → integrity（接受 `--jwks`、`--pubkey`、`--allow-unsigned`），编译输入一律取自 manifest 与 `policy/`
   （A 包同样本地编译 `policy/`，不读 `compiled/`）；不与 `positionFreeSha256` 比对（漂移的包照常输出本地 IR，供排查；夹具 `package-drift-still-compiles`）。
   `--locale`、`--alias-set`、`--vocabulary`、`--allow-structural` 是 `USAGE`。本地编译失败为 `COMPILE_ERROR`。
 - **输出**：成功时 stdout 为本地编译的规范 Core IR 字节加一个 `\n`；给 `--out <file>` 时把不带换行的规范 IR 字节写入该文件、stdout 为空。退出码 0。
+  `--out` 原子写入（同目录临时文件再改名）；任何失败（含 `COMPILE_ERROR`）都不创建、不改动目标文件，也不留下临时文件（夹具 `source-syntax-error-writes-no-out-file`
+  带 `outFileMustNotExist`）；父目录不存在或不是目录为 `USAGE`（`usage-out-parent-missing`），在编译之前判定；父目录存在但不可写同样是 `USAGE`。
   两侧 IR 只差 origin 列（修订 1 A2），所以成功用例只比较投影哈希：`expectedStdout` 为 `null`（或 `--out` 时为 `""`）、`expectedPositionFreeSha256` 给出期望，
   `outFile` 表示要读 `<OUT>` 处的文件（测试把 `<OUT>` 换成临时路径）。失败时输出与 `run` 相同的错误信封（`meta` 按阶段，源码形态恒为 null / false）。
 

@@ -1,27 +1,436 @@
 {
-  "description": "compile 子命令夹具（README「compile」）。source 用例的期望由 --capture-compile 以平台编译序列（PlatformCompile.java）采集，写入 expected.json；成功用例只比较投影哈希（两侧 IR 只差 origin 列，修订 1 A2），失败用例比较错误信封。",
+  "description": "compile 子命令夹具（README「compile」）。源码类用例的期望由 --capture-compile 按 aster-api InProcessCnlParser 的解析 + 降级序列采集（PlatformCompile.java；不含类型检查，另按 README 拒绝空白源码与形状不对的 aliasSet），写入 expected.json；成功用例只比较投影哈希（两侧 IR 只差 origin 列，修订 1 A2），失败用例比较错误信封。",
   "cases": [
-    { "name": "source-en", "args": ["compile", "sources/credit.aster"], "platform": { "source": "sources/credit.aster", "locale": "en-US" } },
-    { "name": "source-en-out-file", "args": ["compile", "sources/credit.aster", "--out", "<OUT>"], "platform": { "source": "sources/credit.aster", "locale": "en-US" } },
-    { "name": "source-locale-and-vocabulary", "args": ["compile", "sources/vocab-de.aster", "--locale", "de-DE", "--vocabulary", "sources/vocab-de.vocabulary.json"], "platform": { "source": "sources/vocab-de.aster", "locale": "de-DE", "vocabulary": "sources/vocab-de.vocabulary.json" } },
-    { "name": "source-alias-set-structural", "args": ["compile", "sources/alias.aster", "--alias-set", "sources/alias-set.json", "--allow-structural"], "platform": { "source": "sources/alias.aster", "locale": "en-US", "aliasSet": "sources/alias-set.json", "allowStructural": true } },
-    { "name": "source-structural-alias-not-allowed", "args": ["compile", "sources/alias.aster", "--alias-set", "sources/alias-set.json"], "platform": { "source": "sources/alias.aster", "locale": "en-US", "aliasSet": "sources/alias-set.json", "allowStructural": false } },
-    { "name": "source-single-word-alias", "args": ["compile", "sources/alias.aster", "--alias-set", "sources/alias-set-single-word.json", "--allow-structural"], "platform": { "source": "sources/alias.aster", "locale": "en-US", "aliasSet": "sources/alias-set-single-word.json", "allowStructural": true } },
-    { "name": "source-syntax-error", "args": ["compile", "sources/syntax-error.aster"], "platform": { "source": "sources/syntax-error.aster", "locale": "en-US" } },
-    { "name": "usage-source-missing", "args": ["compile", "sources/does-not-exist.aster"], "expect": { "code": "USAGE" } },
-    { "name": "usage-alias-set-not-json", "args": ["compile", "sources/alias.aster", "--alias-set", "sources/alias-set-not-json.json"], "expect": { "code": "USAGE" } },
-    { "name": "usage-source-with-anchor", "args": ["compile", "sources/credit.aster", "--jwks", "../keys/test-jwks.json"], "expect": { "code": "USAGE" } },
-    { "name": "usage-source-with-allow-unsigned", "args": ["compile", "sources/credit.aster", "--allow-unsigned"], "expect": { "code": "USAGE" } },
-    { "name": "usage-allow-structural-without-alias-set", "args": ["compile", "sources/credit.aster", "--allow-structural"], "expect": { "code": "USAGE" } },
-    { "name": "usage-package-with-locale", "args": ["compile", "../packages/b-credit-limit", "--locale", "en-US", "--jwks", "../keys/test-jwks.json"], "expect": { "code": "USAGE" } },
-    { "name": "usage-package-with-alias-set", "args": ["compile", "../packages/b-credit-limit", "--alias-set", "sources/alias-set.json", "--jwks", "../keys/test-jwks.json"], "expect": { "code": "USAGE" } },
-    { "name": "usage-unknown-option", "args": ["compile", "sources/credit.aster", "--entry", "decide"], "expect": { "code": "USAGE" } },
-    { "name": "package-b", "args": ["compile", "../packages/b-credit-limit", "--jwks", "../keys/test-jwks.json"], "package": "b-credit-limit" },
-    { "name": "package-a-compiles-policy-not-compiled-dir", "args": ["compile", "../packages/a-decimal", "--jwks", "../keys/test-jwks.json"], "package": "a-decimal" },
-    { "name": "package-zip", "args": ["compile", "../packages/b-zh.zip", "--jwks", "../keys/test-jwks.json", "--out", "<OUT>"], "package": "b-zh" },
-    { "name": "package-drift-still-compiles", "args": ["compile", "../tamper/b-position-free-hash-wrong", "--jwks", "../keys/test-jwks.json"], "package": "b-credit-limit" },
-    { "name": "package-bad-signature", "args": ["compile", "../tamper/signature-bit-flipped", "--jwks", "../keys/test-jwks.json"], "expect": { "code": "PKG_SIGNATURE" } },
-    { "name": "package-builtin-anchor-is-empty", "args": ["compile", "../packages/b-credit-limit"], "expect": { "code": "PKG_UNTRUSTED_KID" } },
-    { "name": "package-unsigned-allowed", "args": ["compile", "../packages/unsigned", "--allow-unsigned"], "package": "unsigned" }
+    {
+      "name": "source-en",
+      "args": [
+        "compile",
+        "sources/credit.aster"
+      ],
+      "platform": {
+        "source": "sources/credit.aster",
+        "locale": "en-US"
+      }
+    },
+    {
+      "name": "source-en-out-file",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--out",
+        "<OUT>"
+      ],
+      "platform": {
+        "source": "sources/credit.aster",
+        "locale": "en-US"
+      }
+    },
+    {
+      "name": "source-locale-and-vocabulary",
+      "args": [
+        "compile",
+        "sources/vocab-de.aster",
+        "--locale",
+        "de-DE",
+        "--vocabulary",
+        "sources/vocab-de.vocabulary.json"
+      ],
+      "platform": {
+        "source": "sources/vocab-de.aster",
+        "locale": "de-DE",
+        "vocabulary": "sources/vocab-de.vocabulary.json"
+      }
+    },
+    {
+      "name": "source-alias-set-structural",
+      "args": [
+        "compile",
+        "sources/alias.aster",
+        "--alias-set",
+        "sources/alias-set.json",
+        "--allow-structural"
+      ],
+      "platform": {
+        "source": "sources/alias.aster",
+        "locale": "en-US",
+        "aliasSet": "sources/alias-set.json",
+        "allowStructural": true
+      }
+    },
+    {
+      "name": "source-structural-alias-not-allowed",
+      "args": [
+        "compile",
+        "sources/alias.aster",
+        "--alias-set",
+        "sources/alias-set.json"
+      ],
+      "platform": {
+        "source": "sources/alias.aster",
+        "locale": "en-US",
+        "aliasSet": "sources/alias-set.json",
+        "allowStructural": false
+      }
+    },
+    {
+      "name": "source-single-word-alias",
+      "args": [
+        "compile",
+        "sources/alias.aster",
+        "--alias-set",
+        "sources/alias-set-single-word.json",
+        "--allow-structural"
+      ],
+      "platform": {
+        "source": "sources/alias.aster",
+        "locale": "en-US",
+        "aliasSet": "sources/alias-set-single-word.json",
+        "allowStructural": true
+      }
+    },
+    {
+      "name": "source-syntax-error",
+      "args": [
+        "compile",
+        "sources/syntax-error.aster"
+      ],
+      "platform": {
+        "source": "sources/syntax-error.aster",
+        "locale": "en-US"
+      }
+    },
+    {
+      "name": "usage-source-missing",
+      "args": [
+        "compile",
+        "sources/does-not-exist.aster"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-alias-set-not-json",
+      "args": [
+        "compile",
+        "sources/alias.aster",
+        "--alias-set",
+        "sources/alias-set-not-json.json"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-source-with-anchor",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-source-with-allow-unsigned",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--allow-unsigned"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-allow-structural-without-alias-set",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--allow-structural"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-package-with-locale",
+      "args": [
+        "compile",
+        "../packages/b-credit-limit",
+        "--locale",
+        "en-US",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-package-with-alias-set",
+      "args": [
+        "compile",
+        "../packages/b-credit-limit",
+        "--alias-set",
+        "sources/alias-set.json",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-unknown-option",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--entry",
+        "decide"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "package-b",
+      "args": [
+        "compile",
+        "../packages/b-credit-limit",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "package": "b-credit-limit"
+    },
+    {
+      "name": "package-a-compiles-policy-not-compiled-dir",
+      "args": [
+        "compile",
+        "../packages/a-decimal",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "package": "a-decimal"
+    },
+    {
+      "name": "package-zip",
+      "args": [
+        "compile",
+        "../packages/b-zh.zip",
+        "--jwks",
+        "../keys/test-jwks.json",
+        "--out",
+        "<OUT>"
+      ],
+      "package": "b-zh"
+    },
+    {
+      "name": "package-drift-still-compiles",
+      "args": [
+        "compile",
+        "../tamper/b-position-free-hash-wrong",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "package": "b-credit-limit"
+    },
+    {
+      "name": "package-bad-signature",
+      "args": [
+        "compile",
+        "../tamper/signature-bit-flipped",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expect": {
+        "code": "PKG_SIGNATURE"
+      }
+    },
+    {
+      "name": "package-builtin-anchor-is-empty",
+      "args": [
+        "compile",
+        "../packages/b-credit-limit"
+      ],
+      "expect": {
+        "code": "PKG_UNTRUSTED_KID"
+      }
+    },
+    {
+      "name": "package-unsigned-allowed",
+      "args": [
+        "compile",
+        "../packages/unsigned",
+        "--allow-unsigned"
+      ],
+      "package": "unsigned"
+    },
+    {
+      "name": "source-type-error-is-not-checked",
+      "args": [
+        "compile",
+        "sources/type-error.aster"
+      ],
+      "platform": {
+        "source": "sources/type-error.aster",
+        "locale": "en-US"
+      }
+    },
+    {
+      "name": "source-empty",
+      "args": [
+        "compile",
+        "sources/empty.aster"
+      ],
+      "platform": {
+        "source": "sources/empty.aster",
+        "locale": "en-US"
+      }
+    },
+    {
+      "name": "source-whitespace-only",
+      "args": [
+        "compile",
+        "sources/blank.aster"
+      ],
+      "platform": {
+        "source": "sources/blank.aster",
+        "locale": "en-US"
+      }
+    },
+    {
+      "name": "source-alias-set-unknown-kind",
+      "args": [
+        "compile",
+        "sources/alias.aster",
+        "--alias-set",
+        "sources/alias-set-unknown-kind.json",
+        "--allow-structural"
+      ],
+      "platform": {
+        "source": "sources/alias.aster",
+        "locale": "en-US",
+        "aliasSet": "sources/alias-set-unknown-kind.json",
+        "allowStructural": true
+      }
+    },
+    {
+      "name": "source-alias-set-wrong-shape",
+      "args": [
+        "compile",
+        "sources/alias.aster",
+        "--alias-set",
+        "sources/alias-set-wrong-shape.json",
+        "--allow-structural"
+      ],
+      "platform": {
+        "source": "sources/alias.aster",
+        "locale": "en-US",
+        "aliasSet": "sources/alias-set-wrong-shape.json",
+        "allowStructural": true
+      }
+    },
+    {
+      "name": "source-alias-set-not-an-object",
+      "args": [
+        "compile",
+        "sources/alias.aster",
+        "--alias-set",
+        "sources/alias-set-array.json",
+        "--allow-structural"
+      ],
+      "platform": {
+        "source": "sources/alias.aster",
+        "locale": "en-US",
+        "aliasSet": "sources/alias-set-array.json",
+        "allowStructural": true
+      }
+    },
+    {
+      "name": "source-syntax-error-writes-no-out-file",
+      "args": [
+        "compile",
+        "sources/syntax-error.aster",
+        "--out",
+        "<OUT>"
+      ],
+      "platform": {
+        "source": "sources/syntax-error.aster",
+        "locale": "en-US"
+      }
+    },
+    {
+      "name": "usage-locale-unsupported",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--locale",
+        "fr-FR"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-source-is-a-directory",
+      "args": [
+        "compile",
+        "sources/dir.aster"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-out-parent-missing",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--out",
+        "no-such-dir/out.json"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-out-empty-value",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--out="
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-switch-with-value",
+      "args": [
+        "compile",
+        "sources/alias.aster",
+        "--alias-set",
+        "sources/alias-set.json",
+        "--allow-structural=true"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "double-dash-ends-options",
+      "args": [
+        "compile",
+        "--",
+        "sources/credit.aster"
+      ],
+      "platform": {
+        "source": "sources/credit.aster",
+        "locale": "en-US"
+      }
+    }
   ]
 }

@@ -249,9 +249,9 @@ function javaCompile(cpFile, requests) {
 async function loadTs(tsDir) {
   const at = (p) => import(pathToFileURL(join(tsDir, p)).href);
   if (!existsSync(join(tsDir, 'dist/src/browser.js'))) throw new Error(`${tsDir} 未构建（缺 dist/src/browser.js）：先 pnpm install && pnpm build`);
-  const [browser, lexMod, interp, readIr, canon] = await Promise.all([
+  const [browser, lexMod, interp, readIr, canon, tokenKind] = await Promise.all([
     at('dist/src/browser.js'), at('dist/src/config/lexicons/index.js'), at('dist/src/core/interpreter.js'),
-    at('dist/src/core/read-core-ir.js'), at('dist/src/core/canonical-json.js'),
+    at('dist/src/core/read-core-ir.js'), at('dist/src/core/canonical-json.js'), at('dist/src/config/token-kind.js'),
   ]);
   lexMod.initializeAllBundledLexicons();
   const req = createRequire(join(tsDir, 'package.json'));
@@ -264,6 +264,7 @@ async function loadTs(tsDir) {
     serializeGuestValue: interp.serializeGuestValue,
     readCoreIr: readIr.readCoreIr,
     canonicalJson: canon.canonicalJson,
+    isSemanticTokenKind: (k) => Object.hasOwn(tokenKind.SemanticTokenKind, k),
     Decimal: Decimal.default ?? Decimal,
     req,
   };
@@ -284,7 +285,15 @@ function overlay(base, aliasSet) {
 /** 按盘上包的 manifest 与 policy/ 文件本地编译（verify --recompile / --probes 的参照）；编译失败返回 null。 */
 function tsCompileFiles(ts, manifest, files) {
   const source = files.get('policy/policy.aster').toString('utf8');
+  // README「compile」：空白源码与形状不对的 aliasSet 失败即拒（COMPILE_ERROR / B 包为 PKG_IR_DRIFT）；不做类型检查
+  if (source.trim() === '') return null;
   const aliasSet = JSON.parse(files.get('policy/compile/alias-set.json').toString('utf8'));
+  if (aliasSet !== null) {
+    if (typeof aliasSet !== 'object' || Array.isArray(aliasSet)) return null;
+    for (const [k, v] of Object.entries(aliasSet)) {
+      if (!ts.isSemanticTokenKind(k) || !Array.isArray(v) || v.some((x) => typeof x !== 'string')) return null;
+    }
+  }
   const vocab = files.get('policy/compile/vocabulary.json');
   const c = ts.compile(source, { lexicon: overlay(ts.lexicon(manifest.source.locale), aliasSet), ...(vocab ? { vocabulary: JSON.parse(vocab.toString('utf8')) } : {}) });
   return c.success ? c.coreJson : null;
@@ -722,6 +731,10 @@ async function verifyEngines() {
     const positional = [];
     const opts = {};
     for (let i = 1; i < c.args.length; i++) {
+      if (c.args[i] === '--') {
+        positional.push(...c.args.slice(i + 1));
+        break;
+      }
       if (VALUED_COMPILE.has(c.args[i])) opts[c.args[i]] = c.args[++i];
       else if (c.args[i].startsWith('--')) opts[c.args[i]] = true;
       else positional.push(c.args[i]);
@@ -771,6 +784,35 @@ async function verifyEngines() {
       const r = parseCommand(c.args, cwd);
       expect(r.usage === (c.code === 'USAGE'), `${rel}/${c.name}: 命令行参照实现判定 ${r.usage ? `USAGE（${r.why}）` : '通过'}，期望 ${c.code ?? '成功'}`);
       count();
+    }
+  }
+
+  // 3e. test-time 配方中体量小的（目录深度、目录数、文件数）在临时目录里实际生成，再由参照流水线判定
+  {
+    const { mkdtempSync, cpSync } = await import('node:fs');
+    const { tmpdir } = await import('node:os');
+    const tt = JSON.parse(out.get('tamper/test-time.json').bytes.toString('utf8')).cases;
+    for (const c of tt) {
+      const r0 = c.recipe ?? {};
+      if (!r0.copyPackage) continue;
+      const bytes = (r0.add ?? []).reduce((n, a) => n + a.size, 0);
+      if (bytes > 1024 * 1024) continue; // 几十 MiB 的配方留给 CLI 测试
+      const tmp = mkdtempSync(join(tmpdir(), 'pkgv1-tt-'));
+      try {
+        const dst = join(tmp, 'pkg');
+        cpSync(join(PKG, r0.copyPackage), dst, { recursive: true });
+        for (const a of r0.add ?? []) {
+          mkdirSync(dirname(join(dst, a.path)), { recursive: true });
+          writeFileSync(join(dst, a.path), Buffer.alloc(a.size));
+        }
+        for (const d of r0.addDirs ?? []) mkdirSync(join(dst, d), { recursive: true });
+        const r = checkPackage(dst, { ...refOpts, anchor: loadAnchor(PKG, ['--jwks', 'keys/test-jwks.json']), allowUnsigned: false });
+        const env = JSON.parse(c.expectedStdout);
+        expect(!r.ok && r.code === c.code && env.meta.signed === ['integrity', 'ir'].includes(r.stage), `tamper/test-time.json/${c.name}: 参照流水线得 ${r.ok ? '通过' : `${r.code}@${r.stage}（${r.why}）`}`);
+        count();
+      } finally {
+        rmSync(tmp, { recursive: true, force: true });
+      }
     }
   }
 
@@ -862,6 +904,10 @@ function splitArgs(args) {
   const flags = [];
   for (let i = 0; i < args.length; i++) {
     const a = args[i];
+    if (a === '--') {
+      positional.push(...args.slice(i + 1));
+      break;
+    }
     if (VALUED.has(a)) flags.push(a, args[++i]);
     else if (a.startsWith('--')) flags.push(...(a.includes('=') ? [a.slice(0, a.indexOf('=')), a.slice(a.indexOf('=') + 1)] : [a]));
     else positional.push(a);

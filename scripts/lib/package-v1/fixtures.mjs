@@ -6,7 +6,7 @@
  * 结构与规则的说明在 conformance/package-v1/README.md；这里的注释只解释实现上的取舍。
  */
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { canonicalJson } from './canonical.mjs';
 import { parseValueTree, valueJson, bitsOfDouble, doubleFromBits } from './value-json.mjs';
@@ -1211,7 +1211,7 @@ export function testTimeCases(pkgs, exitCodes) {
   });
   const MiB = 1024 * 1024;
   return {
-    description: '运行时生成的体积类夹具（README「体积上限」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节；stdinRecipe：prefix + padding 个空格 + suffix。',
+    description: '运行时生成的夹具（README「体积上限」「信任锚」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节（自动建父目录）；addDirs：建空目录；copyZip + appendZeros：复制 zip 后追加零字节；stdinRecipe：prefix + padding 个空格 + suffix。httpsServer：测试在 127.0.0.1 上起一个只用于本用例的 https 服务（自签名证书，CN / SAN 为 localhost 与 127.0.0.1），按 routes 应答；<PORT> 为其端口；env 中的 <CA_PEM> 换成该自签名证书的 PEM 文件路径（ASTER_ANCHOR_CA_FILE 是仅供测试的信任覆盖，见 README）。全程离线。',
     cases: [
       pkgFail('dir-single-file-over-64MiB', [{ path: 'big.bin', size: 64 * MiB + 1 }]),
       pkgFail('dir-cumulative-over-64MiB', [{ path: 'a.bin', size: 40 * MiB }, { path: 'b.bin', size: 40 * MiB }]),
@@ -1225,6 +1225,19 @@ export function testTimeCases(pkgs, exitCodes) {
         expectedExit: exitCodes.PKG_INTEGRITY.exit,
         code: 'PKG_INTEGRITY',
       },
+      pkgFail('dir-depth-over-32', [{ path: `${'d/'.repeat(33)}x.txt`, size: 0 }]),
+      {
+        // 32 层恰好允许：read 通过，随后因多余文件在 integrity 阶段失败（signed:true），证明深度上限不是 31
+        name: 'dir-depth-32-passes-read',
+        recipe: { copyPackage: 'packages/b-credit-limit', add: [{ path: `${'d/'.repeat(32)}x.txt`, size: 0 }] },
+        args: ['run', '<PKG>', '--input', '-', '--jwks', '<PACKAGE_V1>/keys/test-jwks.json'],
+        stdin: inputJson(firstRun.input),
+        expectedStdout: errorEnvelope('PKG_INTEGRITY', runMeta(base, 'integrity', { entry: null, allowUnsigned: false }), exitCodes),
+        expectedExit: exitCodes.PKG_INTEGRITY.exit,
+        code: 'PKG_INTEGRITY',
+      },
+      { ...pkgFail('dir-too-many-directories', []), recipe: { copyPackage: 'packages/b-credit-limit', add: [], addDirs: Array.from({ length: 1024 }, (_, i) => `e/${String(i).padStart(4, '0')}`) } },
+      ...httpsAnchorCases(base, firstRun, exitCodes),
       {
         name: 'input-over-16MiB',
         recipe: { usePackage: 'packages/b-credit-limit' },
@@ -1236,6 +1249,43 @@ export function testTimeCases(pkgs, exitCodes) {
       },
     ],
   };
+}
+
+/** 本地 https 信任锚夹具（README「信任锚」）：只在测试里起的自签名 https 服务，经 ASTER_ANCHOR_CA_FILE 信任。 */
+function httpsAnchorCases(base, firstRun, exitCodes) {
+  const allow = base.def.cases.find((c) => c.name === 'allow');
+  const okStdout = `{"meta":${canonicalJson(runMeta(base, 'done', { entry: defaultEntry(base.def), allowUnsigned: false }))},"ok":true,"value":${base.def.expected.cases.allow.value}}\n`;
+  const usage = errorEnvelope('USAGE', runMeta(base, 'usage', { entry: null, allowUnsigned: false }), exitCodes);
+  const routes = {
+    '/jwks.json': { status: 200, file: 'keys/test-jwks.json' },
+    '/big.json': { status: 200, zeros: 1024 * 1024 + 1 },
+    '/exact-1MiB.json': { status: 200, jwksPaddedTo: 1024 * 1024 },
+    '/r3a': { status: 302, location: '/r3b' }, '/r3b': { status: 302, location: '/r3c' }, '/r3c': { status: 302, location: '/jwks.json' },
+    '/r4a': { status: 302, location: '/r4b' }, '/r4b': { status: 302, location: '/r4c' }, '/r4c': { status: 302, location: '/r4d' }, '/r4d': { status: 302, location: '/jwks.json' },
+    '/to-http': { status: 302, location: 'http://127.0.0.1:<PORT>/jwks.json' },
+    '/missing': { status: 404 },
+    '/not-json': { status: 200, body: '{"keys":[' },
+  };
+  const row = (name, path, { ca = true, ok = false } = {}) => ({
+    name,
+    recipe: { usePackage: 'packages/b-credit-limit', httpsServer: { routes }, env: ca ? { ASTER_ANCHOR_CA_FILE: '<CA_PEM>' } : {} },
+    args: ['run', '<PACKAGE_V1>/packages/b-credit-limit', '--input', '-', '--jwks', `https://localhost:<PORT>${path}`],
+    stdin: inputJson(allow.input),
+    expectedStdout: ok ? okStdout : usage,
+    expectedExit: ok ? 0 : exitCodes.USAGE.exit,
+    code: ok ? null : 'USAGE',
+  });
+  return [
+    row('https-jwks-trusted-via-test-ca', '/jwks.json', { ok: true }),
+    row('https-jwks-untrusted-certificate', '/jwks.json', { ca: false }),
+    row('https-jwks-three-redirects-ok', '/r3a', { ok: true }),
+    row('https-jwks-four-redirects', '/r4a'),
+    row('https-jwks-redirect-to-http', '/to-http'),
+    row('https-jwks-response-1MiB-ok', '/exact-1MiB.json', { ok: true }),
+    row('https-jwks-response-over-1MiB', '/big.json'),
+    row('https-jwks-404', '/missing'),
+    row('https-jwks-not-json', '/not-json'),
+  ];
 }
 
 /**
@@ -1250,14 +1300,21 @@ export function compileFixtures(srcDir, pkgs, exitCodes) {
   const doc = JSON.parse(readFileSync(join(dir, 'compile.json'), 'utf8'));
   const captured = existsSync(join(dir, 'expected.json')) ? JSON.parse(readFileSync(join(dir, 'expected.json'), 'utf8')) : {};
   const files = new Map();
-  for (const name of readdirSync(join(dir, 'sources')).sort()) files.set(`compile/sources/${name}`, readFileSync(join(dir, 'sources', name)));
+  for (const rel of readdirSync(join(dir, 'sources'), { recursive: true }).sort()) {
+    const abs = join(dir, 'sources', rel);
+    if (statSync(abs).isFile()) files.set(`compile/sources/${rel.split('\\').join('/')}`, readFileSync(abs));
+  }
   const usageMeta = { cliVersion: '<CLI_VERSION>', coreIrSha256: null, engine: '<ENGINE>', entry: null, irRecompiled: false, signed: false };
   const base = pkgs.get('b-credit-limit');
   const success = (c, pf) => {
     const out = c.args.includes('--out');
     return { name: c.name, args: c.args, expectedStdout: out ? '' : null, expectedExit: 0, code: null, expectedPositionFreeSha256: pf, ...(out ? { outFile: '<OUT>' } : {}) };
   };
-  const failure = (c, code, meta) => ({ name: c.name, args: c.args, expectedStdout: errorEnvelope(code, meta, exitCodes), expectedExit: exitCodes[code].exit, code });
+  // 失败且给了 --out <OUT>：不得写出（也不得留下临时文件）——测试断言 <OUT> 不存在
+  const failure = (c, code, meta) => ({
+    name: c.name, args: c.args, expectedStdout: errorEnvelope(code, meta, exitCodes), expectedExit: exitCodes[code].exit, code,
+    ...(c.args.includes('<OUT>') ? { outFile: '<OUT>', outFileMustNotExist: true } : {}),
+  });
   const cases = doc.cases.map((c) => {
     if (c.platform) {
       const got = captured[c.name];

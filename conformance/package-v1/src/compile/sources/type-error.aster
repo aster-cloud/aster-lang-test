@@ -1,0 +1,4 @@
+Module fixture.typeerr.
+
+Rule f given x as Int, produce Text:
+  Return x plus 1.

@@ -5,7 +5,7 @@
  * parseCommand(args, cwd) → { usage: false, command, positional, options } | { usage: true, why }
  */
 import { existsSync, readFileSync, statSync } from 'node:fs';
-import { join } from 'node:path';
+import { dirname, join } from 'node:path';
 import { parseStrictJson } from './strict-json.mjs';
 
 const COMMON_ANCHOR = ['--jwks', '--pubkey'];
@@ -17,7 +17,10 @@ const SPEC = {
   version: { valued: [], switches: [], positional: 0 },
 };
 const TIMEOUT = /^(0|[1-9][0-9]*)(ms|s)(?![\s\S])/;
-const LOCALE = /^[a-z]{2,3}-[A-Z]{2}(?![\s\S])/;
+/** compile --locale 支持的词法表（两侧都内置的四个）；形态合法但不在表中同样是 USAGE。 */
+export const SUPPORTED_LOCALES = new Set(['en-US', 'zh-CN', 'de-DE', 'hi-IN']);
+/** 「是 URL」的判定：scheme://；只有字面量小写 https:// 被接受，其他（含 HTTPS://、http://、ftp://）为 USAGE。 */
+export const URL_LIKE = /^[A-Za-z][A-Za-z0-9+.-]*:\/\//;
 const B64U_32 = /^[A-Za-z0-9_-]{43}(?![\s\S])/;
 
 class Usage extends Error {}
@@ -50,7 +53,7 @@ function checkAnchor(options, cwd) {
   if (options['--jwks'] !== undefined && options['--pubkey'] !== undefined) usage('--jwks 与 --pubkey 同时给出');
   const jwks = options['--jwks'];
   if (jwks !== undefined) {
-    if (/^[A-Za-z][A-Za-z0-9+.-]*:\/\//.test(jwks) && !jwks.startsWith('https://')) usage('--jwks 只接受 https:// URL');
+    if (URL_LIKE.test(jwks) && !jwks.startsWith('https://')) usage('--jwks 只接受 https:// URL');
     if (jwks.startsWith('https://')) return; // 参照实现不联网；夹具不含 https URL
     let doc;
     try {
@@ -86,7 +89,16 @@ function checkAnchor(options, cwd) {
   }
 }
 
+/** --out：父目录必须已存在且是目录（<OUT> 占位符由测试替换为临时路径，参照实现跳过）。 */
+function checkOut(options, cwd) {
+  const out = options['--out'];
+  if (out === undefined || out.includes('<OUT>')) return;
+  const parent = dirname(join(cwd, out));
+  if (!existsSync(parent) || !statSync(parent).isDirectory()) usage('--out 的父目录不存在');
+}
+
 function checkCompile(positional, options, cwd) {
+  checkOut(options, cwd);
   const target = positional[0];
   const path = join(cwd, target);
   const isSource = target.endsWith('.aster') && existsSync(path) && statSync(path).isFile();
@@ -94,7 +106,7 @@ function checkCompile(positional, options, cwd) {
   if (isSource) {
     for (const o of ['--jwks', '--pubkey', '--allow-unsigned']) if (options[o] !== undefined) usage(`源码形态不接受 ${o}`);
     if (options['--allow-structural'] && options['--alias-set'] === undefined) usage('--allow-structural 只能与 --alias-set 同用');
-    if (options['--locale'] !== undefined && !LOCALE.test(options['--locale'])) usage('--locale 不合法');
+    if (options['--locale'] !== undefined && !SUPPORTED_LOCALES.has(options['--locale'])) usage('--locale 不受支持');
     for (const o of ['--alias-set', '--vocabulary']) {
       if (options[o] === undefined) continue;
       try {
@@ -119,8 +131,17 @@ export function parseCommand(args, cwd) {
     const known = new Set([...spec.valued, ...spec.switches]);
     const options = {};
     const positional = [];
+    let endOfOptions = false;
     for (let i = 0; i < rest.length; i++) {
       const a = rest[i];
+      if (endOfOptions) {
+        positional.push(a);
+        continue;
+      }
+      if (a === '--') {
+        endOfOptions = true; // `--` 之后一律是位置参数
+        continue;
+      }
       if (!a.startsWith('--')) {
         positional.push(a);
         continue;
@@ -130,11 +151,15 @@ export function parseCommand(args, cwd) {
       if (!known.has(name)) usage(`未知选项 ${name}`);
       if (Object.hasOwn(options, name)) usage(`选项重复 ${name}`);
       if (spec.valued.includes(name)) {
-        if (eq >= 0) options[name] = a.slice(eq + 1);
+        if (eq >= 0) {
+          if (eq === a.length - 1) usage(`${name}= 的值为空`);
+          options[name] = a.slice(eq + 1);
+        }
         else {
           const next = rest[i + 1];
-          if (next === undefined) usage(`${name} 缺值`);
+          if (next === undefined || next === '--') usage(`${name} 缺值`);
           if (known.has(next.includes('=') ? next.slice(0, next.indexOf('=')) : next)) usage(`${name} 的值是另一个选项`);
+          if (next === '') usage(`${name} 的值为空`);
           options[name] = next;
           i++;
         }
@@ -159,3 +184,46 @@ export function parseCommand(args, cwd) {
     throw e;
   }
 }
+
+/**
+ * https 信任锚的取回参照实现（README「信任锚」）：只接受字面量 https://；总超时 10 s；至多跟随 3 次重定向且只能 https → https；
+ * 响应体 ≤ 1 MiB；只认 2xx；用系统信任库，测试时可经环境变量 ASTER_ANCHOR_CA_FILE 追加一个 PEM（仅测试用）。
+ * 任何失败都抛 Usage（调用方报 USAGE）。代理：生产实现须遵守 HTTPS_PROXY / NO_PROXY；本参照实现只用于离线测试，不经代理。
+ */
+export async function fetchJwks(url, { ca, timeoutMs = 10_000, maxRedirects = 3, maxBytes = 1024 * 1024 } = {}) {
+  const https = await import('node:https');
+  const deadline = Date.now() + timeoutMs;
+  let current = url;
+  for (let hop = 0; ; hop++) {
+    if (!current.startsWith('https://')) throw new Usage('重定向到非 https 地址');
+    const res = await new Promise((resolve, reject) => {
+      const req = https.get(current, { ca, timeout: Math.max(1, deadline - Date.now()) }, (r) => {
+        const chunks = [];
+        let size = 0;
+        r.on('data', (c) => {
+          size += c.length;
+          if (size > maxBytes) {
+            req.destroy();
+            reject(new Usage('响应超过 1 MiB'));
+          } else chunks.push(c);
+        });
+        r.on('end', () => resolve({ status: r.statusCode, location: r.headers.location, body: Buffer.concat(chunks) }));
+      });
+      req.on('timeout', () => req.destroy(new Usage('超时')));
+      req.on('error', (e) => reject(e instanceof Usage ? e : new Usage(`请求失败：${e.message}`)));
+    });
+    if (res.status >= 300 && res.status < 400 && res.location) {
+      if (hop + 1 > maxRedirects) throw new Usage('重定向超过 3 次');
+      current = new URL(res.location, current).toString();
+      continue;
+    }
+    if (res.status < 200 || res.status > 299) throw new Usage(`HTTP ${res.status}`);
+    try {
+      return parseStrictJson(res.body, { maxDepth: 8 });
+    } catch {
+      throw new Usage('响应不是严格 JSON');
+    }
+  }
+}
+
+export { Usage };

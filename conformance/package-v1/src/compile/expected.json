@@ -26,5 +26,37 @@
   "source-syntax-error": {
     "ok": false,
     "error": "CnlParseException: CNL syntax error — Line 4, column 16: Unexpected '.'; expected '(' or '[' or '==', …"
+  },
+  "source-type-error-is-not-checked": {
+    "ok": true,
+    "positionFreeSha256": "ab149ddcf95bc03f9d28eb8ab2ed90437116fdcc35a4ed08ea073211762294bc"
+  },
+  "source-empty": {
+    "ok": false,
+    "error": "IllegalArgumentException: 源码为空或只有空白"
+  },
+  "source-whitespace-only": {
+    "ok": false,
+    "error": "IllegalArgumentException: 源码为空或只有空白"
+  },
+  "source-alias-set-unknown-kind": {
+    "ok": false,
+    "error": "IllegalArgumentException: No enum constant aster.core.lexicon.SemanticTokenKind.NOT_A_KIND"
+  },
+  "source-alias-set-wrong-shape": {
+    "ok": false,
+    "error": "IllegalArgumentException: aliasSet.IF 不是字符串数组"
+  },
+  "source-alias-set-not-an-object": {
+    "ok": false,
+    "error": "IllegalArgumentException: aliasSet 不是对象"
+  },
+  "source-syntax-error-writes-no-out-file": {
+    "ok": false,
+    "error": "CnlParseException: CNL syntax error — Line 4, column 16: Unexpected '.'; expected '(' or '[' or '==', …"
+  },
+  "double-dash-ends-options": {
+    "ok": true,
+    "positionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469"
   }
 }

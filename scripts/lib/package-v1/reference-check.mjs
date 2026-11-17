@@ -20,7 +20,7 @@ import { publicKeyFromRaw, verifyManifest } from './signing.mjs';
 export const MAX_PACKAGE_BYTES = 64 * 1024 * 1024;
 export const MAX_MANIFEST_BYTES = 1024 * 1024;
 export const MAX_SIG_BYTES = 64 * 1024;
-/** 包内文件 / zip 条目数上限（目录形态数普通文件，zip 数中央目录条目，含目录条目）。 */
+/** 包内条目数上限：目录形态数普通文件与子目录（不含包根），zip 数中央目录条目（含目录条目）。 */
 export const MAX_PACKAGE_FILES = 1024;
 const META_FILES = new Set(['manifest.json', 'manifest.sig.json', 'SHA256SUMS']);
 const PATH = /^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*(?![\s\S])/;
@@ -54,12 +54,16 @@ export function isSafeRoot(r) {
 // ---------------------------------------------------------------------------
 // read
 // ---------------------------------------------------------------------------
+/** 目录形态的子目录嵌套深度上限（包根的直接子目录为第 1 层）。 */
+export const MAX_DIR_DEPTH = 32;
+
 function readDirectory(root) {
   const files = new Map();
   let total = 0;
   let count = 0;
-  // 遍历顺序固定为每层目录内按名字的 UTF-8 字节序（两侧失败时报的是同一个条目）；每个普通文件先计数、再判大小
-  const walk = (dir, rel) => {
+  // 遍历顺序固定为每层目录内按名字的 UTF-8 字节序（两侧失败时报的是同一个条目）。对每个条目依次：
+  // 符号链接 → 失败；子目录 → 判深度（> 32 失败）、计入条目数（> 1 024 失败）、递归；普通文件 → 计入条目数、再判大小
+  const walk = (dir, rel, depth) => {
     const names = readdirSync(dir).sort((a, b) => Buffer.compare(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8')));
     for (const name of names) {
       const abs = join(dir, name);
@@ -67,18 +71,21 @@ function readDirectory(root) {
       const st = lstatSync(abs);
       if (st.isSymbolicLink()) fail('read', 'PKG_INTEGRITY', `符号链接 ${r}`);
       if (st.isDirectory()) {
-        walk(abs, r);
+        if (depth + 1 > MAX_DIR_DEPTH) fail('read', 'PKG_INTEGRITY', `目录嵌套超过 ${MAX_DIR_DEPTH} 层`);
+        count += 1;
+        if (count > MAX_PACKAGE_FILES) fail('read', 'PKG_INTEGRITY', `条目数超过 ${MAX_PACKAGE_FILES}`);
+        walk(abs, r, depth + 1);
         continue;
       }
       if (!st.isFile()) fail('read', 'PKG_INTEGRITY', `不是普通文件 ${r}`);
       count += 1;
-      if (count > MAX_PACKAGE_FILES) fail('read', 'PKG_INTEGRITY', `文件数超过 ${MAX_PACKAGE_FILES}`);
+      if (count > MAX_PACKAGE_FILES) fail('read', 'PKG_INTEGRITY', `条目数超过 ${MAX_PACKAGE_FILES}`);
       if (st.size > MAX_PACKAGE_BYTES || total + st.size > MAX_PACKAGE_BYTES) fail('read', 'PKG_INTEGRITY', '目录形态超过 64 MiB');
       total += st.size;
       files.set(r, readFileSync(abs));
     }
   };
-  walk(root, '');
+  walk(root, '', 0);
   return files;
 }
 

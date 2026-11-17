@@ -364,5 +364,76 @@ check('长字符串（N1）：1 200 万字符的字符串值，严格 JSON、--i
   assert.ok(normalizeStdout(stdout) === want, '归一结果不对');
 });
 
+// ---- https 信任锚（README「信任锚」；tamper/test-time.json 的 https-jwks-* 配方）：本地自签名 https 服务，离线 ----
+async function httpsAnchorTests() {
+  const { spawnSync } = await import('node:child_process');
+  const { mkdtempSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const https = await import('node:https');
+  const { fetchJwks, Usage } = await import('./lib/package-v1/argv.mjs');
+  const dir = mkdtempSync(join(tmpdir(), 'pkgv1-https-'));
+  try {
+    const gen = spawnSync('openssl', ['req', '-x509', '-newkey', 'ec', '-pkeyopt', 'ec_paramgen_curve:prime256v1', '-nodes', '-days', '1',
+      '-subj', '/CN=localhost', '-addext', 'subjectAltName=DNS:localhost,IP:127.0.0.1', '-keyout', join(dir, 'key.pem'), '-out', join(dir, 'cert.pem')]);
+    if (gen.status !== 0) {
+      console.error(`(跳过 https 锚测试：openssl 不可用 ${gen.stderr})`);
+      return;
+    }
+    const doc = JSON.parse(readFileSync(join(ROOT, 'conformance/package-v1/tamper/test-time.json'), 'utf8'));
+    const routes = doc.cases.find((c) => c.name === 'https-jwks-trusted-via-test-ca').recipe.httpsServer.routes;
+    const jwks = readFileSync(join(ROOT, 'conformance/package-v1/keys/test-jwks.json'));
+    let port;
+    const server = https.createServer({ key: readFileSync(join(dir, 'key.pem')), cert: readFileSync(join(dir, 'cert.pem')) }, (req, res) => {
+      const r = routes[req.url];
+      if (!r) return res.writeHead(404).end();
+      if (r.location) return res.writeHead(r.status, { location: r.location.replace('<PORT>', port) }).end();
+      if (r.file) return res.writeHead(r.status).end(jwks);
+      if (r.zeros) return res.writeHead(r.status).end(Buffer.alloc(r.zeros, 0x20));
+      if (r.jwksPaddedTo) return res.writeHead(r.status).end(Buffer.concat([jwks, Buffer.alloc(r.jwksPaddedTo - jwks.length, 0x20)]));
+      return res.writeHead(r.status).end(r.body ?? '');
+    });
+    await new Promise((ok) => server.listen(0, '127.0.0.1', ok));
+    port = server.address().port;
+    const ca = readFileSync(join(dir, 'cert.pem'));
+    const expectOk = async (name, path, opts) => {
+      try {
+        const got = await fetchJwks(`https://localhost:${port}${path}`, opts);
+        assert.ok(Array.isArray(got.keys), name);
+        pass++;
+      } catch (e) {
+        fail++;
+        console.error(`✗ https: ${name} 应成功：${e.message}`);
+      }
+    };
+    const expectUsage = async (name, path, opts) => {
+      try {
+        await fetchJwks(`https://localhost:${port}${path}`, opts);
+        fail++;
+        console.error(`✗ https: ${name} 应失败`);
+      } catch (e) {
+        if (e instanceof Usage) pass++;
+        else {
+          fail++;
+          console.error(`✗ https: ${name} 抛了非 Usage：${e.message}`);
+        }
+      }
+    };
+    // 与 test-time.json 的 https-jwks-* 配方一一对应
+    await expectOk('trusted-via-test-ca', '/jwks.json', { ca });
+    await expectUsage('untrusted-certificate', '/jwks.json', {});
+    await expectOk('three-redirects-ok', '/r3a', { ca });
+    await expectUsage('four-redirects', '/r4a', { ca });
+    await expectUsage('redirect-to-http', '/to-http', { ca });
+    await expectOk('response-1MiB-ok', '/exact-1MiB.json', { ca });
+    await expectUsage('response-over-1MiB', '/big.json', { ca });
+    await expectUsage('404', '/missing', { ca });
+    await expectUsage('not-json', '/not-json', { ca });
+    server.close();
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+await httpsAnchorTests();
+
 console.log(`test-package-v1: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;
