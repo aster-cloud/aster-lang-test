@@ -113,5 +113,15 @@ check('失败行的首个错误文本随判定结果返回（must-reject 门据�
   assert.strictEqual(results['tier1-equivalence/policies/b.aster'].err, "L4:9 mismatched input 'and'");
 });
 
+check('★错误文本含 U+2028 / U+2029 / U+0085 / U+00A0 时仍记为失败（aster-lang-ts#348，此前 `.` 失配而 fail-open）', () => {
+  for (const code of [0x2028, 0x2029, 0x85, 0xa0]) {
+    const ch = String.fromCharCode(code);
+    const out = OUTPUT.replace('| mismatched input |', `| L4:11 token recognition error at: '${ch}' |`);
+    const { results } = judgeSamples(['tier1-equivalence/policies/b.aster'], parseInventoryOutput(out));
+    assert.strictEqual(results['tier1-equivalence/policies/b.aster'].ok, false, `U+${code.toString(16)}`);
+    assert.strictEqual(results['tier1-equivalence/policies/b.aster'].err, `L4:11 token recognition error at: '${ch}'`);
+  }
+});
+
 console.log(`\njava-inventory guard: ${pass} passed, ${fail} failed`);
 process.exit(fail > 0 ? 1 : 0);

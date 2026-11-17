@@ -726,6 +726,9 @@ async function verifyEngines() {
   // 3c. compile：源码类成功用例由 ts 本地编译复算投影哈希（ts 尚无 aliasSet 校验，校验失败类用例的期望来自平台采集）；
   //     包类用例先过参照流水线，再从盘上 policy/ 编译复算；包类失败用例的错误码由参照流水线判定
   const compileRows = JSON.parse(out.get('compile/cases.json').bytes.toString('utf8')).cases;
+  // 源夹具的 pinnedTsDivergence（只在 src，不进 cases.json）：两个 CLI 期望已一致，但本 job 固定的 ts 版本早于修复、仍给出不同结论
+  const pinnedTsDivergence = new Map(JSON.parse(readFileSync(join(SRC, 'compile', 'compile.json'), 'utf8')).cases
+    .filter((c) => c.pinnedTsDivergence).map((c) => [c.name, c.pinnedTsDivergence]));
   const VALUED_COMPILE = new Set(['--locale', '--alias-set', '--vocabulary', '--out', '--jwks', '--pubkey']);
   for (const c of compileRows) {
     const cwd = join(PKG, 'compile');
@@ -752,6 +755,8 @@ async function verifyEngines() {
         const tsCore = opts['--alias-set'] ? undefined : tsCompileFiles(ts, { source: { locale: opts['--locale'] ?? 'en-US' } }, new Map([['policy/policy.aster', readFileSync(target)], ['policy/compile/alias-set.json', utf8('null')]]));
         // 已知的 ts / Java 解析分歧（knownEngineDivergence 指向跟踪 issue）：断言分歧仍在，修复后此处会提醒去掉标记
         if (c.knownEngineDivergence) expect(tsCore !== null && tsCore !== undefined, `${name}: ts 已与平台一致（${c.knownEngineDivergence} 已修？），去掉 knownEngineDivergence`);
+        // 固定版本的 ts 尚未含修复：断言分歧仍在，升级固定版本后此处会提醒去掉 pinnedTsDivergence
+        else if (pinnedTsDivergence.has(c.name)) expect(tsCore !== null && tsCore !== undefined, `${name}: 所用 ts 已与平台一致（${pinnedTsDivergence.get(c.name)} 已随升级生效？），去掉 pinnedTsDivergence`);
         else if (!opts['--alias-set']) expect(tsCore === null, `${name}: ts 应编译失败`);
         // aliasSet 校验失败类：ts 尚无 UserAliasValidator，期望来自平台编译序列——这里确认生成的行与采集结果一致；
         // 给出 --cp-file 时再以平台编译序列现场重算（本地；CI 无 aster-api）

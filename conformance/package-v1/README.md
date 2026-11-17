@@ -60,6 +60,8 @@ node scripts/build-package-fixtures.mjs --verify-engines --ts ../aster-lang-ts -
 
 CI 中的兄弟仓固定在被测版本（aster-lang-ts `v3.2.0`、aster-guard `v0.3.0`），不跟随 main：夹具的 IR 与期望值属于这一版本的编译器
 （生态 1.0.49），main 上的 IR 变化（例如 aster-cloud/aster-lang-ts#339 的列对齐）不应让本仓变红。
+源夹具 `src/compile/compile.json` 的 `pinnedTsDivergence`（只在 src，不进 `cases.json`）标出「两个 CLI 期望已一致、但固定的 ts 版本早于修复」的行
+（目前是 aster-cloud/aster-lang-ts#348 的两行）：`--verify-engines` 断言所用 ts 仍给出不同结论，升级固定版本后分歧消失即报错，提醒去掉该字段。
 
 ### 重新采集（`--capture`，本地手动，CI 不跑）
 
@@ -346,7 +348,7 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 - **`compile` 只解析与降级，不做类型检查**（与 B 包本地重编译同一语义；aster-api `PolicyCompiler` 另跑 TypeChecker，包格式不采用）：有类型错误但语法正确的源码照常输出 IR
   （夹具 `source-type-error-is-not-checked`）。源码（解码并去掉 BOM 之后）为空或只含 **ASCII 空白**（U+0020、`\t`、`\n`、`\r`）为 `COMPILE_ERROR`
   （`source-empty`、`source-whitespace-only`、`source-only-bom-is-blank`）。U+00A0、U+3000 等其他 Unicode 空白不算空白，源码照常交给编译器
-  （`source-only-nbsp-is-not-blank`、`source-only-ideographic-space-is-not-blank`：平台编译器拒绝，期望 `COMPILE_ERROR`；ts 编译器目前接受，见 aster-cloud/aster-lang-ts#348）。
+  （`source-only-nbsp-is-not-blank`、`source-only-ideographic-space-is-not-blank`：两引擎的词法空白都只认 ASCII 空格与 `\t`，在该字符上报 E050，期望 `COMPILE_ERROR`；见 aster-cloud/aster-lang-ts#348）。
 - **源码形态**：可用 `--locale`（缺省 `en-US`；只支持 `en-US`、`zh-CN`、`de-DE`、`hi-IN`，形态合法但不在其中如 `fr-FR` 为 `USAGE`，夹具 `usage-locale-unsupported`）、`--alias-set <file>`（严格 JSON，`{"<SemanticTokenKind>":[别名…]}`）、`--vocabulary <file>`（严格 JSON）、
   `--allow-structural`（只能与 `--alias-set` 同用）、`--out`。`--jwks`、`--pubkey`、`--allow-unsigned` 是 `USAGE`；源码或这些文件不存在、不可读、不是严格 JSON 都是 `USAGE`。
   aliasSet 文件是严格 JSON 但形状不对（不是对象、值不是字符串数组、键不是已知的 `SemanticTokenKind`）为 `COMPILE_ERROR`，失败即拒（夹具 `source-alias-set-unknown-kind`、
@@ -362,7 +364,7 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
   带 `outFileMustNotExist`）；父目录不存在或不是目录为 `USAGE`（`usage-out-parent-missing`），`--out` 本身是已存在的目录也是 `USAGE`（`usage-out-is-a-directory`），二者都在编译之前判定；
   父目录存在但不可写同样是 `USAGE`。
   两侧 IR 只差 origin 列（修订 1 A2），所以成功用例只比较投影哈希：`expectedStdout` 为 `null`（或 `--out` 时为 `""`）、`expectedPositionFreeSha256` 给出期望，
-  `outFile` 表示要读 `<OUT>` 处的文件（测试把 `<OUT>` 换成临时路径）。带 `knownEngineDivergence` 的行，期望取平台（Java）解析结果，而 ts 编译器目前给出不同结论（跟踪 issue 见该字段，`knownDivergentEngine` 写明分歧的一侧，这里恒为 `node`）；Node CLI 在 issue 修复前会在这些行上失败，这是已知的引擎分歧，不是夹具错误。失败时输出与 `run` 相同的错误信封（`meta` 按阶段，源码形态恒为 null / false）。
+  `outFile` 表示要读 `<OUT>` 处的文件（测试把 `<OUT>` 换成临时路径）。带 `knownEngineDivergence` 的行，期望取平台（Java）解析结果，而 ts 编译器给出不同结论（跟踪 issue 见该字段，`knownDivergentEngine` 写明分歧的一侧）；Node CLI 在 issue 修复前会在这些行上失败，这是已知的引擎分歧，不是夹具错误。目前没有这样的行。失败时输出与 `run` 相同的错误信封（`meta` 按阶段，源码形态恒为 null / false）。
 
 ## tests/probes.json
 

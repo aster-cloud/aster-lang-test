@@ -47,7 +47,9 @@ export function parseInventoryOutput(output) {
   for (const line of output.split('\n')) {
     const o = line.match(/^\s*OBSERVED\s+(\S+\.aster)\s*$/);
     if (o) observed.add(o[1].replace(/^corpus\//, ''));
-    const f = line.match(/^\s*\|\s*(corpus\/[^|]+?\.aster)\s*\|\s*❌\s*\|(.*)\|\s*$/);
+    // 错误文本用 [^\n]* 而不是 .*：`.` 不匹配 U+2028 / U+2029，Java 报「token recognition error at: '<U+2028>'」时
+    // 整行失配，该样本会被当成「不在失败清单 = 通过」（aster-lang-ts#348 的必拒样本即如此，fail-open）
+    const f = line.match(/^\s*\|\s*(corpus\/[^|]+?\.aster)\s*\|\s*❌\s*\|([^\n]*)\|\s*$/);
     if (!f) continue;
     const rel = f[1].trim().replace(/^corpus\//, '');
     failed.add(rel);

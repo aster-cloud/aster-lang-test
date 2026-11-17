@@ -11,6 +11,16 @@
   `reject-rule-name-capitalized`（E055 规则名）、`reject-identifier-leading-underscore`（E050）、
   `reject-of-type-arg-bare-lowercase`（E055，`Pair of Int, y` 的 `y`）。
 - 这些样本的期望依赖同车次的 aster-lang-core 与 aster-lang-ts（#334）。包入口 API 无变化。
+- tier1 parity 样本（aster-lang-ts#348，词法空白只认 ASCII）：`syntax/unicode-space-in-string-and-comment`（字符串与注释里的
+  Unicode 空白原样保留，含两个 U+2028 之间的空格）、`syntax/ideographic-space-zh`（zh-CN 的 U+3000 当空白）、
+  `syntax/ascii-vt-ff-before-punct-zh`（标点前的 `\x0B` `\f` 当空白去掉）进入 manifest。
+- tier1 必拒样本（aster-lang-ts#348，均为 E050）：`reject-whitespace-nbsp-only`、`reject-whitespace-ideographic-space-only`、
+  `reject-whitespace-nbsp-between-tokens`、`reject-whitespace-nbsp-indent`、`reject-whitespace-nbsp-end-of-line`（及 `-zh`、`-hi`）、
+  `reject-whitespace-ideographic-space-end-of-line-de`、`reject-whitespace-em-space-blank-line`、
+  `reject-whitespace-narrow-nbsp-before-period`、`reject-whitespace-nbsp-before-comment`、`reject-whitespace-bom-mid-file`、
+  `reject-whitespace-line-separator-end-of-line`。
+- 包格式 v1 一致性夹具：`compile/source-only-nbsp-is-not-blank`、`compile/source-only-ideographic-space-is-not-blank`
+  去掉 `knownEngineDivergence`（aster-lang-ts#348 修复后两个 CLI 都是 `COMPILE_ERROR`）。
 
 ## 2.3.0
 

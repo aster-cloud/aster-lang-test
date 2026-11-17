@@ -1,0 +1,5 @@
+Module reject.whitespace.bomMidFile.
+
+Rule f given x as Int, produce Int:
+  Return x.
+﻿

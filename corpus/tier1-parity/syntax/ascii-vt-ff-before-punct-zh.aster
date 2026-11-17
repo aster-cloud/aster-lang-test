@@ -1,0 +1,4 @@
+模块 parity.syntax.vtFf。
+
+规则 label 给定 x 作为 整数，产出 整数：
+  返回 x。

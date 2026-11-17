@@ -1,0 +1,4 @@
+Module reject.whitespace.indent.
+
+Rule f given x as Int, produce Int:
+  Return x.

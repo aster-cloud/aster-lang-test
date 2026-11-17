@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 1,
+  "source": "词法空白只认 ASCII 空格与 \\t（aster-lang-ts#348）：只含 U+3000 的源码（en-US 不做全角转半角），两引擎都在该字符上报 E050。修复前 ts 编译成空模块，core 报 E050"
+}
