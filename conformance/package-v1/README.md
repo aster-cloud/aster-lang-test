@@ -60,6 +60,8 @@ node scripts/build-package-fixtures.mjs --verify-engines --ts ../aster-lang-ts -
 
 CI 中的兄弟仓固定在被测版本（aster-lang-ts `v3.2.0`、aster-guard `v0.3.0`），不跟随 main：夹具的 IR 与期望值属于这一版本的编译器
 （生态 1.0.49），main 上的 IR 变化（例如 aster-cloud/aster-lang-ts#339 的列对齐）不应让本仓变红。
+源夹具 `src/compile/compile.json` 的 `pinnedTsDivergence`（只在 src，不进 `cases.json`）标出「两个 CLI 期望已一致、但固定的 ts 版本早于修复」的行
+（目前是 aster-cloud/aster-lang-ts#348 的两行）：`--verify-engines` 断言所用 ts 仍给出不同结论，升级固定版本后分歧消失即报错，提醒去掉该字段。
 
 ### 重新采集（`--capture`，本地手动，CI 不跑）
 

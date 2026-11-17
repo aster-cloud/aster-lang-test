@@ -497,7 +497,8 @@
       "platform": {
         "source": "sources/nbsp-only.aster",
         "locale": "en-US"
-      }
+      },
+      "pinnedTsDivergence": "aster-cloud/aster-lang-ts#348"
     },
     {
       "name": "source-only-ideographic-space-is-not-blank",
@@ -508,7 +509,8 @@
       "platform": {
         "source": "sources/ideographic-space-only.aster",
         "locale": "en-US"
-      }
+      },
+      "pinnedTsDivergence": "aster-cloud/aster-lang-ts#348"
     },
     {
       "name": "package-a-blank-policy",

@@ -1,6 +1,6 @@
 模块　parity.syntax.ideographicSpace。
 　
-规则　标签　给定　x　作为　整数，产出　整数：　
+规则　label　给定　x　作为　整数，产出　整数：　
 　　如果　x 大于 0　
 　　　　返回　x　。
 　　返回 0。　
