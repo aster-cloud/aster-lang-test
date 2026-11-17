@@ -28,6 +28,16 @@ CLI 行为定死为可执行的字节：两个 `aster` CLI（Node T2–T5、JVM 
 | `compile/` | `compile` 子命令夹具：源码与 aliasSet / 词汇文件、`cases.json`（见「compile」） | 生成（源码类期望由 `--capture-compile` 按 InProcessCnlParser 解析 + 降级序列 采集） |
 | `src/` | 生成器的输入：源码、`fixture.json`、采集的平台 IR（`platform-core.json`）与期望值（`expected.json`）、篡改与非法输入定义 | 手写 + `--capture` |
 
+跨 CLI 一致性门（T11，CI job `package-conformance`，PR-blocking）：
+
+```bash
+node scripts/package-conformance.mjs --node ../aster-lang-ts/dist/runner/aster.mjs --jar ../aster-lang-truffle/cli/build/libs/aster-cli-<ver>.jar [--report-only] [--concurrency 4] [--filter s] [--report f.md]
+```
+
+对全部用例（含 `tamper/test-time.json` 的运行时配方：超大包 / 输入在临时目录生成，https 配方在 127.0.0.1 上起自签名 RSA 证书的服务）两侧各跑一遍：
+两侧 stdout 经 `normalize-stdout.mjs` 归一后逐字节相同、退出码相同，且都等于 `expectedStdout` / `expectedExit`；`compile` 成功用例比较投影哈希；
+带 `knownEngineDivergence` 的行只报告、不计失败。兄弟仓走 checkout-sibling（同名分支优先），夹具与两侧 CLI 的联合改动可在合并前一起验证。
+
 生成与校验（Node ≥ 24，无 npm 依赖）：
 
 ```bash

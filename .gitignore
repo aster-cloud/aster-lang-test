@@ -33,3 +33,6 @@ packages/js/src/**/*.js
 packages/js/src/**/*.js.map
 packages/js/src/**/*.d.ts
 packages/js/src/**/*.d.ts.map
+
+# 跨 CLI 一致性门的报告（CI 以 artifact 上传）
+package-conformance-report.md
