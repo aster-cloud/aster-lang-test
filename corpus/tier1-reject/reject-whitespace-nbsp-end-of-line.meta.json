@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "词法空白只认 ASCII 空格与 \\t（aster-lang-ts#348）：行尾的 U+00A0 不当行尾空白去掉，两引擎都在该字符上报 E050。修复前 ts 接受，core 报 E050"
+}

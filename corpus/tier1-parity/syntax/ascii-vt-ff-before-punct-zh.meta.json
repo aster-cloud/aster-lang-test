@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "句末符、逗号、冒号前的 \\x0B \\f 按 Java ASCII \\s 当空白去掉（aster-lang-ts#348）。修复前 ts 的 zh-CN 只去中文标点前的空白，这里报 E050，core 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定 Core IR"
+}

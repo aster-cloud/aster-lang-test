@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "zh-CN 的全角转半角把字符串外的 U+3000 换成空格（aster-lang-ts#348）：token 间、缩进（两个 U+3000 = 两格）、行尾、句末符前、只含 U+3000 的行都照常",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定 U+3000 当空白时的 Core IR"
+}

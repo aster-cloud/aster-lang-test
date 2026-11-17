@@ -1,0 +1,4 @@
+Modul reject.whitespace.endOfLine.
+
+Regel f gegeben x als Ganzzahl, liefert Ganzzahl:
+  gib x zurück.　

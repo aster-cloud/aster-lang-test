@@ -326,6 +326,9 @@
     "tier1-parity/types/field-annotations.aster",
     "tier1-parity/types/field-annotations-zh.aster",
     "tier1-parity/syntax/use-keyword-case.aster",
+    "tier1-parity/syntax/ascii-vt-ff-before-punct-zh.aster",
+    "tier1-parity/syntax/ideographic-space-zh.aster",
+    "tier1-parity/syntax/unicode-space-in-string-and-comment.aster",
     "tier1-parity/types/inferred-field-constraints.aster",
     "tier1-parity/workflow/workflow-bare-io-capability.aster",
     "tier1-parity/workflow/workflow-compensate.aster",
@@ -521,6 +524,19 @@
     {
       "path": "tier1-reject/vocab-e807-duplicate-declaration.aster",
       "vocab": true
-    }
+    },
+    "tier1-reject/reject-whitespace-nbsp-only.aster",
+    "tier1-reject/reject-whitespace-ideographic-space-only.aster",
+    "tier1-reject/reject-whitespace-nbsp-between-tokens.aster",
+    "tier1-reject/reject-whitespace-nbsp-indent.aster",
+    "tier1-reject/reject-whitespace-nbsp-end-of-line.aster",
+    "tier1-reject/reject-whitespace-em-space-blank-line.aster",
+    "tier1-reject/reject-whitespace-narrow-nbsp-before-period.aster",
+    "tier1-reject/reject-whitespace-nbsp-before-comment.aster",
+    "tier1-reject/reject-whitespace-bom-mid-file.aster",
+    "tier1-reject/reject-whitespace-line-separator-end-of-line.aster",
+    "tier1-reject/reject-whitespace-nbsp-end-of-line-zh.aster",
+    "tier1-reject/reject-whitespace-ideographic-space-end-of-line-de.aster",
+    "tier1-reject/reject-whitespace-nbsp-end-of-line-hi.aster"
   ]
 }

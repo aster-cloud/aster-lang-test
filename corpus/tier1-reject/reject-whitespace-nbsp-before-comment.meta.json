@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 2,
+  "source": "词法空白只认 ASCII 空格与 \\t（aster-lang-ts#348）：整行注释前的 U+00A0 让该行不再是整行注释，两引擎都在该字符上报 E050。修复前 ts 接受，core 报 E050"
+}

@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 5,
+  "source": "词法空白只认 ASCII 空格与 \\t（aster-lang-ts#348）：不在文件开头的 U+FEFF 不是 BOM，也不是空白，两引擎都在该字符上报 E050。修复前 ts 接受，core 报 E050"
+}
