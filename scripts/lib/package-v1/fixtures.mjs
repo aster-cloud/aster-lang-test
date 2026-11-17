@@ -1371,7 +1371,10 @@ export function compileFixtures(srcDir, pkgs, exitCodes) {
       if (!got) throw new Error(`compile/${c.name}: 缺少平台采集结果（先跑 --capture-compile）`);
       const row = got.ok ? success(c, got.positionFreeSha256) : failure(c, 'COMPILE_ERROR', usageMeta);
       // 期望取平台（Java）解析结果；ts 编译器目前与之不同的用例标出跟踪 issue，Node CLI 在修复前会在这些行上失败
-      return c.knownEngineDivergence ? { ...row, knownEngineDivergence: c.knownEngineDivergence } : row;
+      if (!c.knownEngineDivergence) return row;
+      // 标记同时写明分歧的是哪一侧（node / jre），一致性门据此要求另一侧仍等于期望
+      if (c.knownDivergentEngine !== 'node' && c.knownDivergentEngine !== 'jre') throw new Error(`compile/${c.name}: knownEngineDivergence 须配 knownDivergentEngine（node / jre）`);
+      return { ...row, knownEngineDivergence: c.knownEngineDivergence, knownDivergentEngine: c.knownDivergentEngine };
     }
     if (c.package) return success(c, pkgs.get(c.package).manifest.coreIr.positionFreeSha256);
     const { code } = c.expect;

@@ -153,6 +153,109 @@ jobs:
         working-directory: aster-lang-test
         run: node scripts/build-package-fixtures.mjs --verify-engines --ts ../aster-lang-ts --guard ../aster-guard
 
+  # ADR 0059 P1 T11：跨 CLI 一致性门。用 aster-lang-ts 的单文件 Node CLI（dist/runner/aster.mjs）与 aster-lang-truffle 的
+  # aster-cli fat jar 各跑一遍 conformance/package-v1 的全部用例（含 test-time 配方：超大包 / 输入、本地自签名 https 信任锚），
+  # 两侧 stdout 经 normalize-stdout.mjs 归一后必须逐字节相同、退出码相同，且都等于期望；带 knownEngineDivergence 的行
+  # 只豁免 knownDivergentEngine 那一侧（另一侧仍须等于期望，标记陈旧即失败）。兄弟仓走 checkout-sibling（同名分支优先，否则 main），所以夹具 / CLI 的联合改动可在合并前一起验证。
+  package-conformance:
+    # 显示名必须恰为 package-conformance：分支保护的 required check 按它匹配（Package format v1 跨 CLI 一致性门，Node ↔ JVM）
+    name: package-conformance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Self checkout
+        uses: actions/checkout@v6
+        with:
+          path: aster-lang-test
+      - name: Checkout aster-lang-platform
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
+        with:
+          repository: aster-cloud/aster-lang-platform
+          path: aster-lang-platform
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - name: Checkout aster-lang-core
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
+        with:
+          repository: aster-cloud/aster-lang-core
+          path: aster-lang-core
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - name: Checkout aster-lang-runtime
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
+        with:
+          repository: aster-cloud/aster-lang-runtime
+          path: aster-lang-runtime
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - name: Checkout aster-lang-locales
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
+        with:
+          repository: aster-cloud/aster-lang-locales
+          path: aster-lang-locales
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - name: Checkout aster-lang-hi
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
+        with:
+          repository: aster-cloud/aster-lang-hi
+          path: aster-lang-hi
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - name: Checkout aster-lang-truffle
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
+        with:
+          repository: aster-cloud/aster-lang-truffle
+          path: aster-lang-truffle
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - name: Checkout aster-lang-ts
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
+        with:
+          repository: aster-cloud/aster-lang-ts
+          path: aster-lang-ts
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: aster-lang-ts/pnpm-lock.yaml
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+          cache: 'gradle'
+      # truffle 的 cli 依赖 core 的 aster.core.embed 与 catalog 中的生态制品：按 truffle 自身 CI 的顺序发布到 Maven Local
+      - name: Publish JVM siblings to Maven Local
+        run: |
+          cd aster-lang-platform && ./gradlew publishToMavenLocal && cd ..
+          cd aster-lang-core && ./gradlew publishToMavenLocal -x test && cd ..
+          cd aster-lang-runtime && ./gradlew publishToMavenLocal -x test && cd ..
+          cd aster-lang-locales && ./gradlew publishToMavenLocal -x test && cd ..
+          cd aster-lang-hi && ./gradlew publishToMavenLocal -x test && cd ..
+      - name: Build JVM CLI (aster-cli fat jar)
+        working-directory: aster-lang-truffle
+        run: |
+          ./gradlew :cli:shadowJar -PexcludeBenchmarks=true
+          ls -l cli/build/libs/
+      - name: Build Node CLI (dist/runner/aster.mjs)
+        working-directory: aster-lang-ts
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+          ls -l dist/runner/
+      - name: Run package format v1 cross-CLI conformance, Node ↔ JVM (PR-blocking)
+        working-directory: aster-lang-test
+        shell: bash
+        run: |
+          set -o pipefail
+          JAR=$(ls ../aster-lang-truffle/cli/build/libs/aster-cli-*.jar | grep -v -- '-plain' | head -n1)
+          node scripts/package-conformance.mjs --node ../aster-lang-ts/dist/runner/aster.mjs --jar "$JAR" \
+            --concurrency 4 --report package-conformance-report.md > /dev/null
+      - name: Upload conformance report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: package-conformance-${{ github.run_id }}
+          path: aster-lang-test/package-conformance-report.md
+          if-no-files-found: warn
+
   # Cross-engine inventory gate is enforced on the consumer side:
   #   - aster-lang-ts CI runs `node scripts/java-corpus-parse-inventory.mjs`
   #   - aster-lang-core CI runs `./gradlew test --tests TsSampleParseInventoryTest`

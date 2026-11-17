@@ -525,5 +525,52 @@ await httpsAnchorTests();
   }
 }
 
+// ---- 跨 CLI 一致性门的判定（package-conformance.mjs，T11 评审 G-1 / G-2 / G-3） ----
+{
+  const { coverageProblems, judgeRow, groupRouteSets, routeSetKey } = await import('./lib/package-v1/gate.mjs');
+  const check = (cond, msg) => (cond ? pass++ : (fail++, console.error(`✗ ${msg}`)));
+  // G-1：零用例或少跑都是失败
+  check(coverageProblems({ expected: 0, ran: 0, filter: 'no-such-case' }).length === 1, '--filter 零匹配应失败');
+  check(coverageProblems({ expected: 0, ran: 0 }).length === 1, '无 --filter 时零用例应失败');
+  check(coverageProblems({ expected: 554, ran: 553 }).length === 1, '少跑一条应失败');
+  check(coverageProblems({ expected: 554, ran: 554 }).length === 0, '全部跑完应通过');
+  check(coverageProblems({ expected: 1, ran: 1, filter: 'x' }).length === 0, '--filter 至少一条匹配应通过');
+
+  const ok = { res: { exit: 0, stdout: '{"ok":true}\n' }, problems: [], comparable: 'A' };
+  const tsDiverges = { res: { exit: 4, stdout: '{"ok":false}\n' }, problems: ['退出码 4，期望 0'], comparable: 'B' };
+  const crashed = { res: { exit: 'signal SIGKILL', stdout: '' }, problems: ['退出码 signal SIGKILL，期望 0'], comparable: 'C' };
+  const missing = { res: { exit: 1, stdout: '' }, problems: ['退出码 1，期望 0'], comparable: 'D' };
+  const spawnFail = { res: { exit: 'spawn error ENOENT', stdout: '' }, problems: ['x'], comparable: 'E' };
+  const plain = { c: { name: 'p' } };
+  const marked = { c: { name: 'm', knownEngineDivergence: 'aster-cloud/aster-lang-ts#348', knownDivergentEngine: 'node' } };
+  const st = (row, node, jre) => judgeRow(row, { node, jre }).status;
+  check(st(plain, ok, ok) === 'ok', '无标记、两侧一致等于期望 → ok');
+  check(st(plain, tsDiverges, ok) === 'fail', '无标记、一侧不符 → fail');
+  check(st(plain, { ...ok, comparable: 'Z' }, ok) === 'fail', '无标记、两侧不一致 → fail');
+  // G-2
+  check(st(marked, tsDiverges, ok) === 'known', '标记、node 分歧且正常退出、jre 等于期望 → known');
+  check(st(marked, tsDiverges, tsDiverges) === 'fail', '标记、未标分歧的 jre 不符 → fail');
+  check(st(marked, crashed, ok) === 'fail', '标记、node 被信号杀掉 → fail');
+  check(st(marked, missing, ok) === 'fail', '标记、node 脚本不存在（退出 1、stdout 空） → fail');
+  check(st(marked, spawnFail, spawnFail) === 'fail', '标记、两侧都起不来 → fail');
+  check(st(marked, crashed, crashed) === 'fail', '标记、两侧都崩 → fail');
+  const stale = judgeRow(marked, { node: ok, jre: ok });
+  check(stale.status === 'fail' && stale.reasons.some((r) => r.startsWith('stale knownEngineDivergence: remove marker')), '标记、分歧已消失 → stale 失败');
+  check(st({ c: { name: 'n', knownEngineDivergence: 'x#1' } }, tsDiverges, ok) === 'fail', '标记缺 knownDivergentEngine → fail');
+  check(st({ c: { ...marked.c, knownDivergentEngine: 'jre' } }, ok, tsDiverges) === 'known', '标 jre 分歧时对称');
+  // G-3：不同 routes 的配方各自成组，相同的合并
+  const r1 = { '/a': { status: 200 } };
+  const rows = [
+    { c: { recipe: { httpsServer: { routes: r1 } } } },
+    { c: { recipe: { httpsServer: { routes: { '/a': { status: 200 } } } } } },
+    { c: { recipe: { httpsServer: { routes: { '/b': { status: 302 } } } } } },
+    { c: { recipe: {} } },
+  ];
+  const groups = groupRouteSets(rows);
+  check(groups.size === 2, `两种 routes 应分成 2 组，得到 ${groups.size}`);
+  check(groups.get(routeSetKey(r1)) === r1, '组内取到声明的 routes');
+  check(routeSetKey({ '/b': 1, '/a': 2 }) === routeSetKey({ '/a': 2, '/b': 1 }), 'routes 键序不影响分组');
+}
+
 console.log(`test-package-v1: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;

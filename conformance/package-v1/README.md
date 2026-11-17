@@ -28,6 +28,19 @@ CLI 行为定死为可执行的字节：两个 `aster` CLI（Node T2–T5、JVM 
 | `compile/` | `compile` 子命令夹具：源码与 aliasSet / 词汇文件、`cases.json`（见「compile」） | 生成（源码类期望由 `--capture-compile` 按 InProcessCnlParser 解析 + 降级序列 采集） |
 | `src/` | 生成器的输入：源码、`fixture.json`、采集的平台 IR（`platform-core.json`）与期望值（`expected.json`）、篡改与非法输入定义 | 手写 + `--capture` |
 
+跨 CLI 一致性门（T11，CI job 与 required status check 均为 `package-conformance`，PR-blocking）：
+
+```bash
+node scripts/package-conformance.mjs --node ../aster-lang-ts/dist/runner/aster.mjs --jar ../aster-lang-truffle/cli/build/libs/aster-cli-<ver>.jar [--report-only] [--concurrency 4] [--filter s] [--report f.md]
+```
+
+对全部用例（含 `tamper/test-time.json` 的运行时配方：超大包 / 输入在临时目录生成，https 配方在 127.0.0.1 上起自签名 RSA 证书的服务）两侧各跑一遍：
+两侧 stdout 经 `normalize-stdout.mjs` 归一后逐字节相同、退出码相同，且都等于 `expectedStdout` / `expectedExit`；`compile` 成功用例比较投影哈希；
+带 `knownEngineDivergence` 的行只豁免 `knownDivergentEngine`（`node` / `jre`）那一侧的期望比较：另一侧仍须等于期望，分歧一侧仍须正常结束（退出码在 `exit-codes.json` 表内、stdout 是 JSON），
+分歧消失（两侧一致且等于期望）时判失败（`stale knownEngineDivergence: remove marker`），提醒去掉标记。
+用例数有下限：每个 cases 文件都须存在且非空，不给 `--filter` 时须跑完它们的全部行，给 `--filter` 时至少匹配一条，零条即失败。
+同一 `routes` 的 https 配方共用一个服务，`routes` 不同的各起一个。兄弟仓走 checkout-sibling（同名分支优先），夹具与两侧 CLI 的联合改动可在合并前一起验证。
+
 生成与校验（Node ≥ 24，无 npm 依赖）：
 
 ```bash
@@ -344,7 +357,7 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
   带 `outFileMustNotExist`）；父目录不存在或不是目录为 `USAGE`（`usage-out-parent-missing`），`--out` 本身是已存在的目录也是 `USAGE`（`usage-out-is-a-directory`），二者都在编译之前判定；
   父目录存在但不可写同样是 `USAGE`。
   两侧 IR 只差 origin 列（修订 1 A2），所以成功用例只比较投影哈希：`expectedStdout` 为 `null`（或 `--out` 时为 `""`）、`expectedPositionFreeSha256` 给出期望，
-  `outFile` 表示要读 `<OUT>` 处的文件（测试把 `<OUT>` 换成临时路径）。带 `knownEngineDivergence` 的行，期望取平台（Java）解析结果，而 ts 编译器目前给出不同结论（跟踪 issue 见该字段）；Node CLI 在 issue 修复前会在这些行上失败，这是已知的引擎分歧，不是夹具错误。失败时输出与 `run` 相同的错误信封（`meta` 按阶段，源码形态恒为 null / false）。
+  `outFile` 表示要读 `<OUT>` 处的文件（测试把 `<OUT>` 换成临时路径）。带 `knownEngineDivergence` 的行，期望取平台（Java）解析结果，而 ts 编译器目前给出不同结论（跟踪 issue 见该字段，`knownDivergentEngine` 写明分歧的一侧，这里恒为 `node`）；Node CLI 在 issue 修复前会在这些行上失败，这是已知的引擎分歧，不是夹具错误。失败时输出与 `run` 相同的错误信封（`meta` 按阶段，源码形态恒为 null / false）。
 
 ## tests/probes.json
 
