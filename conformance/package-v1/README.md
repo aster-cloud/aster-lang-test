@@ -28,7 +28,7 @@ CLI 行为定死为可执行的字节：两个 `aster` CLI（Node T2–T5、JVM 
 | `compile/` | `compile` 子命令夹具：源码与 aliasSet / 词汇文件、`cases.json`（见「compile」） | 生成（源码类期望由 `--capture-compile` 按 InProcessCnlParser 解析 + 降级序列 采集） |
 | `src/` | 生成器的输入：源码、`fixture.json`、采集的平台 IR（`platform-core.json`）与期望值（`expected.json`）、篡改与非法输入定义 | 手写 + `--capture` |
 
-跨 CLI 一致性门（T11，CI job `package-conformance`；有不一致即失败，要真正挡住合并还须在分支保护里把它列为 required status check）：
+跨 CLI 一致性门（T11，CI job 与 required status check 均为 `package-conformance`，PR-blocking）：
 
 ```bash
 node scripts/package-conformance.mjs --node ../aster-lang-ts/dist/runner/aster.mjs --jar ../aster-lang-truffle/cli/build/libs/aster-cli-<ver>.jar [--report-only] [--concurrency 4] [--filter s] [--report f.md]

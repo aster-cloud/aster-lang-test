@@ -158,7 +158,8 @@ jobs:
   # 两侧 stdout 经 normalize-stdout.mjs 归一后必须逐字节相同、退出码相同，且都等于期望；带 knownEngineDivergence 的行
   # 只报告不计失败。兄弟仓走 checkout-sibling（同名分支优先，否则 main），所以夹具 / CLI 的联合改动可在合并前一起验证。
   package-conformance:
-    name: Package format v1 — cross-CLI conformance (Node ↔ JVM)
+    # 显示名必须恰为 package-conformance：分支保护的 required check 按它匹配（Package format v1 跨 CLI 一致性门，Node ↔ JVM）
+    name: package-conformance
     runs-on: ubuntu-latest
     steps:
       - name: Self checkout
@@ -239,7 +240,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build
           ls -l dist/runner/
-      - name: Run cross-CLI conformance (fails on any divergence)
+      - name: Run package format v1 cross-CLI conformance, Node ↔ JVM (PR-blocking)
         working-directory: aster-lang-test
         shell: bash
         run: |
