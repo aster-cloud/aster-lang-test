@@ -20,6 +20,8 @@ import { publicKeyFromRaw, verifyManifest } from './signing.mjs';
 export const MAX_PACKAGE_BYTES = 64 * 1024 * 1024;
 export const MAX_MANIFEST_BYTES = 1024 * 1024;
 export const MAX_SIG_BYTES = 64 * 1024;
+/** 包内条目数上限：目录形态数普通文件与子目录（不含包根），zip 数中央目录条目（含目录条目）。 */
+export const MAX_PACKAGE_FILES = 1024;
 const META_FILES = new Set(['manifest.json', 'manifest.sig.json', 'SHA256SUMS']);
 const PATH = /^[A-Za-z0-9._-]+(\/[A-Za-z0-9._-]+)*(?![\s\S])/;
 const FORMAT_VERSION = /^(0|[1-9][0-9]{0,8})\.(0|[1-9][0-9]{0,8})(?![\s\S])/;
@@ -52,26 +54,38 @@ export function isSafeRoot(r) {
 // ---------------------------------------------------------------------------
 // read
 // ---------------------------------------------------------------------------
+/** 目录形态的子目录嵌套深度上限（包根的直接子目录为第 1 层）。 */
+export const MAX_DIR_DEPTH = 32;
+
 function readDirectory(root) {
   const files = new Map();
   let total = 0;
-  const walk = (dir, rel) => {
-    for (const name of readdirSync(dir)) {
+  let count = 0;
+  // 遍历顺序固定为每层目录内按名字的 UTF-8 字节序（两侧失败时报的是同一个条目）。对每个条目依次：
+  // 符号链接 → 失败；子目录 → 判深度（> 32 失败）、计入条目数（> 1 024 失败）、递归；普通文件 → 计入条目数、再判大小
+  const walk = (dir, rel, depth) => {
+    const names = readdirSync(dir).sort((a, b) => Buffer.compare(Buffer.from(a, 'utf8'), Buffer.from(b, 'utf8')));
+    for (const name of names) {
       const abs = join(dir, name);
       const r = rel ? `${rel}/${name}` : name;
       const st = lstatSync(abs);
       if (st.isSymbolicLink()) fail('read', 'PKG_INTEGRITY', `符号链接 ${r}`);
       if (st.isDirectory()) {
-        walk(abs, r);
+        if (depth + 1 > MAX_DIR_DEPTH) fail('read', 'PKG_INTEGRITY', `目录嵌套超过 ${MAX_DIR_DEPTH} 层`);
+        count += 1;
+        if (count > MAX_PACKAGE_FILES) fail('read', 'PKG_INTEGRITY', `条目数超过 ${MAX_PACKAGE_FILES}`);
+        walk(abs, r, depth + 1);
         continue;
       }
       if (!st.isFile()) fail('read', 'PKG_INTEGRITY', `不是普通文件 ${r}`);
+      count += 1;
+      if (count > MAX_PACKAGE_FILES) fail('read', 'PKG_INTEGRITY', `条目数超过 ${MAX_PACKAGE_FILES}`);
       if (st.size > MAX_PACKAGE_BYTES || total + st.size > MAX_PACKAGE_BYTES) fail('read', 'PKG_INTEGRITY', '目录形态超过 64 MiB');
       total += st.size;
       files.set(r, readFileSync(abs));
     }
   };
-  walk(root, '');
+  walk(root, '', 0);
   return files;
 }
 
@@ -98,6 +112,7 @@ function readZip(buf) {
   if (count === 0xffff || cdSize === 0xffffffff || cdOff === 0xffffffff) z('ZIP64');
   if (cdOff + cdSize !== e) z('中央目录与 EOCD 之间有间隙');
   if (count === 0) z('空 zip');
+  if (count > MAX_PACKAGE_FILES) z(`条目数超过 ${MAX_PACKAGE_FILES}`);
   // 中央目录
   const cds = [];
   let p = cdOff;
@@ -163,33 +178,32 @@ function readZip(buf) {
     const rest = name.slice(slash + 1);
     const isDir = rest === '' || rest.endsWith('/');
     const rel = isDir ? rest.slice(0, -1) : rest;
-    if (rel !== '' && !isPackagePath(rel)) z(`条目路径不合法：${name}`);
+    // 去掉根之后只有根目录条目本身（`<root>/`）可以为空；`<root>//` 之类去掉末尾 / 后为空的条目一律拒绝
+    if (rel === '' ? rest !== '' : !isPackagePath(rel)) z(`条目路径不合法：${name}`);
     if (seen.has(name)) z(`重复条目 ${name}`);
     seen.add(name);
-    if (isDir) {
-      if (cd.usize !== 0) z('目录条目带数据');
-    } else {
-      const raw = buf.subarray(dataAt, dataAt + cd.csize);
-      let data;
-      if (method === 0) data = raw;
-      else {
-        let consumed;
-        try {
-          const r = inflateRawSync(raw, { maxOutputLength: Math.min(cd.usize, budget) + 1, info: true });
-          data = r.buffer;
-          consumed = r.engine.bytesWritten;
-        } catch {
-          z(`解压失败或超过声明大小 / 64 MiB：${name}`);
-        }
-        // 压缩数据必须恰好是一个完整的 deflate 流：最终块之后、csize 之内不得有多余字节
-        if (consumed !== raw.length) z(`deflate 流之后有多余字节：${name}`);
+    // 逐条目的大小 / CRC / deflate 消耗规则对目录条目同样适用；目录条目只是不进入文件表
+    if (isDir && cd.usize !== 0) z(`目录条目的声明大小不为 0：${name}`);
+    const raw = buf.subarray(dataAt, dataAt + cd.csize);
+    let data;
+    if (method === 0) data = raw;
+    else {
+      let consumed;
+      try {
+        const r = inflateRawSync(raw, { maxOutputLength: Math.min(cd.usize, budget) + 1, info: true });
+        data = r.buffer;
+        consumed = r.engine.bytesWritten;
+      } catch {
+        z(`解压失败或超过声明大小 / 64 MiB：${name}`);
       }
-      if (data.length !== cd.usize) z(`实际大小与声明不符：${name}`);
-      if (data.length > budget) z('累计解压超过 64 MiB');
-      budget -= data.length;
-      if (crc32(data) !== cd.crc) z(`CRC 不符：${name}`);
-      entries.push([rel, data]);
+      // 压缩数据必须恰好是一个完整的 deflate 流：最终块之后、csize 之内不得有多余字节
+      if (consumed !== raw.length) z(`deflate 流之后有多余字节：${name}`);
     }
+    if (data.length !== cd.usize) z(`实际大小与声明不符：${name}`);
+    if (data.length > budget) z('累计解压超过 64 MiB');
+    budget -= data.length;
+    if (crc32(data) !== cd.crc) z(`CRC 不符：${name}`);
+    if (!isDir) entries.push([rel, data]);
     at = next;
   }
   if (at !== cdOff) z('最后一个条目与中央目录之间有多余字节');
@@ -314,7 +328,8 @@ export function checkPackage(path, opts) {
       try {
         opts.readCoreIr(files.get('compiled/core.json').toString('utf8'));
       } catch (e) {
-        fail('ir', 'PKG_UNSUPPORTED_IR', `compiled/core.json 严格读入失败：${e.message}`);
+        // ir 阶段失败时仍带回已通过完整性校验的 manifest 与文件（inspect 不取 IR，verify 的前三项照常通过）
+        return { ok: false, stage: 'ir', code: 'PKG_UNSUPPORTED_IR', why: `compiled/core.json 严格读入失败：${e.message}`, files, manifest, signed };
       }
     }
     return { ok: true, files, manifest, signed };

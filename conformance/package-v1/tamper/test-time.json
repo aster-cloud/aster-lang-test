@@ -1,5 +1,5 @@
 {
-  "description": "运行时生成的体积类夹具（README「体积上限」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节；stdinRecipe：prefix + padding 个空格 + suffix。",
+  "description": "运行时生成的夹具（README「体积上限」「信任锚」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节（自动建父目录）；addDirs：建空目录；copyZip + appendZeros：复制 zip 后追加零字节；stdinRecipe：prefix + padding 个空格 + suffix。httpsServer：测试在 127.0.0.1 上起一个只用于本用例的 https 服务（自签名证书，CN / SAN 为 localhost 与 127.0.0.1），按 routes 应答（file：返回该文件；jwksPaddedTo：test-jwks.json 末尾补空格到恰好 N 字节；contentEncoding：gzip 压缩后返回并带该头；contentEncodingHeader：原样返回但带该头；location 中的 <PORT> 换成端口）；env 中的 <CA_PEM> 换成该自签名证书的 PEM 文件路径（ASTER_ANCHOR_CA_FILE 在系统信任库之上追加，仅供测试），代理变量故意指向不通的地址（v1 不使用代理）。全程离线。",
   "cases": [
     {
       "name": "dir-single-file-over-64MiB",
@@ -54,6 +54,4122 @@
       "code": "PKG_INTEGRITY"
     },
     {
+      "name": "dir-too-many-files",
+      "recipe": {
+        "copyPackage": "packages/b-credit-limit",
+        "add": [
+          {
+            "path": "extra/0000.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0001.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0002.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0003.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0004.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0005.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0006.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0007.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0008.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0009.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0010.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0011.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0012.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0013.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0014.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0015.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0016.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0017.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0018.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0019.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0020.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0021.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0022.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0023.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0024.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0025.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0026.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0027.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0028.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0029.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0030.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0031.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0032.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0033.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0034.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0035.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0036.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0037.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0038.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0039.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0040.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0041.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0042.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0043.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0044.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0045.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0046.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0047.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0048.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0049.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0050.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0051.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0052.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0053.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0054.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0055.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0056.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0057.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0058.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0059.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0060.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0061.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0062.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0063.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0064.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0065.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0066.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0067.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0068.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0069.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0070.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0071.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0072.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0073.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0074.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0075.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0076.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0077.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0078.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0079.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0080.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0081.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0082.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0083.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0084.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0085.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0086.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0087.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0088.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0089.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0090.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0091.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0092.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0093.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0094.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0095.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0096.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0097.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0098.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0099.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0100.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0101.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0102.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0103.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0104.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0105.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0106.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0107.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0108.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0109.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0110.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0111.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0112.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0113.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0114.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0115.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0116.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0117.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0118.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0119.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0120.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0121.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0122.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0123.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0124.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0125.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0126.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0127.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0128.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0129.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0130.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0131.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0132.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0133.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0134.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0135.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0136.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0137.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0138.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0139.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0140.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0141.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0142.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0143.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0144.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0145.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0146.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0147.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0148.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0149.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0150.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0151.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0152.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0153.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0154.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0155.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0156.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0157.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0158.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0159.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0160.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0161.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0162.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0163.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0164.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0165.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0166.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0167.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0168.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0169.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0170.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0171.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0172.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0173.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0174.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0175.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0176.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0177.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0178.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0179.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0180.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0181.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0182.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0183.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0184.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0185.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0186.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0187.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0188.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0189.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0190.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0191.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0192.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0193.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0194.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0195.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0196.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0197.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0198.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0199.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0200.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0201.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0202.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0203.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0204.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0205.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0206.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0207.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0208.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0209.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0210.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0211.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0212.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0213.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0214.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0215.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0216.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0217.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0218.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0219.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0220.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0221.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0222.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0223.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0224.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0225.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0226.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0227.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0228.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0229.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0230.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0231.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0232.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0233.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0234.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0235.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0236.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0237.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0238.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0239.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0240.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0241.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0242.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0243.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0244.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0245.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0246.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0247.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0248.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0249.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0250.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0251.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0252.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0253.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0254.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0255.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0256.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0257.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0258.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0259.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0260.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0261.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0262.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0263.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0264.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0265.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0266.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0267.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0268.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0269.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0270.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0271.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0272.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0273.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0274.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0275.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0276.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0277.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0278.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0279.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0280.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0281.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0282.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0283.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0284.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0285.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0286.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0287.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0288.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0289.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0290.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0291.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0292.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0293.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0294.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0295.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0296.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0297.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0298.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0299.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0300.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0301.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0302.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0303.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0304.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0305.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0306.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0307.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0308.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0309.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0310.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0311.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0312.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0313.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0314.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0315.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0316.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0317.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0318.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0319.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0320.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0321.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0322.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0323.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0324.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0325.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0326.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0327.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0328.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0329.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0330.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0331.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0332.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0333.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0334.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0335.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0336.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0337.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0338.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0339.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0340.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0341.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0342.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0343.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0344.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0345.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0346.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0347.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0348.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0349.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0350.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0351.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0352.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0353.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0354.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0355.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0356.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0357.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0358.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0359.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0360.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0361.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0362.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0363.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0364.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0365.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0366.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0367.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0368.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0369.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0370.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0371.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0372.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0373.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0374.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0375.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0376.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0377.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0378.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0379.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0380.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0381.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0382.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0383.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0384.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0385.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0386.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0387.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0388.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0389.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0390.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0391.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0392.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0393.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0394.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0395.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0396.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0397.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0398.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0399.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0400.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0401.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0402.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0403.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0404.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0405.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0406.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0407.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0408.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0409.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0410.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0411.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0412.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0413.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0414.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0415.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0416.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0417.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0418.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0419.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0420.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0421.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0422.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0423.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0424.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0425.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0426.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0427.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0428.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0429.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0430.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0431.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0432.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0433.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0434.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0435.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0436.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0437.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0438.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0439.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0440.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0441.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0442.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0443.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0444.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0445.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0446.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0447.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0448.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0449.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0450.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0451.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0452.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0453.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0454.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0455.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0456.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0457.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0458.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0459.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0460.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0461.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0462.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0463.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0464.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0465.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0466.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0467.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0468.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0469.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0470.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0471.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0472.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0473.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0474.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0475.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0476.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0477.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0478.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0479.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0480.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0481.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0482.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0483.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0484.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0485.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0486.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0487.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0488.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0489.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0490.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0491.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0492.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0493.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0494.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0495.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0496.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0497.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0498.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0499.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0500.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0501.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0502.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0503.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0504.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0505.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0506.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0507.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0508.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0509.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0510.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0511.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0512.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0513.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0514.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0515.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0516.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0517.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0518.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0519.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0520.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0521.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0522.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0523.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0524.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0525.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0526.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0527.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0528.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0529.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0530.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0531.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0532.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0533.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0534.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0535.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0536.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0537.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0538.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0539.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0540.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0541.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0542.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0543.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0544.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0545.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0546.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0547.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0548.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0549.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0550.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0551.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0552.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0553.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0554.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0555.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0556.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0557.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0558.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0559.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0560.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0561.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0562.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0563.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0564.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0565.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0566.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0567.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0568.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0569.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0570.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0571.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0572.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0573.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0574.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0575.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0576.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0577.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0578.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0579.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0580.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0581.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0582.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0583.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0584.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0585.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0586.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0587.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0588.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0589.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0590.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0591.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0592.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0593.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0594.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0595.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0596.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0597.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0598.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0599.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0600.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0601.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0602.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0603.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0604.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0605.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0606.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0607.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0608.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0609.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0610.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0611.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0612.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0613.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0614.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0615.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0616.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0617.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0618.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0619.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0620.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0621.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0622.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0623.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0624.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0625.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0626.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0627.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0628.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0629.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0630.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0631.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0632.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0633.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0634.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0635.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0636.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0637.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0638.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0639.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0640.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0641.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0642.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0643.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0644.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0645.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0646.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0647.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0648.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0649.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0650.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0651.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0652.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0653.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0654.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0655.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0656.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0657.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0658.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0659.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0660.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0661.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0662.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0663.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0664.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0665.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0666.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0667.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0668.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0669.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0670.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0671.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0672.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0673.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0674.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0675.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0676.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0677.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0678.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0679.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0680.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0681.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0682.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0683.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0684.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0685.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0686.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0687.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0688.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0689.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0690.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0691.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0692.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0693.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0694.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0695.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0696.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0697.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0698.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0699.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0700.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0701.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0702.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0703.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0704.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0705.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0706.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0707.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0708.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0709.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0710.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0711.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0712.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0713.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0714.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0715.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0716.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0717.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0718.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0719.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0720.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0721.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0722.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0723.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0724.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0725.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0726.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0727.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0728.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0729.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0730.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0731.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0732.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0733.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0734.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0735.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0736.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0737.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0738.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0739.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0740.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0741.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0742.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0743.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0744.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0745.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0746.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0747.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0748.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0749.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0750.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0751.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0752.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0753.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0754.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0755.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0756.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0757.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0758.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0759.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0760.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0761.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0762.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0763.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0764.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0765.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0766.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0767.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0768.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0769.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0770.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0771.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0772.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0773.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0774.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0775.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0776.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0777.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0778.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0779.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0780.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0781.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0782.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0783.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0784.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0785.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0786.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0787.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0788.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0789.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0790.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0791.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0792.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0793.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0794.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0795.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0796.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0797.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0798.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0799.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0800.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0801.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0802.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0803.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0804.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0805.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0806.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0807.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0808.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0809.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0810.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0811.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0812.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0813.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0814.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0815.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0816.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0817.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0818.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0819.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0820.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0821.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0822.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0823.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0824.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0825.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0826.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0827.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0828.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0829.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0830.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0831.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0832.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0833.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0834.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0835.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0836.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0837.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0838.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0839.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0840.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0841.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0842.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0843.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0844.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0845.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0846.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0847.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0848.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0849.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0850.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0851.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0852.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0853.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0854.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0855.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0856.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0857.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0858.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0859.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0860.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0861.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0862.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0863.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0864.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0865.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0866.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0867.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0868.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0869.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0870.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0871.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0872.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0873.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0874.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0875.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0876.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0877.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0878.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0879.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0880.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0881.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0882.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0883.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0884.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0885.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0886.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0887.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0888.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0889.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0890.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0891.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0892.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0893.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0894.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0895.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0896.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0897.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0898.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0899.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0900.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0901.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0902.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0903.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0904.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0905.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0906.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0907.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0908.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0909.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0910.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0911.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0912.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0913.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0914.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0915.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0916.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0917.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0918.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0919.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0920.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0921.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0922.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0923.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0924.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0925.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0926.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0927.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0928.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0929.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0930.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0931.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0932.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0933.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0934.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0935.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0936.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0937.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0938.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0939.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0940.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0941.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0942.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0943.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0944.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0945.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0946.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0947.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0948.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0949.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0950.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0951.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0952.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0953.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0954.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0955.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0956.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0957.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0958.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0959.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0960.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0961.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0962.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0963.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0964.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0965.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0966.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0967.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0968.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0969.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0970.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0971.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0972.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0973.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0974.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0975.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0976.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0977.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0978.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0979.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0980.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0981.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0982.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0983.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0984.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0985.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0986.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0987.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0988.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0989.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0990.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0991.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0992.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0993.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0994.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0995.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0996.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0997.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0998.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/0999.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1000.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1001.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1002.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1003.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1004.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1005.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1006.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1007.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1008.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1009.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1010.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1011.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1012.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1013.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1014.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1015.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1016.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1017.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1018.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1019.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1020.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1021.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1022.txt",
+            "size": 0
+          },
+          {
+            "path": "extra/1023.txt",
+            "size": 0
+          }
+        ]
+      },
+      "args": [
+        "run",
+        "<PKG>",
+        "--input",
+        "-",
+        "--jwks",
+        "<PACKAGE_V1>/keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
       "name": "zip-file-over-64MiB",
       "recipe": {
         "copyZip": "packages/b-credit-limit.zip",
@@ -71,6 +4187,2718 @@
       "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "dir-depth-over-32",
+      "recipe": {
+        "copyPackage": "packages/b-credit-limit",
+        "add": [
+          {
+            "path": "d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/x.txt",
+            "size": 0
+          }
+        ]
+      },
+      "args": [
+        "run",
+        "<PKG>",
+        "--input",
+        "-",
+        "--jwks",
+        "<PACKAGE_V1>/keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "dir-depth-32-passes-read",
+      "recipe": {
+        "copyPackage": "packages/b-credit-limit",
+        "add": [
+          {
+            "path": "d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/d/x.txt",
+            "size": 0
+          }
+        ]
+      },
+      "args": [
+        "run",
+        "<PKG>",
+        "--input",
+        "-",
+        "--jwks",
+        "<PACKAGE_V1>/keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "dir-too-many-directories",
+      "recipe": {
+        "copyPackage": "packages/b-credit-limit",
+        "add": [],
+        "addDirs": [
+          "e/0000",
+          "e/0001",
+          "e/0002",
+          "e/0003",
+          "e/0004",
+          "e/0005",
+          "e/0006",
+          "e/0007",
+          "e/0008",
+          "e/0009",
+          "e/0010",
+          "e/0011",
+          "e/0012",
+          "e/0013",
+          "e/0014",
+          "e/0015",
+          "e/0016",
+          "e/0017",
+          "e/0018",
+          "e/0019",
+          "e/0020",
+          "e/0021",
+          "e/0022",
+          "e/0023",
+          "e/0024",
+          "e/0025",
+          "e/0026",
+          "e/0027",
+          "e/0028",
+          "e/0029",
+          "e/0030",
+          "e/0031",
+          "e/0032",
+          "e/0033",
+          "e/0034",
+          "e/0035",
+          "e/0036",
+          "e/0037",
+          "e/0038",
+          "e/0039",
+          "e/0040",
+          "e/0041",
+          "e/0042",
+          "e/0043",
+          "e/0044",
+          "e/0045",
+          "e/0046",
+          "e/0047",
+          "e/0048",
+          "e/0049",
+          "e/0050",
+          "e/0051",
+          "e/0052",
+          "e/0053",
+          "e/0054",
+          "e/0055",
+          "e/0056",
+          "e/0057",
+          "e/0058",
+          "e/0059",
+          "e/0060",
+          "e/0061",
+          "e/0062",
+          "e/0063",
+          "e/0064",
+          "e/0065",
+          "e/0066",
+          "e/0067",
+          "e/0068",
+          "e/0069",
+          "e/0070",
+          "e/0071",
+          "e/0072",
+          "e/0073",
+          "e/0074",
+          "e/0075",
+          "e/0076",
+          "e/0077",
+          "e/0078",
+          "e/0079",
+          "e/0080",
+          "e/0081",
+          "e/0082",
+          "e/0083",
+          "e/0084",
+          "e/0085",
+          "e/0086",
+          "e/0087",
+          "e/0088",
+          "e/0089",
+          "e/0090",
+          "e/0091",
+          "e/0092",
+          "e/0093",
+          "e/0094",
+          "e/0095",
+          "e/0096",
+          "e/0097",
+          "e/0098",
+          "e/0099",
+          "e/0100",
+          "e/0101",
+          "e/0102",
+          "e/0103",
+          "e/0104",
+          "e/0105",
+          "e/0106",
+          "e/0107",
+          "e/0108",
+          "e/0109",
+          "e/0110",
+          "e/0111",
+          "e/0112",
+          "e/0113",
+          "e/0114",
+          "e/0115",
+          "e/0116",
+          "e/0117",
+          "e/0118",
+          "e/0119",
+          "e/0120",
+          "e/0121",
+          "e/0122",
+          "e/0123",
+          "e/0124",
+          "e/0125",
+          "e/0126",
+          "e/0127",
+          "e/0128",
+          "e/0129",
+          "e/0130",
+          "e/0131",
+          "e/0132",
+          "e/0133",
+          "e/0134",
+          "e/0135",
+          "e/0136",
+          "e/0137",
+          "e/0138",
+          "e/0139",
+          "e/0140",
+          "e/0141",
+          "e/0142",
+          "e/0143",
+          "e/0144",
+          "e/0145",
+          "e/0146",
+          "e/0147",
+          "e/0148",
+          "e/0149",
+          "e/0150",
+          "e/0151",
+          "e/0152",
+          "e/0153",
+          "e/0154",
+          "e/0155",
+          "e/0156",
+          "e/0157",
+          "e/0158",
+          "e/0159",
+          "e/0160",
+          "e/0161",
+          "e/0162",
+          "e/0163",
+          "e/0164",
+          "e/0165",
+          "e/0166",
+          "e/0167",
+          "e/0168",
+          "e/0169",
+          "e/0170",
+          "e/0171",
+          "e/0172",
+          "e/0173",
+          "e/0174",
+          "e/0175",
+          "e/0176",
+          "e/0177",
+          "e/0178",
+          "e/0179",
+          "e/0180",
+          "e/0181",
+          "e/0182",
+          "e/0183",
+          "e/0184",
+          "e/0185",
+          "e/0186",
+          "e/0187",
+          "e/0188",
+          "e/0189",
+          "e/0190",
+          "e/0191",
+          "e/0192",
+          "e/0193",
+          "e/0194",
+          "e/0195",
+          "e/0196",
+          "e/0197",
+          "e/0198",
+          "e/0199",
+          "e/0200",
+          "e/0201",
+          "e/0202",
+          "e/0203",
+          "e/0204",
+          "e/0205",
+          "e/0206",
+          "e/0207",
+          "e/0208",
+          "e/0209",
+          "e/0210",
+          "e/0211",
+          "e/0212",
+          "e/0213",
+          "e/0214",
+          "e/0215",
+          "e/0216",
+          "e/0217",
+          "e/0218",
+          "e/0219",
+          "e/0220",
+          "e/0221",
+          "e/0222",
+          "e/0223",
+          "e/0224",
+          "e/0225",
+          "e/0226",
+          "e/0227",
+          "e/0228",
+          "e/0229",
+          "e/0230",
+          "e/0231",
+          "e/0232",
+          "e/0233",
+          "e/0234",
+          "e/0235",
+          "e/0236",
+          "e/0237",
+          "e/0238",
+          "e/0239",
+          "e/0240",
+          "e/0241",
+          "e/0242",
+          "e/0243",
+          "e/0244",
+          "e/0245",
+          "e/0246",
+          "e/0247",
+          "e/0248",
+          "e/0249",
+          "e/0250",
+          "e/0251",
+          "e/0252",
+          "e/0253",
+          "e/0254",
+          "e/0255",
+          "e/0256",
+          "e/0257",
+          "e/0258",
+          "e/0259",
+          "e/0260",
+          "e/0261",
+          "e/0262",
+          "e/0263",
+          "e/0264",
+          "e/0265",
+          "e/0266",
+          "e/0267",
+          "e/0268",
+          "e/0269",
+          "e/0270",
+          "e/0271",
+          "e/0272",
+          "e/0273",
+          "e/0274",
+          "e/0275",
+          "e/0276",
+          "e/0277",
+          "e/0278",
+          "e/0279",
+          "e/0280",
+          "e/0281",
+          "e/0282",
+          "e/0283",
+          "e/0284",
+          "e/0285",
+          "e/0286",
+          "e/0287",
+          "e/0288",
+          "e/0289",
+          "e/0290",
+          "e/0291",
+          "e/0292",
+          "e/0293",
+          "e/0294",
+          "e/0295",
+          "e/0296",
+          "e/0297",
+          "e/0298",
+          "e/0299",
+          "e/0300",
+          "e/0301",
+          "e/0302",
+          "e/0303",
+          "e/0304",
+          "e/0305",
+          "e/0306",
+          "e/0307",
+          "e/0308",
+          "e/0309",
+          "e/0310",
+          "e/0311",
+          "e/0312",
+          "e/0313",
+          "e/0314",
+          "e/0315",
+          "e/0316",
+          "e/0317",
+          "e/0318",
+          "e/0319",
+          "e/0320",
+          "e/0321",
+          "e/0322",
+          "e/0323",
+          "e/0324",
+          "e/0325",
+          "e/0326",
+          "e/0327",
+          "e/0328",
+          "e/0329",
+          "e/0330",
+          "e/0331",
+          "e/0332",
+          "e/0333",
+          "e/0334",
+          "e/0335",
+          "e/0336",
+          "e/0337",
+          "e/0338",
+          "e/0339",
+          "e/0340",
+          "e/0341",
+          "e/0342",
+          "e/0343",
+          "e/0344",
+          "e/0345",
+          "e/0346",
+          "e/0347",
+          "e/0348",
+          "e/0349",
+          "e/0350",
+          "e/0351",
+          "e/0352",
+          "e/0353",
+          "e/0354",
+          "e/0355",
+          "e/0356",
+          "e/0357",
+          "e/0358",
+          "e/0359",
+          "e/0360",
+          "e/0361",
+          "e/0362",
+          "e/0363",
+          "e/0364",
+          "e/0365",
+          "e/0366",
+          "e/0367",
+          "e/0368",
+          "e/0369",
+          "e/0370",
+          "e/0371",
+          "e/0372",
+          "e/0373",
+          "e/0374",
+          "e/0375",
+          "e/0376",
+          "e/0377",
+          "e/0378",
+          "e/0379",
+          "e/0380",
+          "e/0381",
+          "e/0382",
+          "e/0383",
+          "e/0384",
+          "e/0385",
+          "e/0386",
+          "e/0387",
+          "e/0388",
+          "e/0389",
+          "e/0390",
+          "e/0391",
+          "e/0392",
+          "e/0393",
+          "e/0394",
+          "e/0395",
+          "e/0396",
+          "e/0397",
+          "e/0398",
+          "e/0399",
+          "e/0400",
+          "e/0401",
+          "e/0402",
+          "e/0403",
+          "e/0404",
+          "e/0405",
+          "e/0406",
+          "e/0407",
+          "e/0408",
+          "e/0409",
+          "e/0410",
+          "e/0411",
+          "e/0412",
+          "e/0413",
+          "e/0414",
+          "e/0415",
+          "e/0416",
+          "e/0417",
+          "e/0418",
+          "e/0419",
+          "e/0420",
+          "e/0421",
+          "e/0422",
+          "e/0423",
+          "e/0424",
+          "e/0425",
+          "e/0426",
+          "e/0427",
+          "e/0428",
+          "e/0429",
+          "e/0430",
+          "e/0431",
+          "e/0432",
+          "e/0433",
+          "e/0434",
+          "e/0435",
+          "e/0436",
+          "e/0437",
+          "e/0438",
+          "e/0439",
+          "e/0440",
+          "e/0441",
+          "e/0442",
+          "e/0443",
+          "e/0444",
+          "e/0445",
+          "e/0446",
+          "e/0447",
+          "e/0448",
+          "e/0449",
+          "e/0450",
+          "e/0451",
+          "e/0452",
+          "e/0453",
+          "e/0454",
+          "e/0455",
+          "e/0456",
+          "e/0457",
+          "e/0458",
+          "e/0459",
+          "e/0460",
+          "e/0461",
+          "e/0462",
+          "e/0463",
+          "e/0464",
+          "e/0465",
+          "e/0466",
+          "e/0467",
+          "e/0468",
+          "e/0469",
+          "e/0470",
+          "e/0471",
+          "e/0472",
+          "e/0473",
+          "e/0474",
+          "e/0475",
+          "e/0476",
+          "e/0477",
+          "e/0478",
+          "e/0479",
+          "e/0480",
+          "e/0481",
+          "e/0482",
+          "e/0483",
+          "e/0484",
+          "e/0485",
+          "e/0486",
+          "e/0487",
+          "e/0488",
+          "e/0489",
+          "e/0490",
+          "e/0491",
+          "e/0492",
+          "e/0493",
+          "e/0494",
+          "e/0495",
+          "e/0496",
+          "e/0497",
+          "e/0498",
+          "e/0499",
+          "e/0500",
+          "e/0501",
+          "e/0502",
+          "e/0503",
+          "e/0504",
+          "e/0505",
+          "e/0506",
+          "e/0507",
+          "e/0508",
+          "e/0509",
+          "e/0510",
+          "e/0511",
+          "e/0512",
+          "e/0513",
+          "e/0514",
+          "e/0515",
+          "e/0516",
+          "e/0517",
+          "e/0518",
+          "e/0519",
+          "e/0520",
+          "e/0521",
+          "e/0522",
+          "e/0523",
+          "e/0524",
+          "e/0525",
+          "e/0526",
+          "e/0527",
+          "e/0528",
+          "e/0529",
+          "e/0530",
+          "e/0531",
+          "e/0532",
+          "e/0533",
+          "e/0534",
+          "e/0535",
+          "e/0536",
+          "e/0537",
+          "e/0538",
+          "e/0539",
+          "e/0540",
+          "e/0541",
+          "e/0542",
+          "e/0543",
+          "e/0544",
+          "e/0545",
+          "e/0546",
+          "e/0547",
+          "e/0548",
+          "e/0549",
+          "e/0550",
+          "e/0551",
+          "e/0552",
+          "e/0553",
+          "e/0554",
+          "e/0555",
+          "e/0556",
+          "e/0557",
+          "e/0558",
+          "e/0559",
+          "e/0560",
+          "e/0561",
+          "e/0562",
+          "e/0563",
+          "e/0564",
+          "e/0565",
+          "e/0566",
+          "e/0567",
+          "e/0568",
+          "e/0569",
+          "e/0570",
+          "e/0571",
+          "e/0572",
+          "e/0573",
+          "e/0574",
+          "e/0575",
+          "e/0576",
+          "e/0577",
+          "e/0578",
+          "e/0579",
+          "e/0580",
+          "e/0581",
+          "e/0582",
+          "e/0583",
+          "e/0584",
+          "e/0585",
+          "e/0586",
+          "e/0587",
+          "e/0588",
+          "e/0589",
+          "e/0590",
+          "e/0591",
+          "e/0592",
+          "e/0593",
+          "e/0594",
+          "e/0595",
+          "e/0596",
+          "e/0597",
+          "e/0598",
+          "e/0599",
+          "e/0600",
+          "e/0601",
+          "e/0602",
+          "e/0603",
+          "e/0604",
+          "e/0605",
+          "e/0606",
+          "e/0607",
+          "e/0608",
+          "e/0609",
+          "e/0610",
+          "e/0611",
+          "e/0612",
+          "e/0613",
+          "e/0614",
+          "e/0615",
+          "e/0616",
+          "e/0617",
+          "e/0618",
+          "e/0619",
+          "e/0620",
+          "e/0621",
+          "e/0622",
+          "e/0623",
+          "e/0624",
+          "e/0625",
+          "e/0626",
+          "e/0627",
+          "e/0628",
+          "e/0629",
+          "e/0630",
+          "e/0631",
+          "e/0632",
+          "e/0633",
+          "e/0634",
+          "e/0635",
+          "e/0636",
+          "e/0637",
+          "e/0638",
+          "e/0639",
+          "e/0640",
+          "e/0641",
+          "e/0642",
+          "e/0643",
+          "e/0644",
+          "e/0645",
+          "e/0646",
+          "e/0647",
+          "e/0648",
+          "e/0649",
+          "e/0650",
+          "e/0651",
+          "e/0652",
+          "e/0653",
+          "e/0654",
+          "e/0655",
+          "e/0656",
+          "e/0657",
+          "e/0658",
+          "e/0659",
+          "e/0660",
+          "e/0661",
+          "e/0662",
+          "e/0663",
+          "e/0664",
+          "e/0665",
+          "e/0666",
+          "e/0667",
+          "e/0668",
+          "e/0669",
+          "e/0670",
+          "e/0671",
+          "e/0672",
+          "e/0673",
+          "e/0674",
+          "e/0675",
+          "e/0676",
+          "e/0677",
+          "e/0678",
+          "e/0679",
+          "e/0680",
+          "e/0681",
+          "e/0682",
+          "e/0683",
+          "e/0684",
+          "e/0685",
+          "e/0686",
+          "e/0687",
+          "e/0688",
+          "e/0689",
+          "e/0690",
+          "e/0691",
+          "e/0692",
+          "e/0693",
+          "e/0694",
+          "e/0695",
+          "e/0696",
+          "e/0697",
+          "e/0698",
+          "e/0699",
+          "e/0700",
+          "e/0701",
+          "e/0702",
+          "e/0703",
+          "e/0704",
+          "e/0705",
+          "e/0706",
+          "e/0707",
+          "e/0708",
+          "e/0709",
+          "e/0710",
+          "e/0711",
+          "e/0712",
+          "e/0713",
+          "e/0714",
+          "e/0715",
+          "e/0716",
+          "e/0717",
+          "e/0718",
+          "e/0719",
+          "e/0720",
+          "e/0721",
+          "e/0722",
+          "e/0723",
+          "e/0724",
+          "e/0725",
+          "e/0726",
+          "e/0727",
+          "e/0728",
+          "e/0729",
+          "e/0730",
+          "e/0731",
+          "e/0732",
+          "e/0733",
+          "e/0734",
+          "e/0735",
+          "e/0736",
+          "e/0737",
+          "e/0738",
+          "e/0739",
+          "e/0740",
+          "e/0741",
+          "e/0742",
+          "e/0743",
+          "e/0744",
+          "e/0745",
+          "e/0746",
+          "e/0747",
+          "e/0748",
+          "e/0749",
+          "e/0750",
+          "e/0751",
+          "e/0752",
+          "e/0753",
+          "e/0754",
+          "e/0755",
+          "e/0756",
+          "e/0757",
+          "e/0758",
+          "e/0759",
+          "e/0760",
+          "e/0761",
+          "e/0762",
+          "e/0763",
+          "e/0764",
+          "e/0765",
+          "e/0766",
+          "e/0767",
+          "e/0768",
+          "e/0769",
+          "e/0770",
+          "e/0771",
+          "e/0772",
+          "e/0773",
+          "e/0774",
+          "e/0775",
+          "e/0776",
+          "e/0777",
+          "e/0778",
+          "e/0779",
+          "e/0780",
+          "e/0781",
+          "e/0782",
+          "e/0783",
+          "e/0784",
+          "e/0785",
+          "e/0786",
+          "e/0787",
+          "e/0788",
+          "e/0789",
+          "e/0790",
+          "e/0791",
+          "e/0792",
+          "e/0793",
+          "e/0794",
+          "e/0795",
+          "e/0796",
+          "e/0797",
+          "e/0798",
+          "e/0799",
+          "e/0800",
+          "e/0801",
+          "e/0802",
+          "e/0803",
+          "e/0804",
+          "e/0805",
+          "e/0806",
+          "e/0807",
+          "e/0808",
+          "e/0809",
+          "e/0810",
+          "e/0811",
+          "e/0812",
+          "e/0813",
+          "e/0814",
+          "e/0815",
+          "e/0816",
+          "e/0817",
+          "e/0818",
+          "e/0819",
+          "e/0820",
+          "e/0821",
+          "e/0822",
+          "e/0823",
+          "e/0824",
+          "e/0825",
+          "e/0826",
+          "e/0827",
+          "e/0828",
+          "e/0829",
+          "e/0830",
+          "e/0831",
+          "e/0832",
+          "e/0833",
+          "e/0834",
+          "e/0835",
+          "e/0836",
+          "e/0837",
+          "e/0838",
+          "e/0839",
+          "e/0840",
+          "e/0841",
+          "e/0842",
+          "e/0843",
+          "e/0844",
+          "e/0845",
+          "e/0846",
+          "e/0847",
+          "e/0848",
+          "e/0849",
+          "e/0850",
+          "e/0851",
+          "e/0852",
+          "e/0853",
+          "e/0854",
+          "e/0855",
+          "e/0856",
+          "e/0857",
+          "e/0858",
+          "e/0859",
+          "e/0860",
+          "e/0861",
+          "e/0862",
+          "e/0863",
+          "e/0864",
+          "e/0865",
+          "e/0866",
+          "e/0867",
+          "e/0868",
+          "e/0869",
+          "e/0870",
+          "e/0871",
+          "e/0872",
+          "e/0873",
+          "e/0874",
+          "e/0875",
+          "e/0876",
+          "e/0877",
+          "e/0878",
+          "e/0879",
+          "e/0880",
+          "e/0881",
+          "e/0882",
+          "e/0883",
+          "e/0884",
+          "e/0885",
+          "e/0886",
+          "e/0887",
+          "e/0888",
+          "e/0889",
+          "e/0890",
+          "e/0891",
+          "e/0892",
+          "e/0893",
+          "e/0894",
+          "e/0895",
+          "e/0896",
+          "e/0897",
+          "e/0898",
+          "e/0899",
+          "e/0900",
+          "e/0901",
+          "e/0902",
+          "e/0903",
+          "e/0904",
+          "e/0905",
+          "e/0906",
+          "e/0907",
+          "e/0908",
+          "e/0909",
+          "e/0910",
+          "e/0911",
+          "e/0912",
+          "e/0913",
+          "e/0914",
+          "e/0915",
+          "e/0916",
+          "e/0917",
+          "e/0918",
+          "e/0919",
+          "e/0920",
+          "e/0921",
+          "e/0922",
+          "e/0923",
+          "e/0924",
+          "e/0925",
+          "e/0926",
+          "e/0927",
+          "e/0928",
+          "e/0929",
+          "e/0930",
+          "e/0931",
+          "e/0932",
+          "e/0933",
+          "e/0934",
+          "e/0935",
+          "e/0936",
+          "e/0937",
+          "e/0938",
+          "e/0939",
+          "e/0940",
+          "e/0941",
+          "e/0942",
+          "e/0943",
+          "e/0944",
+          "e/0945",
+          "e/0946",
+          "e/0947",
+          "e/0948",
+          "e/0949",
+          "e/0950",
+          "e/0951",
+          "e/0952",
+          "e/0953",
+          "e/0954",
+          "e/0955",
+          "e/0956",
+          "e/0957",
+          "e/0958",
+          "e/0959",
+          "e/0960",
+          "e/0961",
+          "e/0962",
+          "e/0963",
+          "e/0964",
+          "e/0965",
+          "e/0966",
+          "e/0967",
+          "e/0968",
+          "e/0969",
+          "e/0970",
+          "e/0971",
+          "e/0972",
+          "e/0973",
+          "e/0974",
+          "e/0975",
+          "e/0976",
+          "e/0977",
+          "e/0978",
+          "e/0979",
+          "e/0980",
+          "e/0981",
+          "e/0982",
+          "e/0983",
+          "e/0984",
+          "e/0985",
+          "e/0986",
+          "e/0987",
+          "e/0988",
+          "e/0989",
+          "e/0990",
+          "e/0991",
+          "e/0992",
+          "e/0993",
+          "e/0994",
+          "e/0995",
+          "e/0996",
+          "e/0997",
+          "e/0998",
+          "e/0999",
+          "e/1000",
+          "e/1001",
+          "e/1002",
+          "e/1003",
+          "e/1004",
+          "e/1005",
+          "e/1006",
+          "e/1007",
+          "e/1008",
+          "e/1009",
+          "e/1010",
+          "e/1011",
+          "e/1012",
+          "e/1013",
+          "e/1014",
+          "e/1015",
+          "e/1016",
+          "e/1017",
+          "e/1018",
+          "e/1019",
+          "e/1020",
+          "e/1021",
+          "e/1022",
+          "e/1023"
+        ]
+      },
+      "args": [
+        "run",
+        "<PKG>",
+        "--input",
+        "-",
+        "--jwks",
+        "<PACKAGE_V1>/keys/test-jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INTEGRITY\",\"message\":\"package integrity check failed\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_INTEGRITY"
+    },
+    {
+      "name": "https-jwks-trusted-via-test-ca",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-untrusted-certificate",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": ""
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/jwks.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-three-redirects-ok",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/r3a"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-four-redirects",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/r4a"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-redirect-308-ok",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/r308"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-status-300-is-not-a-redirect",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/r300"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-relative-location-ok",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/rel/a"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-absolute-location-ok",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/abs"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-redirect-to-http",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/to-http"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-response-1MiB-ok",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/exact-1MiB.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-response-over-1MiB",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/over-1MiB.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-content-encoding-gzip",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/gzip"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-content-encoding-identity-ok",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/identity"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-404",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/missing"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-not-json",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/not-json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
     },
     {
       "name": "input-over-16MiB",

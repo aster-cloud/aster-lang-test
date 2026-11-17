@@ -6,7 +6,7 @@
  * 结构与规则的说明在 conformance/package-v1/README.md；这里的注释只解释实现上的取舍。
  */
 import { createHash } from 'node:crypto';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { canonicalJson } from './canonical.mjs';
 import { parseValueTree, valueJson, bitsOfDouble, doubleFromBits } from './value-json.mjs';
@@ -244,14 +244,22 @@ function probesFile(def) {
   const probes = def.probes.map((p, i) => {
     const exp = def.expected.probes[i];
     if (!exp || (exp.value === undefined && exp.error === undefined)) throw new Error(`${def.name}: probes[${i}] 缺少采集的期望值（先跑 --capture）`);
+    let expected;
     // 期望求值失败的探针（只允许 EVAL_ERROR；超时与资源耗尽不在承诺内，P2 生成时丢弃这类探针）
     if (exp.error !== undefined) {
       if (p.expect !== 'EVAL_ERROR') throw new Error(`${def.name}: probes[${i}] 在平台上失败但未声明 expect:"EVAL_ERROR"`);
-      return `{"entry":${canonicalJson(p.entry)},"expected":{"code":"EVAL_ERROR","ok":false},"input":${inputJson(p.input)}}`;
+      expected = '{"code":"EVAL_ERROR","ok":false}';
+    } else {
+      let value = exp.value;
+      if (def.corruptProbe && def.corruptProbe.index === i) value = valueJson(def.corruptProbe.value);
+      expected = `{"ok":true,"value":${value}}`;
     }
-    let value = exp.value;
-    if (def.corruptProbe && def.corruptProbe.index === i) value = valueJson(def.corruptProbe.value);
-    return `{"entry":${canonicalJson(p.entry)},"expected":{"ok":true,"value":${value}},"input":${inputJson(p.input)}}`;
+    // probeEdits：派生夹具改坏某条探针的入口、输入或期望形状（verify --probes 一律 PROBE_MISMATCH）
+    const edit = (def.probeEdits ?? []).find((e) => e.index === i) ?? {};
+    const entry = edit.entry ?? p.entry;
+    const input = edit.input !== undefined ? edit.input : p.input;
+    if (edit.expectedRaw !== undefined) expected = edit.expectedRaw;
+    return `{"entry":${canonicalJson(entry)},"expected":${expected},"input":${inputJson(input)}}`;
   });
   return utf8(`{"probes":[${probes.join(',')}]}`);
 }
@@ -465,7 +473,7 @@ export function verifyOutput(pkg, flags, failure, exitCodes) {
   }
   if (flags.includes('--probes')) {
     if (irFails('probes')) return fail('probes', failure.code);
-    if (pkg.def.corruptProbe) return fail('probes', 'PROBE_MISMATCH');
+    if (pkg.def.corruptProbe || pkg.def.probeEdits) return fail('probes', 'PROBE_MISMATCH');
     checks.push({ name: 'probes', ok: true });
   }
   return done(true, null);
@@ -682,6 +690,21 @@ function malformedZip(base, kind, pkgs) {
       return writeZip([...entries, { name: '../x', data: utf8('x') }]);
     case 'root-dotdot':
       return writeZip([...entries, { name: `${root}/../x`, data: utf8('x') }]);
+    case 'too-many-entries': {
+      // 中央目录条目（含目录条目）超过 1024：在解压任何条目之前即拒绝
+      const extra = [];
+      for (let i = 0; extra.length + entries.length <= 1024; i++) extra.push({ name: `${root}/extra/${String(i).padStart(4, '0')}.txt`, data: Buffer.alloc(0) });
+      return writeZip(sorted([...entries, ...extra]));
+    }
+    case 'root-double-slash':
+      // 去掉根与末尾 / 之后为空、但不是根目录条目本身
+      return writeZip(sorted([...entries, { name: `${root}//`, directory: true }]));
+    case 'dir-entry-bad-crc':
+      // 存储的目录条目：无数据、声明大小 0，但 crc 不是空数据的 CRC-32（0）
+      return writeZip(entries.map((e) => (e.name === `${root}/policy/` ? { ...e, crc: 0x1234abcd } : e)));
+    case 'dir-entry-with-data':
+      // 目录条目带 1 字节数据（声明大小与 CRC 都与该数据一致），违反「目录条目大小为 0」
+      return writeZip(entries.map((e) => (e.name === `${root}/policy/` ? { ...e, dirData: utf8('x') } : e)));
     case 'dir-entry-dotdot':
       return writeZip([...entries, { name: `${root}/../`, directory: true }]);
     case 'absolute':
@@ -855,11 +878,16 @@ export function tamperTarget(t) {
  * 篡改用例：每个夹具 run、verify、inspect 各一条（全部在求值之前失败；ir 阶段的夹具 verify / inspect 照常通过，
  * 另加 verify --recompile 与 verify --probes 两条）。stdin 用 base 第一个成功 run 用例的输入。
  */
-export function tamperCases(t, pkgs, exitCodes) {
+export function tamperCases(t, pkgs, exitCodes, built) {
   const base = pkgs.get(t.base);
+  // 期望输出一律由**篡改后**的包推导（manifest、文件、签名状态）：目录形态的篡改夹具 buildTamper 返回完整的包视图；
+  // zip 与不存在的路径都在 read / manifest 阶段失败，输出不依赖 manifest 内容，退回 base 只为取入口与输入。
+  if (!built) throw new Error(`${t.name}: tamperCases 需要 buildTamper 的结果`);
+  const pkg = built.kind === 'dir' ? built : base;
   const target = tamperTarget(t);
   const firstRun = base.def.cases.find((c) => c.command === 'run' && typeof c.expect === 'string');
   const failure = { stage: t.stage ?? DEFAULT_STAGE[t.code], code: t.code, failsIn: t.failsIn };
+  if (failure.stage === 'ir' && !Array.isArray(t.failsIn)) throw new Error(`${t.name}: ir 阶段的篡改夹具必须用 failsIn 列出在哪些 verify 检查项中失败`);
   const extra = t.args ?? [];
   const anchor = ['--jwks', ANCHOR_JWKS];
   const allowUnsigned = extra.includes('--allow-unsigned');
@@ -869,13 +897,13 @@ export function tamperCases(t, pkgs, exitCodes) {
     if (stdin !== undefined) row.stdin = stdin;
     rows.push(Object.assign(row, { expectedStdout: out.stdout, expectedExit: out.exit, code: out.code }));
   };
-  const runMetaFor = runMeta(base, failure.stage, { entry: entryOf(extra, base.def), allowUnsigned });
+  const runMetaFor = runMeta(pkg, failure.stage, { entry: entryOf(extra, pkg.def), allowUnsigned });
   push(t.name, 'run', [...extra, '--input', '-'], errorOut(t.code, runMetaFor, exitCodes), inputJson(firstRun.input));
-  push(`${t.name} (verify)`, 'verify', extra, verifyOutput(base, extra, failure, exitCodes));
-  push(`${t.name} (inspect)`, 'inspect', extra, inspectOutput(base, extra, failure, exitCodes));
+  push(`${t.name} (verify)`, 'verify', extra, verifyOutput(pkg, extra, failure, exitCodes));
+  push(`${t.name} (inspect)`, 'inspect', extra, inspectOutput(pkg, extra, failure, exitCodes));
   if (failure.stage === 'ir') {
-    push(`${t.name} (verify --recompile)`, 'verify', [...extra, '--recompile'], verifyOutput(base, [...extra, '--recompile'], failure, exitCodes));
-    push(`${t.name} (verify --probes)`, 'verify', [...extra, '--probes'], verifyOutput(base, [...extra, '--probes'], failure, exitCodes));
+    push(`${t.name} (verify --recompile)`, 'verify', [...extra, '--recompile'], verifyOutput(pkg, [...extra, '--recompile'], failure, exitCodes));
+    push(`${t.name} (verify --probes)`, 'verify', [...extra, '--probes'], verifyOutput(pkg, [...extra, '--probes'], failure, exitCodes));
   }
   return rows;
 }
@@ -1134,6 +1162,9 @@ export { jsonFile };
  * anchors/：信任锚夹具（相对 packages/ 为 ../anchors/）。合法：单个 JWK（带 / 不带 kid）。非法（一律 USAGE）：
  * JWKS 重复 kid、crv 不是 Ed25519、x 不是 32 字节、alg 不是 EdDSA、不是 JSON；原始公钥文件带 = 填充、CRLF 行尾、31 字节。
  */
+/** 在合法 JSON 末尾补空格到恰好 n 字节（严格 JSON 允许尾随空白）。 */
+const padTo = (buf, n) => Buffer.concat([buf, Buffer.alloc(n - buf.length, 0x20)]);
+
 export function anchorFiles() {
   const x = base64url(TEST_KEY.publicRaw);
   const jwk = { alg: 'EdDSA', crv: 'Ed25519', kid: TEST_KID, kty: 'OKP', use: 'sig', x };
@@ -1146,6 +1177,14 @@ export function anchorFiles() {
     ['anchors/jwks-short-x.json', jsonFile({ keys: [{ ...jwk, x: base64url(TEST_KEY.publicRaw.subarray(0, 31)) }] })],
     ['anchors/jwks-wrong-alg.json', jsonFile({ keys: [{ ...jwk, alg: 'ES256' }] })],
     ['anchors/jwks-not-json.json', utf8('{"keys":[\n')],
+    // 锚文件按严格 JSON 读：重复键、BOM、值之后的多余内容都是 USAGE
+    ['anchors/jwks-duplicate-json-key.json', utf8(`{"keys":${JSON.stringify([jwk])},"keys":${JSON.stringify([jwk])}}\n`)],
+    ['anchors/jwks-bom.json', Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), jsonFile({ keys: [jwk] })])],
+    ['anchors/test-pub-trailing-garbage.jwk.json', utf8(`${JSON.stringify(jwk)} {}\n`)],
+    // 本地锚文件上限 1 MiB：恰好 1 MiB 的合法 JWKS 可用，多 1 字节即 USAGE
+    ['anchors/jwks-exactly-1MiB.json', padTo(jsonFile({ keys: [jwk] }), 1024 * 1024)],
+    ['anchors/jwks-over-1MiB.json', padTo(jsonFile({ keys: [jwk] }), 1024 * 1024 + 1)],
+    ['anchors/test-pub-over-1MiB.jwk.json', padTo(jsonFile(jwk), 1024 * 1024 + 1)],
     ['anchors/pub-padded.b64u', utf8(`${Buffer.from(TEST_KEY.publicRaw).toString('base64')}\n`)],
     ['anchors/pub-crlf.b64u', utf8(`${x}\r\n`)],
     ['anchors/pub-31-bytes.b64u', utf8(`${base64url(TEST_KEY.publicRaw.subarray(0, 31))}\n`)],
@@ -1179,10 +1218,11 @@ export function testTimeCases(pkgs, exitCodes) {
   });
   const MiB = 1024 * 1024;
   return {
-    description: '运行时生成的体积类夹具（README「体积上限」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节；stdinRecipe：prefix + padding 个空格 + suffix。',
+    description: '运行时生成的夹具（README「体积上限」「信任锚」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节（自动建父目录）；addDirs：建空目录；copyZip + appendZeros：复制 zip 后追加零字节；stdinRecipe：prefix + padding 个空格 + suffix。httpsServer：测试在 127.0.0.1 上起一个只用于本用例的 https 服务（自签名证书，CN / SAN 为 localhost 与 127.0.0.1），按 routes 应答（file：返回该文件；jwksPaddedTo：test-jwks.json 末尾补空格到恰好 N 字节；contentEncoding：gzip 压缩后返回并带该头；contentEncodingHeader：原样返回但带该头；location 中的 <PORT> 换成端口）；env 中的 <CA_PEM> 换成该自签名证书的 PEM 文件路径（ASTER_ANCHOR_CA_FILE 在系统信任库之上追加，仅供测试），代理变量故意指向不通的地址（v1 不使用代理）。全程离线。',
     cases: [
       pkgFail('dir-single-file-over-64MiB', [{ path: 'big.bin', size: 64 * MiB + 1 }]),
       pkgFail('dir-cumulative-over-64MiB', [{ path: 'a.bin', size: 40 * MiB }, { path: 'b.bin', size: 40 * MiB }]),
+      pkgFail('dir-too-many-files', Array.from({ length: 1024 }, (_, i) => ({ path: `extra/${String(i).padStart(4, '0')}.txt`, size: 0 }))),
       {
         name: 'zip-file-over-64MiB',
         recipe: { copyZip: 'packages/b-credit-limit.zip', appendZeros: 64 * MiB },
@@ -1192,6 +1232,19 @@ export function testTimeCases(pkgs, exitCodes) {
         expectedExit: exitCodes.PKG_INTEGRITY.exit,
         code: 'PKG_INTEGRITY',
       },
+      pkgFail('dir-depth-over-32', [{ path: `${'d/'.repeat(33)}x.txt`, size: 0 }]),
+      {
+        // 32 层恰好允许：read 通过，随后因多余文件在 integrity 阶段失败（signed:true），证明深度上限不是 31
+        name: 'dir-depth-32-passes-read',
+        recipe: { copyPackage: 'packages/b-credit-limit', add: [{ path: `${'d/'.repeat(32)}x.txt`, size: 0 }] },
+        args: ['run', '<PKG>', '--input', '-', '--jwks', '<PACKAGE_V1>/keys/test-jwks.json'],
+        stdin: inputJson(firstRun.input),
+        expectedStdout: errorEnvelope('PKG_INTEGRITY', runMeta(base, 'integrity', { entry: null, allowUnsigned: false }), exitCodes),
+        expectedExit: exitCodes.PKG_INTEGRITY.exit,
+        code: 'PKG_INTEGRITY',
+      },
+      { ...pkgFail('dir-too-many-directories', []), recipe: { copyPackage: 'packages/b-credit-limit', add: [], addDirs: Array.from({ length: 1024 }, (_, i) => `e/${String(i).padStart(4, '0')}`) } },
+      ...httpsAnchorCases(base, firstRun, exitCodes),
       {
         name: 'input-over-16MiB',
         recipe: { usePackage: 'packages/b-credit-limit' },
@@ -1203,4 +1256,98 @@ export function testTimeCases(pkgs, exitCodes) {
       },
     ],
   };
+}
+
+/** 本地 https 信任锚夹具（README「信任锚」）：只在测试里起的自签名 https 服务，经 ASTER_ANCHOR_CA_FILE 信任。 */
+function httpsAnchorCases(base, firstRun, exitCodes) {
+  const allow = base.def.cases.find((c) => c.name === 'allow');
+  const okStdout = `{"meta":${canonicalJson(runMeta(base, 'done', { entry: defaultEntry(base.def), allowUnsigned: false }))},"ok":true,"value":${base.def.expected.cases.allow.value}}\n`;
+  const usage = errorEnvelope('USAGE', runMeta(base, 'usage', { entry: null, allowUnsigned: false }), exitCodes);
+  const routes = {
+    '/jwks.json': { status: 200, file: 'keys/test-jwks.json' },
+    '/exact-1MiB.json': { status: 200, jwksPaddedTo: 1024 * 1024 },
+    '/over-1MiB.json': { status: 200, jwksPaddedTo: 1024 * 1024 + 1 },
+    '/r3a': { status: 301, location: '/r3b' }, '/r3b': { status: 303, location: '/r3c' }, '/r3c': { status: 307, location: '/jwks.json' },
+    '/r4a': { status: 302, location: '/r4b' }, '/r4b': { status: 302, location: '/r4c' }, '/r4c': { status: 302, location: '/r4d' }, '/r4d': { status: 302, location: '/jwks.json' },
+    '/r308': { status: 308, location: '/jwks.json' },
+    '/r300': { status: 300, location: '/jwks.json' },
+    '/rel/a': { status: 302, location: '../jwks.json' },
+    '/abs': { status: 302, location: 'https://localhost:<PORT>/jwks.json' },
+    '/to-http': { status: 302, location: 'http://127.0.0.1:<PORT>/jwks.json' },
+    '/gzip': { status: 200, file: 'keys/test-jwks.json', contentEncoding: 'gzip' },
+    '/identity': { status: 200, file: 'keys/test-jwks.json', contentEncodingHeader: 'identity' },
+    '/missing': { status: 404 },
+    '/not-json': { status: 200, body: '{"keys":[' },
+  };
+  // v1 不使用代理：每个配方都把代理环境变量指向一个不通的地址，证明 CLI 忽略它们（README「信任锚」R-1）
+  const deadProxy = { HTTPS_PROXY: 'http://127.0.0.1:9', https_proxy: 'http://127.0.0.1:9', HTTP_PROXY: 'http://127.0.0.1:9', http_proxy: 'http://127.0.0.1:9', NO_PROXY: '', no_proxy: '' };
+  const row = (name, path, { ca = true, ok = false } = {}) => ({
+    name,
+    recipe: { usePackage: 'packages/b-credit-limit', httpsServer: { routes }, env: { ...deadProxy, ...(ca ? { ASTER_ANCHOR_CA_FILE: '<CA_PEM>' } : {}) } },
+    args: ['run', '<PACKAGE_V1>/packages/b-credit-limit', '--input', '-', '--jwks', `https://localhost:<PORT>${path}`],
+    stdin: inputJson(allow.input),
+    expectedStdout: ok ? okStdout : usage,
+    expectedExit: ok ? 0 : exitCodes.USAGE.exit,
+    code: ok ? null : 'USAGE',
+  });
+  return [
+    row('https-jwks-trusted-via-test-ca', '/jwks.json', { ok: true }),
+    row('https-jwks-untrusted-certificate', '/jwks.json', { ca: false }),
+    row('https-jwks-three-redirects-ok', '/r3a', { ok: true }),
+    row('https-jwks-four-redirects', '/r4a'),
+    row('https-jwks-redirect-308-ok', '/r308', { ok: true }),
+    row('https-jwks-status-300-is-not-a-redirect', '/r300'),
+    row('https-jwks-relative-location-ok', '/rel/a', { ok: true }),
+    row('https-jwks-absolute-location-ok', '/abs', { ok: true }),
+    row('https-jwks-redirect-to-http', '/to-http'),
+    row('https-jwks-response-1MiB-ok', '/exact-1MiB.json', { ok: true }),
+    row('https-jwks-response-over-1MiB', '/over-1MiB.json'),
+    row('https-jwks-content-encoding-gzip', '/gzip'),
+    row('https-jwks-content-encoding-identity-ok', '/identity', { ok: true }),
+    row('https-jwks-404', '/missing'),
+    row('https-jwks-not-json', '/not-json'),
+  ];
+}
+
+/**
+ * compile/：compile 子命令夹具（README「compile」）。源码类成功用例的投影哈希由平台编译序列采集
+ * （src/compile/expected.json，--capture-compile）；包类成功用例取对应黄金包 manifest 的 positionFreeSha256
+ * （compile 只本地编译 policy/，不比对、不读 compiled/）。成功用例：stdout 为规范 Core IR 字节 + \n（给 --out 时 stdout 为空、
+ * 文件内容为不带换行的规范 IR 字节），两侧 IR 只差 origin 列，因此只比较投影哈希（expectedPositionFreeSha256），expectedStdout 为 null；
+ * 失败用例比较错误信封。
+ */
+export function compileFixtures(srcDir, pkgs, exitCodes) {
+  const dir = join(srcDir, 'compile');
+  const doc = JSON.parse(readFileSync(join(dir, 'compile.json'), 'utf8'));
+  const captured = existsSync(join(dir, 'expected.json')) ? JSON.parse(readFileSync(join(dir, 'expected.json'), 'utf8')) : {};
+  const files = new Map();
+  for (const rel of readdirSync(join(dir, 'sources'), { recursive: true }).sort()) {
+    const abs = join(dir, 'sources', rel);
+    if (statSync(abs).isFile()) files.set(`compile/sources/${rel.split('\\').join('/')}`, readFileSync(abs));
+  }
+  const usageMeta = { cliVersion: '<CLI_VERSION>', coreIrSha256: null, engine: '<ENGINE>', entry: null, irRecompiled: false, signed: false };
+  const base = pkgs.get('b-credit-limit');
+  const success = (c, pf) => {
+    const out = c.args.includes('--out');
+    return { name: c.name, args: c.args, expectedStdout: out ? '' : null, expectedExit: 0, code: null, expectedPositionFreeSha256: pf, ...(out ? { outFile: '<OUT>' } : {}) };
+  };
+  // 失败且给了 --out <OUT>：不得写出（也不得留下临时文件）——测试断言 <OUT> 不存在
+  const failure = (c, code, meta) => ({
+    name: c.name, args: c.args, expectedStdout: errorEnvelope(code, meta, exitCodes), expectedExit: exitCodes[code].exit, code,
+    ...(c.args.includes('<OUT>') ? { outFile: '<OUT>', outFileMustNotExist: true } : {}),
+  });
+  const cases = doc.cases.map((c) => {
+    if (c.platform) {
+      const got = captured[c.name];
+      if (!got) throw new Error(`compile/${c.name}: 缺少平台采集结果（先跑 --capture-compile）`);
+      const row = got.ok ? success(c, got.positionFreeSha256) : failure(c, 'COMPILE_ERROR', usageMeta);
+      // 期望取平台（Java）解析结果；ts 编译器目前与之不同的用例标出跟踪 issue，Node CLI 在修复前会在这些行上失败
+      return c.knownEngineDivergence ? { ...row, knownEngineDivergence: c.knownEngineDivergence } : row;
+    }
+    if (c.package) return success(c, pkgs.get(c.package).manifest.coreIr.positionFreeSha256);
+    const { code } = c.expect;
+    return failure(c, code, code === 'USAGE' ? usageMeta : runMeta(base, DEFAULT_STAGE[code], { entry: null, allowUnsigned: false }));
+  });
+  files.set('compile/cases.json', jsonFile({ description: doc.description, cases }));
+  return files;
 }

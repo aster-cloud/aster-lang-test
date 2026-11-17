@@ -1,0 +1,23 @@
+{
+  "description": "与 a-decimal 相同，但第 1 条探针的 expected 形状不合法（{\"ok\":\"yes\"}）：verify --probes 以 PROBE_MISMATCH 失败。",
+  "base": "a-decimal",
+  "probeEdits": [
+    {
+      "index": 0,
+      "expectedRaw": "{\"ok\":\"yes\"}"
+    }
+  ],
+  "cases": [
+    {
+      "name": "verify",
+      "command": "verify"
+    },
+    {
+      "name": "verify-probes-mismatch",
+      "command": "verify",
+      "args": [
+        "--probes"
+      ]
+    }
+  ]
+}

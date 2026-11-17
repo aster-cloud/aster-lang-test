@@ -1,0 +1,78 @@
+{
+  "source-en": {
+    "ok": true,
+    "positionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469"
+  },
+  "source-en-out-file": {
+    "ok": true,
+    "positionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469"
+  },
+  "source-locale-and-vocabulary": {
+    "ok": true,
+    "positionFreeSha256": "8a13f5ab2fb5822b8974c279b5f7e41ddd350ce263a2452fa246d017c34d14f5"
+  },
+  "source-alias-set-structural": {
+    "ok": true,
+    "positionFreeSha256": "5ea3f458252c32143a771e07c7c4371e3f91057e8cb4cd28ebb250a315e1e635"
+  },
+  "source-structural-alias-not-allowed": {
+    "ok": false,
+    "error": "CnlParseException: 用户自定义别名校验失败: 不允许为结构词 IF 自定义别名（需管理员授予结构词别名权限；审批时会显示规范化真实结构并留痕）; 不允许为结构词 RETURN 自定义别名（需管理员授予结构词别名权限；审批时会显示规范化真实结构并留痕）"
+  },
+  "source-single-word-alias": {
+    "ok": false,
+    "error": "CnlParseException: 用户自定义别名校验失败: 别名 'whenever'（IF）必须是多词短语；单词别名会占用标识符命名空间，破坏用户空间"
+  },
+  "source-syntax-error": {
+    "ok": false,
+    "error": "CnlParseException: CNL syntax error — Line 4, column 16: Unexpected '.'; expected '(' or '[' or '==', …"
+  },
+  "source-type-error-is-not-checked": {
+    "ok": true,
+    "positionFreeSha256": "ab149ddcf95bc03f9d28eb8ab2ed90437116fdcc35a4ed08ea073211762294bc"
+  },
+  "source-empty": {
+    "ok": false,
+    "error": "IllegalArgumentException: 源码为空或只有 ASCII 空白"
+  },
+  "source-whitespace-only": {
+    "ok": false,
+    "error": "IllegalArgumentException: 源码为空或只有 ASCII 空白"
+  },
+  "source-alias-set-unknown-kind": {
+    "ok": false,
+    "error": "IllegalArgumentException: No enum constant aster.core.lexicon.SemanticTokenKind.NOT_A_KIND"
+  },
+  "source-alias-set-wrong-shape": {
+    "ok": false,
+    "error": "IllegalArgumentException: aliasSet.IF 不是字符串数组"
+  },
+  "source-alias-set-not-an-object": {
+    "ok": false,
+    "error": "IllegalArgumentException: aliasSet 不是对象"
+  },
+  "source-syntax-error-writes-no-out-file": {
+    "ok": false,
+    "error": "CnlParseException: CNL syntax error — Line 4, column 16: Unexpected '.'; expected '(' or '[' or '==', …"
+  },
+  "double-dash-ends-options": {
+    "ok": true,
+    "positionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469"
+  },
+  "source-leading-bom-is-stripped": {
+    "ok": true,
+    "positionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469"
+  },
+  "source-only-bom-is-blank": {
+    "ok": false,
+    "error": "IllegalArgumentException: 源码为空或只有 ASCII 空白"
+  },
+  "source-only-nbsp-is-not-blank": {
+    "ok": false,
+    "error": "CnlParseException: CNL syntax error — Line 1, column 1: Unrecognized character ' '"
+  },
+  "source-only-ideographic-space-is-not-blank": {
+    "ok": false,
+    "error": "CnlParseException: CNL 源代码不能为空"
+  }
+}

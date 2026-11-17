@@ -10,7 +10,7 @@
  * 用法：node scripts/test-package-v1.mjs（退出码 0=全过，1=有失败）。
  */
 import assert from 'node:assert';
-import { inflateRawSync } from 'node:zlib';
+import { gzipSync, inflateRawSync } from 'node:zlib';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -363,6 +363,67 @@ check('长字符串（N1）：1 200 万字符的字符串值，严格 JSON、--i
   const want = stdout.replace('"3.3.0"', '"<CLI_VERSION>"').replace('"aster-lang-ts-interpreter"', '"<ENGINE>"');
   assert.ok(normalizeStdout(stdout) === want, '归一结果不对');
 });
+
+// ---- https 信任锚（README「信任锚」；tamper/test-time.json 的 https-jwks-* 配方）：本地自签名 https 服务，离线 ----
+async function httpsAnchorTests() {
+  const { spawnSync } = await import('node:child_process');
+  const { mkdtempSync, rmSync } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const https = await import('node:https');
+  const { fetchJwks, Usage } = await import('./lib/package-v1/argv.mjs');
+  const dir = mkdtempSync(join(tmpdir(), 'pkgv1-https-'));
+  try {
+    const gen = spawnSync('openssl', ['req', '-x509', '-newkey', 'ec', '-pkeyopt', 'ec_paramgen_curve:prime256v1', '-nodes', '-days', '1',
+      '-subj', '/CN=localhost', '-addext', 'subjectAltName=DNS:localhost,IP:127.0.0.1', '-keyout', join(dir, 'key.pem'), '-out', join(dir, 'cert.pem')]);
+    if (gen.status !== 0) {
+      console.error(`(跳过 https 锚测试：openssl 不可用 ${gen.stderr})`);
+      return;
+    }
+    const doc = JSON.parse(readFileSync(join(ROOT, 'conformance/package-v1/tamper/test-time.json'), 'utf8'));
+    const routes = doc.cases.find((c) => c.name === 'https-jwks-trusted-via-test-ca').recipe.httpsServer.routes;
+    const jwks = readFileSync(join(ROOT, 'conformance/package-v1/keys/test-jwks.json'));
+    let port;
+    const server = https.createServer({ key: readFileSync(join(dir, 'key.pem')), cert: readFileSync(join(dir, 'cert.pem')) }, (req, res) => {
+      const r = routes[req.url];
+      if (!r) return res.writeHead(404).end();
+      if (r.location) return res.writeHead(r.status, { location: r.location.replace('<PORT>', port) }).end();
+      if (r.contentEncoding === 'gzip') return res.writeHead(r.status, { 'content-encoding': 'gzip' }).end(gzipSync(jwks));
+      if (r.contentEncodingHeader) return res.writeHead(r.status, { 'content-encoding': r.contentEncodingHeader }).end(jwks);
+      if (r.file) return res.writeHead(r.status).end(jwks);
+      if (r.zeros) return res.writeHead(r.status).end(Buffer.alloc(r.zeros, 0x20));
+      if (r.jwksPaddedTo) return res.writeHead(r.status).end(Buffer.concat([jwks, Buffer.alloc(r.jwksPaddedTo - jwks.length, 0x20)]));
+      return res.writeHead(r.status).end(r.body ?? '');
+    });
+    await new Promise((ok) => server.listen(0, '127.0.0.1', ok));
+    port = server.address().port;
+    const extraCa = readFileSync(join(dir, 'cert.pem'), 'utf8');
+    // 与配方一致：代理变量指向不通的地址，参照实现必须照常直连
+    for (const k of ['HTTPS_PROXY', 'https_proxy', 'HTTP_PROXY', 'http_proxy']) process.env[k] = 'http://127.0.0.1:9';
+    const tt = JSON.parse(readFileSync(join(ROOT, 'conformance/package-v1/tamper/test-time.json'), 'utf8')).cases.filter((c) => c.recipe?.httpsServer);
+    for (const c of tt) {
+      const path = c.args.at(-1).replace('https://localhost:<PORT>', '');
+      const withCa = c.recipe.env.ASTER_ANCHOR_CA_FILE !== undefined;
+      try {
+        const got = await fetchJwks(`https://localhost:${port}${path}`, withCa ? { extraCa } : {});
+        if (c.code === null && Array.isArray(got.keys)) pass++;
+        else {
+          fail++;
+          console.error(`✗ https: ${c.name} 应失败（USAGE）却成功`);
+        }
+      } catch (e) {
+        if (c.code === 'USAGE' && e instanceof Usage) pass++;
+        else {
+          fail++;
+          console.error(`✗ https: ${c.name}：${e.message}`);
+        }
+      }
+    }
+    server.close();
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+await httpsAnchorTests();
 
 console.log(`test-package-v1: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;

@@ -121,7 +121,7 @@ export function deflateZeros(n) {
  *   畸形开关：rawMethod（头部写入的方法号，如 12）、compressed（直接给出压缩后字节）、crc、declaredUncompressedSize、
  *   declaredCompressedSize（头部写入的值，不必与实际相符）；cd：只覆盖中央目录中的字段（name / crc /
  *   compressedSize / uncompressedSize），用于本地头与中央目录不一致；lfh：反过来只覆盖本地头（name / uncompressedSize）；zip64：大小字段写 0xFFFFFFFF 并带 ZIP64 extra；
- *   rawName：直接给出条目名字节（可为非法 UTF-8）。
+ *   rawName：直接给出条目名字节（可为非法 UTF-8）；dirData：给目录条目塞入数据（畸形目录条目）。
  * 归档级 opts：prefix（首个本地头之前的字节）、comment（EOCD 注释）、suffix（EOCD 之后的字节）。
  * 不给任何开关时输出与本模块此前版本逐字节相同。
  */
@@ -135,7 +135,7 @@ export function writeZip(entries, opts = {}) {
     // lfh：只覆盖本地头中的字段（name / uncompressedSize），与 cd 相反方向的不一致
     const lfh = e.lfh ?? {};
     const localName = lfh.name !== undefined ? Buffer.from(lfh.name, 'utf8') : name;
-    const data = e.directory ? Buffer.alloc(0) : (e.data ?? Buffer.alloc(0));
+    const data = e.directory ? (e.dirData ?? Buffer.alloc(0)) : (e.data ?? Buffer.alloc(0));
     const method = e.rawMethod ?? (e.directory ? 0 : (e.method ?? 0));
     const compressed = e.compressed ?? (method === 8 ? deflateStored(data) : data);
     const crc = e.crc ?? crc32(data);

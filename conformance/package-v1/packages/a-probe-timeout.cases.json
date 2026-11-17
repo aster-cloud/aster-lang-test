@@ -1,0 +1,33 @@
+{
+  "description": "与 a-timeout 相同，但探针输入改为 spin(60)：verify --probes --timeout 1s 时该探针超时，以 PROBE_MISMATCH 失败（不是 TIMEOUT）。",
+  "package": "a-probe-timeout",
+  "cases": [
+    {
+      "name": "verify",
+      "args": [
+        "verify",
+        "a-probe-timeout",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"ir\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"8842c2780cd654dba8098eca645ae79b4064a833179ced47602b0f5b4f06e3b6\",\"engine\":\"<ENGINE>\",\"entry\":\"spin\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-probes-mismatch",
+      "args": [
+        "verify",
+        "a-probe-timeout",
+        "--probes",
+        "--timeout",
+        "1s",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"ir\",\"ok\":true},{\"code\":\"PROBE_MISMATCH\",\"name\":\"probes\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"8842c2780cd654dba8098eca645ae79b4064a833179ced47602b0f5b4f06e3b6\",\"engine\":\"<ENGINE>\",\"entry\":\"spin\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 1,
+      "code": "PROBE_MISMATCH"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "description": "与 a-decimal 相同，但 tests/probes.json 第 1 条（下标 0）的 entry 改成不存在的 nosuch 并照常签名：verify 通过，verify --probes 以 PROBE_MISMATCH 失败（坏的探针条目也算不符，README「tests/probes.json」）。",
+  "base": "a-decimal",
+  "probeEdits": [
+    {
+      "index": 0,
+      "entry": "nosuch"
+    }
+  ],
+  "cases": [
+    {
+      "name": "verify",
+      "command": "verify"
+    },
+    {
+      "name": "verify-probes-mismatch",
+      "command": "verify",
+      "args": [
+        "--probes"
+      ]
+    }
+  ]
+}
