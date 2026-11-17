@@ -425,5 +425,54 @@ async function httpsAnchorTests() {
 }
 await httpsAnchorTests();
 
+// ---- RFC 3986 §5.2 引用解析（README「信任锚」重定向 Location）：§5.4 的正常与异常例子 ----
+{
+  const { resolveReference, Usage } = await import('./lib/package-v1/argv.mjs');
+  const base = 'http://a/b/c/d;p?q';
+  const normal = {
+    'g:h': 'g:h', g: 'http://a/b/c/g', './g': 'http://a/b/c/g', 'g/': 'http://a/b/c/g/', '/g': 'http://a/g', '//g': 'http://g', '?y': 'http://a/b/c/d;p?y',
+    'g?y': 'http://a/b/c/g?y', '#s': 'http://a/b/c/d;p?q#s', 'g#s': 'http://a/b/c/g#s', 'g?y#s': 'http://a/b/c/g?y#s', ';x': 'http://a/b/c/;x', 'g;x': 'http://a/b/c/g;x',
+    'g;x?y#s': 'http://a/b/c/g;x?y#s', '.': 'http://a/b/c/', './': 'http://a/b/c/', '..': 'http://a/b/', '../': 'http://a/b/', '../g': 'http://a/b/g', '../..': 'http://a/',
+    '../../': 'http://a/', '../../g': 'http://a/g',
+  };
+  const abnormal = {
+    '../../../g': 'http://a/g', '../../../../g': 'http://a/g', '/./g': 'http://a/g', '/../g': 'http://a/g', 'g.': 'http://a/b/c/g.', '.g': 'http://a/b/c/.g', 'g..': 'http://a/b/c/g..',
+    '..g': 'http://a/b/c/..g', './../g': 'http://a/b/g', './g/.': 'http://a/b/c/g/', 'g/./h': 'http://a/b/c/g/h', 'g/../h': 'http://a/b/c/h', 'g;x=1/./y': 'http://a/b/c/g;x=1/y',
+    'g;x=1/../y': 'http://a/b/c/y', 'g?y/./x': 'http://a/b/c/g?y/./x', 'g?y/../x': 'http://a/b/c/g?y/../x', 'g#s/./x': 'http://a/b/c/g#s/./x', 'g#s/../x': 'http://a/b/c/g#s/../x',
+  };
+  for (const [ref, want] of Object.entries({ ...normal, ...abnormal })) {
+    try {
+      assert.strictEqual(resolveReference(base, ref), want, ref);
+      pass++;
+    } catch (e) {
+      fail++;
+      console.error(`✗ RFC 3986 ${ref}: ${e.message}`);
+    }
+  }
+  const more = [['https://h/a/b', '?q', 'https://h/a/b?q'], ['https://h/a/b', '../../x', 'https://h/x'], ['https://h/a/b', 'HTTPS://h2/y', 'https://h2/y']];
+  for (const [b, ref, want] of more) {
+    try {
+      assert.strictEqual(resolveReference(b, ref), want, ref);
+      pass++;
+    } catch (e) {
+      fail++;
+      console.error(`✗ RFC 3986 ${ref}: ${e.message}`);
+    }
+  }
+  for (const bad of ['', '/jw ks.json', '\\jwks.json', '/a\\b', '/a\u0001b', '/café', '/a%zz', '/a%2']) {
+    try {
+      resolveReference('https://h/a/b', bad);
+      fail++;
+      console.error(`✗ RFC 3986 应拒绝 ${JSON.stringify(bad)}`);
+    } catch (e) {
+      if (e instanceof Usage) pass++;
+      else {
+        fail++;
+        console.error(`✗ RFC 3986 ${JSON.stringify(bad)} 抛了非 Usage：${e.message}`);
+      }
+    }
+  }
+}
+
 console.log(`test-package-v1: ${pass} passed, ${fail} failed`);
 process.exitCode = fail === 0 ? 0 : 1;
