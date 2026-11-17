@@ -226,7 +226,7 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 - 不给锚：使用内置 `export-jwks.json`（P1 为 `{"keys":[]}`，所以任何签名包都是 `PKG_UNTRUSTED_KID`）。
 - `--jwks <file|url>`：参数匹配 `^[A-Za-z][A-Za-z0-9+.-]*://` 即视为 URL，否则按本地文件读。URL 必须以字面量小写 `https://` 开头，其他（含 `http://`、`ftp://`、
   大写 `HTTPS://`）一律 `USAGE` 且不发请求（夹具 `usage-jwks-http-url`、`usage-jwks-ftp-url`、`usage-jwks-uppercase-scheme`）。https 取回的规则：
-  - 总超时 10 s（含连接、TLS、重定向与读完响应体）；只认 2xx；响应体 ≤ 1 MiB（超出即中止；恰好 1 MiB 可以）；
+  - **总**时限 10 s：从第一次请求开始，到读完最后一个响应体为止（含连接、TLS、全部重定向），不是套接字空闲超时——细水长流的响应体到点同样失败；只认 2xx；响应体 ≤ 1 MiB（超出即中止；恰好 1 MiB 可以）；
   - 请求带 `Accept-Encoding: identity`；响应的 `Content-Encoding` 缺省或为 `identity` 才接受，其他（如 `gzip`）为 `USAGE`（上限因此作用于未解码的字节）；
   - 重定向只认 301、302、303、307、308，其他 3xx（如 300）按非 2xx 处理为 `USAGE`；至多跟随 3 次，每一跳都必须是 https（https → http 失败）；
     `Location` 的处理（两侧必须逐字相同，参照实现 `argv.mjs` 的 `resolveReference`）：
@@ -235,14 +235,19 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
     - 相对引用按 **RFC 3986 §5.2.2**（含 §5.2.4 remove_dot_segments）相对**当前**请求 URL 解析。例：基准 `https://h/a/b` 下，`?q` → `https://h/a/b?q`，
       `../../x` → `https://h/x`；
     - `Location` 中的 scheme **不区分大小写**（`HTTPS://…` 视为 https 并跟随）；`--jwks` 参数本身仍只认字面量小写 `https://`；
+    - **空的 `Location`（含只有空白的值）为 `USAGE`**：这是有意偏离 RFC 3986（RFC 3986 会把空引用解析为基准 URL 本身），以免同一 URL 无限重定向；
+    - **解析出的目标在发出请求之前**还要满足：host 非空（`https:///x` 拒绝）；端口可省略，给出时必须是十进制 1–65535，**空端口**（`https://h:/x`，RFC 3986 允许）同样拒绝；
+      **不得含 userinfo**（`u:p@`、`u@`，以及空的 `@`）；`[` `]` 只能作为 IP-literal host 的边界（`https://[::1]/`），路径、查询、片段或普通 host 中出现即拒绝
+      （`https://h/a[b]`）。任何违反都是 `USAGE`（参照实现 `validateRequestTarget`；配方 `https-jwks-redirect-empty-host`、`-port-out-of-range`、`-empty-port`、
+      `-userinfo`、`-empty-userinfo`、`-brackets-outside-ip-literal`）；
     - 配方：`https-jwks-location-query-only-ok`、`https-jwks-location-dotdot-ok`、`https-jwks-location-uppercase-scheme-ok`（通过），
       `https-jwks-location-invalid`（含空格）、`https-jwks-location-backslash`（`USAGE`）。
   - **v1 不使用代理**：一律直连，`HTTPS_PROXY`、`https_proxy`、`HTTP_PROXY`、`http_proxy`、`NO_PROXY`、`no_proxy` 都忽略
     （Node 不得启用 `EnvHttpProxyAgent` / `NODE_USE_ENV_PROXY`；JVM 用 `HttpClient.Builder.proxy(HttpClient.Builder.NO_PROXY)`）；
-  - TLS 用操作系统 / 运行时的标准信任库（Node：系统 CA 加内置 CA；JVM：缺省 `cacerts`）；
+  - TLS 用操作系统 / 运行时的标准信任库（Node：系统 CA 加内置 CA，即 `tls.getCACertificates('system')` ∪ `'bundled'`；JVM：缺省 `cacerts`）；
   - **仅供测试**的信任覆盖：环境变量 `ASTER_ANCHOR_CA_FILE` 指向一个 PEM 文件时，在标准信任库之上**追加**信任其中的证书（不是替换；只用于取信任锚）；
   - 任何失败（连接、TLS、超时、非 2xx、超限、重定向违规、不是严格 JSON、JWKS 不合法）都是 `USAGE`。
-  测试时配方 `https-jwks-*`（`tamper/test-time.json`，20 条）在 127.0.0.1 上起自签名 https 服务、经 `ASTER_ANCHOR_CA_FILE` 信任，并把全部代理变量指向一个不通的地址
+  测试时配方 `https-jwks-*`（`tamper/test-time.json`，26 条）在 127.0.0.1 上起自签名 https 服务、经 `ASTER_ANCHOR_CA_FILE` 信任，并把全部代理变量指向一个不通的地址
   （证明代理被忽略），全程离线；参照实现 `argv.mjs` 的 `fetchJwks` 由单测在同样的环境变量下跑同一组路由。
 - 本地锚文件（`--jwks <file>`、`--pubkey <file>`）≤ 1 MiB，超出为 `USAGE`，先按大小判断再读入（夹具 `jwks-file-exactly-1MiB-ok`、`usage-jwks-file-over-1MiB`、`usage-pubkey-file-over-1MiB`）。
   JWKS：每个 key 必须 `kty:"OKP"`、`crv:"Ed25519"`、`x` 为 32 字节的规范 base64url、`kid` 为非空字符串；`alg` 若给出必须是 `EdDSA`、`use` 若给出必须是 `sig`；

@@ -294,19 +294,56 @@ export function resolveReference(baseUrl, reference) {
  * 响应体 ≤ 1 MiB；只认 2xx；系统信任库，测试时经 ASTER_ANCHOR_CA_FILE 追加一个 PEM（仅测试用）；不使用任何代理（v1）。
  * 任何失败都抛 Usage（调用方报 USAGE）。
  */
+/**
+ * 重定向目标在发出请求之前的合法性（README「信任锚」）：解析出的 https URL 必须有非空 host；port 可选，十进制 1–65535；
+ * 不得含 userinfo（`u:p@`、`u@`、`@`）；`[` `]` 只能作为 IP-literal host 的边界出现（`https://[::1]/`），其他位置一律拒绝。任何违反都是 USAGE。
+ */
+export function validateRequestTarget(url) {
+  const m = /^https:\/\/([^/?#]*)([^?#]*)(\?[^#]*)?(#.*)?$/.exec(url);
+  if (!m) usage(`重定向目标不是 https URL：${url}`);
+  const [, authority, path, query = '', fragment = ''] = m;
+  if (authority.includes('@')) usage(`重定向目标不得含 userinfo：${url}`);
+  let host = authority;
+  let port;
+  if (authority.startsWith('[')) {
+    const close = authority.indexOf(']');
+    if (close < 0) usage(`IP-literal 缺少 ]：${url}`);
+    host = authority.slice(0, close + 1);
+    const rest = authority.slice(close + 1);
+    if (rest !== '' && !rest.startsWith(':')) usage(`IP-literal 之后只能是 :port：${url}`);
+    if (rest !== '') port = rest.slice(1);
+    // RFC 3986 IP-literal = "[" ( IPv6address / IPvFuture ) "]"
+    if (!/^\[(?:[0-9A-Fa-f:.]+|[vV][0-9A-Fa-f]+\.[A-Za-z0-9\-._~!$&'()*+,;=:]+)\]$/.test(host)) usage(`IP-literal 不合法：${url}`);
+  } else {
+    const colon = authority.lastIndexOf(':');
+    if (colon >= 0) {
+      host = authority.slice(0, colon);
+      port = authority.slice(colon + 1);
+    }
+    if (/[[\]]/.test(host)) usage(`[ ] 只能用于 IP-literal host：${url}`);
+  }
+  if (host === '') usage(`重定向目标的 host 为空：${url}`);
+  if (port !== undefined && (!/^[0-9]{1,5}$/.test(port) || Number(port) < 1 || Number(port) > 65535)) usage(`重定向目标的端口不合法：${url}`);
+  if (/[[\]]/.test(path + query + fragment)) usage(`[ ] 只能用于 IP-literal host：${url}`);
+  return url;
+}
+
 export async function fetchJwks(url, { extraCa, timeoutMs = 10_000, maxRedirects = 3, maxBytes = 1024 * 1024 } = {}) {
   const https = await import('node:https');
   const tls = await import('node:tls');
-  // ASTER_ANCHOR_CA_FILE 是在系统信任库之上**追加**，不是替换
-  const ca = extraCa ? [...tls.getCACertificates('system'), ...tls.getCACertificates('bundled'), extraCa] : undefined;
+  // 信任库 = 系统 CA + Node 内置 CA；ASTER_ANCHOR_CA_FILE 在其上追加（不是替换）
+  const ca = [...tls.getCACertificates('system'), ...tls.getCACertificates('bundled'), ...(extraCa ? [extraCa] : [])];
   const REDIRECTS = new Set([301, 302, 303, 307, 308]);
-  const deadline = Date.now() + timeoutMs;
-  let current = url;
+  // 总时限：从第一次请求开始，到读完最后一个响应体为止（含重定向），不是套接字空闲超时
+  const signal = AbortSignal.timeout(timeoutMs);
+  let current = validateRequestTarget(url);
   for (let hop = 0; ; hop++) {
     if (!current.startsWith('https://')) throw new Usage('重定向到非 https 地址'); // resolveReference 已把 scheme 统一为小写
+    if (signal.aborted) throw new Usage('超过 10 s 总时限');
     // 不经代理：直连（HTTPS_PROXY 等环境变量一律忽略）；只要 identity 编码
     const res = await new Promise((resolve, reject) => {
-      const req = https.get(current, { ca, agent: false, headers: { 'accept-encoding': 'identity' }, timeout: Math.max(1, deadline - Date.now()) }, (r) => {
+      const onAbort = () => req.destroy(new Usage('超过 10 s 总时限'));
+      const req = https.get(current, { ca, agent: false, signal, headers: { 'accept-encoding': 'identity' } }, (r) => {
         const chunks = [];
         let size = 0;
         r.on('data', (c) => {
@@ -316,15 +353,18 @@ export async function fetchJwks(url, { extraCa, timeoutMs = 10_000, maxRedirects
             reject(new Usage('响应超过 1 MiB'));
           } else chunks.push(c);
         });
+        r.on('error', (e) => reject(e instanceof Usage ? e : new Usage(`读取响应失败：${e.message}`)));
         r.on('end', () => resolve({ status: r.statusCode, location: r.headers.location, encoding: r.headers['content-encoding'], body: Buffer.concat(chunks) }));
       });
-      req.on('timeout', () => req.destroy(new Usage('超时')));
-      req.on('error', (e) => reject(e instanceof Usage ? e : new Usage(`请求失败：${e.message}`)));
+      signal.addEventListener('abort', onAbort, { once: true });
+      req.on('close', () => signal.removeEventListener('abort', onAbort));
+      req.on('error', (e) => reject(e instanceof Usage ? e : new Usage(signal.aborted ? '超过 10 s 总时限' : `请求失败：${e.message}`)));
     });
     if (REDIRECTS.has(res.status)) {
       if (!res.location) throw new Usage('重定向缺少 Location');
       if (hop + 1 > maxRedirects) throw new Usage('重定向超过 3 次');
-      current = resolveReference(current, res.location); // RFC 3986 §5.2 相对当前请求 URL 解析；非法即 USAGE
+      // RFC 3986 §5.2 相对当前请求 URL 解析（非法即 USAGE），再在发出请求之前校验目标
+      current = validateRequestTarget(resolveReference(current, res.location));
       continue;
     }
     if (res.status < 200 || res.status > 299) throw new Usage(`HTTP ${res.status}`);
