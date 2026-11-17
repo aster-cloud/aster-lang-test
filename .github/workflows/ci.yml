@@ -156,7 +156,7 @@ jobs:
   # ADR 0059 P1 T11：跨 CLI 一致性门。用 aster-lang-ts 的单文件 Node CLI（dist/runner/aster.mjs）与 aster-lang-truffle 的
   # aster-cli fat jar 各跑一遍 conformance/package-v1 的全部用例（含 test-time 配方：超大包 / 输入、本地自签名 https 信任锚），
   # 两侧 stdout 经 normalize-stdout.mjs 归一后必须逐字节相同、退出码相同，且都等于期望；带 knownEngineDivergence 的行
-  # 只报告不计失败。兄弟仓走 checkout-sibling（同名分支优先，否则 main），所以夹具 / CLI 的联合改动可在合并前一起验证。
+  # 只豁免 knownDivergentEngine 那一侧（另一侧仍须等于期望，标记陈旧即失败）。兄弟仓走 checkout-sibling（同名分支优先，否则 main），所以夹具 / CLI 的联合改动可在合并前一起验证。
   package-conformance:
     # 显示名必须恰为 package-conformance：分支保护的 required check 按它匹配（Package format v1 跨 CLI 一致性门，Node ↔ JVM）
     name: package-conformance
