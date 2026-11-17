@@ -244,7 +244,10 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
       `https-jwks-location-invalid`（含空格）、`https-jwks-location-backslash`（`USAGE`）。
   - **v1 不使用代理**：一律直连，`HTTPS_PROXY`、`https_proxy`、`HTTP_PROXY`、`http_proxy`、`NO_PROXY`、`no_proxy` 都忽略
     （Node 不得启用 `EnvHttpProxyAgent` / `NODE_USE_ENV_PROXY`；JVM 用 `HttpClient.Builder.proxy(HttpClient.Builder.NO_PROXY)`）；
-  - TLS 用操作系统 / 运行时的标准信任库（Node：系统 CA 加内置 CA，即 `tls.getCACertificates('system')` ∪ `'bundled'`；JVM：缺省 `cacerts`）；
+  - TLS 信任库 = **各运行时的标准信任配置**，再在给出时追加 `ASTER_ANCHOR_CA_FILE`：
+    - Node：系统 CA、内置 CA 与 `NODE_EXTRA_CA_CERTS`，即 `tls.getCACertificates('default')` ∪ `tls.getCACertificates('system')`（只取 `'system'` ∪ `'bundled'` 会丢掉 `NODE_EXTRA_CA_CERTS`，不对）；
+    - JVM：缺省 TrustManager，即 `cacerts`，或设置了 `javax.net.ssl.trustStore` 时用它；
+    - 通过这些标准途径安装的企业 CA 必须生效；
   - **仅供测试**的信任覆盖：环境变量 `ASTER_ANCHOR_CA_FILE` 指向一个 PEM 文件时，在标准信任库之上**追加**信任其中的证书（不是替换；只用于取信任锚）；
   - 任何失败（连接、TLS、超时、非 2xx、超限、重定向违规、不是严格 JSON、JWKS 不合法）都是 `USAGE`。
   测试时配方 `https-jwks-*`（`tamper/test-time.json`，26 条）在 127.0.0.1 上起自签名 https 服务、经 `ASTER_ANCHOR_CA_FILE` 信任，并把全部代理变量指向一个不通的地址

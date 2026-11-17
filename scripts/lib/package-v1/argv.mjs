@@ -291,7 +291,7 @@ export function resolveReference(baseUrl, reference) {
 /**
  * https 信任锚的取回参照实现（README「信任锚」）：只接受字面量 https://；总超时 10 s；至多跟随 3 次重定向且只能 https → https；
  * 重定向只认 301/302/303/307/308（相对 Location 按 RFC 3986 解析）；请求 Accept-Encoding: identity，响应带非 identity 的 Content-Encoding 即失败；
- * 响应体 ≤ 1 MiB；只认 2xx；系统信任库，测试时经 ASTER_ANCHOR_CA_FILE 追加一个 PEM（仅测试用）；不使用任何代理（v1）。
+ * 响应体 ≤ 1 MiB；只认 2xx；运行时标准信任配置（Node：default ∪ system，含 NODE_EXTRA_CA_CERTS），测试时经 ASTER_ANCHOR_CA_FILE 追加一个 PEM；不使用任何代理（v1）。
  * 任何失败都抛 Usage（调用方报 USAGE）。
  */
 /**
@@ -331,8 +331,9 @@ export function validateRequestTarget(url) {
 export async function fetchJwks(url, { extraCa, timeoutMs = 10_000, maxRedirects = 3, maxBytes = 1024 * 1024 } = {}) {
   const https = await import('node:https');
   const tls = await import('node:tls');
-  // 信任库 = 系统 CA + Node 内置 CA；ASTER_ANCHOR_CA_FILE 在其上追加（不是替换）
-  const ca = [...tls.getCACertificates('system'), ...tls.getCACertificates('bundled'), ...(extraCa ? [extraCa] : [])];
+  // 信任库 = 运行时的标准信任配置：Node 为 getCACertificates('default')（内置 CA ∪ NODE_EXTRA_CA_CERTS ∪ 启用时的系统 CA）
+  // ∪ getCACertificates('system')；ASTER_ANCHOR_CA_FILE 在其上追加（不是替换）。企业 CA 经这些标准途径安装即可生效。
+  const ca = [...new Set([...tls.getCACertificates('default'), ...tls.getCACertificates('system'), ...(extraCa ? [extraCa] : [])])];
   const REDIRECTS = new Set([301, 302, 303, 307, 308]);
   // 总时限：从第一次请求开始，到读完最后一个响应体为止（含重定向），不是套接字空闲超时
   const signal = AbortSignal.timeout(timeoutMs);
