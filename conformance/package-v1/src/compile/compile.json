@@ -498,7 +498,8 @@
         "source": "sources/nbsp-only.aster",
         "locale": "en-US"
       },
-      "knownEngineDivergence": "aster-cloud/aster-lang-ts#348"
+      "knownEngineDivergence": "aster-cloud/aster-lang-ts#348",
+      "knownDivergentEngine": "node"
     },
     {
       "name": "source-only-ideographic-space-is-not-blank",
@@ -510,7 +511,8 @@
         "source": "sources/ideographic-space-only.aster",
         "locale": "en-US"
       },
-      "knownEngineDivergence": "aster-cloud/aster-lang-ts#348"
+      "knownEngineDivergence": "aster-cloud/aster-lang-ts#348",
+      "knownDivergentEngine": "node"
     },
     {
       "name": "package-a-blank-policy",

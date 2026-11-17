@@ -239,7 +239,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build
           ls -l dist/runner/
-      - name: Run cross-CLI conformance (PR-blocking)
+      - name: Run cross-CLI conformance (fails on any divergence)
         working-directory: aster-lang-test
         shell: bash
         run: |

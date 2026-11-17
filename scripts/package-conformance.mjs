@@ -5,13 +5,15 @@
  *   packages/*.cases.json、tamper/cases.json、inputs-invalid/cases.json、compile/cases.json、tamper/test-time.json（运行时生成）。
  * 每条用例两侧的 stdout 先经 normalize-stdout.mjs 归一（修订 A0），再比较：①两侧归一后的 stdout 与退出码逐字节相同；
  * ②每一侧都等于用例的 expectedStdout / expectedExit。compile 成功用例比较投影哈希（README「compile」）。
- * 带 knownEngineDivergence 的用例照常运行并报告，但不计为失败（已有跟踪 issue）。
+ * 带 knownEngineDivergence 的用例只豁免 knownDivergentEngine 那一侧的期望比较：另一侧仍须等于期望，分歧一侧仍须正常运行；
+ * 分歧消失（两侧一致且等于期望）判失败，提醒去掉标记（判定见 lib/package-v1/gate.mjs）。
+ * 用例数有下限：不给 --filter 时须跑完各 cases 文件的全部行（每个文件都不得缺失或为空），给 --filter 时至少匹配一条。
  *
  * 用法：
  *   node scripts/package-conformance.mjs --node <aster.mjs> --jar <aster-cli.jar> [--report-only] [--concurrency 4]
  *        [--filter <子串>] [--report <file.md>]
  *   --report-only：只出报告，退出码恒为 0（接入 CI 之前用）。
- * 退出码：0 全部一致（或 --report-only）；1 有不一致；2 用法错误。
+ * 退出码：0 全部一致（或 --report-only）；1 有不一致或用例数不足；2 用法错误（含 CLI 文件不存在）。
  */
 import { spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
@@ -20,6 +22,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalizeStdout } from '../conformance/package-v1/normalize-stdout.mjs';
 import { positionFreeSha256 } from './lib/package-v1/position-free.mjs';
+import { coverageProblems, groupRouteSets, judgeRow, routeSetKey } from './lib/package-v1/gate.mjs';
 import { materializePackage, recipeStdin, selfSignedCert, startRecipeServer } from './lib/package-v1/recipes.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -34,6 +37,12 @@ const jar = opt('--jar');
 if (!nodeCli || !jar) {
   console.error('用法：node scripts/package-conformance.mjs --node <aster.mjs> --jar <aster-cli.jar> [--report-only] [--concurrency N] [--filter s] [--report f]');
   process.exit(2);
+}
+for (const f of [nodeCli, jar]) {
+  if (!existsSync(f)) {
+    console.error(`package-conformance: ${f} 不存在`);
+    process.exit(2);
+  }
 }
 const reportOnly = argv.includes('--report-only');
 const concurrency = Number(opt('--concurrency', '4'));
@@ -54,17 +63,23 @@ function baseEnv() {
 
 function run(side, args, { cwd, stdin, env }) {
   const [cmd, full] = SIDES[side](args);
-  return new Promise((done) => {
+  return new Promise((resolveRun) => {
     const child = spawn(cmd, full, { cwd, env, stdio: ['pipe', 'pipe', 'pipe'] });
     const out = [];
     const err = [];
     const timer = setTimeout(() => child.kill('SIGKILL'), PROCESS_TIMEOUT_MS);
+    let settled = false;
+    const done = (exit) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolveRun({ stdout: Buffer.concat(out).toString('utf8'), stderr: Buffer.concat(err).toString('utf8'), exit });
+    };
     child.stdout.on('data', (c) => out.push(c));
     child.stderr.on('data', (c) => err.push(c));
-    child.on('close', (code, signal) => {
-      clearTimeout(timer);
-      done({ stdout: Buffer.concat(out).toString('utf8'), stderr: Buffer.concat(err).toString('utf8'), exit: signal ? `signal ${signal}` : code });
-    });
+    // 起不来（如找不到 java）记为非表内退出码，判定时视为没有正常运行
+    child.on('error', (e) => done(`spawn error ${e.code ?? e.message}`));
+    child.on('close', (code, signal) => done(signal ? `signal ${signal}` : code));
     child.stdin.on('error', () => {});
     if (stdin !== undefined) child.stdin.end(stdin);
     else child.stdin.end();
@@ -74,13 +89,19 @@ function run(side, args, { cwd, stdin, env }) {
 // ---------------------------------------------------------------------------
 // 收集用例
 // ---------------------------------------------------------------------------
+// 每个 cases 文件都必须存在且非空；用例总数（下限）由这些文件推导，夹具树缺失或放错位置时直接失败
 function loadCases() {
   const rows = [];
   const add = (rel, extra = {}) => {
-    const doc = JSON.parse(readFileSync(join(PKG, rel), 'utf8'));
+    const file = join(PKG, rel);
+    if (!existsSync(file)) throw new Error(`缺少用例文件 ${rel}`);
+    const doc = JSON.parse(readFileSync(file, 'utf8'));
+    if (!Array.isArray(doc.cases) || doc.cases.length === 0) throw new Error(`用例文件 ${rel} 没有用例`);
     for (const c of doc.cases) rows.push({ file: rel, cwd: join(PKG, dirname(rel)), c, ...extra });
   };
-  for (const f of readdirSync(join(PKG, 'packages')).filter((n) => n.endsWith('.cases.json')).sort()) add(`packages/${f}`);
+  const packageCases = readdirSync(join(PKG, 'packages')).filter((n) => n.endsWith('.cases.json')).sort();
+  if (packageCases.length === 0) throw new Error('packages/ 下没有 *.cases.json');
+  for (const f of packageCases) add(`packages/${f}`);
   add('tamper/cases.json');
   add('inputs-invalid/cases.json');
   add('compile/cases.json', { compile: true });
@@ -103,7 +124,7 @@ async function prepare(row, ctx) {
     if (pkg) cleanups.push(pkg.cleanup);
     if (c.stdinRecipe) stdin = recipeStdin(c.stdinRecipe);
     for (const [k, v] of Object.entries(recipe.env ?? {})) env[k] = v.replace('<CA_PEM>', ctx.cert?.certFile ?? '');
-    args = args.map((a) => a.replaceAll('<PACKAGE_V1>', PKG).replaceAll('<PKG>', pkg?.path ?? '').replaceAll('<PORT>', String(ctx.server?.port ?? 0)));
+    args = args.map((a) => a.replaceAll('<PACKAGE_V1>', PKG).replaceAll('<PKG>', pkg?.path ?? '').replaceAll('<PORT>', String(ctx.servers?.get(routeSetKey(recipe.httpsServer?.routes))?.port ?? 0)));
   }
   // compile --out <OUT>：每一侧各用一个临时路径（目录先建好，文件不存在）
   return { args, env, stdin, cleanups };
@@ -162,20 +183,21 @@ async function runRow(row, ctx) {
   } finally {
     for (const f of prep.cleanups) f();
   }
-  const sameAcross = results.node.comparable === results.jre.comparable;
-  const ok = sameAcross && results.node.problems.length === 0 && results.jre.problems.length === 0;
-  return { row, results, sameAcross, ok, known: row.c.knownEngineDivergence };
+  const { status, reasons } = judgeRow(row, results);
+  return { row, results, sameAcross: results.node.comparable === results.jre.comparable, status, reasons, known: row.c.knownEngineDivergence };
 }
 
 // ---------------------------------------------------------------------------
 async function main() {
   const rows = loadCases();
   const ctx = {};
-  if (rows.some((r) => r.c.recipe?.httpsServer)) {
+  // https 配方按声明的 routes 分组，每组各起一个服务（共用一张自签名证书）
+  const routeSets = groupRouteSets(rows);
+  if (routeSets.size) {
     ctx.cert = selfSignedCert();
     if (!ctx.cert) throw new Error('需要 openssl 生成本地 https 配方用的自签名证书');
-    const routes = rows.find((r) => r.c.recipe?.httpsServer).c.recipe.httpsServer.routes;
-    ctx.server = await startRecipeServer(routes, ctx.cert, join(PKG, 'keys/test-jwks.json'));
+    ctx.servers = new Map();
+    for (const [key, routes] of routeSets) ctx.servers.set(key, await startRecipeServer(routes, ctx.cert, join(PKG, 'keys/test-jwks.json')));
   }
   const outcomes = [];
   let next = 0;
@@ -184,27 +206,29 @@ async function main() {
       const row = rows[next++];
       const o = await runRow(row, ctx);
       outcomes.push(o);
-      if (!o.ok) process.stderr.write(`${o.known ? '~' : '✗'} ${row.file}/${row.c.name}\n`);
+      if (o.status !== 'ok') process.stderr.write(`${o.status === 'known' ? '~' : '✗'} ${row.file}/${row.c.name}\n`);
     }
   });
   await Promise.all(workers);
-  ctx.server?.close();
+  for (const server of ctx.servers?.values() ?? []) server.close();
   if (ctx.cert) rmSync(ctx.cert.dir, { recursive: true, force: true });
 
   outcomes.sort((a, b) => `${a.row.file}/${a.row.c.name}`.localeCompare(`${b.row.file}/${b.row.c.name}`));
-  const failing = outcomes.filter((o) => !o.ok && !o.known);
-  const knownDiverging = outcomes.filter((o) => !o.ok && o.known);
-  const identical = outcomes.filter((o) => o.ok).length;
+  const failing = outcomes.filter((o) => o.status === 'fail');
+  const knownDiverging = outcomes.filter((o) => o.status === 'known');
+  const identical = outcomes.filter((o) => o.status === 'ok').length;
+  const coverage = coverageProblems({ expected: rows.length, ran: outcomes.length, filter });
   const lines = [
     '# 跨 CLI 一致性门（ADR 0059 P1 T11）',
     '',
     `- Node CLI：\`${nodeCli}\``,
     `- JVM CLI：\`${jar}\``,
     `- 用例：${outcomes.length}；两侧一致且等于期望：**${identical}/${outcomes.length}**；不一致：**${failing.length}**；已知引擎分歧（不计失败）：${knownDiverging.length}`,
+    ...coverage.map((p) => `- **用例数不足**：${p}`),
     '',
   ];
   const describe = (o) => {
-    const out = [`### ${o.row.file} / ${o.row.c.name}${o.known ? `（已知分歧：${o.known}）` : ''}`, '', `- 参数：\`${JSON.stringify(o.row.c.args)}\``, `- 两侧归一后一致：${o.sameAcross ? '是' : '否'}`];
+    const out = [`### ${o.row.file} / ${o.row.c.name}${o.known ? `（已知分歧：${o.known}）` : ''}`, '', `- 参数：\`${JSON.stringify(o.row.c.args)}\``, `- 两侧归一后一致：${o.sameAcross ? '是' : '否'}`, ...o.reasons.map((r) => `- **${r}**`)];
     for (const side of ['node', 'jre']) {
       const r = o.results[side];
       out.push(`- ${side}（${r.res.ms} ms，退出码 ${r.res.exit}）：${r.problems.length ? '' : '符合期望'}`);
@@ -221,7 +245,8 @@ async function main() {
   if (reportFile) writeFileSync(reportFile, report);
   process.stdout.write(report);
   console.log(`identical ${identical}/${outcomes.length}, ${failing.length} divergent${knownDiverging.length ? `, ${knownDiverging.length} known divergence` : ''}`);
-  process.exitCode = reportOnly || failing.length === 0 ? 0 : 1;
+  for (const p of coverage) console.error(`package-conformance: ${p}`);
+  process.exitCode = reportOnly || (failing.length === 0 && coverage.length === 0) ? 0 : 1;
 }
 
 await main();

@@ -493,7 +493,8 @@
       "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 4,
       "code": "COMPILE_ERROR",
-      "knownEngineDivergence": "aster-cloud/aster-lang-ts#348"
+      "knownEngineDivergence": "aster-cloud/aster-lang-ts#348",
+      "knownDivergentEngine": "node"
     },
     {
       "name": "source-only-ideographic-space-is-not-blank",
@@ -504,7 +505,8 @@
       "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 4,
       "code": "COMPILE_ERROR",
-      "knownEngineDivergence": "aster-cloud/aster-lang-ts#348"
+      "knownEngineDivergence": "aster-cloud/aster-lang-ts#348",
+      "knownDivergentEngine": "node"
     },
     {
       "name": "package-a-blank-policy",
