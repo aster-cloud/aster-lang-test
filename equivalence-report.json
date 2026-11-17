@@ -1,11 +1,11 @@
 {
   "summary": {
-    "total": 300,
-    "equivalent": 300,
+    "total": 301,
+    "equivalent": 301,
     "divergent": 0,
     "bothFail": 0,
     "rate": 1,
-    "basedOnHistory": "2026-11-16T09:07:12.192Z"
+    "basedOnHistory": "2026-11-17T19:29:13.166Z"
   },
   "rows": [
     {
@@ -1473,6 +1473,13 @@
     },
     {
       "path": "tier1-equivalence/policies/lambda_gte_test.aster",
+      "ts": true,
+      "java": true,
+      "verdict": "equivalent",
+      "tsErr": null
+    },
+    {
+      "path": "tier1-equivalence/policies/lambda_inline_body.aster",
       "ts": true,
       "java": true,
       "verdict": "equivalent",
