@@ -1,5 +1,5 @@
 {
-  "description": "运行时生成的夹具（README「体积上限」「信任锚」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节（自动建父目录）；addDirs：建空目录；copyZip + appendZeros：复制 zip 后追加零字节；stdinRecipe：prefix + padding 个空格 + suffix。httpsServer：测试在 127.0.0.1 上起一个只用于本用例的 https 服务（自签名证书，CN / SAN 为 localhost 与 127.0.0.1），按 routes 应答；<PORT> 为其端口；env 中的 <CA_PEM> 换成该自签名证书的 PEM 文件路径（ASTER_ANCHOR_CA_FILE 是仅供测试的信任覆盖，见 README）。全程离线。",
+  "description": "运行时生成的夹具（README「体积上限」「信任锚」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节（自动建父目录）；addDirs：建空目录；copyZip + appendZeros：复制 zip 后追加零字节；stdinRecipe：prefix + padding 个空格 + suffix。httpsServer：测试在 127.0.0.1 上起一个只用于本用例的 https 服务（自签名证书，CN / SAN 为 localhost 与 127.0.0.1），按 routes 应答（file：返回该文件；jwksPaddedTo：test-jwks.json 末尾补空格到恰好 N 字节；contentEncoding：gzip 压缩后返回并带该头；contentEncodingHeader：原样返回但带该头；location 中的 <PORT> 换成端口）；env 中的 <CA_PEM> 换成该自签名证书的 PEM 文件路径（ASTER_ANCHOR_CA_FILE 在系统信任库之上追加，仅供测试），代理变量故意指向不通的地址（v1 不使用代理）。全程离线。",
   "cases": [
     {
       "name": "dir-single-file-over-64MiB",
@@ -5291,24 +5291,24 @@
               "status": 200,
               "file": "keys/test-jwks.json"
             },
-            "/big.json": {
-              "status": 200,
-              "zeros": 1048577
-            },
             "/exact-1MiB.json": {
               "status": 200,
               "jwksPaddedTo": 1048576
             },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
             "/r3a": {
-              "status": 302,
+              "status": 301,
               "location": "/r3b"
             },
             "/r3b": {
-              "status": 302,
+              "status": 303,
               "location": "/r3c"
             },
             "/r3c": {
-              "status": 302,
+              "status": 307,
               "location": "/jwks.json"
             },
             "/r4a": {
@@ -5327,9 +5327,35 @@
               "status": 302,
               "location": "/jwks.json"
             },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
             "/to-http": {
               "status": 302,
               "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
             },
             "/missing": {
               "status": 404
@@ -5341,6 +5367,12 @@
           }
         },
         "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
           "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
         }
       },
@@ -5367,24 +5399,24 @@
               "status": 200,
               "file": "keys/test-jwks.json"
             },
-            "/big.json": {
-              "status": 200,
-              "zeros": 1048577
-            },
             "/exact-1MiB.json": {
               "status": 200,
               "jwksPaddedTo": 1048576
             },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
             "/r3a": {
-              "status": 302,
+              "status": 301,
               "location": "/r3b"
             },
             "/r3b": {
-              "status": 302,
+              "status": 303,
               "location": "/r3c"
             },
             "/r3c": {
-              "status": 302,
+              "status": 307,
               "location": "/jwks.json"
             },
             "/r4a": {
@@ -5403,9 +5435,35 @@
               "status": 302,
               "location": "/jwks.json"
             },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
             "/to-http": {
               "status": 302,
               "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
             },
             "/missing": {
               "status": 404
@@ -5416,7 +5474,14 @@
             }
           }
         },
-        "env": {}
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": ""
+        }
       },
       "args": [
         "run",
@@ -5441,24 +5506,24 @@
               "status": 200,
               "file": "keys/test-jwks.json"
             },
-            "/big.json": {
-              "status": 200,
-              "zeros": 1048577
-            },
             "/exact-1MiB.json": {
               "status": 200,
               "jwksPaddedTo": 1048576
             },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
             "/r3a": {
-              "status": 302,
+              "status": 301,
               "location": "/r3b"
             },
             "/r3b": {
-              "status": 302,
+              "status": 303,
               "location": "/r3c"
             },
             "/r3c": {
-              "status": 302,
+              "status": 307,
               "location": "/jwks.json"
             },
             "/r4a": {
@@ -5477,9 +5542,35 @@
               "status": 302,
               "location": "/jwks.json"
             },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
             "/to-http": {
               "status": 302,
               "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
             },
             "/missing": {
               "status": 404
@@ -5491,6 +5582,12 @@
           }
         },
         "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
           "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
         }
       },
@@ -5517,24 +5614,24 @@
               "status": 200,
               "file": "keys/test-jwks.json"
             },
-            "/big.json": {
-              "status": 200,
-              "zeros": 1048577
-            },
             "/exact-1MiB.json": {
               "status": 200,
               "jwksPaddedTo": 1048576
             },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
             "/r3a": {
-              "status": 302,
+              "status": 301,
               "location": "/r3b"
             },
             "/r3b": {
-              "status": 302,
+              "status": 303,
               "location": "/r3c"
             },
             "/r3c": {
-              "status": 302,
+              "status": 307,
               "location": "/jwks.json"
             },
             "/r4a": {
@@ -5553,9 +5650,35 @@
               "status": 302,
               "location": "/jwks.json"
             },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
             "/to-http": {
               "status": 302,
               "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
             },
             "/missing": {
               "status": 404
@@ -5567,6 +5690,12 @@
           }
         },
         "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
           "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
         }
       },
@@ -5584,7 +5713,7 @@
       "code": "USAGE"
     },
     {
-      "name": "https-jwks-redirect-to-http",
+      "name": "https-jwks-redirect-308-ok",
       "recipe": {
         "usePackage": "packages/b-credit-limit",
         "httpsServer": {
@@ -5593,24 +5722,24 @@
               "status": 200,
               "file": "keys/test-jwks.json"
             },
-            "/big.json": {
-              "status": 200,
-              "zeros": 1048577
-            },
             "/exact-1MiB.json": {
               "status": 200,
               "jwksPaddedTo": 1048576
             },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
             "/r3a": {
-              "status": 302,
+              "status": 301,
               "location": "/r3b"
             },
             "/r3b": {
-              "status": 302,
+              "status": 303,
               "location": "/r3c"
             },
             "/r3c": {
-              "status": 302,
+              "status": 307,
               "location": "/jwks.json"
             },
             "/r4a": {
@@ -5629,9 +5758,35 @@
               "status": 302,
               "location": "/jwks.json"
             },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
             "/to-http": {
               "status": 302,
               "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
             },
             "/missing": {
               "status": 404
@@ -5643,6 +5798,444 @@
           }
         },
         "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/r308"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-status-300-is-not-a-redirect",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/r300"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-relative-location-ok",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/rel/a"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-absolute-location-ok",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/abs"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "https-jwks-redirect-to-http",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
           "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
         }
       },
@@ -5669,24 +6262,24 @@
               "status": 200,
               "file": "keys/test-jwks.json"
             },
-            "/big.json": {
-              "status": 200,
-              "zeros": 1048577
-            },
             "/exact-1MiB.json": {
               "status": 200,
               "jwksPaddedTo": 1048576
             },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
             "/r3a": {
-              "status": 302,
+              "status": 301,
               "location": "/r3b"
             },
             "/r3b": {
-              "status": 302,
+              "status": 303,
               "location": "/r3c"
             },
             "/r3c": {
-              "status": 302,
+              "status": 307,
               "location": "/jwks.json"
             },
             "/r4a": {
@@ -5705,9 +6298,35 @@
               "status": 302,
               "location": "/jwks.json"
             },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
             "/to-http": {
               "status": 302,
               "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
             },
             "/missing": {
               "status": 404
@@ -5719,6 +6338,12 @@
           }
         },
         "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
           "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
         }
       },
@@ -5745,24 +6370,24 @@
               "status": 200,
               "file": "keys/test-jwks.json"
             },
-            "/big.json": {
-              "status": 200,
-              "zeros": 1048577
-            },
             "/exact-1MiB.json": {
               "status": 200,
               "jwksPaddedTo": 1048576
             },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
             "/r3a": {
-              "status": 302,
+              "status": 301,
               "location": "/r3b"
             },
             "/r3b": {
-              "status": 302,
+              "status": 303,
               "location": "/r3c"
             },
             "/r3c": {
-              "status": 302,
+              "status": 307,
               "location": "/jwks.json"
             },
             "/r4a": {
@@ -5781,9 +6406,35 @@
               "status": 302,
               "location": "/jwks.json"
             },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
             "/to-http": {
               "status": 302,
               "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
             },
             "/missing": {
               "status": 404
@@ -5795,6 +6446,12 @@
           }
         },
         "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
           "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
         }
       },
@@ -5804,12 +6461,228 @@
         "--input",
         "-",
         "--jwks",
-        "https://localhost:<PORT>/big.json"
+        "https://localhost:<PORT>/over-1MiB.json"
       ],
       "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
       "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 2,
       "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-content-encoding-gzip",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/gzip"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "https-jwks-content-encoding-identity-ok",
+      "recipe": {
+        "usePackage": "packages/b-credit-limit",
+        "httpsServer": {
+          "routes": {
+            "/jwks.json": {
+              "status": 200,
+              "file": "keys/test-jwks.json"
+            },
+            "/exact-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048576
+            },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
+            "/r3a": {
+              "status": 301,
+              "location": "/r3b"
+            },
+            "/r3b": {
+              "status": 303,
+              "location": "/r3c"
+            },
+            "/r3c": {
+              "status": 307,
+              "location": "/jwks.json"
+            },
+            "/r4a": {
+              "status": 302,
+              "location": "/r4b"
+            },
+            "/r4b": {
+              "status": 302,
+              "location": "/r4c"
+            },
+            "/r4c": {
+              "status": 302,
+              "location": "/r4d"
+            },
+            "/r4d": {
+              "status": 302,
+              "location": "/jwks.json"
+            },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
+            "/to-http": {
+              "status": 302,
+              "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
+            },
+            "/missing": {
+              "status": 404
+            },
+            "/not-json": {
+              "status": 200,
+              "body": "{\"keys\":["
+            }
+          }
+        },
+        "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
+          "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
+        }
+      },
+      "args": [
+        "run",
+        "<PACKAGE_V1>/packages/b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "https://localhost:<PORT>/identity"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
     },
     {
       "name": "https-jwks-404",
@@ -5821,24 +6694,24 @@
               "status": 200,
               "file": "keys/test-jwks.json"
             },
-            "/big.json": {
-              "status": 200,
-              "zeros": 1048577
-            },
             "/exact-1MiB.json": {
               "status": 200,
               "jwksPaddedTo": 1048576
             },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
             "/r3a": {
-              "status": 302,
+              "status": 301,
               "location": "/r3b"
             },
             "/r3b": {
-              "status": 302,
+              "status": 303,
               "location": "/r3c"
             },
             "/r3c": {
-              "status": 302,
+              "status": 307,
               "location": "/jwks.json"
             },
             "/r4a": {
@@ -5857,9 +6730,35 @@
               "status": 302,
               "location": "/jwks.json"
             },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
             "/to-http": {
               "status": 302,
               "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
             },
             "/missing": {
               "status": 404
@@ -5871,6 +6770,12 @@
           }
         },
         "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
           "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
         }
       },
@@ -5897,24 +6802,24 @@
               "status": 200,
               "file": "keys/test-jwks.json"
             },
-            "/big.json": {
-              "status": 200,
-              "zeros": 1048577
-            },
             "/exact-1MiB.json": {
               "status": 200,
               "jwksPaddedTo": 1048576
             },
+            "/over-1MiB.json": {
+              "status": 200,
+              "jwksPaddedTo": 1048577
+            },
             "/r3a": {
-              "status": 302,
+              "status": 301,
               "location": "/r3b"
             },
             "/r3b": {
-              "status": 302,
+              "status": 303,
               "location": "/r3c"
             },
             "/r3c": {
-              "status": 302,
+              "status": 307,
               "location": "/jwks.json"
             },
             "/r4a": {
@@ -5933,9 +6838,35 @@
               "status": 302,
               "location": "/jwks.json"
             },
+            "/r308": {
+              "status": 308,
+              "location": "/jwks.json"
+            },
+            "/r300": {
+              "status": 300,
+              "location": "/jwks.json"
+            },
+            "/rel/a": {
+              "status": 302,
+              "location": "../jwks.json"
+            },
+            "/abs": {
+              "status": 302,
+              "location": "https://localhost:<PORT>/jwks.json"
+            },
             "/to-http": {
               "status": 302,
               "location": "http://127.0.0.1:<PORT>/jwks.json"
+            },
+            "/gzip": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncoding": "gzip"
+            },
+            "/identity": {
+              "status": 200,
+              "file": "keys/test-jwks.json",
+              "contentEncodingHeader": "identity"
             },
             "/missing": {
               "status": 404
@@ -5947,6 +6878,12 @@
           }
         },
         "env": {
+          "HTTPS_PROXY": "http://127.0.0.1:9",
+          "https_proxy": "http://127.0.0.1:9",
+          "HTTP_PROXY": "http://127.0.0.1:9",
+          "http_proxy": "http://127.0.0.1:9",
+          "NO_PROXY": "",
+          "no_proxy": "",
           "ASTER_ANCHOR_CA_FILE": "<CA_PEM>"
         }
       },

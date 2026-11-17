@@ -514,6 +514,51 @@
       "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 2,
       "code": "USAGE"
+    },
+    {
+      "name": "jwks-file-exactly-1MiB-ok",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../anchors/jwks-exactly-1MiB.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"9a4f4f96f620450963b303b4891a059b9265046e6f1d50ebccca183f373799a3\",\"engine\":\"<ENGINE>\",\"entry\":\"decide\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":{\"__type\":\"Verdict\",\"outcome\":\"ALLOW\"}}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "usage-jwks-file-over-1MiB",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--jwks",
+        "../anchors/jwks-over-1MiB.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-pubkey-file-over-1MiB",
+      "args": [
+        "run",
+        "b-credit-limit",
+        "--input",
+        "-",
+        "--pubkey",
+        "../anchors/test-pub-over-1MiB.jwk.json"
+      ],
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}",
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
     }
   ]
 }

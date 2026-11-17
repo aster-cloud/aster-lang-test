@@ -1162,6 +1162,9 @@ export { jsonFile };
  * anchors/：信任锚夹具（相对 packages/ 为 ../anchors/）。合法：单个 JWK（带 / 不带 kid）。非法（一律 USAGE）：
  * JWKS 重复 kid、crv 不是 Ed25519、x 不是 32 字节、alg 不是 EdDSA、不是 JSON；原始公钥文件带 = 填充、CRLF 行尾、31 字节。
  */
+/** 在合法 JSON 末尾补空格到恰好 n 字节（严格 JSON 允许尾随空白）。 */
+const padTo = (buf, n) => Buffer.concat([buf, Buffer.alloc(n - buf.length, 0x20)]);
+
 export function anchorFiles() {
   const x = base64url(TEST_KEY.publicRaw);
   const jwk = { alg: 'EdDSA', crv: 'Ed25519', kid: TEST_KID, kty: 'OKP', use: 'sig', x };
@@ -1178,6 +1181,10 @@ export function anchorFiles() {
     ['anchors/jwks-duplicate-json-key.json', utf8(`{"keys":${JSON.stringify([jwk])},"keys":${JSON.stringify([jwk])}}\n`)],
     ['anchors/jwks-bom.json', Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf]), jsonFile({ keys: [jwk] })])],
     ['anchors/test-pub-trailing-garbage.jwk.json', utf8(`${JSON.stringify(jwk)} {}\n`)],
+    // 本地锚文件上限 1 MiB：恰好 1 MiB 的合法 JWKS 可用，多 1 字节即 USAGE
+    ['anchors/jwks-exactly-1MiB.json', padTo(jsonFile({ keys: [jwk] }), 1024 * 1024)],
+    ['anchors/jwks-over-1MiB.json', padTo(jsonFile({ keys: [jwk] }), 1024 * 1024 + 1)],
+    ['anchors/test-pub-over-1MiB.jwk.json', padTo(jsonFile(jwk), 1024 * 1024 + 1)],
     ['anchors/pub-padded.b64u', utf8(`${Buffer.from(TEST_KEY.publicRaw).toString('base64')}\n`)],
     ['anchors/pub-crlf.b64u', utf8(`${x}\r\n`)],
     ['anchors/pub-31-bytes.b64u', utf8(`${base64url(TEST_KEY.publicRaw.subarray(0, 31))}\n`)],
@@ -1211,7 +1218,7 @@ export function testTimeCases(pkgs, exitCodes) {
   });
   const MiB = 1024 * 1024;
   return {
-    description: '运行时生成的夹具（README「体积上限」「信任锚」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节（自动建父目录）；addDirs：建空目录；copyZip + appendZeros：复制 zip 后追加零字节；stdinRecipe：prefix + padding 个空格 + suffix。httpsServer：测试在 127.0.0.1 上起一个只用于本用例的 https 服务（自签名证书，CN / SAN 为 localhost 与 127.0.0.1），按 routes 应答；<PORT> 为其端口；env 中的 <CA_PEM> 换成该自签名证书的 PEM 文件路径（ASTER_ANCHOR_CA_FILE 是仅供测试的信任覆盖，见 README）。全程离线。',
+    description: '运行时生成的夹具（README「体积上限」「信任锚」）。<PKG> 为按 recipe 生成的包目录，<PACKAGE_V1> 为 conformance/package-v1 的绝对路径。add：[{path, size}] 写入 size 个零字节（自动建父目录）；addDirs：建空目录；copyZip + appendZeros：复制 zip 后追加零字节；stdinRecipe：prefix + padding 个空格 + suffix。httpsServer：测试在 127.0.0.1 上起一个只用于本用例的 https 服务（自签名证书，CN / SAN 为 localhost 与 127.0.0.1），按 routes 应答（file：返回该文件；jwksPaddedTo：test-jwks.json 末尾补空格到恰好 N 字节；contentEncoding：gzip 压缩后返回并带该头；contentEncodingHeader：原样返回但带该头；location 中的 <PORT> 换成端口）；env 中的 <CA_PEM> 换成该自签名证书的 PEM 文件路径（ASTER_ANCHOR_CA_FILE 在系统信任库之上追加，仅供测试），代理变量故意指向不通的地址（v1 不使用代理）。全程离线。',
     cases: [
       pkgFail('dir-single-file-over-64MiB', [{ path: 'big.bin', size: 64 * MiB + 1 }]),
       pkgFail('dir-cumulative-over-64MiB', [{ path: 'a.bin', size: 40 * MiB }, { path: 'b.bin', size: 40 * MiB }]),
@@ -1258,17 +1265,25 @@ function httpsAnchorCases(base, firstRun, exitCodes) {
   const usage = errorEnvelope('USAGE', runMeta(base, 'usage', { entry: null, allowUnsigned: false }), exitCodes);
   const routes = {
     '/jwks.json': { status: 200, file: 'keys/test-jwks.json' },
-    '/big.json': { status: 200, zeros: 1024 * 1024 + 1 },
     '/exact-1MiB.json': { status: 200, jwksPaddedTo: 1024 * 1024 },
-    '/r3a': { status: 302, location: '/r3b' }, '/r3b': { status: 302, location: '/r3c' }, '/r3c': { status: 302, location: '/jwks.json' },
+    '/over-1MiB.json': { status: 200, jwksPaddedTo: 1024 * 1024 + 1 },
+    '/r3a': { status: 301, location: '/r3b' }, '/r3b': { status: 303, location: '/r3c' }, '/r3c': { status: 307, location: '/jwks.json' },
     '/r4a': { status: 302, location: '/r4b' }, '/r4b': { status: 302, location: '/r4c' }, '/r4c': { status: 302, location: '/r4d' }, '/r4d': { status: 302, location: '/jwks.json' },
+    '/r308': { status: 308, location: '/jwks.json' },
+    '/r300': { status: 300, location: '/jwks.json' },
+    '/rel/a': { status: 302, location: '../jwks.json' },
+    '/abs': { status: 302, location: 'https://localhost:<PORT>/jwks.json' },
     '/to-http': { status: 302, location: 'http://127.0.0.1:<PORT>/jwks.json' },
+    '/gzip': { status: 200, file: 'keys/test-jwks.json', contentEncoding: 'gzip' },
+    '/identity': { status: 200, file: 'keys/test-jwks.json', contentEncodingHeader: 'identity' },
     '/missing': { status: 404 },
     '/not-json': { status: 200, body: '{"keys":[' },
   };
+  // v1 不使用代理：每个配方都把代理环境变量指向一个不通的地址，证明 CLI 忽略它们（README「信任锚」R-1）
+  const deadProxy = { HTTPS_PROXY: 'http://127.0.0.1:9', https_proxy: 'http://127.0.0.1:9', HTTP_PROXY: 'http://127.0.0.1:9', http_proxy: 'http://127.0.0.1:9', NO_PROXY: '', no_proxy: '' };
   const row = (name, path, { ca = true, ok = false } = {}) => ({
     name,
-    recipe: { usePackage: 'packages/b-credit-limit', httpsServer: { routes }, env: ca ? { ASTER_ANCHOR_CA_FILE: '<CA_PEM>' } : {} },
+    recipe: { usePackage: 'packages/b-credit-limit', httpsServer: { routes }, env: { ...deadProxy, ...(ca ? { ASTER_ANCHOR_CA_FILE: '<CA_PEM>' } : {}) } },
     args: ['run', '<PACKAGE_V1>/packages/b-credit-limit', '--input', '-', '--jwks', `https://localhost:<PORT>${path}`],
     stdin: inputJson(allow.input),
     expectedStdout: ok ? okStdout : usage,
@@ -1280,9 +1295,15 @@ function httpsAnchorCases(base, firstRun, exitCodes) {
     row('https-jwks-untrusted-certificate', '/jwks.json', { ca: false }),
     row('https-jwks-three-redirects-ok', '/r3a', { ok: true }),
     row('https-jwks-four-redirects', '/r4a'),
+    row('https-jwks-redirect-308-ok', '/r308', { ok: true }),
+    row('https-jwks-status-300-is-not-a-redirect', '/r300'),
+    row('https-jwks-relative-location-ok', '/rel/a', { ok: true }),
+    row('https-jwks-absolute-location-ok', '/abs', { ok: true }),
     row('https-jwks-redirect-to-http', '/to-http'),
     row('https-jwks-response-1MiB-ok', '/exact-1MiB.json', { ok: true }),
-    row('https-jwks-response-over-1MiB', '/big.json'),
+    row('https-jwks-response-over-1MiB', '/over-1MiB.json'),
+    row('https-jwks-content-encoding-gzip', '/gzip'),
+    row('https-jwks-content-encoding-identity-ok', '/identity', { ok: true }),
     row('https-jwks-404', '/missing'),
     row('https-jwks-not-json', '/not-json'),
   ];
@@ -1319,7 +1340,9 @@ export function compileFixtures(srcDir, pkgs, exitCodes) {
     if (c.platform) {
       const got = captured[c.name];
       if (!got) throw new Error(`compile/${c.name}: 缺少平台采集结果（先跑 --capture-compile）`);
-      return got.ok ? success(c, got.positionFreeSha256) : failure(c, 'COMPILE_ERROR', usageMeta);
+      const row = got.ok ? success(c, got.positionFreeSha256) : failure(c, 'COMPILE_ERROR', usageMeta);
+      // 期望取平台（Java）解析结果；ts 编译器目前与之不同的用例标出跟踪 issue，Node CLI 在修复前会在这些行上失败
+      return c.knownEngineDivergence ? { ...row, knownEngineDivergence: c.knownEngineDivergence } : row;
     }
     if (c.package) return success(c, pkgs.get(c.package).manifest.coreIr.positionFreeSha256);
     const { code } = c.expect;

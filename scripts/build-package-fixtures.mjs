@@ -34,7 +34,7 @@ import { publicKeyFromRaw, verifyManifest } from './lib/package-v1/signing.mjs';
 import { checkPackage } from './lib/package-v1/reference-check.mjs';
 import { InputError, validateInput } from './lib/package-v1/input.mjs';
 import { parseStrictJson } from './lib/package-v1/strict-json.mjs';
-import { parseCommand } from './lib/package-v1/argv.mjs';
+import { parseCommand, decodeSource, isBlankSource } from './lib/package-v1/argv.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PKG = join(ROOT, 'conformance', 'package-v1');
@@ -284,9 +284,9 @@ function overlay(base, aliasSet) {
 
 /** 按盘上包的 manifest 与 policy/ 文件本地编译（verify --recompile / --probes 的参照）；编译失败返回 null。 */
 function tsCompileFiles(ts, manifest, files) {
-  const source = files.get('policy/policy.aster').toString('utf8');
-  // README「compile」：空白源码与形状不对的 aliasSet 失败即拒（COMPILE_ERROR / B 包为 PKG_IR_DRIFT）；不做类型检查
-  if (source.trim() === '') return null;
+  const source = decodeSource(files.get('policy/policy.aster'));
+  // README「compile」：空白（只看 ASCII 空白）源码与形状不对的 aliasSet 失败即拒（COMPILE_ERROR / B 包为 PKG_IR_DRIFT）；不做类型检查
+  if (isBlankSource(source)) return null;
   const aliasSet = JSON.parse(files.get('policy/compile/alias-set.json').toString('utf8'));
   if (aliasSet !== null) {
     if (typeof aliasSet !== 'object' || Array.isArray(aliasSet)) return null;
@@ -711,7 +711,7 @@ async function verifyEngines() {
     const dir = join(SRC, 'compile');
     const doc = JSON.parse(readFileSync(join(dir, 'compile.json'), 'utf8'));
     const reqs = doc.cases.filter((c) => c.platform).map((c) => ({
-      id: c.name, source: readFileSync(join(dir, c.platform.source), 'utf8'), locale: c.platform.locale,
+      id: c.name, source: decodeSource(readFileSync(join(dir, c.platform.source))), locale: c.platform.locale,
       aliasSet: c.platform.aliasSet ? JSON.parse(readFileSync(join(dir, c.platform.aliasSet), 'utf8')) : null,
       vocabulary: c.platform.vocabulary ? JSON.parse(readFileSync(join(dir, c.platform.vocabulary), 'utf8')) : null,
       allowStructural: c.platform.allowStructural === true,
@@ -748,7 +748,10 @@ async function verifyEngines() {
     }
     if (isSource) {
       if (c.code === 'COMPILE_ERROR') {
-        if (!opts['--alias-set']) expect(tsCompileFiles(ts, { source: { locale: opts['--locale'] ?? 'en-US' } }, new Map([['policy/policy.aster', readFileSync(target)], ['policy/compile/alias-set.json', utf8('null')]])) === null, `${name}: ts 应编译失败`);
+        const tsCore = opts['--alias-set'] ? undefined : tsCompileFiles(ts, { source: { locale: opts['--locale'] ?? 'en-US' } }, new Map([['policy/policy.aster', readFileSync(target)], ['policy/compile/alias-set.json', utf8('null')]]));
+        // 已知的 ts / Java 解析分歧（knownEngineDivergence 指向跟踪 issue）：断言分歧仍在，修复后此处会提醒去掉标记
+        if (c.knownEngineDivergence) expect(tsCore !== null && tsCore !== undefined, `${name}: ts 已与平台一致（${c.knownEngineDivergence} 已修？），去掉 knownEngineDivergence`);
+        else if (!opts['--alias-set']) expect(tsCore === null, `${name}: ts 应编译失败`);
         // aliasSet 校验失败类：ts 尚无 UserAliasValidator，期望来自平台编译序列——这里确认生成的行与采集结果一致；
         // 给出 --cp-file 时再以平台编译序列现场重算（本地；CI 无 aster-api）
         else expect(platformCompile(c.name) === false, `${name}: 平台编译序列应拒绝该 aliasSet`);
@@ -936,7 +939,7 @@ function captureCompile() {
   const doc = JSON.parse(readFileSync(join(dir, 'compile.json'), 'utf8'));
   const reqs = doc.cases.filter((c) => c.platform).map((c) => ({
     id: c.name,
-    source: readFileSync(join(dir, c.platform.source), 'utf8'),
+    source: decodeSource(readFileSync(join(dir, c.platform.source))),
     locale: c.platform.locale,
     aliasSet: c.platform.aliasSet ? JSON.parse(readFileSync(join(dir, c.platform.aliasSet), 'utf8')) : null,
     vocabulary: c.platform.vocabulary ? JSON.parse(readFileSync(join(dir, c.platform.vocabulary), 'utf8')) : null,

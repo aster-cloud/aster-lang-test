@@ -44,10 +44,28 @@ function checkJwk(k, requireKid) {
   if (k.use !== undefined && k.use !== 'sig') usage('JWK 的 use 不是 sig');
 }
 
-function readFileOrUsage(path, what) {
+/** 本地信任锚文件（--jwks / --pubkey）的大小上限。 */
+export const MAX_ANCHOR_FILE_BYTES = 1024 * 1024;
+
+function readFileOrUsage(path, what, maxBytes = Infinity) {
   if (!existsSync(path) || !statSync(path).isFile()) usage(`${what} 不存在或不是文件`);
+  if (statSync(path).size > maxBytes) usage(`${what} 超过 1 MiB`);
   return readFileSync(path);
 }
+
+/** .aster 源码的解码（README「compile」）：严格 UTF-8，非法即 USAGE；去掉至多一个开头的 BOM。 */
+export function decodeSource(bytes) {
+  let text;
+  try {
+    text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(bytes);
+  } catch {
+    usage('源码不是合法 UTF-8');
+  }
+  return text.startsWith('\uFEFF') ? text.slice(1) : text;
+}
+
+/** 「空白源码」只看 ASCII 空白：U+0020、\t、\n、\r（U+00A0、U+3000 等不算，照常交给编译器）。 */
+export const isBlankSource = (text) => /^[ \t\n\r]*$/.test(text);
 
 function checkAnchor(options, cwd) {
   if (options['--jwks'] !== undefined && options['--pubkey'] !== undefined) usage('--jwks 与 --pubkey 同时给出');
@@ -57,7 +75,7 @@ function checkAnchor(options, cwd) {
     if (jwks.startsWith('https://')) return; // 参照实现不联网；夹具不含 https URL
     let doc;
     try {
-      doc = parseStrictJson(readFileOrUsage(join(cwd, jwks), '--jwks 文件'), { maxDepth: 8 });
+      doc = parseStrictJson(readFileOrUsage(join(cwd, jwks), '--jwks 文件', MAX_ANCHOR_FILE_BYTES), { maxDepth: 8 });
     } catch (e) {
       if (e instanceof Usage) throw e;
       usage(`--jwks 文件不是严格 JSON：${e.message}`);
@@ -72,7 +90,7 @@ function checkAnchor(options, cwd) {
   }
   const pub = options['--pubkey'];
   if (pub !== undefined) {
-    const bytes = readFileOrUsage(join(cwd, pub), '--pubkey 文件');
+    const bytes = readFileOrUsage(join(cwd, pub), '--pubkey 文件', MAX_ANCHOR_FILE_BYTES);
     const text = bytes.toString('utf8');
     if (text.trimStart().startsWith('{')) {
       let jwk;
@@ -95,6 +113,7 @@ function checkOut(options, cwd) {
   if (out === undefined || out.includes('<OUT>')) return;
   const parent = dirname(join(cwd, out));
   if (!existsSync(parent) || !statSync(parent).isDirectory()) usage('--out 的父目录不存在');
+  if (existsSync(join(cwd, out)) && statSync(join(cwd, out)).isDirectory()) usage('--out 指向一个目录');
 }
 
 function checkCompile(positional, options, cwd) {
@@ -104,6 +123,7 @@ function checkCompile(positional, options, cwd) {
   const isSource = target.endsWith('.aster') && existsSync(path) && statSync(path).isFile();
   if (target.endsWith('.aster') && !isSource) usage('源码文件不存在或不可读');
   if (isSource) {
+    decodeSource(readFileSync(path));
     for (const o of ['--jwks', '--pubkey', '--allow-unsigned']) if (options[o] !== undefined) usage(`源码形态不接受 ${o}`);
     if (options['--allow-structural'] && options['--alias-set'] === undefined) usage('--allow-structural 只能与 --alias-set 同用');
     if (options['--locale'] !== undefined && !SUPPORTED_LOCALES.has(options['--locale'])) usage('--locale 不受支持');
@@ -187,17 +207,23 @@ export function parseCommand(args, cwd) {
 
 /**
  * https 信任锚的取回参照实现（README「信任锚」）：只接受字面量 https://；总超时 10 s；至多跟随 3 次重定向且只能 https → https；
- * 响应体 ≤ 1 MiB；只认 2xx；用系统信任库，测试时可经环境变量 ASTER_ANCHOR_CA_FILE 追加一个 PEM（仅测试用）。
- * 任何失败都抛 Usage（调用方报 USAGE）。代理：生产实现须遵守 HTTPS_PROXY / NO_PROXY；本参照实现只用于离线测试，不经代理。
+ * 重定向只认 301/302/303/307/308（相对 Location 按 RFC 3986 解析）；请求 Accept-Encoding: identity，响应带非 identity 的 Content-Encoding 即失败；
+ * 响应体 ≤ 1 MiB；只认 2xx；系统信任库，测试时经 ASTER_ANCHOR_CA_FILE 追加一个 PEM（仅测试用）；不使用任何代理（v1）。
+ * 任何失败都抛 Usage（调用方报 USAGE）。
  */
-export async function fetchJwks(url, { ca, timeoutMs = 10_000, maxRedirects = 3, maxBytes = 1024 * 1024 } = {}) {
+export async function fetchJwks(url, { extraCa, timeoutMs = 10_000, maxRedirects = 3, maxBytes = 1024 * 1024 } = {}) {
   const https = await import('node:https');
+  const tls = await import('node:tls');
+  // ASTER_ANCHOR_CA_FILE 是在系统信任库之上**追加**，不是替换
+  const ca = extraCa ? [...tls.getCACertificates('system'), ...tls.getCACertificates('bundled'), extraCa] : undefined;
+  const REDIRECTS = new Set([301, 302, 303, 307, 308]);
   const deadline = Date.now() + timeoutMs;
   let current = url;
   for (let hop = 0; ; hop++) {
     if (!current.startsWith('https://')) throw new Usage('重定向到非 https 地址');
+    // 不经代理：直连（HTTPS_PROXY 等环境变量一律忽略）；只要 identity 编码
     const res = await new Promise((resolve, reject) => {
-      const req = https.get(current, { ca, timeout: Math.max(1, deadline - Date.now()) }, (r) => {
+      const req = https.get(current, { ca, agent: false, headers: { 'accept-encoding': 'identity' }, timeout: Math.max(1, deadline - Date.now()) }, (r) => {
         const chunks = [];
         let size = 0;
         r.on('data', (c) => {
@@ -207,17 +233,19 @@ export async function fetchJwks(url, { ca, timeoutMs = 10_000, maxRedirects = 3,
             reject(new Usage('响应超过 1 MiB'));
           } else chunks.push(c);
         });
-        r.on('end', () => resolve({ status: r.statusCode, location: r.headers.location, body: Buffer.concat(chunks) }));
+        r.on('end', () => resolve({ status: r.statusCode, location: r.headers.location, encoding: r.headers['content-encoding'], body: Buffer.concat(chunks) }));
       });
       req.on('timeout', () => req.destroy(new Usage('超时')));
       req.on('error', (e) => reject(e instanceof Usage ? e : new Usage(`请求失败：${e.message}`)));
     });
-    if (res.status >= 300 && res.status < 400 && res.location) {
+    if (REDIRECTS.has(res.status)) {
+      if (!res.location) throw new Usage('重定向缺少 Location');
       if (hop + 1 > maxRedirects) throw new Usage('重定向超过 3 次');
-      current = new URL(res.location, current).toString();
+      current = new URL(res.location, current).toString(); // RFC 3986 相对于当前请求 URL 解析
       continue;
     }
     if (res.status < 200 || res.status > 299) throw new Usage(`HTTP ${res.status}`);
+    if (res.encoding !== undefined && res.encoding.toLowerCase() !== 'identity') throw new Usage(`不接受 Content-Encoding: ${res.encoding}`);
     try {
       return parseStrictJson(res.body, { maxDepth: 8 });
     } catch {

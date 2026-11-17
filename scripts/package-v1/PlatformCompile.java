@@ -18,7 +18,7 @@ import java.util.Map;
  *
  * <p>这是 B 包本地重编译与 {@code aster compile} 的语义（conformance/package-v1/README.md「compile」）：只解析与降级，
  * <b>不做类型检查</b>（aster-api {@code PolicyCompiler.compileSource} 另外跑 TypeChecker，包格式不采用）。另按 README 两条规则失败即拒：
- * 源码为空或只有空白；aliasSet 不是 {@code {"<已知 SemanticTokenKind>":[字符串…]}}（未知 kind、值不是字符串数组都算）。
+ * 源码为空或只有 ASCII 空白（源码已由调用方按严格 UTF-8 解码并去掉开头一个 BOM）；aliasSet 不是 {@code {"<已知 SemanticTokenKind>":[字符串…]}}（未知 kind、值不是字符串数组都算）。
  *
  * <p>序列与 P0 实测（实施计划「P0 结果」§4）相同：aliasSet 空 → {@code InProcessCnlParser.parse(src, locale, scopes)}；
  * 非空 → {@code parseWithUserAliases(src, locale, scopes, aliasSet, allowStructural)}；词汇 →
@@ -44,7 +44,8 @@ public class PlatformCompile {
       out.put("id", req.get("id"));
       try {
         String src = (String) req.get("source");
-        if (src == null || src.isBlank()) throw new IllegalArgumentException("源码为空或只有空白");
+        // 「空白」只看 ASCII 空白（U+0020、\t、\n、\r）；String.isBlank() 还会把 U+3000 等当空白，不用
+        if (src == null || src.chars().allMatch(ch -> ch == ' ' || ch == '\t' || ch == '\n' || ch == '\r')) throw new IllegalArgumentException("源码为空或只有 ASCII 空白");
         String locale = (String) req.get("locale");
         Object rawAlias = req.get("aliasSet");
         Map<SemanticTokenKind, List<String>> aliasSet = new EnumMap<>(SemanticTokenKind.class);

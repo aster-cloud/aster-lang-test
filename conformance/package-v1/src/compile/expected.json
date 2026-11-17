@@ -33,11 +33,11 @@
   },
   "source-empty": {
     "ok": false,
-    "error": "IllegalArgumentException: 源码为空或只有空白"
+    "error": "IllegalArgumentException: 源码为空或只有 ASCII 空白"
   },
   "source-whitespace-only": {
     "ok": false,
-    "error": "IllegalArgumentException: 源码为空或只有空白"
+    "error": "IllegalArgumentException: 源码为空或只有 ASCII 空白"
   },
   "source-alias-set-unknown-kind": {
     "ok": false,
@@ -58,5 +58,21 @@
   "double-dash-ends-options": {
     "ok": true,
     "positionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469"
+  },
+  "source-leading-bom-is-stripped": {
+    "ok": true,
+    "positionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469"
+  },
+  "source-only-bom-is-blank": {
+    "ok": false,
+    "error": "IllegalArgumentException: 源码为空或只有 ASCII 空白"
+  },
+  "source-only-nbsp-is-not-blank": {
+    "ok": false,
+    "error": "CnlParseException: CNL syntax error — Line 1, column 1: Unrecognized character ' '"
+  },
+  "source-only-ideographic-space-is-not-blank": {
+    "ok": false,
+    "error": "CnlParseException: CNL 源代码不能为空"
   }
 }

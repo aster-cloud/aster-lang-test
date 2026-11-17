@@ -10,7 +10,7 @@
  * 用法：node scripts/test-package-v1.mjs（退出码 0=全过，1=有失败）。
  */
 import assert from 'node:assert';
-import { inflateRawSync } from 'node:zlib';
+import { gzipSync, inflateRawSync } from 'node:zlib';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -387,6 +387,8 @@ async function httpsAnchorTests() {
       const r = routes[req.url];
       if (!r) return res.writeHead(404).end();
       if (r.location) return res.writeHead(r.status, { location: r.location.replace('<PORT>', port) }).end();
+      if (r.contentEncoding === 'gzip') return res.writeHead(r.status, { 'content-encoding': 'gzip' }).end(gzipSync(jwks));
+      if (r.contentEncodingHeader) return res.writeHead(r.status, { 'content-encoding': r.contentEncodingHeader }).end(jwks);
       if (r.file) return res.writeHead(r.status).end(jwks);
       if (r.zeros) return res.writeHead(r.status).end(Buffer.alloc(r.zeros, 0x20));
       if (r.jwksPaddedTo) return res.writeHead(r.status).end(Buffer.concat([jwks, Buffer.alloc(r.jwksPaddedTo - jwks.length, 0x20)]));
@@ -394,40 +396,28 @@ async function httpsAnchorTests() {
     });
     await new Promise((ok) => server.listen(0, '127.0.0.1', ok));
     port = server.address().port;
-    const ca = readFileSync(join(dir, 'cert.pem'));
-    const expectOk = async (name, path, opts) => {
+    const extraCa = readFileSync(join(dir, 'cert.pem'), 'utf8');
+    // 与配方一致：代理变量指向不通的地址，参照实现必须照常直连
+    for (const k of ['HTTPS_PROXY', 'https_proxy', 'HTTP_PROXY', 'http_proxy']) process.env[k] = 'http://127.0.0.1:9';
+    const tt = JSON.parse(readFileSync(join(ROOT, 'conformance/package-v1/tamper/test-time.json'), 'utf8')).cases.filter((c) => c.recipe?.httpsServer);
+    for (const c of tt) {
+      const path = c.args.at(-1).replace('https://localhost:<PORT>', '');
+      const withCa = c.recipe.env.ASTER_ANCHOR_CA_FILE !== undefined;
       try {
-        const got = await fetchJwks(`https://localhost:${port}${path}`, opts);
-        assert.ok(Array.isArray(got.keys), name);
-        pass++;
-      } catch (e) {
-        fail++;
-        console.error(`✗ https: ${name} 应成功：${e.message}`);
-      }
-    };
-    const expectUsage = async (name, path, opts) => {
-      try {
-        await fetchJwks(`https://localhost:${port}${path}`, opts);
-        fail++;
-        console.error(`✗ https: ${name} 应失败`);
-      } catch (e) {
-        if (e instanceof Usage) pass++;
+        const got = await fetchJwks(`https://localhost:${port}${path}`, withCa ? { extraCa } : {});
+        if (c.code === null && Array.isArray(got.keys)) pass++;
         else {
           fail++;
-          console.error(`✗ https: ${name} 抛了非 Usage：${e.message}`);
+          console.error(`✗ https: ${c.name} 应失败（USAGE）却成功`);
+        }
+      } catch (e) {
+        if (c.code === 'USAGE' && e instanceof Usage) pass++;
+        else {
+          fail++;
+          console.error(`✗ https: ${c.name}：${e.message}`);
         }
       }
-    };
-    // 与 test-time.json 的 https-jwks-* 配方一一对应
-    await expectOk('trusted-via-test-ca', '/jwks.json', { ca });
-    await expectUsage('untrusted-certificate', '/jwks.json', {});
-    await expectOk('three-redirects-ok', '/r3a', { ca });
-    await expectUsage('four-redirects', '/r4a', { ca });
-    await expectUsage('redirect-to-http', '/to-http', { ca });
-    await expectOk('response-1MiB-ok', '/exact-1MiB.json', { ca });
-    await expectUsage('response-over-1MiB', '/big.json', { ca });
-    await expectUsage('404', '/missing', { ca });
-    await expectUsage('not-json', '/not-json', { ca });
+    }
     server.close();
   } finally {
     rmSync(dir, { recursive: true, force: true });

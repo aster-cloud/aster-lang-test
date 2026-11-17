@@ -226,12 +226,18 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 - 不给锚：使用内置 `export-jwks.json`（P1 为 `{"keys":[]}`，所以任何签名包都是 `PKG_UNTRUSTED_KID`）。
 - `--jwks <file|url>`：参数匹配 `^[A-Za-z][A-Za-z0-9+.-]*://` 即视为 URL，否则按本地文件读。URL 必须以字面量小写 `https://` 开头，其他（含 `http://`、`ftp://`、
   大写 `HTTPS://`）一律 `USAGE` 且不发请求（夹具 `usage-jwks-http-url`、`usage-jwks-ftp-url`、`usage-jwks-uppercase-scheme`）。https 取回的规则：
-  - 总超时 10 s（含连接、TLS、重定向与读完响应体）；只认 2xx；响应体 ≤ 1 MiB（超出即中止）；
-  - 至多跟随 3 次重定向，且每一跳都必须是 https（https → http 失败）；
-  - TLS 用操作系统 / 运行时的标准信任库（Node：`--use-system-ca` 等价的系统 CA；JVM：缺省 `cacerts`），遵守平台标准代理环境变量 `HTTPS_PROXY` / `https_proxy` 与 `NO_PROXY`；
-  - **仅供测试**的信任覆盖：环境变量 `ASTER_ANCHOR_CA_FILE` 指向一个 PEM 文件时，额外信任其中的证书（只用于取信任锚，不影响别处）；
+  - 总超时 10 s（含连接、TLS、重定向与读完响应体）；只认 2xx；响应体 ≤ 1 MiB（超出即中止；恰好 1 MiB 可以）；
+  - 请求带 `Accept-Encoding: identity`；响应的 `Content-Encoding` 缺省或为 `identity` 才接受，其他（如 `gzip`）为 `USAGE`（上限因此作用于未解码的字节）；
+  - 重定向只认 301、302、303、307、308，其他 3xx（如 300）按非 2xx 处理为 `USAGE`；至多跟随 3 次，每一跳都必须是 https（https → http 失败）；
+    相对的 `Location` 按 RFC 3986 相对于**当前**请求 URL 解析；
+  - **v1 不使用代理**：一律直连，`HTTPS_PROXY`、`https_proxy`、`HTTP_PROXY`、`http_proxy`、`NO_PROXY`、`no_proxy` 都忽略
+    （Node 不得启用 `EnvHttpProxyAgent` / `NODE_USE_ENV_PROXY`；JVM 用 `HttpClient.Builder.proxy(HttpClient.Builder.NO_PROXY)`）；
+  - TLS 用操作系统 / 运行时的标准信任库（Node：系统 CA 加内置 CA；JVM：缺省 `cacerts`）；
+  - **仅供测试**的信任覆盖：环境变量 `ASTER_ANCHOR_CA_FILE` 指向一个 PEM 文件时，在标准信任库之上**追加**信任其中的证书（不是替换；只用于取信任锚）；
   - 任何失败（连接、TLS、超时、非 2xx、超限、重定向违规、不是严格 JSON、JWKS 不合法）都是 `USAGE`。
-  测试时配方 `https-jwks-*`（`tamper/test-time.json`）在 127.0.0.1 上起自签名 https 服务、经 `ASTER_ANCHOR_CA_FILE` 信任，全程离线；参照实现 `argv.mjs` 的 `fetchJwks` 由单测跑同一组路由。
+  测试时配方 `https-jwks-*`（`tamper/test-time.json`，15 条）在 127.0.0.1 上起自签名 https 服务、经 `ASTER_ANCHOR_CA_FILE` 信任，并把全部代理变量指向一个不通的地址
+  （证明代理被忽略），全程离线；参照实现 `argv.mjs` 的 `fetchJwks` 由单测在同样的环境变量下跑同一组路由。
+- 本地锚文件（`--jwks <file>`、`--pubkey <file>`）≤ 1 MiB，超出为 `USAGE`，先按大小判断再读入（夹具 `jwks-file-exactly-1MiB-ok`、`usage-jwks-file-over-1MiB`、`usage-pubkey-file-over-1MiB`）。
   JWKS：每个 key 必须 `kty:"OKP"`、`crv:"Ed25519"`、`x` 为 32 字节的规范 base64url、`kid` 为非空字符串；`alg` 若给出必须是 `EdDSA`、`use` 若给出必须是 `sig`；
   `kid` 不得重复；任何一个 key 不合法都使整个文件不合法。按签名文件的 `kid` 查找，找不到为 `PKG_UNTRUSTED_KID`。
 - `--pubkey <file>`：两种形态，按首个非空白字符区分：
@@ -247,6 +253,7 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
   （「未知」按子命令判：`compile --entry` 是 `USAGE`）。
 - `--` 结束选项解析：其后的参数一律是位置参数（夹具 `double-dash-ends-options`、`usage-option-after-double-dash`）。
 - 开关不带值：`--allow-unsigned=true` 之类为 `USAGE`；`--opt=` 的值为空为 `USAGE`（夹具 `usage-switch-with-value`、`usage-empty-equals-value`、`compile/usage-out-empty-value`）。
+- 单独给出的空参数值同样是 `USAGE`：`--entry ""`、`--input ""`、`--locale ""`（夹具 `usage-separate-empty-entry`、`usage-separate-empty-input`、`compile/usage-locale-empty`）。
 - `--opt value` 形式下，若下一个参数是**本子命令认识的选项**（`--input`、`--allow-unsigned` 等），视为缺值，`USAGE`；带值选项位于最末尾同样是缺值（夹具
   `usage-option-value-is-another-option`、`usage-option-value-is-a-known-switch`、`usage-option-missing-value-at-end`；若不判这条，`--entry --allow-unsigned` 会把开关当成入口名，得到 `ENTRY_NOT_FOUND`）。要传以 `--` 开头的值，用 `--opt=value`。
 - `run` 必须给出 `--input`（`-` 表示 stdin）。`verify` 接受 `--timeout`（probes 每条的上限）。
@@ -293,8 +300,12 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 
 - **两种形态按位置参数判**：位置参数以 `.aster` 结尾 → 源码形态；它不存在、是目录或不是普通文件都是 `USAGE`（夹具 `usage-source-missing`、`usage-source-is-a-directory`）。
   否则 → 包形态（目录或 zip，同「包路径」）。
+- **源码的解码**：按严格 UTF-8 解码，非法字节为 `USAGE`（夹具 `usage-source-invalid-utf8`）；去掉**至多一个**开头的 BOM（U+FEFF）（`source-leading-bom-is-stripped`
+  与 `credit.aster` 得到同一投影哈希）。包形态的 `policy/policy.aster` 按同一规则解码（非法 UTF-8 为本地编译失败）。
 - **`compile` 只解析与降级，不做类型检查**（与 B 包本地重编译同一语义；aster-api `PolicyCompiler` 另跑 TypeChecker，包格式不采用）：有类型错误但语法正确的源码照常输出 IR
-  （夹具 `source-type-error-is-not-checked`）。源码为空或只有空白为 `COMPILE_ERROR`（`source-empty`、`source-whitespace-only`）。
+  （夹具 `source-type-error-is-not-checked`）。源码（解码并去掉 BOM 之后）为空或只含 **ASCII 空白**（U+0020、`\t`、`\n`、`\r`）为 `COMPILE_ERROR`
+  （`source-empty`、`source-whitespace-only`、`source-only-bom-is-blank`）。U+00A0、U+3000 等其他 Unicode 空白不算空白，源码照常交给编译器
+  （`source-only-nbsp-is-not-blank`、`source-only-ideographic-space-is-not-blank`：平台编译器拒绝，期望 `COMPILE_ERROR`；ts 编译器目前接受，见 aster-cloud/aster-lang-ts#348）。
 - **源码形态**：可用 `--locale`（缺省 `en-US`；只支持 `en-US`、`zh-CN`、`de-DE`、`hi-IN`，形态合法但不在其中如 `fr-FR` 为 `USAGE`，夹具 `usage-locale-unsupported`）、`--alias-set <file>`（严格 JSON，`{"<SemanticTokenKind>":[别名…]}`）、`--vocabulary <file>`（严格 JSON）、
   `--allow-structural`（只能与 `--alias-set` 同用）、`--out`。`--jwks`、`--pubkey`、`--allow-unsigned` 是 `USAGE`；源码或这些文件不存在、不可读、不是严格 JSON 都是 `USAGE`。
   aliasSet 文件是严格 JSON 但形状不对（不是对象、值不是字符串数组、键不是已知的 `SemanticTokenKind`）为 `COMPILE_ERROR`，失败即拒（夹具 `source-alias-set-unknown-kind`、
@@ -307,9 +318,10 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
   `--locale`、`--alias-set`、`--vocabulary`、`--allow-structural` 是 `USAGE`。本地编译失败为 `COMPILE_ERROR`。
 - **输出**：成功时 stdout 为本地编译的规范 Core IR 字节加一个 `\n`；给 `--out <file>` 时把不带换行的规范 IR 字节写入该文件、stdout 为空。退出码 0。
   `--out` 原子写入（同目录临时文件再改名）；任何失败（含 `COMPILE_ERROR`）都不创建、不改动目标文件，也不留下临时文件（夹具 `source-syntax-error-writes-no-out-file`
-  带 `outFileMustNotExist`）；父目录不存在或不是目录为 `USAGE`（`usage-out-parent-missing`），在编译之前判定；父目录存在但不可写同样是 `USAGE`。
+  带 `outFileMustNotExist`）；父目录不存在或不是目录为 `USAGE`（`usage-out-parent-missing`），`--out` 本身是已存在的目录也是 `USAGE`（`usage-out-is-a-directory`），二者都在编译之前判定；
+  父目录存在但不可写同样是 `USAGE`。
   两侧 IR 只差 origin 列（修订 1 A2），所以成功用例只比较投影哈希：`expectedStdout` 为 `null`（或 `--out` 时为 `""`）、`expectedPositionFreeSha256` 给出期望，
-  `outFile` 表示要读 `<OUT>` 处的文件（测试把 `<OUT>` 换成临时路径）。失败时输出与 `run` 相同的错误信封（`meta` 按阶段，源码形态恒为 null / false）。
+  `outFile` 表示要读 `<OUT>` 处的文件（测试把 `<OUT>` 换成临时路径）。带 `knownEngineDivergence` 的行，期望取平台（Java）解析结果，而 ts 编译器目前给出不同结论（跟踪 issue 见该字段）；Node CLI 在 issue 修复前会在这些行上失败，这是已知的引擎分歧，不是夹具错误。失败时输出与 `run` 相同的错误信封（`meta` 按阶段，源码形态恒为 null / false）。
 
 ## tests/probes.json
 

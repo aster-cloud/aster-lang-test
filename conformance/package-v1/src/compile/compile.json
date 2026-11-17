@@ -431,6 +431,86 @@
         "source": "sources/credit.aster",
         "locale": "en-US"
       }
+    },
+    {
+      "name": "usage-locale-empty",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--locale",
+        ""
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-out-is-a-directory",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--out",
+        "sources"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-source-invalid-utf8",
+      "args": [
+        "compile",
+        "sources/invalid-utf8.aster"
+      ],
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "source-leading-bom-is-stripped",
+      "args": [
+        "compile",
+        "sources/credit-bom.aster"
+      ],
+      "platform": {
+        "source": "sources/credit-bom.aster",
+        "locale": "en-US"
+      }
+    },
+    {
+      "name": "source-only-bom-is-blank",
+      "args": [
+        "compile",
+        "sources/bom-only.aster"
+      ],
+      "platform": {
+        "source": "sources/bom-only.aster",
+        "locale": "en-US"
+      }
+    },
+    {
+      "name": "source-only-nbsp-is-not-blank",
+      "args": [
+        "compile",
+        "sources/nbsp-only.aster"
+      ],
+      "platform": {
+        "source": "sources/nbsp-only.aster",
+        "locale": "en-US"
+      },
+      "knownEngineDivergence": "aster-cloud/aster-lang-ts#348"
+    },
+    {
+      "name": "source-only-ideographic-space-is-not-blank",
+      "args": [
+        "compile",
+        "sources/ideographic-space-only.aster"
+      ],
+      "platform": {
+        "source": "sources/ideographic-space-only.aster",
+        "locale": "en-US"
+      },
+      "knownEngineDivergence": "aster-cloud/aster-lang-ts#348"
     }
   ]
 }

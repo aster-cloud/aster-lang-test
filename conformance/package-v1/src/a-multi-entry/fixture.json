@@ -536,6 +536,44 @@
       "expect": {
         "code": "USAGE"
       }
+    },
+    {
+      "name": "usage-separate-empty-entry",
+      "command": "run",
+      "rawArgs": [
+        "run",
+        "{pkg}",
+        "--input",
+        "-",
+        "--jwks",
+        "../keys/test-jwks.json",
+        "--entry",
+        ""
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": {
+        "code": "USAGE"
+      }
+    },
+    {
+      "name": "usage-separate-empty-input",
+      "command": "run",
+      "rawArgs": [
+        "run",
+        "{pkg}",
+        "--input",
+        "",
+        "--jwks",
+        "../keys/test-jwks.json"
+      ],
+      "input": {
+        "x": 7
+      },
+      "expect": {
+        "code": "USAGE"
+      }
     }
   ]
 }

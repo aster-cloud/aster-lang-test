@@ -428,6 +428,83 @@
       "expectedExit": 0,
       "code": null,
       "expectedPositionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469"
+    },
+    {
+      "name": "usage-locale-empty",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--locale",
+        ""
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-out-is-a-directory",
+      "args": [
+        "compile",
+        "sources/credit.aster",
+        "--out",
+        "sources"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-source-invalid-utf8",
+      "args": [
+        "compile",
+        "sources/invalid-utf8.aster"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "source-leading-bom-is-stripped",
+      "args": [
+        "compile",
+        "sources/credit-bom.aster"
+      ],
+      "expectedStdout": null,
+      "expectedExit": 0,
+      "code": null,
+      "expectedPositionFreeSha256": "77d5849c10faa8512bea9dd8c13b2bde0d2355ac5800b4dccbe4ee1bca592469"
+    },
+    {
+      "name": "source-only-bom-is-blank",
+      "args": [
+        "compile",
+        "sources/bom-only.aster"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "COMPILE_ERROR"
+    },
+    {
+      "name": "source-only-nbsp-is-not-blank",
+      "args": [
+        "compile",
+        "sources/nbsp-only.aster"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "COMPILE_ERROR",
+      "knownEngineDivergence": "aster-cloud/aster-lang-ts#348"
+    },
+    {
+      "name": "source-only-ideographic-space-is-not-blank",
+      "args": [
+        "compile",
+        "sources/ideographic-space-only.aster"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "COMPILE_ERROR",
+      "knownEngineDivergence": "aster-cloud/aster-lang-ts#348"
     }
   ]
 }
