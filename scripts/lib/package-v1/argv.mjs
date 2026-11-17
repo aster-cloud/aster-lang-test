@@ -206,6 +206,89 @@ export function parseCommand(args, cwd) {
 }
 
 /**
+ * 重定向 Location 的解析（README「信任锚」）：Location 必须是合法的 RFC 3986 URI-reference（只含 unreserved / reserved 字符与
+ * 合法的 %XX；空串、原始空格、反斜杠、控制字符、原始非 ASCII 字符一律 USAGE——不得像 WHATWG URL 那样悄悄修正），
+ * 然后按 RFC 3986 §5.2.2（含 §5.2.4 remove_dot_segments）相对当前请求 URL 解析。scheme 不区分大小写，解析结果中统一为小写。
+ */
+const URI_REFERENCE_CHARS = /^(?:[A-Za-z0-9\-._~:/?#[\]@!$&'()*+,;=]|%[0-9A-Fa-f]{2})+$/;
+const RFC3986 = /^(?:([^:/?#]+):)?(?:\/\/([^/?#]*))?([^?#]*)(?:\?([^#]*))?(?:#(.*))?$/;
+
+function splitReference(s) {
+  const m = RFC3986.exec(s);
+  return { scheme: m[1], authority: m[2], path: m[3], query: m[4], fragment: m[5] };
+}
+
+/** RFC 3986 §5.2.4。 */
+function removeDotSegments(path) {
+  let input = path;
+  let output = '';
+  while (input.length > 0) {
+    if (input.startsWith('../')) input = input.slice(3);
+    else if (input.startsWith('./')) input = input.slice(2);
+    else if (input.startsWith('/./')) input = input.slice(2);
+    else if (input === '/.') input = '/';
+    else if (input.startsWith('/../')) {
+      input = input.slice(3);
+      output = output.slice(0, Math.max(0, output.lastIndexOf('/')));
+    } else if (input === '/..') {
+      input = '/';
+      output = output.slice(0, Math.max(0, output.lastIndexOf('/')));
+    } else if (input === '.' || input === '..') input = '';
+    else {
+      const start = input.startsWith('/') ? 1 : 0;
+      const next = input.indexOf('/', start);
+      const seg = next < 0 ? input : input.slice(0, next);
+      output += seg;
+      input = next < 0 ? '' : input.slice(next);
+    }
+  }
+  return output;
+}
+
+export function resolveReference(baseUrl, reference) {
+  if (typeof reference !== 'string' || reference === '' || !URI_REFERENCE_CHARS.test(reference)) usage(`Location 不是合法的 URI-reference：${JSON.stringify(reference)}`);
+  const r = splitReference(reference);
+  if (r.scheme !== undefined && !/^[A-Za-z][A-Za-z0-9+.-]*$/.test(r.scheme)) usage(`Location 的 scheme 不合法：${reference}`);
+  const b = splitReference(baseUrl);
+  const t = {};
+  if (r.scheme !== undefined) {
+    t.scheme = r.scheme;
+    t.authority = r.authority;
+    t.path = removeDotSegments(r.path);
+    t.query = r.query;
+  } else {
+    if (r.authority !== undefined) {
+      t.authority = r.authority;
+      t.path = removeDotSegments(r.path);
+      t.query = r.query;
+    } else {
+      if (r.path === '') {
+        t.path = b.path;
+        t.query = r.query !== undefined ? r.query : b.query;
+      } else {
+        if (r.path.startsWith('/')) t.path = removeDotSegments(r.path);
+        else {
+          // §5.2.3 merge
+          const merged = b.authority !== undefined && b.path === '' ? `/${r.path}` : `${b.path.slice(0, b.path.lastIndexOf('/') + 1)}${r.path}`;
+          t.path = removeDotSegments(merged);
+        }
+        t.query = r.query;
+      }
+      t.authority = b.authority;
+    }
+    t.scheme = b.scheme;
+  }
+  t.fragment = r.fragment;
+  // §5.3 重组；scheme 统一小写（scheme 不区分大小写）
+  let out = `${t.scheme.toLowerCase()}:`;
+  if (t.authority !== undefined) out += `//${t.authority}`;
+  out += t.path;
+  if (t.query !== undefined) out += `?${t.query}`;
+  if (t.fragment !== undefined) out += `#${t.fragment}`;
+  return out;
+}
+
+/**
  * https 信任锚的取回参照实现（README「信任锚」）：只接受字面量 https://；总超时 10 s；至多跟随 3 次重定向且只能 https → https；
  * 重定向只认 301/302/303/307/308（相对 Location 按 RFC 3986 解析）；请求 Accept-Encoding: identity，响应带非 identity 的 Content-Encoding 即失败；
  * 响应体 ≤ 1 MiB；只认 2xx；系统信任库，测试时经 ASTER_ANCHOR_CA_FILE 追加一个 PEM（仅测试用）；不使用任何代理（v1）。
@@ -220,7 +303,7 @@ export async function fetchJwks(url, { extraCa, timeoutMs = 10_000, maxRedirects
   const deadline = Date.now() + timeoutMs;
   let current = url;
   for (let hop = 0; ; hop++) {
-    if (!current.startsWith('https://')) throw new Usage('重定向到非 https 地址');
+    if (!current.startsWith('https://')) throw new Usage('重定向到非 https 地址'); // resolveReference 已把 scheme 统一为小写
     // 不经代理：直连（HTTPS_PROXY 等环境变量一律忽略）；只要 identity 编码
     const res = await new Promise((resolve, reject) => {
       const req = https.get(current, { ca, agent: false, headers: { 'accept-encoding': 'identity' }, timeout: Math.max(1, deadline - Date.now()) }, (r) => {
@@ -241,7 +324,7 @@ export async function fetchJwks(url, { extraCa, timeoutMs = 10_000, maxRedirects
     if (REDIRECTS.has(res.status)) {
       if (!res.location) throw new Usage('重定向缺少 Location');
       if (hop + 1 > maxRedirects) throw new Usage('重定向超过 3 次');
-      current = new URL(res.location, current).toString(); // RFC 3986 相对于当前请求 URL 解析
+      current = resolveReference(current, res.location); // RFC 3986 §5.2 相对当前请求 URL 解析；非法即 USAGE
       continue;
     }
     if (res.status < 200 || res.status > 299) throw new Usage(`HTTP ${res.status}`);

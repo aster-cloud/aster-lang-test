@@ -229,13 +229,20 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
   - 总超时 10 s（含连接、TLS、重定向与读完响应体）；只认 2xx；响应体 ≤ 1 MiB（超出即中止；恰好 1 MiB 可以）；
   - 请求带 `Accept-Encoding: identity`；响应的 `Content-Encoding` 缺省或为 `identity` 才接受，其他（如 `gzip`）为 `USAGE`（上限因此作用于未解码的字节）；
   - 重定向只认 301、302、303、307、308，其他 3xx（如 300）按非 2xx 处理为 `USAGE`；至多跟随 3 次，每一跳都必须是 https（https → http 失败）；
-    相对的 `Location` 按 RFC 3986 相对于**当前**请求 URL 解析；
+    `Location` 的处理（两侧必须逐字相同，参照实现 `argv.mjs` 的 `resolveReference`）：
+    - 必须是合法的 RFC 3986 URI-reference：只含 unreserved / reserved 字符与合法的 `%XX`。空值、原始空格、反斜杠、控制字符、原始非 ASCII 字符一律 `USAGE`，
+      **不得**像 WHATWG URL 解析那样悄悄修正（Node 的 `new URL()`、JVM 的 `URI.resolve` 宽松用法都不可直接用于校验）；
+    - 相对引用按 **RFC 3986 §5.2.2**（含 §5.2.4 remove_dot_segments）相对**当前**请求 URL 解析。例：基准 `https://h/a/b` 下，`?q` → `https://h/a/b?q`，
+      `../../x` → `https://h/x`；
+    - `Location` 中的 scheme **不区分大小写**（`HTTPS://…` 视为 https 并跟随）；`--jwks` 参数本身仍只认字面量小写 `https://`；
+    - 配方：`https-jwks-location-query-only-ok`、`https-jwks-location-dotdot-ok`、`https-jwks-location-uppercase-scheme-ok`（通过），
+      `https-jwks-location-invalid`（含空格）、`https-jwks-location-backslash`（`USAGE`）。
   - **v1 不使用代理**：一律直连，`HTTPS_PROXY`、`https_proxy`、`HTTP_PROXY`、`http_proxy`、`NO_PROXY`、`no_proxy` 都忽略
     （Node 不得启用 `EnvHttpProxyAgent` / `NODE_USE_ENV_PROXY`；JVM 用 `HttpClient.Builder.proxy(HttpClient.Builder.NO_PROXY)`）；
   - TLS 用操作系统 / 运行时的标准信任库（Node：系统 CA 加内置 CA；JVM：缺省 `cacerts`）；
   - **仅供测试**的信任覆盖：环境变量 `ASTER_ANCHOR_CA_FILE` 指向一个 PEM 文件时，在标准信任库之上**追加**信任其中的证书（不是替换；只用于取信任锚）；
   - 任何失败（连接、TLS、超时、非 2xx、超限、重定向违规、不是严格 JSON、JWKS 不合法）都是 `USAGE`。
-  测试时配方 `https-jwks-*`（`tamper/test-time.json`，15 条）在 127.0.0.1 上起自签名 https 服务、经 `ASTER_ANCHOR_CA_FILE` 信任，并把全部代理变量指向一个不通的地址
+  测试时配方 `https-jwks-*`（`tamper/test-time.json`，20 条）在 127.0.0.1 上起自签名 https 服务、经 `ASTER_ANCHOR_CA_FILE` 信任，并把全部代理变量指向一个不通的地址
   （证明代理被忽略），全程离线；参照实现 `argv.mjs` 的 `fetchJwks` 由单测在同样的环境变量下跑同一组路由。
 - 本地锚文件（`--jwks <file>`、`--pubkey <file>`）≤ 1 MiB，超出为 `USAGE`，先按大小判断再读入（夹具 `jwks-file-exactly-1MiB-ok`、`usage-jwks-file-over-1MiB`、`usage-pubkey-file-over-1MiB`）。
   JWKS：每个 key 必须 `kty:"OKP"`、`crv:"Ed25519"`、`x` 为 32 字节的规范 base64url、`kid` 为非空字符串；`alg` 若给出必须是 `EdDSA`、`use` 若给出必须是 `sig`；
