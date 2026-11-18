@@ -250,7 +250,7 @@
       }
     },
     {
-      "name": "package-builtin-anchor-is-empty",
+      "name": "package-builtin-anchor-rejects-test-kid",
       "args": [
         "compile",
         "../packages/b-credit-limit"
