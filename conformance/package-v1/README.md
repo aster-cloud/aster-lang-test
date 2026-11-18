@@ -238,7 +238,7 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 信任锚的读取与校验属于 usage 阶段：锚文件不可读或不合法一律 `USAGE`（在读包之前）。JWKS 与 JWK 文件按「严格 JSON」读
 （BOM、重复键、值之后的多余内容都是 `USAGE`；夹具 `usage-jwks-bom`、`usage-jwks-duplicate-json-key`、`usage-jwk-pubkey-trailing-garbage`）。
 
-- 不给锚：使用内置 `export-jwks.json`（P1 为 `{"keys":[]}`，所以任何签名包都是 `PKG_UNTRUSTED_KID`）。
+- 不给锚：使用内置 `export-jwks.json`。它只含平台的生产导出公钥（P1 为 `{"keys":[]}`，ADR 0059 P2 T25 起为 `export-2026-11a`），从不含测试密钥；夹具一律用测试密钥签名，所以不给锚时签名包都是 `PKG_UNTRUSTED_KID`（夹具 `builtin-anchor-rejects-test-kid`、`package-builtin-anchor-rejects-test-kid`）。
 - `--jwks <file|url>`：参数匹配 `^[A-Za-z][A-Za-z0-9+.-]*://` 即视为 URL，否则按本地文件读。URL 必须以字面量小写 `https://` 开头，其他（含 `http://`、`ftp://`、
   大写 `HTTPS://`）一律 `USAGE` 且不发请求（夹具 `usage-jwks-http-url`、`usage-jwks-ftp-url`、`usage-jwks-uppercase-scheme`）。
   **初始 `--jwks` URL** 与 `Location` 受同一套规则，且在 usage 阶段、发出任何请求之前判定，违反即 usage 阶段的 `USAGE`（退出码 2）：

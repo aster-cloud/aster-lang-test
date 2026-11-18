@@ -125,7 +125,7 @@
       "code": null
     },
     {
-      "name": "builtin-anchor-is-empty",
+      "name": "builtin-anchor-rejects-test-kid",
       "args": [
         "run",
         "b-credit-limit",
