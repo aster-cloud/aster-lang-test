@@ -8,7 +8,7 @@ seed = SHA-256(UTF-8("aster-policy-package/v1 TEST-ONLY signing key test-2026-11
 
 任何人都能重算出私钥，所以用它签的东西**不证明任何来源**。
 
-- 绝不放进任何 CLI 的内置信任锚（`export-jwks.json` 在 P1 为 `{"keys":[]}`）。
+- 绝不放进任何 CLI 的内置信任锚。内置 `export-jwks.json` 只含平台的生产导出公钥（P1 为 `{"keys":[]}`，P2 T25 起为 `export-2026-11a`）；用例一律经 `--jwks` / `--pubkey` 注入本测试密钥，所以不带锚选项时用测试密钥签名的包仍是 `PKG_UNTRUSTED_KID`。
 - 绝不用于签发真实导出包；真实导出密钥在 ADR 0059 P2 创建，与本密钥无关。
 - 夹具通过 `--jwks ../keys/test-jwks.json` 或 `--pubkey ../keys/test-ed25519.pub.b64u` 显式把它当作锚。
 
