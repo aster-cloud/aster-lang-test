@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.6.0
+
+### 新增
+
+- source envelope 共享向量（ADR 0060 §7.1，#231）：`corpus/shared-vectors/envelope-vectors.json` 追加第 4 条向量
+  （`vocabulary.id` = `envelope.literal-macro`：《静夜思》原诗源码（zh-CN）、字面量宏 `思故乡 → 静夜思` 与一条 struct，
+  aliasSet 为 ADR 0060 §8 的四个汉字单词结构词别名），README 补该行与「只追加、不改写」的同步规则。已有 3 条向量逐字节不变；
+  整份文件的 sha256 随之变化，下游副本须逐字节同步并更新各自的哈希钉。该向量的期望依赖 aster-lang-core 1.0.52
+  与 aster-lang-ts 3.5.0 的别名校验 v2。包入口 API 无变化（loader 不读取 `shared-vectors/`）。
+
 ## 2.5.0
 
 ### 新增
