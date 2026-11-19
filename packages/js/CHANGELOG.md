@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased
+## 2.5.0
 
 ### 新增
 
@@ -11,7 +11,7 @@
 - tier1 parity 样本（aster-lang-locales#143）：`syntax/let-be-ideographic-space-zh`（`令…定义为` 里的 U+3000 与 `\t` 是空白）。
 - tier1 必拒样本：`reject-string-ascii-open-curly-close`（aster-lang-ts#347，`"abc”` 未闭合）；`reject-let-be-nbsp-zh`、
   `reject-let-be-em-space-after-be-zh`（E050）、`reject-let-be-newline-after-be-zh`、`reject-let-be-newline-before-be-zh`
-  （aster-lang-locales#143，绑定不跨行）。这些样本的期望依赖同名分支的 aster-lang-ts、aster-lang-core 与 aster-lang-locales。
+  （aster-lang-locales#143，绑定不跨行）。这些样本的期望依赖 aster-lang-core 1.0.51、aster-lang-locales 1.0.51 与 aster-lang-ts 3.4.0（#229）。包入口 API 无变化。
 
 ## 2.4.0
 
