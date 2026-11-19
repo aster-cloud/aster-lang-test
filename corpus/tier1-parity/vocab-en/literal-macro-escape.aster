@@ -1,0 +1,4 @@
+Module parity.vocab.literalMacroEscape.
+
+Rule path given x as Int, produce Text:
+  Return archivePath.

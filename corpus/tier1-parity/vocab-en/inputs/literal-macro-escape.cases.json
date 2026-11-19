@@ -1,0 +1,12 @@
+{
+  "entry": "path",
+  "cases": [
+    {
+      "name": "反斜杠与双引号原样",
+      "input": [
+        1
+      ],
+      "expectedOutput": "C:\\new \"x\""
+    }
+  ]
+}
