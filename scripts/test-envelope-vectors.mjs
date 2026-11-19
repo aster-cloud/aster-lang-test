@@ -4,7 +4,8 @@
  *
  * ★为什么需要：aster-api 与 aster-cloud 都拿这份文件断言各自的 5 段 envelope 实现；文件本身若算错，
  * 两端会一起「对齐到错误答案」。这里按 README 写明的规则独立重算每条 expectedSha256，
- * 并锁住 ADR 0051 §7 要求的场景（无词汇 / 单 struct / 同义词 + NFC 组合字符）。
+ * 并锁住 ADR 0051 §7 要求的场景（无词汇 / 单 struct / 同义词 + NFC 组合字符），以及 ADR 0060 §7.1 的
+ * 字面量宏场景（envelope.literal-macro）。
  *
  * 每条向量带源词汇 `vocabulary`（DomainVocabulary JSON；无词汇为 null），另用兄弟仓 aster-lang-ts 的构建产物
  * 核对 canonicalScopesJson(buildVocabularyScopes(vocabulary)) === scopesJson（需先 `pnpm build`，缺失即失败）。
@@ -90,6 +91,23 @@ check('覆盖：同义词 + NFC 组合字符（scopes 中 written 已 NFC，cont
   const written = Object.values(JSON.parse(v.scopesJson).types).flat().map((c) => c.written);
   assert.ok(written.includes('Café'), 'scopes 中 written 应为 NFC 形式');
   assert.ok(written.every((w) => w === w.normalize('NFC')));
+});
+
+check('覆盖：字面量宏 + 汉字单词别名（envelope.literal-macro，ADR 0060 §7.1）', () => {
+  const v = vectors.find((x) => x.vocabulary?.id === 'envelope.literal-macro');
+  assert.ok(v, '缺少 envelope.literal-macro 向量');
+  assert.strictEqual(v.locale, 'zh-CN');
+  // 字面量宏进第 5 段：scopes.literals 是「写法 → 展开值」，源码里出现触发词本身（不出现展开值）。
+  assert.deepStrictEqual(JSON.parse(v.scopesJson).literals, { 思故乡: '静夜思' });
+  assert.ok(v.content.includes('思故乡') && !v.content.includes('静夜思'));
+  // 别名为 ADR 0060 §8 的规范 JSON：kind 按字典序，四个汉字单词结构词别名。
+  const aliases = JSON.parse(v.aliasSetJson);
+  assert.deepStrictEqual(Object.keys(aliases), Object.keys(aliases).sort());
+  assert.ok(Object.values(aliases).flat().every((a) => /^[一-鿿]{2,8}$/u.test(a)));
+  // 鉴别力：只改宏展开值（scopes 第 5 段）必须改变 envelope。
+  const changed = v.scopesJson.replace('"静夜思"', '"静夜诗"');
+  assert.notStrictEqual(changed, v.scopesJson);
+  assert.notStrictEqual(envelope({ ...v, scopesJson: changed }), v.expectedSha256);
 });
 
 if (!existsSync(TS_INDEX)) {
