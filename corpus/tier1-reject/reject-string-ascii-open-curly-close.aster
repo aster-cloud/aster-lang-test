@@ -1,0 +1,4 @@
+Module m.
+
+Rule f given x as Int, produce Text:
+  Return "abc”.

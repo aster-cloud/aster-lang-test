@@ -1,0 +1,10 @@
+模块 parity.syntax.quotesInStringLiteralZh。
+
+规则 label 给定 x 作为 整数，产出 文本：
+  如果 x 大于 2：
+    返回 「他说“好”，it’s，a"b，c\"d」。
+  如果 x 大于 1：
+    返回 “弯引号 ‘内’”。
+  如果 x 大于 0：
+    返回 "直引号 “内”"。
+  返回 「其余」。

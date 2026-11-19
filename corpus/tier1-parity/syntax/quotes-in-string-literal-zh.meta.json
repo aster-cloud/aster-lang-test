@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "zh-CN 字符串字面量里的引号是内容、原样保留（aster-lang-ts#347）：「」里的 “ ” ’ 与 ASCII \"（未转义与已转义）不改写；“…” 与 \"…\" 照常是字符串定界符。修复前 core 把「」里的 ’ 改成 '、把 “ ” 改成 \" 后在 ANTLR 侧截断字符串，ts 把「」里的 ASCII \" 交替改成「」",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定字符串字面量值的 Core IR"
+}

@@ -1,0 +1,8 @@
+Module parity.syntax.quotesInStringLiteral.
+
+Rule label given x as Int, produce Text:
+  If x > 1
+    Return "it’s ‘single’ and “double”".
+  If x > 0
+    Return “curly ‘inner’ x”.
+  Return “mixed close".

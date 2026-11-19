@@ -1,0 +1,17 @@
+{
+  "id": "parity.vocab.literal-macro-escape",
+  "name": "字面量宏值转义",
+  "locale": "en-US",
+  "version": "1.0.0",
+  "structs": [],
+  "fields": [],
+  "functions": [],
+  "enumValues": [],
+  "literals": [
+    {
+      "canonical": "C:\\new \"x\"",
+      "localized": "archivePath",
+      "kind": "literal"
+    }
+  ]
+}

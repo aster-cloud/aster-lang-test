@@ -1,0 +1,4 @@
+模块 parity.vocab.literalMacroEscapeZh。
+
+规则 path 给定 x 作为 整数，产出 文本：
+  返回 archivePath。

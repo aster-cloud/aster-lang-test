@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "zh-CN：令 X 定义为 Y 不跨行，名称后换行两引擎都报语法错误。修复前 core 的 ChineseLetBeTransformer 的 \\s 匹配换行而接受（aster-lang-locales#143）"
+}

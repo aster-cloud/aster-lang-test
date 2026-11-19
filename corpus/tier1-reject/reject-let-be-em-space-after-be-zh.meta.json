@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "zh-CN：定义为 之后的 U+2003 不是空白，两引擎都报 E050。修复前 core 的 ChineseLetBeTransformer 把它吞掉而接受（aster-lang-locales#143）"
+}

@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "zh-CN 字面量宏值按词法器转义后展开（aster-lang-ts#345）：值 C:\\new \"x\" 包进「」后读回原值。修复前 ts 原样拼进「」（\\n 成换行），core 拒绝展开（抛错）"
+}

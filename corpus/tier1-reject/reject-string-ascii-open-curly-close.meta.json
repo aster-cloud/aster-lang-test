@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "\"…\" 只由 ASCII \" 闭合（aster-lang-ts#347）：\"abc” 的 ” 是字符串内容，字符串未闭合，两引擎都报未闭合字符串。修复前 ” 被改写成 \" 而闭合（随之也会截断内容含 “ ” 的字符串）"
+}

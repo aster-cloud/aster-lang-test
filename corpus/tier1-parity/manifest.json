@@ -329,6 +329,9 @@
     "tier1-parity/syntax/ascii-vt-ff-before-punct-zh.aster",
     "tier1-parity/syntax/ideographic-space-zh.aster",
     "tier1-parity/syntax/unicode-space-in-string-and-comment.aster",
+    "tier1-parity/syntax/quotes-in-string-literal.aster",
+    "tier1-parity/syntax/quotes-in-string-literal-zh.aster",
+    "tier1-parity/syntax/let-be-ideographic-space-zh.aster",
     "tier1-parity/types/inferred-field-constraints.aster",
     "tier1-parity/workflow/workflow-bare-io-capability.aster",
     "tier1-parity/workflow/workflow-compensate.aster",
@@ -441,6 +444,14 @@
     {
       "path": "tier1-parity/vocab-zh/governance-input-refs.aster",
       "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-zh/literal-macro-escape.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-en/literal-macro-escape.aster",
+      "vocab": true
     }
   ],
   "_vocabComment": "ADR 0051 §8: entries written as {\"path\", \"vocab\": true} carry a sibling <case>.vocab.json (DomainVocabulary JSON) passed to BOTH engines in parse/ir/eval. Vocabulary samples live under tier1-parity/vocab-<locale>/ with their .cases.json beside them; vocabulary must-reject samples live in tier1-reject/ and declare meta.expectCode (both engines must reject in name resolution with the same error codes). See scripts/lib/vocab-corpus.mjs.",
@@ -537,6 +548,11 @@
     "tier1-reject/reject-whitespace-line-separator-end-of-line.aster",
     "tier1-reject/reject-whitespace-nbsp-end-of-line-zh.aster",
     "tier1-reject/reject-whitespace-ideographic-space-end-of-line-de.aster",
-    "tier1-reject/reject-whitespace-nbsp-end-of-line-hi.aster"
+    "tier1-reject/reject-whitespace-nbsp-end-of-line-hi.aster",
+    "tier1-reject/reject-string-ascii-open-curly-close.aster",
+    "tier1-reject/reject-let-be-nbsp-zh.aster",
+    "tier1-reject/reject-let-be-em-space-after-be-zh.aster",
+    "tier1-reject/reject-let-be-newline-after-be-zh.aster",
+    "tier1-reject/reject-let-be-newline-before-be-zh.aster"
   ]
 }

@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "字符串字面量里的弯引号是内容、原样保留（aster-lang-ts#347）：\"…\" 里的 ‘ ’ “ ” 不改写；“…” 仍是字符串定界符，内容里的 ‘ ’ 不改写；“…\" 照旧闭合。修复前两引擎把内容里的 ‘ ’ 改成 '，把 “ ” 改成 \" 截断字符串",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定字符串字面量值的 Core IR"
+}
