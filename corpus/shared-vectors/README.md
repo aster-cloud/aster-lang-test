@@ -14,6 +14,11 @@ source envelope 的共享向量。aster-api（Java `PolicyVersion.computeSourceE
 | 0 | 无词汇 | `""` | `""`（第 5 段帧为 `0:\|`） |
 | 1 | 单 struct 词汇（Fahrer → Driver） | `{"FUNC_TO":["Richtlinie"]}` | 单 struct 的 `canonicalScopesJson` |
 | 2 | 同义词 + NFC 组合字符（词汇写 `Cafe` + U+0301、同义词 `Bistro` + U+0301；源码同样含 U+0301） | `""` | 含 term / synonym 两种 source 的 `canonicalScopesJson` |
+| 3 | 字面量宏（ADR 0060 §7.1，`vocabulary.id` = `envelope.literal-macro`）：《静夜思》原诗源码（zh-CN）、字面量 `思故乡 → 静夜思` 加一条 struct `望明月 → Text` | ADR 0060 §8 的四个汉字单词结构词别名 `{"FUNC_PRODUCE":["举头"],"FUNC_TO":["疑是"],"MODULE_DECL":["床前"],"RETURN":["低头"]}` | 含 `literals` 的 `canonicalScopesJson` |
+
+向量没有单独的 `id` 字段（形状检查要求恰好 7 个键）；需要按名引用时用 `vocabulary.id`。
+已有向量只追加、不改写：下游副本（aster-lang-core、aster-api、aster-cloud）用 sha256 钉住整份文件，
+同步时逐字节复制并更新各自的哈希钉。
 
 ### 哈希规则
 
