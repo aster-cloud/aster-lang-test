@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "de-DE 类型别名引导词 Typ（ADR 0058 修订 2，aster-lang-ts#346）：不区分大小写，与英文 Type 同义（Type 永久保留）；字段名 typ 照常是名字。修复前两引擎都报错",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定别名解析后的类型与字段名"
+}

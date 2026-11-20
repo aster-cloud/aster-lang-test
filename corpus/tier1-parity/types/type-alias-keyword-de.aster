@@ -1,0 +1,9 @@
+Modul parity.types.aliasKeywordDe.
+
+Typ Betrag als Ganzzahl.
+
+TYP Kennung als Text.
+
+Type Punkte als Ganzzahl.
+
+Definiere Konto mit typ als Text, stand als Betrag.

@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "hi-IN",
+  "source": "hi-IN 类型别名引导词 प्रकार（ADR 0058 修订 2，aster-lang-ts#346）：顶层句首引导类型别名；字段名 प्रकार 照常是名字。修复前两引擎都报错",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定别名解析后的类型与字段名"
+}
