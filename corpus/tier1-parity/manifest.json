@@ -332,6 +332,8 @@
     "tier1-parity/syntax/quotes-in-string-literal.aster",
     "tier1-parity/syntax/quotes-in-string-literal-zh.aster",
     "tier1-parity/syntax/let-be-ideographic-space-zh.aster",
+    "tier1-parity/syntax/result-is-zh.aster",
+    "tier1-parity/syntax/function-syntax-whitespace-zh.aster",
     "tier1-parity/types/inferred-field-constraints.aster",
     "tier1-parity/workflow/workflow-bare-io-capability.aster",
     "tier1-parity/workflow/workflow-compensate.aster",
@@ -553,6 +555,11 @@
     "tier1-reject/reject-let-be-nbsp-zh.aster",
     "tier1-reject/reject-let-be-em-space-after-be-zh.aster",
     "tier1-reject/reject-let-be-newline-after-be-zh.aster",
-    "tier1-reject/reject-let-be-newline-before-be-zh.aster"
+    "tier1-reject/reject-let-be-newline-before-be-zh.aster",
+    "tier1-reject/reject-whitespace-em-space-after-rule-keyword-zh.aster",
+    "tier1-reject/reject-whitespace-nbsp-before-paren-zh.aster",
+    "tier1-reject/reject-whitespace-em-space-after-paren-zh.aster",
+    "tier1-reject/reject-whitespace-nbsp-after-result-is-zh.aster",
+    "tier1-reject/reject-whitespace-em-space-after-result-is-zh.aster"
   ]
 }

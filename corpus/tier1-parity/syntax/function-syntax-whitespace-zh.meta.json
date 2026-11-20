@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "zh-CN 括号函数头 规则 名（参数）：的空白只认 ASCII 空格、tab 与 U+3000（aster-lang-locales#147）：关键词、名字、括号、右括号之后用 U+3000 或 tab 仍可重排；参数组照旧可跨行",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定括号函数头重排后的 Core IR"
+}
