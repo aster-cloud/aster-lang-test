@@ -52,7 +52,8 @@ function lv(id, layout, expect, extra = {}) {
   const layoutText = typeof layout === 'string' ? layout : ser(layout);
   const source = extra.source ?? (typeof layout === 'string' ? undefined : canon(layout));
   const row = { id, layoutText, source, ...enCtx, ...extra, expect };
-  if (row.source === undefined) throw new Error(`${id}: 需要 source`);
+  if (row.sourceB64 !== undefined) delete row.source;
+  else if (row.source === undefined) throw new Error(`${id}: 需要 source`);
   return row;
 }
 
@@ -112,6 +113,10 @@ function layoutCases() {
   cases.push(lv('limit-structural-display-chars-over', { v: 1, spans: [C('a'), S(' ', '·'.repeat(257))] }, 'L2'));
   cases.push(lv('limit-structural-display-chars-astral-at', { v: 1, spans: [C('a'), S(' ', emoji(256))] }, 'ok'));
   // L3 / L4
+  // 非法 UTF-8 的 policy.aster：L2 在字节上数（与解码无关），超限为 L2、否则 L3
+  const badSource = (n) => Buffer.concat([Buffer.alloc(n - 1, 0x61), Buffer.from([0xff])]).toString('base64');
+  cases.push(lv('invalid-utf8-source-over-limit', { v: 1, spans: [C('a')] }, 'L2', { source: undefined, sourceB64: badSource(12289) }));
+  cases.push(lv('invalid-utf8-source-within-limit', { v: 1, spans: [C('a')] }, 'L3', { source: undefined, sourceB64: badSource(12288) }));
   cases.push(lv('roundtrip-one-char', JINGYESI_LAYOUT_TEXT, 'L3', { source: JINGYESI_SOURCE.replace('明月光', '明月照'), displayText: JINGYESI_POEM, ...poemCtx }));
   cases.push(lv('roundtrip-bom-not-stripped', JINGYESI_LAYOUT_TEXT, 'L3', { source: `\uFEFF${JINGYESI_SOURCE}`, displayText: JINGYESI_POEM, ...poemCtx }));
   cases.push(lv('display-extra-newline', JINGYESI_LAYOUT_TEXT, 'L4', { source: JINGYESI_SOURCE, displayText: `${JINGYESI_POEM}\n`, ...poemCtx }));
@@ -219,6 +224,11 @@ function performanceCases() {
       unit: [{ text: 'a' }, { canonical: ' ', display: '' }], units: 200, editUnit: 'b', editRepeat: 24576, editTail: '', expect: 'unmappable',
     },
     {
+      id: 'perf-same-anchor-one-missing',
+      description: '400 span、可见锚点都是「，」且其后各有一个内容；E 中只有 199 个「，」（各接 120 个 y），差一个锚点（结论 unmappable，状态表须跑完）',
+      unit: [{ canonical: ',', display: '，' }, { text: 'x' }], units: 200, editUnit: `，${'y'.repeat(120)}`, editRepeat: 199, editTail: '', expect: 'unmappable',
+    },
+    {
       id: 'perf-hidden-and-visible-alternating',
       description: '隐藏串与可见锚点交替（c H c V），每段 E 为 a + 240 个 b + 「，」，24 400 字节，唯一解',
       unit: [{ text: 'a' }, { canonical: ' ', display: '' }, { text: 'c' }, { canonical: ',', display: '，' }], units: 100, editUnit: `a${'b'.repeat(240)}，`, editRepeat: 100, editTail: '', expect: 'unique',
@@ -248,7 +258,7 @@ function paddingCases() {
 export function displayVectors() {
   return {
     'vectors/layout.json': {
-      description: '显示排版 L1–L7 向量（ADR 0059 修订 4 §4）：layoutText 为 policy/display/layout.json 的 UTF-8 文本，source 为 policy/policy.aster 的文本，displayText 缺省为 toDisplay(layout)，layoutVersion 缺省为 1；expect 为 ok 或第一条失败的规则号。serialized 给出时 serializeLayout 的结果必须逐字等于它。vocabularyLocalized / literalKeywords / operatorSpellings 是 checkPackageLayout 的同名参数（拼写取自 keyword-spellings.json 并入 aliasSet 别名）。',
+      description: '显示排版 L1–L7 向量（ADR 0059 修订 4 §4）：layoutText 为 policy/display/layout.json 的 UTF-8 文本，source 为 policy/policy.aster 的文本（或 sourceB64：其原始字节的 base64，用于非法 UTF-8；L2 的源码字节数与行数在字节上数），displayText 缺省为 toDisplay(layout)，layoutVersion 缺省为 1；expect 为 ok 或第一条失败的规则号。serialized 给出时 serializeLayout 的结果必须逐字等于它。vocabularyLocalized / literalKeywords / operatorSpellings 是 checkPackageLayout 的同名参数（拼写取自 keyword-spellings.json 并入 aliasSet 别名）。',
       version: 1,
       cases: layoutCases(),
     },

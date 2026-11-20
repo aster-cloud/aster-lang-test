@@ -181,11 +181,32 @@ function storedSpanCount(spans) {
   return n;
 }
 
-/** L2：六项上限，按 ts assertWithinLimits 的顺序，首个超出即失败。source 为规范源码文本。 */
+/**
+ * 源码的两项规模：字节数与行数。给字节时直接在字节上数（\r、\n 在 UTF-8 中只作单字节出现），与解码无关，
+ * 非法 UTF-8 的 policy.aster 同样有确定的结论；给文本时按 UTF-8 长度与 lineCount。合法 UTF-8 下两者相同。
+ */
+export function sourceMeasures(source) {
+  if (typeof source === 'string') return { bytes: utf8Length(source), lines: lineCount(source) };
+  const b = Buffer.from(source);
+  if (b.length === 0) return { bytes: 0, lines: 0 };
+  let breaks = 0;
+  for (let i = 0; i < b.length; i++) {
+    if (b[i] === 0x0a) breaks++;
+    else if (b[i] === 0x0d) {
+      breaks++;
+      if (b[i + 1] === 0x0a) i++;
+    }
+  }
+  const last = b[b.length - 1];
+  return { bytes: b.length, lines: last === 0x0a || last === 0x0d ? breaks : breaks + 1 };
+}
+
+/** L2：六项上限，按 ts assertWithinLimits 的顺序，首个超出即失败。source 为规范源码的文本或字节。 */
 export function checkLimits(layout, source) {
+  const src = sourceMeasures(source);
   const measures = [
-    ['sourceBytes', () => utf8Length(source)],
-    ['sourceLines', () => lineCount(source)],
+    ['sourceBytes', () => src.bytes],
+    ['sourceLines', () => src.lines],
     ['spans', () => storedSpanCount(layout.spans)],
     ['serializedBytes', () => utf8Length(serializeLayout(layout))],
     ['displayBytes', () => utf8Length(toDisplay(layout))],
@@ -315,7 +336,7 @@ export function checkPackageLayout({ layoutBytes, displayBytes, source, layoutVe
   const layout = parseLayoutStrict(layoutBytes);
   if (layout.v !== layoutVersion) fail('L1', `layout v ${layout.v} differs from manifest display.layoutVersion ${layoutVersion}`);
   const text = typeof source === 'string' ? source : decodeUtf8(source);
-  checkLimits(layout, text ?? '');
+  checkLimits(layout, source);
   if (text === null || toCanonical(layout) !== text) fail('L3', 'toCanonical(layout) differs from policy/policy.aster');
   if (!Buffer.from(toDisplay(layout), 'utf8').equals(Buffer.from(displayBytes))) fail('L4', 'display.aster differs from toDisplay(layout)');
   checkContentParity(layout);

@@ -613,7 +613,7 @@ await httpsAnchorTests();
       try {
         const display = c.displayText ?? D.toDisplay(JSON.parse(c.layoutText));
         layout = D.checkPackageLayout({
-          layoutBytes: Buffer.from(c.layoutText, 'utf8'), displayBytes: Buffer.from(display, 'utf8'), source: c.source,
+          layoutBytes: Buffer.from(c.layoutText, 'utf8'), displayBytes: Buffer.from(display, 'utf8'), source: c.sourceB64 !== undefined ? Buffer.from(c.sourceB64, 'base64') : c.source,
           layoutVersion: c.layoutVersion ?? 1, vocabularyLocalized: c.vocabularyLocalized, literalKeywords: c.literalKeywords, operatorSpellings: c.operatorSpellings,
         });
       } catch (e) {

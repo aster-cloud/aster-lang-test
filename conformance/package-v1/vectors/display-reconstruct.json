@@ -244,6 +244,24 @@
       "expect": "unmappable"
     },
     {
+      "id": "perf-same-anchor-one-missing",
+      "description": "400 span、可见锚点都是「，」且其后各有一个内容；E 中只有 199 个「，」（各接 120 个 y），差一个锚点（结论 unmappable，状态表须跑完）",
+      "unit": [
+        {
+          "canonical": ",",
+          "display": "，"
+        },
+        {
+          "text": "x"
+        }
+      ],
+      "units": 200,
+      "editUnit": "，yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy",
+      "editRepeat": 199,
+      "editTail": "",
+      "expect": "unmappable"
+    },
+    {
       "id": "perf-hidden-and-visible-alternating",
       "description": "隐藏串与可见锚点交替（c H c V），每段 E 为 a + 240 个 b + 「，」，24 400 字节，唯一解",
       "unit": [

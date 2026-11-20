@@ -415,7 +415,7 @@ policy/display/display.aster   # toDisplay(layout) 的 UTF-8 字节，不加任�
 | # | 规则 | 需编译 |
 |---|---|---|
 | L1 | `layout.json` 严格 JSON（同「严格 JSON」）；结构同 ts `readLayout`（恰为 `{v:1,spans}`，span 恰为 `{text}` 或 `{canonical,display}`，`text` 与结构 `canonical` 非空，任一视图不拆代理对）；`v` 等于 `display.layoutVersion`；文件字节 = `serializeLayout` 的 UTF-8（相邻内容 span 已合并、键序固定、字符串按 ECMAScript `JSON.stringify` 转义：`"` `\\` `\b\f\n\r\t`，其余 U+0000–U+001F 为小写 `\u00xx`，其余字符原样） | 否 |
-| L2 | `LAYOUT_LIMITS` 六项，按此顺序首个超出即失败：源码 12 288 字节、200 行、400 span（合并形态）、序列化 49 152 字节、display 24 576 字节、单个结构 display 256 码点；`layout.json` 先按 49 152 字节判大小再解析（超出即 L2） | 否 |
+| L2 | `LAYOUT_LIMITS` 六项，按此顺序首个超出即失败：源码 12 288 字节、200 行、400 span（合并形态）、序列化 49 152 字节、display 24 576 字节、单个结构 display 256 码点；`layout.json` 先按 49 152 字节判大小再解析（超出即 L2）。源码的字节数与行数在 `policy/policy.aster` 的**字节**上数（`\r\n`、`\r`、`\n` 各算一次断行，末尾断行不另计一行），所以非法 UTF-8 的源码同样有确定结论（超限为 L2，否则 L3；向量 `invalid-utf8-source-*`） | 否 |
 | L3 | `toCanonical(layout)` = `policy/policy.aster` 的严格 UTF-8 解码（不去 BOM） | 否 |
 | L4 | `display.aster` 字节 = `toDisplay(layout)` 的 UTF-8 | 否 |
 | L5 | 至少一个内容 span 去掉 ECMAScript `String.prototype.trim` 所认的空白后非空；结构 `canonical` 不含 `"“”「」『』` | 否 |
