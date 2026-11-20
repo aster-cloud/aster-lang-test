@@ -162,18 +162,18 @@
       "layer": "format"
     },
     {
-      "name": "format-version-1.1",
+      "name": "format-version-1.2",
       "base": "b-credit-limit",
       "kind": "edit-manifest",
-      "edit": "format-1.1",
+      "edit": "format-1.2",
       "resign": true,
       "code": "PKG_UNSUPPORTED_FORMAT"
     },
     {
-      "name": "format-version-1.1-with-new-field",
+      "name": "format-version-1.2-with-new-field",
       "base": "b-credit-limit",
       "kind": "edit-manifest",
-      "edit": "format-1.1-new-field",
+      "edit": "format-1.2-new-field",
       "resign": true,
       "code": "PKG_UNSUPPORTED_FORMAT"
     },

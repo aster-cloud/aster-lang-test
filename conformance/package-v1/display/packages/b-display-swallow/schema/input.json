@@ -1,0 +1,1 @@
+{"$defs":{"entry.f":{"additionalProperties":false,"properties":{},"required":[],"type":"object"}},"$schema":"https://json-schema.org/draft/2020-12/schema","title":"display.swallow entry inputs"}

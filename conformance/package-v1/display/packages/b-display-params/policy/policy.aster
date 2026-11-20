@@ -1,0 +1,4 @@
+Module display.params.
+
+Rule greet given name as Text, produce Text:
+  Return name.

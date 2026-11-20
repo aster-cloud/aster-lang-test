@@ -2,7 +2,10 @@
 /**
  * 跨 CLI 一致性门（ADR 0059 P1 T11）：用 Node CLI（aster-lang-ts 的 dist/runner/aster.mjs）与 JVM CLI（aster-lang-truffle 的
  * aster-cli fat jar）各跑一遍 conformance/package-v1 的全部用例：
- *   packages/*.cases.json、tamper/cases.json、inputs-invalid/cases.json、compile/cases.json、tamper/test-time.json（运行时生成）。
+ *   packages/*.cases.json、tamper/cases.json、inputs-invalid/cases.json、compile/cases.json、tamper/test-time.json（运行时生成），
+ *   以及包格式 1.1 的 display/packages/*.cases.json、display/tamper/cases.json（ADR 0059 修订 4）。
+ * 带 requiresFormat 的用例只在两侧 `version` 的 formatVersions 都含该版本时运行，否则记为 skipped 并列入报告；
+ * 给 --strict-formats 时（列车之后）任一侧不支持即失败。show 成功时 stdout 不是 JSON，按字节与 expectedStdout 比较。
  * 每条用例两侧的 stdout 先经 normalize-stdout.mjs 归一（修订 A0），再比较：①两侧归一后的 stdout 与退出码逐字节相同；
  * ②每一侧都等于用例的 expectedStdout / expectedExit。compile 成功用例比较投影哈希（README「compile」）。
  * 带 knownEngineDivergence 的用例只豁免 knownDivergentEngine 那一侧的期望比较：另一侧仍须等于期望，分歧一侧仍须正常运行；
@@ -11,7 +14,7 @@
  *
  * 用法：
  *   node scripts/package-conformance.mjs --node <aster.mjs> --jar <aster-cli.jar> [--report-only] [--concurrency 4]
- *        [--filter <子串>] [--report <file.md>]
+ *        [--filter <子串>] [--report <file.md>] [--strict-formats]
  *   --report-only：只出报告，退出码恒为 0（接入 CI 之前用）。
  * 退出码：0 全部一致（或 --report-only）；1 有不一致或用例数不足；2 用法错误（含 CLI 文件不存在）。
  */
@@ -22,7 +25,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalizeStdout } from '../conformance/package-v1/normalize-stdout.mjs';
 import { positionFreeSha256 } from './lib/package-v1/position-free.mjs';
-import { coverageProblems, groupRouteSets, judgeRow, routeSetKey } from './lib/package-v1/gate.mjs';
+import { coverageProblems, formatGate, groupRouteSets, judgeRow, routeSetKey } from './lib/package-v1/gate.mjs';
 import { materializePackage, recipeStdin, selfSignedCert, startRecipeServer } from './lib/package-v1/recipes.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -47,6 +50,7 @@ for (const f of [nodeCli, jar]) {
 const reportOnly = argv.includes('--report-only');
 const concurrency = Number(opt('--concurrency', '4'));
 const filter = opt('--filter');
+const strictFormats = argv.includes('--strict-formats');
 const PROCESS_TIMEOUT_MS = 120_000;
 
 /** 两侧 CLI 的调用方式。每次都清掉会影响结果的环境变量（ASTER_TRUFFLE_FUNC 会使 JVM CLI 直接 USAGE）。 */
@@ -106,6 +110,11 @@ function loadCases() {
   add('inputs-invalid/cases.json');
   add('compile/cases.json', { compile: true });
   add('tamper/test-time.json', { testTime: true });
+  // 包格式 1.1（显示排版）：单独目录，现有 CLI 的运行器不读（计划裁决 PR1）
+  const displayCases = readdirSync(join(PKG, 'display', 'packages')).filter((n) => n.endsWith('.cases.json')).sort();
+  if (displayCases.length === 0) throw new Error('display/packages/ 下没有 *.cases.json');
+  for (const f of displayCases) add(`display/packages/${f}`);
+  add('display/tamper/cases.json');
   return filter ? rows.filter((r) => `${r.file}/${r.c.name}`.includes(filter)) : rows;
 }
 
@@ -188,8 +197,24 @@ async function runRow(row, ctx) {
 }
 
 // ---------------------------------------------------------------------------
+/** 一侧 CLI 的 version.formatVersions；读不出为 null。 */
+async function formatsOf(side) {
+  const r = await run(side, ['version'], { cwd: PKG, stdin: undefined, env: baseEnv() });
+  try {
+    const v = JSON.parse(r.stdout);
+    return Array.isArray(v.formatVersions) ? v.formatVersions : null;
+  } catch {
+    return null;
+  }
+}
+
 async function main() {
-  const rows = loadCases();
+  const loaded = loadCases();
+  const sideFormats = { node: await formatsOf('node'), jre: await formatsOf('jre') };
+  const gateOf = new Map(loaded.map((r) => [r, formatGate(r, sideFormats, { strict: strictFormats })]));
+  const skipped = loaded.filter((r) => gateOf.get(r) === 'skipped');
+  const gateFailed = loaded.filter((r) => gateOf.get(r) === 'fail');
+  const rows = loaded.filter((r) => gateOf.get(r) === 'run');
   const ctx = {};
   // https 配方按声明的 routes 分组，每组各起一个服务（共用一张自签名证书）
   const routeSets = groupRouteSets(rows);
@@ -217,14 +242,17 @@ async function main() {
   const failing = outcomes.filter((o) => o.status === 'fail');
   const knownDiverging = outcomes.filter((o) => o.status === 'known');
   const identical = outcomes.filter((o) => o.status === 'ok').length;
-  const coverage = coverageProblems({ expected: rows.length, ran: outcomes.length, filter });
+  const coverage = coverageProblems({ expected: loaded.length, ran: outcomes.length + skipped.length + gateFailed.length, filter });
+  const formatLine = `- formatVersions：node ${JSON.stringify(sideFormats.node)}，jre ${JSON.stringify(sideFormats.jre)}；按 requiresFormat 跳过：${skipped.length}${strictFormats ? '（--strict-formats）' : ''}`;
   const lines = [
     '# 跨 CLI 一致性门（ADR 0059 P1 T11）',
     '',
     `- Node CLI：\`${nodeCli}\``,
     `- JVM CLI：\`${jar}\``,
     `- 用例：${outcomes.length}；两侧一致且等于期望：**${identical}/${outcomes.length}**；不一致：**${failing.length}**；已知引擎分歧（不计失败）：${knownDiverging.length}`,
+    formatLine,
     ...coverage.map((p) => `- **用例数不足**：${p}`),
+    ...gateFailed.map((r) => `- **CLI 不支持 requiresFormat ${r.c.requiresFormat}**：${r.file}/${r.c.name}`),
     '',
   ];
   const describe = (o) => {
@@ -240,13 +268,15 @@ async function main() {
   };
   if (failing.length) lines.push('## 不一致', '', ...failing.flatMap(describe));
   if (knownDiverging.length) lines.push('## 已知引擎分歧', '', ...knownDiverging.flatMap(describe));
+  if (skipped.length) lines.push('## 按 requiresFormat 跳过', '', ...skipped.map((r) => `- ${r.file} / ${r.c.name}（requiresFormat ${r.c.requiresFormat}）`), '');
   const report = `${lines.join('\n')}\n`;
   const reportFile = opt('--report');
   if (reportFile) writeFileSync(reportFile, report);
   process.stdout.write(report);
   console.log(`identical ${identical}/${outcomes.length}, ${failing.length} divergent${knownDiverging.length ? `, ${knownDiverging.length} known divergence` : ''}`);
   for (const p of coverage) console.error(`package-conformance: ${p}`);
-  process.exitCode = reportOnly || (failing.length === 0 && coverage.length === 0) ? 0 : 1;
+  if (skipped.length) console.log(`skipped ${skipped.length} case(s) requiring a format one of the CLIs does not support`);
+  process.exitCode = reportOnly || (failing.length === 0 && coverage.length === 0 && gateFailed.length === 0) ? 0 : 1;
 }
 
 await main();

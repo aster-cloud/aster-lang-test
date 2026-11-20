@@ -146,6 +146,20 @@ jobs:
       - name: Fixtures are byte-identical to the generator output
         working-directory: aster-lang-test
         run: node scripts/build-package-fixtures.mjs --check
+      # ADR 0059 修订 4 D4：已发布的旧 CLI（ts v3.5.0、aster-cli 1.0.52）对包格式 1.1 一律 PKG_UNSUPPORTED_FORMAT、退出码 4。
+      # 两个产物按 Release 的 .sha256 核对后缓存（键含版本号，版本不变即命中）。
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+      - name: Cache released old CLIs
+        uses: actions/cache@v4
+        with:
+          path: aster-lang-test/.cache/old-cli
+          key: old-cli-ts-3.5.0-truffle-1.0.52
+      - name: Old CLIs reject package format 1.1
+        working-directory: aster-lang-test
+        run: node scripts/test-old-cli-rejects-1-1.mjs --cache .cache/old-cli
       - name: Build aster-lang-ts
         working-directory: aster-lang-ts
         run: pnpm install --frozen-lockfile && pnpm build

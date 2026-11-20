@@ -1,0 +1,101 @@
+{
+  "description": "B 包，en-US，Return \"a\" 一行的空格是结构 span {canonical:\" \",display:\"·\"}：包排版合规（verify 与 verify --recompile 通过）；把显示改成 Return \"x·y\" 会还原出 Return \"x y\"——结构 span 落进字符串，L9 补空格后字符串值改变，DISPLAY_REJECTED（ADR 0059 修订 4 §4）。",
+  "package": "b-display-swallow",
+  "requiresFormat": "1.1",
+  "cases": [
+    {
+      "name": "run",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-swallow",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3da5c765fb6757d15cfbabb2c144ec218be8493480f2d93d104607df4f33f786\",\"engine\":\"<ENGINE>\",\"entry\":\"f\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"a\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-recompile",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "b-display-swallow",
+        "--recompile",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"display\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true},{\"name\":\"display-ir\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"3da5c765fb6757d15cfbabb2c144ec218be8493480f2d93d104607df4f33f786\",\"engine\":\"<ENGINE>\",\"entry\":\"f\",\"irRecompiled\":true,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "show",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-display-swallow",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "Module display.swallow.\n\nRule f, produce Text:\n  Return·\"a\".\n\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "run-display-unchanged",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-swallow",
+        "--display",
+        "../edits/b-display-swallow/unchanged.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"a9a3410095da3ee1fedfba0b0b0277ef8b058092a08da958884bec89e6f18ffb\",\"matchesPackage\":true},\"engine\":\"<ENGINE>\",\"entry\":\"f\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"a\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "run-display-swallowed-string",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-swallow",
+        "--display",
+        "../edits/b-display-swallow/swallow.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"error\":{\"code\":\"DISPLAY_REJECTED\",\"message\":\"edited display text would hide a value from readers\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "DISPLAY_REJECTED"
+    },
+    {
+      "name": "show-from-display-swallowed-string",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-display-swallow",
+        "--from-display",
+        "../edits/b-display-swallow/swallow.txt",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"DISPLAY_REJECTED\",\"message\":\"edited display text would hide a value from readers\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "DISPLAY_REJECTED"
+    }
+  ]
+}

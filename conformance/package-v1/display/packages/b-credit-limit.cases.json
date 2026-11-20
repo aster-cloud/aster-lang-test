@@ -1,0 +1,67 @@
+{
+  "description": "1.0 包（无显示排版）上的 show：stdout 为 policy/policy.aster 的字节 + \\n，stderr 注明无显示排版；--from-display 没有可对照的排版，为 PKG_DISPLAY_INVALID（ADR 0059 修订 4 D6、§11 Q4）。",
+  "package": "b-credit-limit",
+  "requiresFormat": "1.1",
+  "cases": [
+    {
+      "name": "show-without-layout-prints-canonical",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "../../packages/b-credit-limit",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "Module aster.pilot.credit.\n\nDefine Applicant has\n  creditScore as Int,\n  monthlyIncome as Decimal,\n  monthlyDebt as Decimal,\n  requestedAmount as Decimal,\n  activeDefaults as Int.\n\n@id(\"CP-DECIDE\")\n@control(\"EU_AI_ACT:ART14\")\n@control(\"GDPR:ART22\")\nRule decide given applicant as Applicant, produce Verdict:\n  If applicant.activeDefaults at least 1:\n    Return Verdict.deny(\"active_default\").\n  If applicant.monthlyDebt greater than applicant.monthlyIncome times 0.45m:\n    Return Verdict.deny(\"dti_exceeds_limit\").\n  If applicant.requestedAmount at least 50000m:\n    Return Verdict.require_approval(\"Credit Officer\", \"large_exposure\").\n  If applicant.creditScore at least 620 and applicant.creditScore at most 679:\n    Return Verdict.escalate(\"borderline_credit_score\").\n  Return Verdict.allow().\n\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "show-canonical-without-layout",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "../../packages/b-credit-limit",
+        "--canonical",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "Module aster.pilot.credit.\n\nDefine Applicant has\n  creditScore as Int,\n  monthlyIncome as Decimal,\n  monthlyDebt as Decimal,\n  requestedAmount as Decimal,\n  activeDefaults as Int.\n\n@id(\"CP-DECIDE\")\n@control(\"EU_AI_ACT:ART14\")\n@control(\"GDPR:ART22\")\nRule decide given applicant as Applicant, produce Verdict:\n  If applicant.activeDefaults at least 1:\n    Return Verdict.deny(\"active_default\").\n  If applicant.monthlyDebt greater than applicant.monthlyIncome times 0.45m:\n    Return Verdict.deny(\"dti_exceeds_limit\").\n  If applicant.requestedAmount at least 50000m:\n    Return Verdict.require_approval(\"Credit Officer\", \"large_exposure\").\n  If applicant.creditScore at least 620 and applicant.creditScore at most 679:\n    Return Verdict.escalate(\"borderline_credit_score\").\n  Return Verdict.allow().\n\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "show-from-display-without-layout",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "../../packages/b-credit-limit",
+        "--from-display",
+        "../edits/b-jingyesi/unchanged.txt",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_DISPLAY_INVALID\",\"message\":\"package display layout is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "run-display-without-layout",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "../../packages/b-credit-limit",
+        "--display",
+        "../edits/b-jingyesi/unchanged.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_DISPLAY_INVALID\",\"message\":\"package display layout is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID",
+      "stdin": "{\"applicant\":{\"activeDefaults\":0,\"creditScore\":760,\"monthlyDebt\":\"2000\",\"monthlyIncome\":\"9000\",\"requestedAmount\":\"20000\"}}"
+    }
+  ]
+}

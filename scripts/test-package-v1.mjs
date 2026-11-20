@@ -10,6 +10,7 @@
  * 用法：node scripts/test-package-v1.mjs（退出码 0=全过，1=有失败）。
  */
 import assert from 'node:assert';
+import { createRequire } from 'node:module';
 import { gzipSync, inflateRawSync } from 'node:zlib';
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
@@ -25,6 +26,7 @@ import { validateInput, InputError } from './lib/package-v1/input.mjs';
 import { isPackagePath, isSafeRoot } from './lib/package-v1/reference-check.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+const require = createRequire(import.meta.url);
 
 let pass = 0;
 let fail = 0;
@@ -587,6 +589,192 @@ await httpsAnchorTests();
     if (r.usage) pass++;
     else (fail++, console.error(`✗ 初始 URL 应在 usage 阶段拒绝 ${JSON.stringify(bad)}`));
   }
+}
+
+
+// ---- 包格式 1.1 显示排版（ADR 0059 修订 4；display.mjs 参照实现 × 四组共享向量） ----
+{
+  const D = await import('./lib/package-v1/display.mjs');
+  const { displayVectors } = await import('./lib/package-v1/display-vectors.mjs');
+  const { formatGate } = await import('./lib/package-v1/gate.mjs');
+  const { readDisplayFile, parseCommand } = await import('./lib/package-v1/argv.mjs');
+  const vectors = displayVectors();
+  const onDisk = (rel) => JSON.parse(readFileSync(join(ROOT, 'conformance/package-v1', rel), 'utf8'));
+  for (const rel of Object.keys(vectors)) {
+    check(`display: ${rel} 与生成器输出一致（--check 之外再确认向量是从同一份定义来的）`, () => {
+      assert.deepStrictEqual(onDisk(rel), vectors[rel]);
+    });
+  }
+
+  for (const c of vectors['vectors/layout.json'].cases) {
+    check(`layout 向量 ${c.id} → ${c.expect}`, () => {
+      let got = 'ok';
+      let layout;
+      try {
+        const display = c.displayText ?? D.toDisplay(JSON.parse(c.layoutText));
+        layout = D.checkPackageLayout({
+          layoutBytes: Buffer.from(c.layoutText, 'utf8'), displayBytes: Buffer.from(display, 'utf8'), source: c.sourceB64 !== undefined ? Buffer.from(c.sourceB64, 'base64') : c.source,
+          layoutVersion: c.layoutVersion ?? 1, vocabularyLocalized: c.vocabularyLocalized, literalKeywords: c.literalKeywords, operatorSpellings: c.operatorSpellings,
+        });
+      } catch (e) {
+        if (!(e instanceof D.DisplayRuleError) && !(e instanceof SyntaxError)) throw e;
+        got = e instanceof D.DisplayRuleError ? e.rule : 'L1';
+      }
+      assert.strictEqual(got, c.expect);
+      if (c.serialized !== undefined) assert.strictEqual(D.serializeLayout(layout), c.serialized);
+    });
+  }
+
+  for (const c of vectors['vectors/display-reconstruct.json'].cases) {
+    check(`reconstruct 向量 ${c.id} → ${c.expect}`, () => {
+      const r = D.reconstructFromDisplay(JSON.parse(c.layoutText), c.edited);
+      assert.strictEqual(r.kind, c.expect);
+      if (c.expect === 'unique') assert.strictEqual(D.toCanonical(r.layout), c.canonical);
+    });
+  }
+  for (const p of vectors['vectors/display-reconstruct.json'].performance) {
+    check(`reconstruct 性能 ${p.id}：2 s 内得 ${p.expect}`, () => {
+      const layout = { v: 1, spans: Array.from({ length: p.units }, () => p.unit).flat() };
+      const edited = p.editUnit.repeat(p.editRepeat) + p.editTail;
+      assert.ok(D.utf8Length(edited) <= D.LAYOUT_LIMITS.displayBytes, '配方超出显示字节上限');
+      const t0 = performance.now();
+      const r = D.reconstructFromDisplay(layout, edited);
+      const ms = performance.now() - t0;
+      assert.strictEqual(r.kind, p.expect);
+      if (p.canonicalUnit) assert.strictEqual(D.toCanonical(r.layout), p.canonicalUnit.repeat(p.units));
+      assert.ok(ms < 2000, `用时 ${ms.toFixed(0)} ms`);
+    });
+  }
+
+  for (const c of vectors['vectors/display-padding.json'].cases) {
+    check(`padding 向量 ${c.id}`, () => assert.strictEqual(D.padStructuralSpans(JSON.parse(c.layoutText)), c.padded));
+  }
+
+  // 反向映射的定义（修订 D7）与实现无关：穷举全部切分作独立判官，在小规模随机排版上与 DP 比对结论与唯一解
+  check('reconstruct：随机小排版上与按定义穷举的结论一致（2 000 例）', () => {
+    let seed = 0x0059a4;
+    const rnd = (n) => {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      return seed % n;
+    };
+    const ALPHA = ['a', 'b', '，', ' '];
+    const word = (min, max) => Array.from({ length: min + rnd(max - min + 1) }, () => ALPHA[rnd(ALPHA.length)]).join('');
+    const brute = (layout, edited) => {
+      let E = edited;
+      const display = D.toDisplay(layout);
+      if (!display.endsWith('\n') && E.endsWith('\n')) E = E.slice(0, E.endsWith('\r\n') ? -2 : -1);
+      const spans = layout.spans;
+      const sols = [];
+      const go = (i, at, ts, prevContentChanged, hiddenSinceContent) => {
+        if (sols.length > 2) return;
+        if (i === spans.length) {
+          if (at === E.length) sols.push([...ts]);
+          return;
+        }
+        const s = spans[i];
+        if (!('text' in s)) {
+          if (!E.startsWith(s.display, at)) return;
+          // 隐藏串：只由 display 为空的结构 span 组成；遇到非空 display 即断开
+          go(i + 1, at + s.display.length, ts, prevContentChanged, s.display === '' ? hiddenSinceContent : false);
+          return;
+        }
+        for (let e = at + 1; e <= E.length; e++) {
+          const t = E.slice(at, e);
+          const changed = t !== s.text;
+          const leftIsContent = hiddenSinceContent === true && prevContentChanged !== null;
+          if (leftIsContent && prevContentChanged && changed) continue;
+          ts.push(t);
+          go(i + 1, e, ts, changed, true);
+          ts.pop();
+        }
+      };
+      // hiddenSinceContent：true 表示上一个内容 span 之后只经过了 display 为空的结构 span（可为零个，合并形态下不会是零个）
+      go(0, 0, [], null, false);
+      return sols.length;
+    };
+    for (let n = 0; n < 2000; n++) {
+      const spans = [];
+      const k = 1 + rnd(4);
+      if (rnd(3) === 0) spans.push({ canonical: '#', display: rnd(2) ? '' : word(1, 1) });
+      for (let j = 0; j < k; j++) {
+        spans.push({ text: word(1, 2) });
+        if (j < k - 1 || rnd(2)) {
+          const m = 1 + rnd(2);
+          for (let q = 0; q < m; q++) spans.push({ canonical: '_', display: rnd(2) ? '' : word(1, 1) });
+        }
+      }
+      const layout = { v: 1, spans };
+      const edited = rnd(3) === 0 ? D.toDisplay(layout) : word(1, 7);
+      const want = brute(layout, edited);
+      const r = D.reconstructFromDisplay(layout, edited);
+      const kind = want === 0 ? 'unmappable' : want === 1 ? 'unique' : 'ambiguous';
+      assert.strictEqual(r.kind, kind, `${JSON.stringify(layout)} / ${JSON.stringify(edited)}`);
+      if (kind === 'unique') assert.strictEqual(D.toDisplay(r.layout), edited.endsWith('\n') && !D.toDisplay(layout).endsWith('\n') ? edited.slice(0, -1) : edited);
+    }
+  });
+
+  check('foldKey：NFC + 简单折叠（ẞ → ß、Σ → σ、K（开尔文）→ k、全角 Ａ → ａ）', () => {
+    assert.strictEqual(D.foldKey('ẞ'), 'ß');
+    assert.strictEqual(D.foldKey('ΣΑΣ'), 'σασ');
+    assert.strictEqual(D.foldKey('K'), 'k');
+    assert.strictEqual(D.foldKey('Ａ'), 'ａ');
+    assert.strictEqual(D.foldKey('é'), 'é');
+  });
+
+  check('keyword-spellings.json：拼写已 foldKey、按码点排序去重，四个 locale 齐全', () => {
+    const k = vectors['vectors/keyword-spellings.json'];
+    assert.deepStrictEqual(Object.keys(k.locales).sort(), ['de-DE', 'en-US', 'hi-IN', 'zh-CN']);
+    const cmp = (a, b) => {
+      const x = [...a].map((c) => c.codePointAt(0));
+      const y = [...b].map((c) => c.codePointAt(0));
+      for (let i = 0; i < Math.min(x.length, y.length); i++) if (x[i] !== y[i]) return x[i] - y[i];
+      return x.length - y.length;
+    };
+    for (const [loc, v] of Object.entries(k.locales)) {
+      for (const list of [v.literal, v.operator]) {
+        assert.deepStrictEqual(list, [...new Set(list.map(D.foldKey))].sort(cmp), loc);
+      }
+      assert.strictEqual(v.literal.length, 4, loc);
+    }
+    assert.strictEqual(k.operatorKinds.length, 11);
+  });
+
+  check('L7 运算符序列：最长匹配优先、含标识符字符的拼写须整词', () => {
+    const table = D.operatorTable(['at least', 'plus']);
+    assert.deepStrictEqual(D.operatorSequence(' a at least b ', table), ['at least']);
+    assert.deepStrictEqual(D.operatorSequence(' plusx + ', table), ['+']);
+    assert.deepStrictEqual(D.operatorSequence('<=!', table), ['<', '=', '!']);
+  });
+
+  check('formatGate：一侧不支持 → skipped；都支持 → run；strict → fail；无 requiresFormat → run', () => {
+    const row = { c: { requiresFormat: '1.1' } };
+    assert.strictEqual(formatGate(row, { node: ['1.0', '1.1'], jre: ['1.0'] }), 'skipped');
+    assert.strictEqual(formatGate(row, { node: ['1.0', '1.1'], jre: ['1.0', '1.1'] }), 'run');
+    assert.strictEqual(formatGate(row, { node: null, jre: ['1.0', '1.1'] }), 'skipped');
+    assert.strictEqual(formatGate(row, { node: ['1.0'], jre: ['1.0'] }, { strict: true }), 'fail');
+    assert.strictEqual(formatGate({ c: {} }, { node: ['1.0'], jre: ['1.0'] }, { strict: true }), 'run');
+  });
+
+  check('显示文本文件：去至多一个 BOM、超大不读、非法 UTF-8 与缺文件为 USAGE', () => {
+    const { mkdtempSync, writeFileSync: wf, rmSync } = require('node:fs');
+    const dir = mkdtempSync(join(require('node:os').tmpdir(), 'disp-'));
+    try {
+      wf(join(dir, 'bom'), Buffer.concat([Buffer.from([0xef, 0xbb, 0xbf, 0xef, 0xbb, 0xbf]), Buffer.from('x')]));
+      assert.deepStrictEqual(readDisplayFile(join(dir, 'bom')), { oversize: false, text: '﻿x' });
+      wf(join(dir, 'big'), Buffer.alloc(24580, 0x61));
+      assert.deepStrictEqual(readDisplayFile(join(dir, 'big')), { oversize: true, text: null });
+      wf(join(dir, 'edge'), Buffer.alloc(24579, 0x61));
+      assert.strictEqual(readDisplayFile(join(dir, 'edge')).oversize, false);
+      wf(join(dir, 'bad'), Buffer.from([0x61, 0xff]));
+      assert.strictEqual(parseCommand(['show', '.', '--from-display', 'bad'], dir).usage, true);
+      assert.strictEqual(parseCommand(['run', '.', '--display', 'missing', '--input', '-'], dir).usage, true);
+      assert.strictEqual(parseCommand(['show', '.', '--canonical', '--from-display', 'edge'], dir).usage, true);
+      assert.strictEqual(parseCommand(['show', '.', '--from-display', 'edge'], dir).usage, false);
+      assert.strictEqual(parseCommand(['verify', '.', '--display', 'edge'], dir).usage, true);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
 }
 
 console.log(`test-package-v1: ${pass} passed, ${fail} failed`);

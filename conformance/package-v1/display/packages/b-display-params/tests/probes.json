@@ -1,0 +1,1 @@
+{"probes":[{"entry":"greet","expected":{"ok":true,"value":"Ada"},"input":{"name":"Ada"}}]}

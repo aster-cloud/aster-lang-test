@@ -1,12 +1,12 @@
 {
-  "description": "包格式 v1 两个 aster CLI 共用的错误码、退出码与固定 message（ADR 0059 §4.1 / 实施计划 Global Constraints）。信封 error.message 必须逐字等于本表的 message；诊断细节（文件名、哈希、编译诊断、引擎异常）只写 stderr。",
+  "description": "包格式 v1 两个 aster CLI 共用的错误码、退出码与固定 message（ADR 0059 §4.1 / 实施计划 Global Constraints）。codes 为 formatVersion 1.0 起的错误码；codesSince 按引入它们的包格式次版本列出之后新增的错误码（1.1：ADR 0059 修订 4 D10），支持格式集合 F 的 CLI 的完整错误码表 = codes ∪ ⋃_{v∈F} codesSince[v]。信封 error.message 必须逐字等于本表的 message；诊断细节（文件名、哈希、编译诊断、引擎异常）只写 stderr。",
   "formatVersion": "1.0",
   "exitCodes": {
     "0": "成功",
     "1": "策略求值失败（EVAL_ERROR）或 verify --probes 结果与期望不符（PROBE_MISMATCH）",
-    "2": "输入或调用错误（INPUT_INVALID、ENTRY_NOT_FOUND、USAGE）",
+    "2": "输入或调用错误（INPUT_INVALID、ENTRY_NOT_FOUND、USAGE；1.1 起另有 DISPLAY_UNMAPPABLE、DISPLAY_AMBIGUOUS、DISPLAY_REJECTED）",
     "3": "完整性与签名失败（PKG_INTEGRITY、PKG_SIGNATURE、PKG_UNSIGNED、PKG_UNTRUSTED_KID）",
-    "4": "包或 IR 不受支持（PKG_INVALID_MANIFEST、PKG_UNSUPPORTED_FORMAT、PKG_UNSUPPORTED_IR、PKG_IR_DRIFT、COMPILE_ERROR）",
+    "4": "包或 IR 不受支持（PKG_INVALID_MANIFEST、PKG_UNSUPPORTED_FORMAT、PKG_UNSUPPORTED_IR、PKG_IR_DRIFT、COMPILE_ERROR；1.1 起另有 PKG_DISPLAY_INVALID）",
     "5": "超时或资源耗尽（TIMEOUT、RESOURCE_EXHAUSTED）"
   },
   "codes": {
@@ -26,5 +26,13 @@
     "RESOURCE_EXHAUSTED": { "exit": 5, "message": "evaluation exhausted a resource limit" },
     "TIMEOUT": { "exit": 5, "message": "evaluation timed out" },
     "USAGE": { "exit": 2, "message": "invalid command line" }
+  },
+  "codesSince": {
+    "1.1": {
+      "DISPLAY_AMBIGUOUS": { "exit": 2, "message": "edited display text maps onto the package layout in more than one way" },
+      "DISPLAY_REJECTED": { "exit": 2, "message": "edited display text would hide a value from readers" },
+      "DISPLAY_UNMAPPABLE": { "exit": 2, "message": "edited display text does not map onto the package layout" },
+      "PKG_DISPLAY_INVALID": { "exit": 4, "message": "package display layout is not valid" }
+    }
   }
 }

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://aster-lang.cloud/schema/policy-package/cli-stdout-1.0.json",
   "title": "aster CLI stdout, package format 1.0",
-  "description": "两个 aster CLI 各子命令的 stdout 形状（一行值规范 JSON + \\n；ADR 0059 §4.1 + 修订 1 A0）。run / inspect 失败时都输出 RunError；verify 失败时输出 Verify（ok:false）。错误码与 message 的对应见 exit-codes.json（message 必须逐字等于该表）。字段语义与 meta 的取值时机见 README.md「输出」一节。",
+  "description": "两个 aster CLI 各子命令的 stdout 形状（一行值规范 JSON + \\n；ADR 0059 §4.1 + 修订 1 A0）。run / inspect 失败时都输出 RunError；verify 失败时输出 Verify（ok:false）。错误码与 message 的对应见 exit-codes.json（message 必须逐字等于该表）。字段语义与 meta 的取值时机见 README.md「输出」一节。 show 成功时 stdout 不是 JSON（显示文本或规范源码的字节 + \\n，同 compile），失败时输出 RunError。",
   "oneOf": [
     {
       "$ref": "#/$defs/RunOk"
@@ -42,7 +42,11 @@
         "PKG_IR_DRIFT",
         "COMPILE_ERROR",
         "TIMEOUT",
-        "RESOURCE_EXHAUSTED"
+        "RESOURCE_EXHAUSTED",
+        "PKG_DISPLAY_INVALID",
+        "DISPLAY_UNMAPPABLE",
+        "DISPLAY_AMBIGUOUS",
+        "DISPLAY_REJECTED"
       ]
     },
     "Meta": {
@@ -90,6 +94,23 @@
         },
         "irRecompiled": {
           "type": "boolean"
+        },
+        "display": {
+          "description": "只在 run --display 且派生程序已编译并通过 L8/L9 之后出现（ADR 0059 修订 4 D8）：canonicalSha256 为派生规范源码 C′ 的 UTF-8 的 SHA-256；matchesPackage 表示 C′ 的 positionFreeSha256 是否等于 manifest.coreIr.positionFreeSha256。",
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "canonicalSha256",
+            "matchesPackage"
+          ],
+          "properties": {
+            "canonicalSha256": {
+              "$ref": "#/$defs/Sha256"
+            },
+            "matchesPackage": {
+              "type": "boolean"
+            }
+          }
         }
       }
     },
@@ -161,7 +182,9 @@
             "signature",
             "integrity",
             "ir",
+            "display",
             "recompile",
+            "display-ir",
             "probes"
           ]
         },
@@ -241,7 +264,7 @@
           "const": true
         },
         "inspect": {
-          "description": "manifest 的 effects、governance、policy、runtime、tests 五个成员原样，另加 schemas：包内 schema/input.json 与 schema/output.json 的内容（ADR 0059 §4.1「打印入口、输入输出 schema」）。",
+          "description": "manifest 的 effects、governance、policy、runtime、tests 五个成员原样，另加 schemas：包内 schema/input.json 与 schema/output.json 的内容（ADR 0059 §4.1「打印入口、输入输出 schema」）。 formatVersion 1.1 且 manifest 有 display 时另有成员 display，原样取自 manifest（ADR 0059 修订 4 D6）。",
           "type": "object",
           "additionalProperties": false,
           "required": [
@@ -283,6 +306,18 @@
                   "type": "object"
                 }
               }
+            },
+            "display": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "layoutVersion"
+              ],
+              "properties": {
+                "layoutVersion": {
+                  "const": 1
+                }
+              }
             }
           }
         },
@@ -314,9 +349,16 @@
           ]
         },
         "formatVersions": {
-          "const": [
-            "1.0"
-          ]
+          "description": "CLI 支持的包格式版本，升序；支持 1.1 的 CLI 输出 [\"1.0\",\"1.1\"]（ADR 0059 修订 4 D2）。package-conformance.mjs 据此对带 requiresFormat 的用例做能力门控。",
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "enum": [
+              "1.0",
+              "1.1"
+            ]
+          }
         },
         "coreIrVersions": {
           "const": [

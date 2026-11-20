@@ -10,11 +10,13 @@ import { parseStrictJson } from './strict-json.mjs';
 
 const COMMON_ANCHOR = ['--jwks', '--pubkey'];
 const SPEC = {
-  run: { valued: ['--entry', '--input', '--timeout', ...COMMON_ANCHOR], switches: ['--allow-unsigned'], positional: 1 },
+  run: { valued: ['--entry', '--input', '--timeout', '--display', ...COMMON_ANCHOR], switches: ['--allow-unsigned'], positional: 1 },
   verify: { valued: ['--timeout', ...COMMON_ANCHOR], switches: ['--allow-unsigned', '--recompile', '--probes'], positional: 1 },
   inspect: { valued: [...COMMON_ANCHOR], switches: ['--allow-unsigned'], positional: 1 },
   compile: { valued: ['--locale', '--alias-set', '--vocabulary', '--out', ...COMMON_ANCHOR], switches: ['--allow-unsigned', '--allow-structural'], positional: 1 },
   version: { valued: [], switches: [], positional: 0 },
+  // ADR 0059 修订 4 D6：show 打印显示文本（或 --canonical 的规范源码、--from-display 还原出的规范源码）
+  show: { valued: ['--from-display', ...COMMON_ANCHOR], switches: ['--allow-unsigned', '--canonical'], positional: 1 },
 };
 const TIMEOUT = /^(0|[1-9][0-9]*)(ms|s)(?![\s\S])/;
 /** compile --locale 支持的词法表（两侧都内置的四个）；形态合法但不在表中同样是 USAGE。 */
@@ -51,6 +53,26 @@ function readFileOrUsage(path, what, maxBytes = Infinity) {
   if (!existsSync(path) || !statSync(path).isFile()) usage(`${what} 不存在或不是文件`);
   if (statSync(path).size > maxBytes) usage(`${what} 超过 1 MiB`);
   return readFileSync(path);
+}
+
+/** 显示文本文件的大小上限：LAYOUT_LIMITS.displayBytes + 开头 BOM（3 字节）。超出不读内容，在 reconstruct 阶段为 DISPLAY_UNMAPPABLE。 */
+export const MAX_DISPLAY_FILE_BYTES = 24576 + 3;
+
+/**
+ * --display / --from-display 的文件（README「run --display」）：usage 阶段判定。不存在、不是普通文件、不可读、
+ * 非法 UTF-8 为 USAGE；大小超过 MAX_DISPLAY_FILE_BYTES 时不读内容（oversize:true，之后为 DISPLAY_UNMAPPABLE）；
+ * 否则严格 UTF-8 解码并去掉至多一个开头 BOM。
+ */
+export function readDisplayFile(path) {
+  if (!existsSync(path) || !statSync(path).isFile()) usage('显示文本文件不存在或不是文件');
+  if (statSync(path).size > MAX_DISPLAY_FILE_BYTES) return { oversize: true, text: null };
+  let text;
+  try {
+    text = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true }).decode(readFileSync(path));
+  } catch {
+    usage('显示文本文件不是合法 UTF-8');
+  }
+  return { oversize: false, text: text.startsWith('\uFEFF') ? text.slice(1) : text };
 }
 
 /** .aster 源码的解码（README「compile」）：严格 UTF-8，非法即 USAGE；去掉至多一个开头的 BOM。 */
@@ -203,6 +225,9 @@ export function parseCommand(args, cwd) {
     }
     if (command === 'compile') checkCompile(positional, options, cwd);
     else if (command !== 'version') checkAnchor(options, cwd);
+    if (command === 'show' && options['--canonical'] && options['--from-display'] !== undefined) usage('--canonical 与 --from-display 互斥');
+    const edited = options['--display'] ?? options['--from-display'];
+    if (edited !== undefined) readDisplayFile(join(cwd, edited));
     return { usage: false, command, positional, options };
   } catch (e) {
     if (e instanceof Usage) return { usage: true, why: e.message };

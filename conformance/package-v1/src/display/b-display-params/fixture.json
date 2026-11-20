@@ -1,0 +1,22 @@
+{
+  "description": "B 包，en-US，带一个 Text 形参；可见结构 span \\n\\n → \\n§\\n。run --display 按**派生** IR 选入口与校验输入：把形参改成 Int 后按旧形态输入为 INPUT_INVALID，改名后按旧名输入同样 INPUT_INVALID（ADR 0059 修订 4 D7；计划 Review Focus 3）。",
+  "mode": "b",
+  "target": "jre",
+  "locale": "en-US",
+  "aliasSet": null,
+  "allowStructural": false,
+  "claimedRefVersion": 1,
+  "entries": [{ "function": "greet", "default": true }],
+  "probes": [{ "entry": "greet", "input": { "name": "Ada" } }],
+  "cases": [
+    { "name": "run", "command": "run", "input": { "name": "Ada" }, "value": "\"Ada\"" },
+    { "name": "verify-recompile", "command": "verify", "args": ["--recompile"] },
+    { "name": "show", "command": "show" },
+    { "name": "run-display-unchanged", "command": "run", "display": "unchanged.txt", "input": { "name": "Ada" }, "value": "\"Ada\"", "matchesPackage": true },
+    { "name": "display-param-retyped", "command": "run", "display": "retyped.txt", "input": { "name": "Ada" }, "matchesPackage": false, "expect": { "code": "INPUT_INVALID" } },
+    { "name": "display-param-retyped-new-input", "command": "run", "display": "retyped.txt", "input": { "name": 7 }, "value": "7", "matchesPackage": false },
+    { "name": "display-param-renamed", "command": "run", "display": "renamed-param.txt", "input": { "name": "Ada" }, "matchesPackage": false, "expect": { "code": "INPUT_INVALID" } },
+    { "name": "display-param-renamed-new-input", "command": "run", "display": "renamed-param.txt", "input": { "who": "Ada" }, "value": "\"Ada\"", "matchesPackage": false },
+    { "name": "display-entry-option-not-in-derived", "command": "run", "args": ["--entry", "missing"], "display": "unchanged.txt", "input": { "name": "Ada" }, "matchesPackage": true, "expect": { "code": "ENTRY_NOT_FOUND" } }
+  ]
+}
