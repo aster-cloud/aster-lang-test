@@ -455,6 +455,14 @@
     {
       "path": "tier1-parity/vocab-en/literal-macro-escape.aster",
       "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-en/literal-curly-quotes.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-zh/literal-curly-quotes.aster",
+      "vocab": true
     }
   ],
   "_vocabComment": "ADR 0051 §8: entries written as {\"path\", \"vocab\": true} carry a sibling <case>.vocab.json (DomainVocabulary JSON) passed to BOTH engines in parse/ir/eval. Vocabulary samples live under tier1-parity/vocab-<locale>/ with their .cases.json beside them; vocabulary must-reject samples live in tier1-reject/ and declare meta.expectCode (both engines must reject in name resolution with the same error codes). See scripts/lib/vocab-corpus.mjs.",
