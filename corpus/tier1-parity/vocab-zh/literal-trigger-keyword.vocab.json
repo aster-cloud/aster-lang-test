@@ -1,0 +1,27 @@
+{
+  "id": "parity.vocab-zh.literal-trigger-keyword",
+  "name": "literal-trigger-keyword",
+  "locale": "zh-CN",
+  "version": "1.0.0",
+  "structs": [],
+  "fields": [],
+  "functions": [],
+  "enumValues": [],
+  "literals": [
+    {
+      "canonical": "T",
+      "localized": "文本",
+      "kind": "literal"
+    },
+    {
+      "canonical": "R",
+      "localized": "返回",
+      "kind": "literal"
+    },
+    {
+      "canonical": "hi",
+      "localized": "greeting",
+      "kind": "literal"
+    }
+  ]
+}

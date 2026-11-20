@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "zh-CN 词汇里与 en-US 规范拼写同形的触发词同样不展开（ADR 0060 修订 1 R16' 第 4 类）：core 先把 返回 / 文本 / 产出 译成 Return / Text / produce 再展开字面量宏，ts 在 zh-CN 下也把英文拼写当关键词读。修复前 core 把译出的关键词展开成字符串而失败，ts 接受"
+}

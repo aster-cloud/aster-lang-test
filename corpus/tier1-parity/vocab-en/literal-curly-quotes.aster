@@ -1,0 +1,4 @@
+Module parity.vocab.literalCurlyQuotes.
+
+Rule quote given x as Int, produce Text:
+  Return remark.

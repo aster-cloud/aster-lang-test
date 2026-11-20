@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "字面量触发词与关键词同形时关键词优先（ADR 0060 修订 1 R16'，aster-lang-core#290、aster-lang-ts#368）：触发词 Text（类型的规范拼写）与 RETURN（按折叠键等于 Return）不展开，照常按关键词读；greeting 照常展开。修复前两引擎都把 Text 展开成字符串而失败"
+}

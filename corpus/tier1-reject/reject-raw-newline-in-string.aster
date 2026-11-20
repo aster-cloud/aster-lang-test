@@ -1,0 +1,5 @@
+Module reject.rawNewlineInString.
+
+Rule f, produce Text:
+  Return "a
+b".

@@ -1,0 +1,6 @@
+Module reject.lowercaseGenericAfterComma.
+
+Define Pair has a as Int.
+
+Rule f given x as Pair of Int, foo of Int, produce Int:
+  Return 1.

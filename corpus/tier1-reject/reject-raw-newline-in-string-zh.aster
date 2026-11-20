@@ -1,0 +1,5 @@
+模块 reject.rawNewlineInStringZh。
+
+规则 f，产出 文本：
+  返回 「a
+b」。

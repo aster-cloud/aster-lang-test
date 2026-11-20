@@ -1,0 +1,32 @@
+{
+  "id": "parity.vocab-zh.literal-trigger-english-keyword",
+  "name": "literal-trigger-english-keyword",
+  "locale": "zh-CN",
+  "version": "1.0.0",
+  "structs": [],
+  "fields": [],
+  "functions": [],
+  "enumValues": [],
+  "literals": [
+    {
+      "canonical": "R",
+      "localized": "Return",
+      "kind": "literal"
+    },
+    {
+      "canonical": "T",
+      "localized": "Text",
+      "kind": "literal"
+    },
+    {
+      "canonical": "P",
+      "localized": "produce",
+      "kind": "literal"
+    },
+    {
+      "canonical": "hi",
+      "localized": "greeting",
+      "kind": "literal"
+    }
+  ]
+}

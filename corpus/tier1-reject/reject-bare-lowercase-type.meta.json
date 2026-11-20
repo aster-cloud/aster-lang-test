@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "裸小写类型名（ADR 0056 修订 A4 §1.2，aster-lang-ts#338 第 2 项）：类型名以大写开头，两引擎都在 text 上报 E055。修复前 core 拒绝、ts 接受（读成 Text）"
+}
