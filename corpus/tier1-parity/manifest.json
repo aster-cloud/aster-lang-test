@@ -334,6 +334,7 @@
     "tier1-parity/syntax/corner-quote-in-string-zh.aster",
     "tier1-parity/syntax/let-be-ideographic-space-zh.aster",
     "tier1-parity/syntax/result-is-zh.aster",
+    "tier1-parity/syntax/blank-line-after-block-header.aster",
     "tier1-parity/syntax/function-syntax-whitespace-zh.aster",
     "tier1-parity/types/inferred-field-constraints.aster",
     "tier1-parity/workflow/workflow-bare-io-capability.aster",
@@ -569,6 +570,12 @@
     "tier1-reject/reject-whitespace-nbsp-before-paren-zh.aster",
     "tier1-reject/reject-whitespace-em-space-after-paren-zh.aster",
     "tier1-reject/reject-whitespace-nbsp-after-result-is-zh.aster",
-    "tier1-reject/reject-whitespace-em-space-after-result-is-zh.aster"
+    "tier1-reject/reject-whitespace-em-space-after-result-is-zh.aster",
+    "tier1-reject/reject-bare-lowercase-type.aster",
+    "tier1-reject/reject-lowercase-generic-after-comma.aster",
+    "tier1-reject/reject-lowercase-map-after-comma.aster",
+    "tier1-reject/reject-raw-newline-in-string.aster",
+    "tier1-reject/reject-raw-newline-in-string-zh.aster",
+    "tier1-reject/reject-line-break-after-header-comma.aster"
   ]
 }
