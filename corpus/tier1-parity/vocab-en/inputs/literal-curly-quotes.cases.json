@@ -1,0 +1,12 @@
+{
+  "entry": "quote",
+  "cases": [
+    {
+      "name": "弯引号、反斜杠与双引号原样",
+      "input": [
+        1
+      ],
+      "expectedOutput": "he said “it’s ‘ok’” \\ \"done\""
+    }
+  ]
+}

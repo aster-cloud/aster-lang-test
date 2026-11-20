@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "zh-CN 「」字符串里的原始换行（A4 §2，ts#357 第 1 行）：两引擎都报 E051。修复前 ts 接受"
+}

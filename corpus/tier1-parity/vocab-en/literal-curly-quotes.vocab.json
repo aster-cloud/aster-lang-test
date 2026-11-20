@@ -1,0 +1,17 @@
+{
+  "id": "parity.vocab-en.literal-curly-quotes",
+  "name": "literal-curly-quotes",
+  "locale": "en-US",
+  "version": "1.0.0",
+  "structs": [],
+  "fields": [],
+  "functions": [],
+  "enumValues": [],
+  "literals": [
+    {
+      "canonical": "he said “it’s ‘ok’” \\ \"done\"",
+      "localized": "remark",
+      "kind": "literal"
+    }
+  ]
+}

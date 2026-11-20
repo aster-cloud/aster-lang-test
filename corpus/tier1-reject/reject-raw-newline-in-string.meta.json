@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "字符串字面量里的原始换行（A4 §2，ts#357 第 1 行）：两引擎都在开引号上报 E051，多行文本写转义 \\n。修复前 ts 接受"
+}
