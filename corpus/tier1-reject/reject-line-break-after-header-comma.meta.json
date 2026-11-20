@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "规则头逗号之后换行（A4 §2，ts#357 第 3 行）：两引擎都在换行处报 E062。修复前 core E062、ts E055"
+}

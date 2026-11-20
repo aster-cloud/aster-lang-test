@@ -1,0 +1,6 @@
+Module reject.lowercaseMapAfterComma.
+
+Define Pair has a as Int.
+
+Rule f given x as Pair of Int, map Int to Int, produce Int:
+  Return 1.

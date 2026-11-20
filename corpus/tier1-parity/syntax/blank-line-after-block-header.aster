@@ -1,0 +1,10 @@
+Module parity.syntax.blankLineAfterBlockHeader.
+
+Rule label given x as Int, produce Int:
+
+  If x greater than 1:
+
+    Return 1.
+  Otherwise:
+
+    Return x.
