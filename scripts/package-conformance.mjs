@@ -11,6 +11,7 @@
  * 带 knownEngineDivergence 的用例只豁免 knownDivergentEngine 那一侧的期望比较：另一侧仍须等于期望，分歧一侧仍须正常运行；
  * 分歧消失（两侧一致且等于期望）判失败，提醒去掉标记（判定见 lib/package-v1/gate.mjs）。
  * 用例数有下限：不给 --filter 时须跑完各 cases 文件的全部行（每个文件都不得缺失或为空），给 --filter 时至少匹配一条。
+ * 报告列出运行环境（并发、核数、前后负载）与每条用例两侧耗时（aster-lang-test#226 m-3），用来区分负载抖动与真分歧。
  *
  * 用法：
  *   node scripts/package-conformance.mjs --node <aster.mjs> --jar <aster-cli.jar> [--report-only] [--concurrency 4]
@@ -20,12 +21,12 @@
  */
 import { spawn } from 'node:child_process';
 import { existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
+import { cpus, loadavg, tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { normalizeStdout } from '../conformance/package-v1/normalize-stdout.mjs';
 import { positionFreeSha256 } from './lib/package-v1/position-free.mjs';
-import { coverageProblems, formatGate, groupRouteSets, judgeRow, routeSetKey } from './lib/package-v1/gate.mjs';
+import { coverageProblems, formatGate, groupRouteSets, judgeRow, routeSetKey, timingSummary } from './lib/package-v1/gate.mjs';
 import { materializePackage, recipeStdin, selfSignedCert, startRecipeServer } from './lib/package-v1/recipes.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -225,6 +226,8 @@ async function main() {
     for (const [key, routes] of routeSets) ctx.servers.set(key, await startRecipeServer(routes, ctx.cert, join(PKG, 'keys/test-jwks.json')));
   }
   const outcomes = [];
+  const loadBefore = loadavg();
+  const started = Date.now();
   let next = 0;
   const workers = Array.from({ length: Math.max(1, concurrency) }, async () => {
     while (next < rows.length) {
@@ -235,6 +238,8 @@ async function main() {
     }
   });
   await Promise.all(workers);
+  const wallMs = Date.now() - started;
+  const loadAfter = loadavg();
   for (const server of ctx.servers?.values() ?? []) server.close();
   if (ctx.cert) rmSync(ctx.cert.dir, { recursive: true, force: true });
 
@@ -251,6 +256,7 @@ async function main() {
     `- JVM CLI：\`${jar}\``,
     `- 用例：${outcomes.length}；两侧一致且等于期望：**${identical}/${outcomes.length}**；不一致：**${failing.length}**；已知引擎分歧（不计失败）：${knownDiverging.length}`,
     formatLine,
+    `- 运行环境：并发 ${concurrency}，${cpus().length} 核，墙钟 ${wallMs} ms；1 分钟负载 开始 ${loadBefore[0].toFixed(2)} / 结束 ${loadAfter[0].toFixed(2)}（单进程超时 ${PROCESS_TIMEOUT_MS} ms）`,
     ...coverage.map((p) => `- **用例数不足**：${p}`),
     ...gateFailed.map((r) => `- **CLI 不支持 requiresFormat ${r.c.requiresFormat}**：${r.file}/${r.c.name}`),
     '',
@@ -268,6 +274,33 @@ async function main() {
   };
   if (failing.length) lines.push('## 不一致', '', ...failing.flatMap(describe));
   if (knownDiverging.length) lines.push('## 已知引擎分歧', '', ...knownDiverging.flatMap(describe));
+  // 每条用例两侧耗时（#226 m-3）：不一致的行若耗时远高于同侧中位数、或接近超时，多半是负载抖动而非真分歧
+  const timingRows = outcomes.map((o) => ({ name: `${o.row.file}/${o.row.c.name}`, status: o.status, node: o.results.node.res.ms, jre: o.results.jre.res.ms }));
+  const timing = timingSummary(timingRows, { timeoutMs: PROCESS_TIMEOUT_MS });
+  const fmt = (x) => (x === null ? '-' : `${x}`);
+  lines.push(
+    '## 耗时',
+    '',
+    '| 侧 | 中位数 ms | p95 ms | 最大 ms |',
+    '|---|---|---|---|',
+    ...['node', 'jre'].map((side) => `| ${side} | ${fmt(timing.sides[side].median)} | ${fmt(timing.sides[side].p95)} | ${fmt(timing.sides[side].max)} |`),
+    '',
+    ...(timing.slow.length ? [`- **耗时达到超时一半的用例**（${timing.slow.length}）：${timing.slow.join('、')}`, ''] : []),
+    `最慢的 ${timing.slowest.length} 条：`,
+    '',
+    '| 用例 | 结论 | node ms | jre ms |',
+    '|---|---|---|---|',
+    ...timing.slowest.map((r) => `| ${r.name} | ${r.status} | ${fmt(r.node)} | ${fmt(r.jre)} |`),
+    '',
+    '<details><summary>全部用例耗时</summary>',
+    '',
+    '| 用例 | 结论 | node ms | jre ms |',
+    '|---|---|---|---|',
+    ...timingRows.map((r) => `| ${r.name} | ${r.status} | ${fmt(r.node)} | ${fmt(r.jre)} |`),
+    '',
+    '</details>',
+    '',
+  );
   if (skipped.length) lines.push('## 按 requiresFormat 跳过', '', ...skipped.map((r) => `- ${r.file} / ${r.c.name}（requiresFormat ${r.c.requiresFormat}）`), '');
   const report = `${lines.join('\n')}\n`;
   const reportFile = opt('--report');

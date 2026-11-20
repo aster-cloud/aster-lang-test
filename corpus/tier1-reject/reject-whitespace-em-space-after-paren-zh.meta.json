@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "词法空白只认 ASCII 空格、tab 与 zh-CN 的 U+3000（aster-lang-ts#348，aster-lang-locales#147）：括号函数头右括号之后的 U+2003 不是空白，两引擎都在该字符上报 E050。修复前括号函数头的三例两引擎都被重排成合法函数头而接受；结果为 的两例此前两引擎已拒绝，这里锁定"
+}

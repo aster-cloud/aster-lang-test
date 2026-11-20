@@ -308,7 +308,11 @@ function tsCompileFiles(ts, manifest, files) {
     }
   }
   const vocab = files.get('policy/compile/vocabulary.json');
-  const c = ts.compile(source, { lexicon: overlay(ts.lexicon(manifest.source.locale), aliasSet), ...(vocab ? { vocabulary: JSON.parse(vocab.toString('utf8')) } : {}) });
+  const lexicon = overlay(ts.lexicon(manifest.source.locale), aliasSet);
+  // README「compile」：zh-CN 的 U+3000 由规范化转成半角空格，只含它（与 ASCII 空白）的源码同样是空白（core#288）。
+  // 按规则直接判，不调用被测 ts 的规范化：固定的旧版 ts 规范化还会吞掉其他 Unicode 空白（aster-lang-ts#348 之前）
+  if (/^zh(-|$)/i.test(manifest.source.locale) && isBlankSource(source.replaceAll('\u3000', ' '))) return null;
+  const c = ts.compile(source, { lexicon, ...(vocab ? { vocabulary: JSON.parse(vocab.toString('utf8')) } : {}) });
   return c.success ? c.coreJson : null;
 }
 

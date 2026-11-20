@@ -505,6 +505,30 @@
       "code": "COMPILE_ERROR"
     },
     {
+      "name": "source-zh-only-ideographic-space-is-blank",
+      "args": [
+        "compile",
+        "sources/zh-ideographic-space-only.aster",
+        "--locale",
+        "zh-CN"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "COMPILE_ERROR"
+    },
+    {
+      "name": "source-de-only-medium-math-space-is-not-blank",
+      "args": [
+        "compile",
+        "sources/de-medium-math-space-only.aster",
+        "--locale",
+        "de-DE"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "COMPILE_ERROR"
+    },
+    {
       "name": "package-a-blank-policy",
       "args": [
         "compile",
