@@ -1,0 +1,4 @@
+Module reject.bareLowercaseType.
+
+Rule f given x as text, produce Int:
+  Return 1.
