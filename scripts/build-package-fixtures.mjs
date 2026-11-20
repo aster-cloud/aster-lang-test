@@ -6,7 +6,7 @@
  * 用法：
  *   node scripts/build-package-fixtures.mjs             重新生成并写盘（覆盖生成目录）
  *   node scripts/build-package-fixtures.mjs --check     重新生成并与仓内逐字节比较（含多余 / 缺失文件与符号链接），不写盘；CI 用
- *   node scripts/build-package-fixtures.mjs --verify-engines [--ts <dir>] [--guard <dir>] [--assume-ts-display]
+ *   node scripts/build-package-fixtures.mjs --verify-engines [--ts <dir>] [--guard <dir>]
  *       用兄弟仓 aster-lang-ts（已 build）与 aster-guard 交叉验证生成结果：ajv 2020 strict 校验三个 schema 与全部
  *       manifest / 签名文件 / expectedStdout；aster-guard jcs.ts 与 ts canonicalJson 对照规范字节；ts 重编译源码比对
  *       positionFreeSha256；ts 解释器复算每个成功用例与 probes 的值。缺省 --ts ../aster-lang-ts、--guard ../aster-guard。
@@ -946,18 +946,11 @@ async function verifyEngines() {
 }
 
 /**
- * 3f：显示排版夹具的独立复算。不依赖引擎的部分总是做：1.1 schema、规范字节、签名、参照流水线（read → manifest →
- * signature → integrity）、L1–L7（参照实现 display.mjs）、反向映射的结论与 canonicalSha256、每条用例的错误码与 meta；
- * 依赖编译器的部分（本地重编译的投影哈希、L8 / L9、run --display 的求值与 matchesPackage）要求所用 ts 已含包格式 1.1
- * 支持：src/display/pending-ts-release.json 列出的用例在 ts 版本 < tsNext 时跳过复算，ts ≥ tsNext 时清单非空即报错
- * （列车 T5 Step 4 删除清单）。
+ * 3f：显示排版夹具的独立复算：1.1 schema、规范字节、签名、参照流水线（read → manifest → signature → integrity）、
+ * L1–L7（参照实现 display.mjs）、反向映射的结论与 canonicalSha256、每条用例的错误码与 meta；以及依赖编译器的部分
+ * （本地重编译的投影哈希、L8 / L9、run --display 的求值与 matchesPackage），要求所用 ts 已含包格式 1.1（≥ 3.6.0，CI 固定于此）。
  */
 function verifyDisplay({ ts, display, out, refOpts, loadAnchor, expect, count, envelopeSchema, manifestSchema11, canonicalize }) {
-  const pending = JSON.parse(readFileSync(join(SRC, 'display', 'pending-ts-release.json'), 'utf8'));
-  const tsHasDisplay = semverAtLeast(ts.version, pending.tsNext);
-  if (tsHasDisplay) expect(pending.cases.length === 0, `display: ts ${ts.version} ≥ ${pending.tsNext}，pending-ts-release.json 应清空（${pending.cases.length} 条）`);
-  // --assume-ts-display（只用于本地）：所给 ts 是尚未发布、但已含包格式 1.1 的同名分支构建，照常做全部引擎复算
-  const pendingIds = has('--assume-ts-display') ? new Set() : new Set(pending.cases);
   const anchorKey = publicKeyFromRaw(TEST_KEY.publicRaw);
   const pfOf = (core) => sha256Hex(utf8(ts.canonicalJson(positionFreeTree(JSON.parse(core)))));
   for (const pkg of display.dpkgs.values()) {
@@ -968,14 +961,12 @@ function verifyDisplay({ ts, display, out, refOpts, loadAnchor, expect, count, e
     expect(verifyManifest(pkg.manifestBytes, pkg.sig.sig, anchorKey), `display/${pkg.name}: 签名不成立`);
     const r = checkPackage(join(PKG, 'display', 'packages', pkg.name), { ...refOpts, anchor: { kind: 'raw', key: TEST_KEY.publicRaw }, allowUnsigned: false });
     expect(r.ok, `display/${pkg.name}: 参照流水线应通过，得 ${r.code}@${r.stage}（${r.why}）`);
-    if (!pendingIds.has(`packages/${pkg.name}`)) {
-      const core = tsCompileFiles(ts, pkg.manifest, pkg.files);
-      expect(core !== null && pfOf(core) === pkg.manifest.coreIr.positionFreeSha256, `display/${pkg.name}: ts 重编译的投影哈希与 manifest 不同`);
-      if (core !== null) {
-        expect(structuralNameHits(pkg.def.layout, irNameStrings(core)).length === 0, `display/${pkg.name}: L8 命中`);
-        const padded = tsCompileFiles(ts, pkg.manifest, new Map([...pkg.files, ['policy/policy.aster', utf8(padStructuralSpans(pkg.def.layout))]]));
-        expect(padded !== null && pfOf(padded) === pfOf(core), `display/${pkg.name}: L9 补空格后投影哈希改变`);
-      }
+    const core = tsCompileFiles(ts, pkg.manifest, pkg.files);
+    expect(core !== null && pfOf(core) === pkg.manifest.coreIr.positionFreeSha256, `display/${pkg.name}: ts 重编译的投影哈希与 manifest 不同`);
+    if (core !== null) {
+      expect(structuralNameHits(pkg.def.layout, irNameStrings(core)).length === 0, `display/${pkg.name}: L8 命中`);
+      const padded = tsCompileFiles(ts, pkg.manifest, new Map([...pkg.files, ['policy/policy.aster', utf8(padStructuralSpans(pkg.def.layout))]]));
+      expect(padded !== null && pfOf(padded) === pfOf(core), `display/${pkg.name}: L9 补空格后投影哈希改变`);
     }
     count();
   }
@@ -1036,37 +1027,27 @@ function verifyDisplay({ ts, display, out, refOpts, loadAnchor, expect, count, e
           const canonical = toCanonical(rec.layout);
           if (env.meta.display) expect(env.meta.display.canonicalSha256 === sha256Hex(utf8(canonical)), `${name}: canonicalSha256 与参照还原不符`);
           expect(env.meta.coreIrSha256 === null, `${name}: run --display 的 coreIrSha256 必须为 null`);
-          if (!pendingIds.has(c.name) && !pendingIds.has(`${rel}/${c.name}`)) {
-            // 依赖编译器的复算：派生程序编译、L8 / L9、matchesPackage、求值
-            const files = new Map([...r.files, ['policy/policy.aster', utf8(canonical)]]);
-            const core = tsCompileFiles(ts, m, files);
-            if (got === 'COMPILE_ERROR') expect(core === null, `${name}: ts 编译派生源码成功，夹具为 COMPILE_ERROR`);
-            else if (core !== null) {
-              const padded = tsCompileFiles(ts, m, new Map([...files, ['policy/policy.aster', utf8(padStructuralSpans(rec.layout))]]));
-              const rejected = structuralNameHits(rec.layout, irNameStrings(core)).length > 0 || padded === null || pfOf(padded) !== pfOf(core);
-              expect(rejected === (got === 'DISPLAY_REJECTED'), `${name}: ts 复算 L8/L9 ${rejected ? '拒绝' : '通过'}，夹具 ${got}`);
-              if (env.meta.display) expect(env.meta.display.matchesPackage === (pfOf(core) === m.coreIr.positionFreeSha256), `${name}: matchesPackage 与 ts 复算不符`);
-              if (cmd === 'run' && got === null) {
-                const entry = entryOfArgs(flags, m);
-                const input = validateInput(c.stdin !== undefined ? utf8(c.stdin) : utf8(''), JSON.parse(core), entry);
-                const t = tsEval(ts, core, entry, input);
-                expect(t.ok && c.expectedStdout.endsWith(`,"ok":true,"value":${t.value}}\n`), `${name}: ts 结果 ${t.value ?? t.error} ≠ 期望`);
-              }
-            } else expect(false, `${name}: ts 编译派生源码失败，夹具为 ${got}`);
-          }
+          // 依赖编译器的复算：派生程序编译、L8 / L9、matchesPackage、求值
+          const files = new Map([...r.files, ['policy/policy.aster', utf8(canonical)]]);
+          const core = tsCompileFiles(ts, m, files);
+          if (got === 'COMPILE_ERROR') expect(core === null, `${name}: ts 编译派生源码成功，夹具为 COMPILE_ERROR`);
+          else if (core !== null) {
+            const padded = tsCompileFiles(ts, m, new Map([...files, ['policy/policy.aster', utf8(padStructuralSpans(rec.layout))]]));
+            const rejected = structuralNameHits(rec.layout, irNameStrings(core)).length > 0 || padded === null || pfOf(padded) !== pfOf(core);
+            expect(rejected === (got === 'DISPLAY_REJECTED'), `${name}: ts 复算 L8/L9 ${rejected ? '拒绝' : '通过'}，夹具 ${got}`);
+            if (env.meta.display) expect(env.meta.display.matchesPackage === (pfOf(core) === m.coreIr.positionFreeSha256), `${name}: matchesPackage 与 ts 复算不符`);
+            if (cmd === 'run' && got === null) {
+              const entry = entryOfArgs(flags, m);
+              const input = validateInput(c.stdin !== undefined ? utf8(c.stdin) : utf8(''), JSON.parse(core), entry);
+              const t = tsEval(ts, core, entry, input);
+              expect(t.ok && c.expectedStdout.endsWith(`,"ok":true,"value":${t.value}}\n`), `${name}: ts 结果 ${t.value ?? t.error} ≠ 期望`);
+            }
+          } else expect(false, `${name}: ts 编译派生源码失败，夹具为 ${got}`);
         }
       }
       count();
     }
   }
-}
-
-/** a ≥ b（只比较 x.y.z 的数字部分）。 */
-function semverAtLeast(a, b) {
-  const pa = a.split(/[.-]/).slice(0, 3).map(Number);
-  const pb = b.split(/[.-]/).slice(0, 3).map(Number);
-  for (let i = 0; i < 3; i++) if (pa[i] !== pb[i]) return pa[i] > pb[i];
-  return true;
 }
 
 /** 参数拆成位置参数与选项（README「命令行」：带值选项 --entry --input --timeout --jwks --pubkey，可写成 --opt=value）。 */
