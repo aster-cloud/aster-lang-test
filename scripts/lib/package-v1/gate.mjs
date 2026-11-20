@@ -4,6 +4,7 @@
  *   judgeRow：单条用例的结论 ok / known / fail。knownEngineDivergence 只豁免标明分歧的那一侧的期望比较，
  *     另一侧仍须等于期望；分歧一侧仍须正常运行（退出码在 exit-codes.json 表内、stdout 是 JSON）；分歧消失时判失败，提醒去掉标记。
  *   groupRouteSets：按 https 配方声明的 routes 分组，每组各起一个服务，配方之间不会拿到别人的路由。
+ *   formatGate：带 requiresFormat 的用例只在两侧 CLI 的 version.formatVersions 都含该版本时运行（计划裁决 PR1）。
  */
 
 export const SIDE_NAMES = ['node', 'jre'];
@@ -61,4 +62,18 @@ export function groupRouteSets(rows) {
     if (r.c.recipe?.httpsServer && !groups.has(routeSetKey(routes))) groups.set(routeSetKey(routes), routes);
   }
   return groups;
+}
+
+/**
+ * 能力门控（ADR 0059 修订 4 计划裁决 PR1）：用例带 requiresFormat 时，两侧 `version` 的 formatVersions 都含该值才运行，
+ * 否则 skipped（报告列出）；strict 为真时（列车之后，T5 Step 4）任一侧缺少即失败。
+ * sideFormats = { node: string[] | null, jre: string[] | null }（null 表示 version 输出读不出）。
+ * 返回 'run' | 'skipped' | 'fail'。
+ */
+export function formatGate(row, sideFormats, { strict = false } = {}) {
+  const need = row.c.requiresFormat;
+  if (need === undefined) return 'run';
+  const both = SIDE_NAMES.every((s) => Array.isArray(sideFormats[s]) && sideFormats[s].includes(need));
+  if (both) return 'run';
+  return strict ? 'fail' : 'skipped';
 }

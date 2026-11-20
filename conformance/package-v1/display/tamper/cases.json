@@ -1,0 +1,575 @@
+{
+  "description": "显示排版的篡改夹具（ADR 0059 修订 4；派生自 display/packages/b-jingyesi，全部重新签名）。普通 run 不检查排版；verify 在 display（L1–L7）或 display-ir（L8–L9，仅 --recompile）检查项失败；show 先过 L1–L7。",
+  "requiresFormat": "1.1",
+  "cases": [
+    {
+      "name": "display-text-tampered-resigned",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "display-text-tampered-resigned",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"静夜思\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-text-tampered-resigned (verify)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-text-tampered-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"code\":\"PKG_DISPLAY_INVALID\",\"name\":\"display\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "display-text-tampered-resigned (verify --recompile)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-text-tampered-resigned",
+        "--recompile",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"code\":\"PKG_DISPLAY_INVALID\",\"name\":\"display\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "display-text-tampered-resigned (inspect)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "inspect",
+        "display-text-tampered-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"display\":{\"layoutVersion\":1},\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":false},\"policy\":{\"controls\":[],\"entries\":[{\"default\":true,\"function\":\"地上霜\",\"inputSchema\":\"#/$defs/entry.地上霜\",\"outputSchema\":\"#/$defs/entry.地上霜\"}],\"moduleName\":\"明月光\",\"profile\":null,\"ruleId\":null},\"runtime\":{\"cli\":{\"name\":\"cloud.aster-lang:aster-cli\",\"version\":\"1.0.49\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-truffle\",\"requires\":{\"java\":\">=25\"}},\"schemas\":{\"input\":{\"$defs\":{\"entry.地上霜\":{\"additionalProperties\":false,\"properties\":{},\"required\":[],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry inputs\"},\"output\":{\"$defs\":{\"entry.地上霜\":{\"type\":\"string\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":1,\"probesSha256\":\"d80c1b1c858b7915e5bb04c4bda863879b827e12fa6ffec0f58e260a65d8ccd7\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-text-tampered-resigned (show)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "display-text-tampered-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_DISPLAY_INVALID\",\"message\":\"package display layout is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "display-layout-not-canonical-resigned",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "display-layout-not-canonical-resigned",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"静夜思\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-layout-not-canonical-resigned (verify)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-layout-not-canonical-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"code\":\"PKG_DISPLAY_INVALID\",\"name\":\"display\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "display-layout-not-canonical-resigned (verify --recompile)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-layout-not-canonical-resigned",
+        "--recompile",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"code\":\"PKG_DISPLAY_INVALID\",\"name\":\"display\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "display-layout-not-canonical-resigned (inspect)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "inspect",
+        "display-layout-not-canonical-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"display\":{\"layoutVersion\":1},\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":false},\"policy\":{\"controls\":[],\"entries\":[{\"default\":true,\"function\":\"地上霜\",\"inputSchema\":\"#/$defs/entry.地上霜\",\"outputSchema\":\"#/$defs/entry.地上霜\"}],\"moduleName\":\"明月光\",\"profile\":null,\"ruleId\":null},\"runtime\":{\"cli\":{\"name\":\"cloud.aster-lang:aster-cli\",\"version\":\"1.0.49\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-truffle\",\"requires\":{\"java\":\">=25\"}},\"schemas\":{\"input\":{\"$defs\":{\"entry.地上霜\":{\"additionalProperties\":false,\"properties\":{},\"required\":[],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry inputs\"},\"output\":{\"$defs\":{\"entry.地上霜\":{\"type\":\"string\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":1,\"probesSha256\":\"d80c1b1c858b7915e5bb04c4bda863879b827e12fa6ffec0f58e260a65d8ccd7\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-layout-not-canonical-resigned (show)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "display-layout-not-canonical-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_DISPLAY_INVALID\",\"message\":\"package display layout is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "display-roundtrip-mismatch-resigned",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "display-roundtrip-mismatch-resigned",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"静夜思\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-roundtrip-mismatch-resigned (verify)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-roundtrip-mismatch-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"code\":\"PKG_DISPLAY_INVALID\",\"name\":\"display\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "display-roundtrip-mismatch-resigned (verify --recompile)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-roundtrip-mismatch-resigned",
+        "--recompile",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"code\":\"PKG_DISPLAY_INVALID\",\"name\":\"display\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "display-roundtrip-mismatch-resigned (inspect)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "inspect",
+        "display-roundtrip-mismatch-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"display\":{\"layoutVersion\":1},\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":false},\"policy\":{\"controls\":[],\"entries\":[{\"default\":true,\"function\":\"地上霜\",\"inputSchema\":\"#/$defs/entry.地上霜\",\"outputSchema\":\"#/$defs/entry.地上霜\"}],\"moduleName\":\"明月光\",\"profile\":null,\"ruleId\":null},\"runtime\":{\"cli\":{\"name\":\"cloud.aster-lang:aster-cli\",\"version\":\"1.0.49\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-truffle\",\"requires\":{\"java\":\">=25\"}},\"schemas\":{\"input\":{\"$defs\":{\"entry.地上霜\":{\"additionalProperties\":false,\"properties\":{},\"required\":[],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry inputs\"},\"output\":{\"$defs\":{\"entry.地上霜\":{\"type\":\"string\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":1,\"probesSha256\":\"d80c1b1c858b7915e5bb04c4bda863879b827e12fa6ffec0f58e260a65d8ccd7\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-roundtrip-mismatch-resigned (show)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "display-roundtrip-mismatch-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_DISPLAY_INVALID\",\"message\":\"package display layout is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "display-splits-name-resigned",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "display-splits-name-resigned",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"静夜思\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-splits-name-resigned (verify)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-splits-name-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"display\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-splits-name-resigned (verify --recompile)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-splits-name-resigned",
+        "--recompile",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"display\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true},{\"code\":\"PKG_DISPLAY_INVALID\",\"name\":\"display-ir\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "display-splits-name-resigned (inspect)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "inspect",
+        "display-splits-name-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"display\":{\"layoutVersion\":1},\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":false},\"policy\":{\"controls\":[],\"entries\":[{\"default\":true,\"function\":\"地上霜\",\"inputSchema\":\"#/$defs/entry.地上霜\",\"outputSchema\":\"#/$defs/entry.地上霜\"}],\"moduleName\":\"明月光\",\"profile\":null,\"ruleId\":null},\"runtime\":{\"cli\":{\"name\":\"cloud.aster-lang:aster-cli\",\"version\":\"1.0.49\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-truffle\",\"requires\":{\"java\":\">=25\"}},\"schemas\":{\"input\":{\"$defs\":{\"entry.地上霜\":{\"additionalProperties\":false,\"properties\":{},\"required\":[],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry inputs\"},\"output\":{\"$defs\":{\"entry.地上霜\":{\"type\":\"string\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":1,\"probesSha256\":\"d80c1b1c858b7915e5bb04c4bda863879b827e12fa6ffec0f58e260a65d8ccd7\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-splits-name-resigned (show)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "display-splits-name-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "床前明月光，\n疑是地上霜。\n举头望明月，\n低头思故乡。\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-missing-file",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "display-missing-file",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "display-missing-file (verify)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-missing-file",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "display-missing-file (inspect)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "inspect",
+        "display-missing-file",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "display-missing-file (show)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "display-missing-file",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "display-in-1-0-manifest",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "display-in-1-0-manifest",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "display-in-1-0-manifest (verify)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-in-1-0-manifest",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"code\":\"PKG_INVALID_MANIFEST\",\"name\":\"schema\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "display-in-1-0-manifest (inspect)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "inspect",
+        "display-in-1-0-manifest",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "display-in-1-0-manifest (show)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "display-in-1-0-manifest",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_INVALID_MANIFEST\",\"message\":\"manifest is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_INVALID_MANIFEST"
+    },
+    {
+      "name": "display-files-without-member",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "display-files-without-member",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"静夜思\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-files-without-member (verify)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-files-without-member",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-files-without-member (verify --recompile)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-files-without-member",
+        "--recompile",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-files-without-member (inspect)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "inspect",
+        "display-files-without-member",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":false},\"policy\":{\"controls\":[],\"entries\":[{\"default\":true,\"function\":\"地上霜\",\"inputSchema\":\"#/$defs/entry.地上霜\",\"outputSchema\":\"#/$defs/entry.地上霜\"}],\"moduleName\":\"明月光\",\"profile\":null,\"ruleId\":null},\"runtime\":{\"cli\":{\"name\":\"cloud.aster-lang:aster-cli\",\"version\":\"1.0.49\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-truffle\",\"requires\":{\"java\":\">=25\"}},\"schemas\":{\"input\":{\"$defs\":{\"entry.地上霜\":{\"additionalProperties\":false,\"properties\":{},\"required\":[],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry inputs\"},\"output\":{\"$defs\":{\"entry.地上霜\":{\"type\":\"string\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":1,\"probesSha256\":\"d80c1b1c858b7915e5bb04c4bda863879b827e12fa6ffec0f58e260a65d8ccd7\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-files-without-member (show)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "display-files-without-member",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "床前 明月光。\n疑是 地上霜，举头 望明月：\n  低头 思故乡。\n\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-unsigned",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "display-unsigned",
+        "--input",
+        "-",
+        "--allow-unsigned"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":false},\"ok\":true,\"value\":\"静夜思\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-unsigned (verify)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-unsigned",
+        "--allow-unsigned"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"display\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":false},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-unsigned (verify --recompile)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-unsigned",
+        "--recompile",
+        "--allow-unsigned"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"display\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true},{\"name\":\"display-ir\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":false},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-unsigned (inspect)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "inspect",
+        "display-unsigned",
+        "--allow-unsigned"
+      ],
+      "expectedStdout": "{\"inspect\":{\"display\":{\"layoutVersion\":1},\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":false},\"policy\":{\"controls\":[],\"entries\":[{\"default\":true,\"function\":\"地上霜\",\"inputSchema\":\"#/$defs/entry.地上霜\",\"outputSchema\":\"#/$defs/entry.地上霜\"}],\"moduleName\":\"明月光\",\"profile\":null,\"ruleId\":null},\"runtime\":{\"cli\":{\"name\":\"cloud.aster-lang:aster-cli\",\"version\":\"1.0.49\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-truffle\",\"requires\":{\"java\":\">=25\"}},\"schemas\":{\"input\":{\"$defs\":{\"entry.地上霜\":{\"additionalProperties\":false,\"properties\":{},\"required\":[],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry inputs\"},\"output\":{\"$defs\":{\"entry.地上霜\":{\"type\":\"string\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":1,\"probesSha256\":\"d80c1b1c858b7915e5bb04c4bda863879b827e12fa6ffec0f58e260a65d8ccd7\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":false},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-unsigned (show)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "display-unsigned",
+        "--allow-unsigned"
+      ],
+      "expectedStdout": "床前明月光，\n疑是地上霜。\n举头望明月，\n低头思故乡。\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-unsigned (show without --allow-unsigned)",
+      "base": "b-jingyesi",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "display-unsigned"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_UNSIGNED\",\"message\":\"package is unsigned; pass --allow-unsigned to accept it\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 3,
+      "code": "PKG_UNSIGNED"
+    }
+  ]
+}

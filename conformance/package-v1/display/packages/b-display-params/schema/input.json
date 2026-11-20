@@ -1,0 +1,1 @@
+{"$defs":{"entry.greet":{"additionalProperties":false,"properties":{"name":{"type":"string"}},"required":["name"],"type":"object"}},"$schema":"https://json-schema.org/draft/2020-12/schema","title":"display.params entry inputs"}

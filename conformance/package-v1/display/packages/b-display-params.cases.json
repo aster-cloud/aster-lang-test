@@ -1,0 +1,160 @@
+{
+  "description": "B 包，en-US，带一个 Text 形参；可见结构 span \\n\\n → \\n§\\n。run --display 按**派生** IR 选入口与校验输入：把形参改成 Int 后按旧形态输入为 INPUT_INVALID，改名后按旧名输入同样 INPUT_INVALID（ADR 0059 修订 4 D7；计划 Review Focus 3）。",
+  "package": "b-display-params",
+  "requiresFormat": "1.1",
+  "cases": [
+    {
+      "name": "run",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-params",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"name\":\"Ada\"}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"b349c98451fa1478c2407eaf0e946c5667b1398b8662e9ddbded5938c88a1dea\",\"engine\":\"<ENGINE>\",\"entry\":\"greet\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"Ada\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-recompile",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "b-display-params",
+        "--recompile",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"display\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true},{\"name\":\"display-ir\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"b349c98451fa1478c2407eaf0e946c5667b1398b8662e9ddbded5938c88a1dea\",\"engine\":\"<ENGINE>\",\"entry\":\"greet\",\"irRecompiled\":true,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "show",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-display-params",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "Module display.params.\n§\nRule greet given name as Text, produce Text:\n  Return name.\n\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "run-display-unchanged",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-params",
+        "--display",
+        "../edits/b-display-params/unchanged.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"name\":\"Ada\"}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"60242260b0952e9e1b61f2eb60d36a72a5ff1da2630719ad7e2c2b3415f0736c\",\"matchesPackage\":true},\"engine\":\"<ENGINE>\",\"entry\":\"greet\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"Ada\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-param-retyped",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-params",
+        "--display",
+        "../edits/b-display-params/retyped.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"name\":\"Ada\"}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"9110381c60c1870d48adddab655aef398eabaf1dcda2a6b51eb344db9d0e8f94\",\"matchesPackage\":false},\"engine\":\"<ENGINE>\",\"entry\":\"greet\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "display-param-retyped-new-input",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-params",
+        "--display",
+        "../edits/b-display-params/retyped.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"name\":7}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"9110381c60c1870d48adddab655aef398eabaf1dcda2a6b51eb344db9d0e8f94\",\"matchesPackage\":false},\"engine\":\"<ENGINE>\",\"entry\":\"greet\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":7}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-param-renamed",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-params",
+        "--display",
+        "../edits/b-display-params/renamed-param.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"name\":\"Ada\"}",
+      "expectedStdout": "{\"error\":{\"code\":\"INPUT_INVALID\",\"message\":\"input does not match the entry's input schema\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"cabd85d2ae447dfa75701913dd2b14faff2e09ec197bda657516aa75242db5c4\",\"matchesPackage\":false},\"engine\":\"<ENGINE>\",\"entry\":\"greet\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "INPUT_INVALID"
+    },
+    {
+      "name": "display-param-renamed-new-input",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-params",
+        "--display",
+        "../edits/b-display-params/renamed-param.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"who\":\"Ada\"}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"cabd85d2ae447dfa75701913dd2b14faff2e09ec197bda657516aa75242db5c4\",\"matchesPackage\":false},\"engine\":\"<ENGINE>\",\"entry\":\"greet\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"Ada\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-entry-option-not-in-derived",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-params",
+        "--entry",
+        "missing",
+        "--display",
+        "../edits/b-display-params/unchanged.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"name\":\"Ada\"}",
+      "expectedStdout": "{\"error\":{\"code\":\"ENTRY_NOT_FOUND\",\"message\":\"entry function not found or not runnable\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"60242260b0952e9e1b61f2eb60d36a72a5ff1da2630719ad7e2c2b3415f0736c\",\"matchesPackage\":true},\"engine\":\"<ENGINE>\",\"entry\":\"missing\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "ENTRY_NOT_FOUND"
+    }
+  ]
+}

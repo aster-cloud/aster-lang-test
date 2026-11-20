@@ -1,0 +1,19 @@
+{
+  "description": "B 包，en-US，Return \"a\" 一行的空格是结构 span {canonical:\" \",display:\"·\"}：包排版合规（verify 与 verify --recompile 通过）；把显示改成 Return \"x·y\" 会还原出 Return \"x y\"——结构 span 落进字符串，L9 补空格后字符串值改变，DISPLAY_REJECTED（ADR 0059 修订 4 §4）。",
+  "mode": "b",
+  "target": "node",
+  "locale": "en-US",
+  "aliasSet": null,
+  "allowStructural": false,
+  "claimedRefVersion": 1,
+  "entries": [{ "function": "f", "default": true }],
+  "probes": [{ "entry": "f", "input": {} }],
+  "cases": [
+    { "name": "run", "command": "run", "input": {}, "value": "\"a\"" },
+    { "name": "verify-recompile", "command": "verify", "args": ["--recompile"] },
+    { "name": "show", "command": "show" },
+    { "name": "run-display-unchanged", "command": "run", "display": "unchanged.txt", "input": {}, "value": "\"a\"", "matchesPackage": true },
+    { "name": "run-display-swallowed-string", "command": "run", "display": "swallow.txt", "input": {}, "matchesPackage": false, "expect": { "code": "DISPLAY_REJECTED" } },
+    { "name": "show-from-display-swallowed-string", "command": "show", "fromDisplay": "swallow.txt", "expect": { "code": "DISPLAY_REJECTED", "stage": "display-ir" } }
+  ]
+}

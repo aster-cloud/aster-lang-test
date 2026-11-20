@@ -1,0 +1,4 @@
+Module display.params.
+§
+Rule greet given who as Text, produce Text:
+  Return who.

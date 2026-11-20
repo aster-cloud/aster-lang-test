@@ -65,7 +65,7 @@ const DEFAULT_STAGE = {
 const after = (stage, ref) => STAGES.indexOf(stage) > STAGES.indexOf(ref);
 
 /** run 的 meta：signed 在签名检查通过后为真（无签名且 --allow-unsigned 时为假）；entry / coreIrSha256 在取得 IR 后填入。 */
-function runMeta(pkg, stage, { entry, allowUnsigned }) {
+export function runMeta(pkg, stage, { entry, allowUnsigned }) {
   const haveIr = after(stage, 'ir');
   return {
     cliVersion: '<CLI_VERSION>',
@@ -82,12 +82,12 @@ export function errorEnvelope(code, meta, exitCodes) {
   return `${canonicalJson({ error: { code, message }, meta, ok: false })}\n`;
 }
 
-const okEnvelope = (meta, value) => `{"meta":${canonicalJson(meta)},"ok":true,"value":${value}}\n`;
+export const okEnvelope = (meta, value) => `{"meta":${canonicalJson(meta)},"ok":true,"value":${value}}\n`;
 
 // ---------------------------------------------------------------------------
 // 源夹具
 // ---------------------------------------------------------------------------
-export function loadSources(srcDir) {
+export function loadSources(srcDir, { readLayout = false } = {}) {
   const defs = new Map();
   for (const name of readdirSync(srcDir).sort()) {
     const dir = join(srcDir, name);
@@ -110,6 +110,8 @@ export function loadSources(srcDir) {
     def.platformCore = readFileSync(join(def.sourceDir, 'platform-core.json'), 'utf8');
     const expectedPath = join(def.sourceDir, 'expected.json');
     def.expected = existsSync(expectedPath) ? JSON.parse(readFileSync(expectedPath, 'utf8')) : { cases: {}, probes: [] };
+    // 显示排版源夹具（src/display/）：layout.json 为规范序列化字节；display.aster 由它算出
+    if (readLayout && existsSync(join(def.sourceDir, 'layout.json'))) def.layoutBytes = readFileSync(join(def.sourceDir, 'layout.json'));
   }
   return defs;
 }
@@ -289,6 +291,11 @@ export function buildPackage(def) {
   payload.set('schema/output.json', utf8(canonicalJson(schemas.output)));
   payload.set('tests/probes.json', probesFile(def));
   if (def.mode === 'a') payload.set('compiled/core.json', utf8(def.platformCore));
+  // 显示排版（ADR 0059 修订 4 D1）：layout.json 原样（源夹具已是 serializeLayout 的规范字节）、display.aster = toDisplay
+  if (def.layoutBytes) {
+    payload.set('policy/display/layout.json', def.layoutBytes);
+    payload.set('policy/display/display.aster', def.displayBytes);
+  }
 
   const funcs = def.entries.map((e) => ir.decls.find((d) => d.kind === 'Func' && d.name === e.function));
   const defaultFunc = funcs[def.entries.findIndex((e) => e.default)];
@@ -311,7 +318,7 @@ export function buildPackage(def) {
     exportedBy: { issuer: 'aster-cloud', tenantId: 'tenant-fixture' },
     files: paths.map((p) => ({ path: p, sha256: sha256Hex(payload.get(p)), size: payload.get(p).length })),
     format: 'aster-policy-package',
-    formatVersion: '1.0',
+    formatVersion: def.layoutBytes ? '1.1' : '1.0',
     governance: {
       enforced: false,
       factSources: [],
@@ -345,6 +352,7 @@ export function buildPackage(def) {
       probesSha256: sha256Hex(payload.get('tests/probes.json')),
     },
   };
+  if (def.layoutBytes) manifest.display = { layoutVersion: 1 };
   return assemble({ name: def.name, def, ir, payload, manifest, signed: def.signed });
 }
 
@@ -409,7 +417,7 @@ function anchorArgs(anchor) {
   return ['--jwks', ANCHOR_JWKS];
 }
 
-function expectedValue(def, c, defs) {
+export function expectedValue(def, c, defs) {
   const ref = c.sameAs ?? c.name;
   const [owner, caseName] = ref.includes('/') ? ref.split('/') : [def.base ?? def.name, ref];
   const src = defs.get(owner);
@@ -466,6 +474,11 @@ export function verifyOutput(pkg, flags, failure, exitCodes) {
     if (failure?.stage === 'ir' && failure.code === 'PKG_UNSUPPORTED_IR') return fail('ir', failure.code);
     checks.push({ name: 'ir', ok: true });
   }
+  // 1.1 且有 display：display（L1–L7，不编译）在 integrity / ir 之后（ADR 0059 修订 4 D5）
+  if (pkg.manifest.display) {
+    if (failure?.stage === 'display') return fail('display', failure.code);
+    checks.push({ name: 'display', ok: true });
+  }
   // localCompileFails：派生夹具的 policy/ 本地编译必然失败（如空白源码）——recompile 失败，B 包的 probes 也因取不到 IR 失败
   const localFails = pkg.def.localCompileFails === true;
   const irFails = (name) => (failure?.stage === 'ir' && (failure.failsIn ?? []).includes(name))
@@ -475,6 +488,11 @@ export function verifyOutput(pkg, flags, failure, exitCodes) {
     if (irFails('recompile')) return fail('recompile', irCode);
     checks.push({ name: 'recompile', ok: true });
     recompiled = true;
+    // display-ir（L8–L9，需要编译）只在 --recompile 且有 display 时出现，紧接 recompile
+    if (pkg.manifest.display) {
+      if (failure?.stage === 'display-ir') return fail('display-ir', failure.code);
+      checks.push({ name: 'display-ir', ok: true });
+    }
   }
   if (flags.includes('--probes')) {
     if (irFails('probes')) return fail('probes', irCode);
@@ -487,7 +505,8 @@ export function verifyOutput(pkg, flags, failure, exitCodes) {
 /** inspect：与 run 同一信任流水线（manifest → signature → integrity），不取 IR；失败输出错误信封。 */
 export function inspectOutput(pkg, flags, failure, exitCodes) {
   const allowUnsigned = flags.includes('--allow-unsigned');
-  if (failure && failure.stage !== 'ir') return errorOut(failure.code, runMeta(pkg, failure.stage, { entry: null, allowUnsigned }), exitCodes);
+  // ir 与显示排版阶段的故障不影响 inspect（inspect 不取 IR、不检查排版）
+  if (failure && !['ir', 'display', 'display-ir'].includes(failure.stage)) return errorOut(failure.code, runMeta(pkg, failure.stage, { entry: null, allowUnsigned }), exitCodes);
   if (!pkg.signed && !allowUnsigned) return errorOut('PKG_UNSIGNED', runMeta(pkg, 'signature', { entry: null, allowUnsigned }), exitCodes);
   const m = pkg.manifest;
   const meta = { ...META_PLACEHOLDERS, coreIrSha256: m.coreIr.sha256, entry: defaultEntry(pkg.def), irRecompiled: false, signed: pkg.signed };
@@ -496,10 +515,12 @@ export function inspectOutput(pkg, flags, failure, exitCodes) {
     output: JSON.parse(pkg.files.get('schema/output.json').toString('utf8')),
   };
   const inspect = { effects: m.effects, governance: m.governance, policy: m.policy, runtime: m.runtime, schemas, tests: m.tests };
+  // 1.1：manifest 有 display 时原样带出（ADR 0059 修订 4 D6）
+  if (m.display) inspect.display = m.display;
   return { stdout: `${canonicalJson({ inspect, meta, ok: true })}\n`, exit: 0, code: null };
 }
 
-function errorOut(code, meta, exitCodes) {
+export function errorOut(code, meta, exitCodes) {
   return { stdout: errorEnvelope(code, meta, exitCodes), exit: exitCodes[code].exit, code };
 }
 
@@ -606,8 +627,8 @@ const MANIFEST_EDITS = {
   'file-sha256-trailing-newline': (m) => { m.files[0].sha256 += '\n'; },
   'module-name-not-nfc': (m) => { m.policy.moduleName = 'aster.pilot.crédit'; },
   'format-name': (m) => { m.format = 'aster-policy-bundle'; },
-  'format-1.1': (m) => { m.formatVersion = '1.1'; },
-  'format-1.1-new-field': (m) => { m.formatVersion = '1.1'; m.newOptionalField = true; },
+  'format-1.2': (m) => { m.formatVersion = '1.2'; },
+  'format-1.2-new-field': (m) => { m.formatVersion = '1.2'; m.newOptionalField = true; },
   'format-2.0': (m) => { m.formatVersion = '2.0'; },
   'format-1.00': (m) => { m.formatVersion = '1.00'; },
   'format-01.0': (m) => { m.formatVersion = '01.0'; },

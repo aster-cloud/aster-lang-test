@@ -6,7 +6,7 @@
  * 用法：
  *   node scripts/build-package-fixtures.mjs             重新生成并写盘（覆盖生成目录）
  *   node scripts/build-package-fixtures.mjs --check     重新生成并与仓内逐字节比较（含多余 / 缺失文件与符号链接），不写盘；CI 用
- *   node scripts/build-package-fixtures.mjs --verify-engines [--ts <dir>] [--guard <dir>]
+ *   node scripts/build-package-fixtures.mjs --verify-engines [--ts <dir>] [--guard <dir>] [--assume-ts-display]
  *       用兄弟仓 aster-lang-ts（已 build）与 aster-guard 交叉验证生成结果：ajv 2020 strict 校验三个 schema 与全部
  *       manifest / 签名文件 / expectedStdout；aster-guard jcs.ts 与 ts canonicalJson 对照规范字节；ts 重编译源码比对
  *       positionFreeSha256；ts 解释器复算每个成功用例与 probes 的值。缺省 --ts ../aster-lang-ts、--guard ../aster-guard。
@@ -34,12 +34,18 @@ import { publicKeyFromRaw, verifyManifest } from './lib/package-v1/signing.mjs';
 import { checkPackage } from './lib/package-v1/reference-check.mjs';
 import { InputError, validateInput } from './lib/package-v1/input.mjs';
 import { parseStrictJson } from './lib/package-v1/strict-json.mjs';
-import { parseCommand, decodeSource, isBlankSource } from './lib/package-v1/argv.mjs';
+import { parseCommand, decodeSource, isBlankSource, readDisplayFile } from './lib/package-v1/argv.mjs';
+import {
+  DisplayRuleError, checkPackageLayout, irNameStrings, padStructuralSpans, reconstructFromDisplay, structuralNameHits, toCanonical,
+} from './lib/package-v1/display.mjs';
+import { ruleContext } from './lib/package-v1/display-fixtures.mjs';
+import { displayFixtures } from './lib/package-v1/display-fixtures.mjs';
+import { displayVectors } from './lib/package-v1/display-vectors.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const PKG = join(ROOT, 'conformance', 'package-v1');
 const SRC = join(PKG, 'src');
-const GENERATED_DIRS = ['packages', 'tamper', 'inputs-invalid', 'vectors', 'anchors', 'compile'];
+const GENERATED_DIRS = ['packages', 'tamper', 'inputs-invalid', 'vectors', 'anchors', 'compile', 'display'];
 const GENERATED_KEY_FILES = ['keys/test-ed25519.priv.b64u', 'keys/test-ed25519.pub.b64u', 'keys/test-jwks.json'];
 
 const argv = process.argv.slice(2);
@@ -48,7 +54,9 @@ const opt = (k, d) => {
   return i >= 0 ? argv[i + 1] : d;
 };
 const has = (k) => argv.includes(k);
-const exitCodes = JSON.parse(readFileSync(join(PKG, 'exit-codes.json'), 'utf8')).codes;
+// 完整错误码表：codes ∪ codesSince 的各次版本（README「输出」）
+const exitCodesDoc = JSON.parse(readFileSync(join(PKG, 'exit-codes.json'), 'utf8'));
+const exitCodes = { ...exitCodesDoc.codes, ...Object.assign({}, ...Object.values(exitCodesDoc.codesSince ?? {})) };
 const utf8 = (s) => Buffer.from(s, 'utf8');
 
 // ---------------------------------------------------------------------------
@@ -100,7 +108,11 @@ function generate() {
   put('vectors/stdout-normalize.json', jsonFile(stdoutNormalizeVectors(pkgs, exitCodes)));
   const trees = JSON.parse(readFileSync(join(SRC, 'value-trees.json'), 'utf8'));
   put('vectors/value-json.json', jsonFile(valueJsonVectors(trees.trees)));
-  return { out, defs, pkgs };
+  // 包格式 1.1 显示排版（ADR 0059 修订 4）：四组共享向量与 display/ 下的夹具
+  for (const [rel, doc] of Object.entries(displayVectors())) put(rel, jsonFile(doc));
+  const display = displayFixtures(SRC, pkgs, exitCodes);
+  for (const [rel, bytes] of display.out) put(rel, bytes);
+  return { out, defs, pkgs, display };
 }
 
 // ---------------------------------------------------------------------------
@@ -267,6 +279,7 @@ async function loadTs(tsDir) {
     isSemanticTokenKind: (k) => Object.hasOwn(tokenKind.SemanticTokenKind, k),
     Decimal: Decimal.default ?? Decimal,
     req,
+    version: JSON.parse(readFileSync(join(tsDir, 'package.json'), 'utf8')).version,
   };
 }
 
@@ -461,7 +474,7 @@ async function capture() {
 // --verify-engines：用兄弟仓交叉验证
 // ---------------------------------------------------------------------------
 async function verifyEngines() {
-  const { out, defs, pkgs } = generate();
+  const { out, defs, pkgs, display } = generate();
   // 参照检查读的是盘上的夹具：先确认盘上与生成结果一致
   const drift = check(out);
   if (drift.length) {
@@ -482,7 +495,15 @@ async function verifyEngines() {
   const Ajv2020 = ts.req('ajv/dist/2020.js');
   const ajv = new (Ajv2020.default ?? Ajv2020)({ strict: true, allErrors: true });
   const readJson = (p) => JSON.parse(readFileSync(join(PKG, p), 'utf8'));
-  const manifestSchema = ajv.compile(readJson('schema/manifest-1.0.schema.json'));
+  const manifestSchema10 = ajv.compile(readJson('schema/manifest-1.0.schema.json'));
+  const manifestSchema11 = ajv.compile(readJson('schema/manifest-1.1.schema.json'));
+  // 按 formatVersion 的次版本选 schema（ADR 0059 修订 4 D2）；1.0 包与修订前一样只用 1.0 schema
+  const manifestSchemaOf = (minor) => (minor === 1 ? manifestSchema11 : manifestSchema10);
+  const manifestSchema = (t) => {
+    const ok = manifestSchemaOf(t?.formatVersion === '1.1' ? 1 : 0)(t);
+    manifestSchema.errors = manifestSchemaOf(t?.formatVersion === '1.1' ? 1 : 0).errors;
+    return ok;
+  };
   const sigSchema = ajv.compile(readJson('schema/sig-1.0.schema.json'));
   const envelopeSchema = ajv.compile(readJson('envelope.schema.json'));
   const problems = [];
@@ -534,6 +555,12 @@ async function verifyEngines() {
   }
   for (const { rel, c } of rows) {
     if (c.expectedStdout === null || c.expectedStdout === '') continue; // compile 成功：只比较投影哈希（见 compile 一节）
+    // show 成功时 stdout 不是 JSON（显示文本或规范源码 + \n，README「show」）
+    if (c.args[0] === 'show' && c.expectedExit === 0) {
+      expect(c.code === null && c.expectedStdout.endsWith('\n'), `${rel}/${c.name}: show 成功的 stdout 必须以 \n 结尾、code 为 null`);
+      count();
+      continue;
+    }
     const env = JSON.parse(c.expectedStdout);
     expect(envelopeSchema(env), `${rel}/${c.name}: expectedStdout 不符合 envelope schema ${JSON.stringify(envelopeSchema.errors).slice(0, 300)}`);
     expect(c.expectedStdout.endsWith('\n') && !c.expectedStdout.slice(0, -1).includes('\n'), `${rel}/${c.name}: stdout 必须是一行 + \\n`);
@@ -546,7 +573,7 @@ async function verifyEngines() {
   // 3. 参照流水线（reference-check.mjs + input.mjs）独立判定每条 run 用例：包级错误码与 meta.signed 必须吻合；
   //    其余用例包检查必须通过，且输入判定（INPUT_INVALID 与否）必须吻合；成功与 EVAL_ERROR 用例再由 ts 解释器复算
   const PACKAGE_CODES = new Set(['PKG_INTEGRITY', 'PKG_SIGNATURE', 'PKG_UNSIGNED', 'PKG_UNTRUSTED_KID', 'PKG_INVALID_MANIFEST', 'PKG_UNSUPPORTED_FORMAT', 'PKG_UNSUPPORTED_IR']);
-  const refOpts = { validateManifest: (t) => manifestSchema(t), validateSig: (t) => sigSchema(t), readCoreIr: (x) => ts.readCoreIr(x) };
+  const refOpts = { validateManifest: (t, minor) => manifestSchemaOf(minor)(t), validateSig: (t) => sigSchema(t), readCoreIr: (x) => ts.readCoreIr(x) };
   const loadAnchor = (cwd, flags) => {
     const at = (f) => flags.indexOf(f);
     if (at('--pubkey') >= 0) {
@@ -563,6 +590,8 @@ async function verifyEngines() {
   };
   const LATER = new Set([null, 'INPUT_INVALID', 'ENTRY_NOT_FOUND', 'EVAL_ERROR', 'TIMEOUT', 'RESOURCE_EXHAUSTED', 'PKG_IR_DRIFT']);
   for (const { rel, c } of rows) {
+    // display/ 的用例由下文 3f 按显示排版的阶段独立判定
+    if (rel.startsWith('display/')) continue;
     if (rel === 'tamper/test-time.json' || c.code === 'USAGE' || c.args[0] !== 'run') continue;
     const cwd = join(PKG, dirname(rel));
     const { positional, flags } = splitArgs(c.args.slice(1));
@@ -624,7 +653,7 @@ async function verifyEngines() {
   const CHECK_OF_STAGE = { manifest: 'schema', signature: 'signature', integrity: 'integrity' };
   for (const { rel, c } of rows) {
     const cmd = c.args[0];
-    if (!['verify', 'inspect'].includes(cmd) || rel === 'tamper/test-time.json' || c.code === 'USAGE') continue;
+    if (!['verify', 'inspect'].includes(cmd) || rel === 'tamper/test-time.json' || c.code === 'USAGE' || rel.startsWith('display/')) continue;
     const cwd = join(PKG, dirname(rel));
     const { positional, flags } = splitArgs(c.args.slice(1));
     const r = checkPackage(join(cwd, positional[0]), { ...refOpts, anchor: loadAnchor(cwd, flags), allowUnsigned: flags.includes('--allow-unsigned') });
@@ -836,6 +865,9 @@ async function verifyEngines() {
     expect(r.ok, `packages/${m[1]}: 参照流水线应通过，得 ${r.code}@${r.stage}（${r.why}）`);
   }
 
+  // 3f. 包格式 1.1 显示排版（ADR 0059 修订 4）：见 verifyDisplay
+  verifyDisplay({ ts, display, out, refOpts, loadAnchor, expect, count, envelopeSchema, manifestSchema11, canonicalize });
+
   // 4. 篡改 manifest 的层次：schema 层必须被 schema 拒绝；format 层与 semantic 层不得被 schema 拒绝之外的原因误判
   const tamper = JSON.parse(readFileSync(join(SRC, 'tamper.json'), 'utf8')).cases;
   for (const t of tamper) {
@@ -909,9 +941,133 @@ async function verifyEngines() {
   }
 }
 
+/**
+ * 3f：显示排版夹具的独立复算。不依赖引擎的部分总是做：1.1 schema、规范字节、签名、参照流水线（read → manifest →
+ * signature → integrity）、L1–L7（参照实现 display.mjs）、反向映射的结论与 canonicalSha256、每条用例的错误码与 meta；
+ * 依赖编译器的部分（本地重编译的投影哈希、L8 / L9、run --display 的求值与 matchesPackage）要求所用 ts 已含包格式 1.1
+ * 支持：src/display/pending-ts-release.json 列出的用例在 ts 版本 < tsNext 时跳过复算，ts ≥ tsNext 时清单非空即报错
+ * （列车 T5 Step 4 删除清单）。
+ */
+function verifyDisplay({ ts, display, out, refOpts, loadAnchor, expect, count, envelopeSchema, manifestSchema11, canonicalize }) {
+  const pending = JSON.parse(readFileSync(join(SRC, 'display', 'pending-ts-release.json'), 'utf8'));
+  const tsHasDisplay = semverAtLeast(ts.version, pending.tsNext);
+  if (tsHasDisplay) expect(pending.cases.length === 0, `display: ts ${ts.version} ≥ ${pending.tsNext}，pending-ts-release.json 应清空（${pending.cases.length} 条）`);
+  // --assume-ts-display（只用于本地）：所给 ts 是尚未发布、但已含包格式 1.1 的同名分支构建，照常做全部引擎复算
+  const pendingIds = has('--assume-ts-display') ? new Set() : new Set(pending.cases);
+  const anchorKey = publicKeyFromRaw(TEST_KEY.publicRaw);
+  const pfOf = (core) => sha256Hex(utf8(ts.canonicalJson(positionFreeTree(JSON.parse(core)))));
+  for (const pkg of display.dpkgs.values()) {
+    const text = pkg.manifestBytes.toString('utf8');
+    const tree = JSON.parse(text);
+    expect(manifestSchema11(tree), `display/${pkg.name}: manifest 不符合 1.1 schema ${JSON.stringify(manifestSchema11.errors)}`);
+    expect(canonicalize(tree) === text && ts.canonicalJson(tree) === text, `display/${pkg.name}: manifest 字节与 jcs / ts canonicalJson 不同`);
+    expect(verifyManifest(pkg.manifestBytes, pkg.sig.sig, anchorKey), `display/${pkg.name}: 签名不成立`);
+    const r = checkPackage(join(PKG, 'display', 'packages', pkg.name), { ...refOpts, anchor: { kind: 'raw', key: TEST_KEY.publicRaw }, allowUnsigned: false });
+    expect(r.ok, `display/${pkg.name}: 参照流水线应通过，得 ${r.code}@${r.stage}（${r.why}）`);
+    if (!pendingIds.has(`packages/${pkg.name}`)) {
+      const core = tsCompileFiles(ts, pkg.manifest, pkg.files);
+      expect(core !== null && pfOf(core) === pkg.manifest.coreIr.positionFreeSha256, `display/${pkg.name}: ts 重编译的投影哈希与 manifest 不同`);
+      if (core !== null) {
+        expect(structuralNameHits(pkg.def.layout, irNameStrings(core)).length === 0, `display/${pkg.name}: L8 命中`);
+        const padded = tsCompileFiles(ts, pkg.manifest, new Map([...pkg.files, ['policy/policy.aster', utf8(padStructuralSpans(pkg.def.layout))]]));
+        expect(padded !== null && pfOf(padded) === pfOf(core), `display/${pkg.name}: L9 补空格后投影哈希改变`);
+      }
+    }
+    count();
+  }
+  // 每条 display 用例：错误码 / 退出码与 exit-codes.json 一致，JSON stdout 符合 envelope schema；run --display 的结论与参照实现一致
+  for (const [rel, v] of out) {
+    if (!rel.startsWith('display/') || !rel.endsWith('cases.json')) continue;
+    const cwd = join(PKG, dirname(rel));
+    const doc = JSON.parse(v.bytes.toString('utf8'));
+    for (const c of doc.cases) {
+      const name = `${rel}/${c.name}`;
+      expect(c.requiresFormat === '1.1', `${name}: display/ 的用例必须带 requiresFormat:"1.1"`);
+      if (c.args[0] === 'show' && c.expectedExit === 0) continue; // 已在 2 中检查
+      const env = JSON.parse(c.expectedStdout);
+      expect(envelopeSchema(env), `${name}: expectedStdout 不符合 envelope schema`);
+      if (c.code === 'USAGE') continue;
+      const { positional, flags } = splitArgs(c.args.slice(1));
+      const r = checkPackage(join(cwd, positional[0]), { ...refOpts, anchor: loadAnchor(cwd, flags), allowUnsigned: flags.includes('--allow-unsigned') });
+      const early = !r.ok && r.stage !== 'ir';
+      const PKG_STAGE_CODES = new Set(['PKG_INTEGRITY', 'PKG_SIGNATURE', 'PKG_UNSIGNED', 'PKG_UNTRUSTED_KID', 'PKG_INVALID_MANIFEST', 'PKG_UNSUPPORTED_FORMAT', 'PKG_UNSUPPORTED_IR']);
+      const got = env.error?.code ?? env.checks?.find((k) => !k.ok)?.code ?? null;
+      if (early) {
+        expect(got === r.code, `${name}: 参照流水线得 ${r.code}@${r.stage}，夹具 ${got}`);
+        count();
+        continue;
+      }
+      expect(!PKG_STAGE_CODES.has(got), `${name}: 参照流水线通过，夹具却是 ${got}`);
+      // 显示排版 L1–L7（参照实现）
+      let layout = null;
+      let layoutRule = null;
+      const m = r.manifest;
+      if (m.display) {
+        try {
+          const vocab = r.files.get('policy/compile/vocabulary.json');
+          const aliasSet = JSON.parse(r.files.get('policy/compile/alias-set.json').toString('utf8'));
+          layout = checkPackageLayout({
+            layoutBytes: r.files.get('policy/display/layout.json'), displayBytes: r.files.get('policy/display/display.aster'),
+            source: r.files.get('policy/policy.aster'), layoutVersion: m.display.layoutVersion,
+            ...ruleContext(m.source.locale, aliasSet, vocab ? JSON.parse(vocab.toString('utf8')) : null),
+          });
+        } catch (e) {
+          if (!(e instanceof DisplayRuleError)) throw e;
+          layoutRule = e.rule;
+        }
+      }
+      const cmd = c.args[0];
+      const displayCheck = env.checks?.find((k) => k.name === 'display');
+      if (cmd === 'verify') expect(Boolean(displayCheck) === Boolean(m.display) && (!displayCheck || displayCheck.ok === (layoutRule === null)), `${name}: verify 的 display 检查项与参照 L1–L7（${layoutRule ?? 'ok'}）不符`);
+      const editIdx = flags.findIndex((f) => f === '--display' || f === '--from-display');
+      if ((cmd === 'show' || editIdx >= 0) && m.display && layoutRule !== null) expect(got === 'PKG_DISPLAY_INVALID', `${name}: 包排版 ${layoutRule} 失败，应为 PKG_DISPLAY_INVALID`);
+      if (editIdx >= 0 && !m.display) expect(got === 'PKG_DISPLAY_INVALID', `${name}: 包无排版，应为 PKG_DISPLAY_INVALID`);
+      if (editIdx >= 0 && layout) {
+        const f = readDisplayFile(join(cwd, flags[editIdx + 1]));
+        const rec = f.oversize ? { kind: 'unmappable' } : reconstructFromDisplay(layout, f.text);
+        const want = { unmappable: 'DISPLAY_UNMAPPABLE', ambiguous: 'DISPLAY_AMBIGUOUS' }[rec.kind];
+        if (want) expect(got === want, `${name}: 参照反向映射得 ${rec.kind}，夹具 ${got}`);
+        else {
+          expect(!['DISPLAY_UNMAPPABLE', 'DISPLAY_AMBIGUOUS'].includes(got), `${name}: 参照反向映射唯一，夹具 ${got}`);
+          const canonical = toCanonical(rec.layout);
+          if (env.meta.display) expect(env.meta.display.canonicalSha256 === sha256Hex(utf8(canonical)), `${name}: canonicalSha256 与参照还原不符`);
+          expect(env.meta.coreIrSha256 === null, `${name}: run --display 的 coreIrSha256 必须为 null`);
+          if (!pendingIds.has(c.name) && !pendingIds.has(`${rel}/${c.name}`)) {
+            // 依赖编译器的复算：派生程序编译、L8 / L9、matchesPackage、求值
+            const files = new Map([...r.files, ['policy/policy.aster', utf8(canonical)]]);
+            const core = tsCompileFiles(ts, m, files);
+            if (got === 'COMPILE_ERROR') expect(core === null, `${name}: ts 编译派生源码成功，夹具为 COMPILE_ERROR`);
+            else if (core !== null) {
+              const padded = tsCompileFiles(ts, m, new Map([...files, ['policy/policy.aster', utf8(padStructuralSpans(rec.layout))]]));
+              const rejected = structuralNameHits(rec.layout, irNameStrings(core)).length > 0 || padded === null || pfOf(padded) !== pfOf(core);
+              expect(rejected === (got === 'DISPLAY_REJECTED'), `${name}: ts 复算 L8/L9 ${rejected ? '拒绝' : '通过'}，夹具 ${got}`);
+              if (env.meta.display) expect(env.meta.display.matchesPackage === (pfOf(core) === m.coreIr.positionFreeSha256), `${name}: matchesPackage 与 ts 复算不符`);
+              if (cmd === 'run' && got === null) {
+                const entry = entryOfArgs(flags, m);
+                const input = validateInput(c.stdin !== undefined ? utf8(c.stdin) : utf8(''), JSON.parse(core), entry);
+                const t = tsEval(ts, core, entry, input);
+                expect(t.ok && c.expectedStdout.endsWith(`,"ok":true,"value":${t.value}}\n`), `${name}: ts 结果 ${t.value ?? t.error} ≠ 期望`);
+              }
+            } else expect(false, `${name}: ts 编译派生源码失败，夹具为 ${got}`);
+          }
+        }
+      }
+      count();
+    }
+  }
+}
+
+/** a ≥ b（只比较 x.y.z 的数字部分）。 */
+function semverAtLeast(a, b) {
+  const pa = a.split(/[.-]/).slice(0, 3).map(Number);
+  const pb = b.split(/[.-]/).slice(0, 3).map(Number);
+  for (let i = 0; i < 3; i++) if (pa[i] !== pb[i]) return pa[i] > pb[i];
+  return true;
+}
+
 /** 参数拆成位置参数与选项（README「命令行」：带值选项 --entry --input --timeout --jwks --pubkey，可写成 --opt=value）。 */
 function splitArgs(args) {
-  const VALUED = new Set(['--entry', '--input', '--timeout', '--jwks', '--pubkey']);
+  const VALUED = new Set(['--entry', '--input', '--timeout', '--jwks', '--pubkey', '--display', '--from-display']);
   const positional = [];
   const flags = [];
   for (let i = 0; i < args.length; i++) {

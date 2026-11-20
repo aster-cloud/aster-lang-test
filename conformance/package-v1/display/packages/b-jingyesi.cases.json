@@ -1,0 +1,493 @@
+{
+  "description": "B 包，zh-CN，《静夜思》（ADR 0060 §8 的源码 / aliasSet / 词汇含字面量宏 思故乡 → \"静夜思\"，allowStructural=true；cloud JINGYESI_LAYOUT），formatVersion 1.1 + display（ADR 0059 修订 4）。run 得 静夜思；show 打印原诗；run --display 按 D7 还原改过的显示文本后运行。platform-core.json 为 aster-cli 1.0.52 compile 的输出，与 aster-api 导出的 jingyesi-jre-b 包 coreIr.sha256 逐字节相同（dc80881a…）。",
+  "package": "b-jingyesi",
+  "requiresFormat": "1.1",
+  "cases": [
+    {
+      "name": "run",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"静夜思\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "b-jingyesi",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"display\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-recompile-probes",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "b-jingyesi",
+        "--recompile",
+        "--probes",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"display\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true},{\"name\":\"display-ir\",\"ok\":true},{\"name\":\"probes\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "inspect",
+      "requiresFormat": "1.1",
+      "args": [
+        "inspect",
+        "b-jingyesi",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"display\":{\"layoutVersion\":1},\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":false},\"policy\":{\"controls\":[],\"entries\":[{\"default\":true,\"function\":\"地上霜\",\"inputSchema\":\"#/$defs/entry.地上霜\",\"outputSchema\":\"#/$defs/entry.地上霜\"}],\"moduleName\":\"明月光\",\"profile\":null,\"ruleId\":null},\"runtime\":{\"cli\":{\"name\":\"cloud.aster-lang:aster-cli\",\"version\":\"1.0.49\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-truffle\",\"requires\":{\"java\":\">=25\"}},\"schemas\":{\"input\":{\"$defs\":{\"entry.地上霜\":{\"additionalProperties\":false,\"properties\":{},\"required\":[],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry inputs\"},\"output\":{\"$defs\":{\"entry.地上霜\":{\"type\":\"string\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"明月光 entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":1,\"probesSha256\":\"d80c1b1c858b7915e5bb04c4bda863879b827e12fa6ffec0f58e260a65d8ccd7\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"dc80881aada226c7c489ae26cd42d10c7b30e7fd82983360368f65d1fa477032\",\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "show",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-jingyesi",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "床前明月光，\n疑是地上霜。\n举头望明月，\n低头思故乡。\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "show-canonical",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-jingyesi",
+        "--canonical",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "床前 明月光。\n疑是 地上霜，举头 望明月：\n  低头 思故乡。\n\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "show-from-display-last-line-literal",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-jingyesi",
+        "--from-display",
+        "../edits/b-jingyesi/last-line-literal.txt",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "床前 明月光。\n疑是 地上霜，举头 望明月：\n  低头 「月光」。\n\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "show-from-display-unchanged",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-jingyesi",
+        "--from-display",
+        "../edits/b-jingyesi/unchanged.txt",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "床前 明月光。\n疑是 地上霜，举头 望明月：\n  低头 思故乡。\n\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "show-from-display-ambiguous",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-jingyesi",
+        "--from-display",
+        "../edits/b-jingyesi/repeat-prefix.txt",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"DISPLAY_AMBIGUOUS\",\"message\":\"edited display text maps onto the package layout in more than one way\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "DISPLAY_AMBIGUOUS"
+    },
+    {
+      "name": "run-display-unchanged",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/unchanged.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"7fc880e01a64c7f6fa8054fbb9f1a6b29d82b8d474550c2c8001d8c3aaf98a56\",\"matchesPackage\":true},\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"静夜思\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "run-display-trailing-newline",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/trailing-newline.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"7fc880e01a64c7f6fa8054fbb9f1a6b29d82b8d474550c2c8001d8c3aaf98a56\",\"matchesPackage\":true},\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"静夜思\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "run-display-bom-trailing-crlf",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/bom-trailing-crlf.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"7fc880e01a64c7f6fa8054fbb9f1a6b29d82b8d474550c2c8001d8c3aaf98a56\",\"matchesPackage\":true},\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"静夜思\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "run-display-last-line-literal",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/last-line-literal.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"a903a3ee47becd8baa95975f528237ade9f51d8c26905826981b68bd83e6ab65\",\"matchesPackage\":false},\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"月光\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "run-display-first-line-edit",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/first-line-edit.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"3978b85f0c0128e552ced2bbdb751756fb0e63593f1fc042a1b955bcb8c0c160\",\"matchesPackage\":false},\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":\"静夜思\"}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "run-display-both-sides",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/both-sides.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"error\":{\"code\":\"DISPLAY_UNMAPPABLE\",\"message\":\"edited display text does not map onto the package layout\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "DISPLAY_UNMAPPABLE"
+    },
+    {
+      "name": "run-display-repeat-prefix",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/repeat-prefix.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"error\":{\"code\":\"DISPLAY_AMBIGUOUS\",\"message\":\"edited display text maps onto the package layout in more than one way\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "DISPLAY_AMBIGUOUS"
+    },
+    {
+      "name": "run-display-punct-changed",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/punct-changed.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"error\":{\"code\":\"DISPLAY_UNMAPPABLE\",\"message\":\"edited display text does not map onto the package layout\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "DISPLAY_UNMAPPABLE"
+    },
+    {
+      "name": "run-display-oversize",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/oversize.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"error\":{\"code\":\"DISPLAY_UNMAPPABLE\",\"message\":\"edited display text does not map onto the package layout\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "DISPLAY_UNMAPPABLE"
+    },
+    {
+      "name": "run-display-crlf",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/crlf.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"error\":{\"code\":\"DISPLAY_UNMAPPABLE\",\"message\":\"edited display text does not map onto the package layout\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "DISPLAY_UNMAPPABLE"
+    },
+    {
+      "name": "display-entry-renamed",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/entry-renamed.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"error\":{\"code\":\"ENTRY_NOT_FOUND\",\"message\":\"entry function not found or not runnable\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"ce4a9eee3dee36a2fcba6ed265f8951e3a5e8f4b328120cbb58adad9d76a6ab1\",\"matchesPackage\":false},\"engine\":\"<ENGINE>\",\"entry\":\"地上霜\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "ENTRY_NOT_FOUND"
+    },
+    {
+      "name": "run-display-compile-error",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/compile-error.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{}",
+      "expectedStdout": "{\"error\":{\"code\":\"COMPILE_ERROR\",\"message\":\"source failed to compile\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "COMPILE_ERROR"
+    },
+    {
+      "name": "usage-display-invalid-utf8",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/invalid-utf8.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-display-missing-file",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/no-such-file.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-show-canonical-and-from-display",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-jingyesi",
+        "--canonical",
+        "--from-display",
+        "../edits/b-jingyesi/unchanged.txt",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-show-from-display-missing-file",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-jingyesi",
+        "--from-display",
+        "../edits/b-jingyesi/no-such-file.txt",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-show-rejects-input",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-jingyesi",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-show-rejects-entry",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-jingyesi",
+        "--entry",
+        "地上霜",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-show-no-package",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-verify-rejects-display",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/unchanged.txt",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    },
+    {
+      "name": "usage-run-display-twice",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-jingyesi",
+        "--display",
+        "../edits/b-jingyesi/unchanged.txt",
+        "--display",
+        "../edits/b-jingyesi/unchanged.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"USAGE\",\"message\":\"invalid command line\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "USAGE"
+    }
+  ]
+}

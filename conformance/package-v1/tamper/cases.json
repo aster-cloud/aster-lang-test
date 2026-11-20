@@ -926,11 +926,11 @@
       "code": "PKG_INVALID_MANIFEST"
     },
     {
-      "name": "format-version-1.1",
+      "name": "format-version-1.2",
       "base": "b-credit-limit",
       "args": [
         "run",
-        "format-version-1.1",
+        "format-version-1.2",
         "--input",
         "-",
         "--jwks",
@@ -942,11 +942,11 @@
       "code": "PKG_UNSUPPORTED_FORMAT"
     },
     {
-      "name": "format-version-1.1 (verify)",
+      "name": "format-version-1.2 (verify)",
       "base": "b-credit-limit",
       "args": [
         "verify",
-        "format-version-1.1",
+        "format-version-1.2",
         "--jwks",
         "../keys/test-jwks.json"
       ],
@@ -955,11 +955,11 @@
       "code": "PKG_UNSUPPORTED_FORMAT"
     },
     {
-      "name": "format-version-1.1 (inspect)",
+      "name": "format-version-1.2 (inspect)",
       "base": "b-credit-limit",
       "args": [
         "inspect",
-        "format-version-1.1",
+        "format-version-1.2",
         "--jwks",
         "../keys/test-jwks.json"
       ],
@@ -968,11 +968,11 @@
       "code": "PKG_UNSUPPORTED_FORMAT"
     },
     {
-      "name": "format-version-1.1-with-new-field",
+      "name": "format-version-1.2-with-new-field",
       "base": "b-credit-limit",
       "args": [
         "run",
-        "format-version-1.1-with-new-field",
+        "format-version-1.2-with-new-field",
         "--input",
         "-",
         "--jwks",
@@ -984,11 +984,11 @@
       "code": "PKG_UNSUPPORTED_FORMAT"
     },
     {
-      "name": "format-version-1.1-with-new-field (verify)",
+      "name": "format-version-1.2-with-new-field (verify)",
       "base": "b-credit-limit",
       "args": [
         "verify",
-        "format-version-1.1-with-new-field",
+        "format-version-1.2-with-new-field",
         "--jwks",
         "../keys/test-jwks.json"
       ],
@@ -997,11 +997,11 @@
       "code": "PKG_UNSUPPORTED_FORMAT"
     },
     {
-      "name": "format-version-1.1-with-new-field (inspect)",
+      "name": "format-version-1.2-with-new-field (inspect)",
       "base": "b-credit-limit",
       "args": [
         "inspect",
-        "format-version-1.1-with-new-field",
+        "format-version-1.2-with-new-field",
         "--jwks",
         "../keys/test-jwks.json"
       ],

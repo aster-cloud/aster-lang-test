@@ -17,6 +17,8 @@ import { parseStrictJson } from './strict-json.mjs';
 import { crc32 } from './zip.mjs';
 import { publicKeyFromRaw, verifyManifest } from './signing.mjs';
 
+/** 显示排版的两个固定路径（ADR 0059 修订 4 D1）。 */
+export const DISPLAY_PATHS = Object.freeze(['policy/display/display.aster', 'policy/display/layout.json']);
 export const MAX_PACKAGE_BYTES = 64 * 1024 * 1024;
 export const MAX_MANIFEST_BYTES = 1024 * 1024;
 export const MAX_SIG_BYTES = 64 * 1024;
@@ -235,8 +237,10 @@ function checkManifest(bytes, opts) {
   if (tree.format !== 'aster-policy-package') bad('PKG_INVALID_MANIFEST', 'format');
   const fv = typeof tree.formatVersion === 'string' ? FORMAT_VERSION.exec(tree.formatVersion) : null;
   if (!fv) bad('PKG_INVALID_MANIFEST', 'formatVersion 语法');
-  if (Number(fv[1]) !== 1 || Number(fv[2]) > 0) bad('PKG_UNSUPPORTED_FORMAT', `formatVersion ${tree.formatVersion}`);
-  if (!opts.validateManifest(tree)) bad('PKG_INVALID_MANIFEST', 'schema');
+  // 主版本 1、次版本 ≤ 1（ADR 0059 修订 4 D2），再按该次版本自己的 schema 严格校验
+  const minor = Number(fv[2]);
+  if (Number(fv[1]) !== 1 || minor > 1) bad('PKG_UNSUPPORTED_FORMAT', `formatVersion ${tree.formatVersion}`);
+  if (!opts.validateManifest(tree, minor)) bad('PKG_INVALID_MANIFEST', 'schema');
   // 语义规则
   const paths = tree.files.map((f) => f.path);
   for (let k = 1; k < paths.length; k++) if (byteOrder(paths[k - 1], paths[k]) >= 0) bad('PKG_INVALID_MANIFEST', 'files[] 不是按字节严格升序（含重复）');
@@ -249,6 +253,8 @@ function checkManifest(bytes, opts) {
     if (x.function !== x.function.normalize('NFC')) bad('PKG_INVALID_MANIFEST', '函数名不是 NFC');
   }
   if (tree.policy.moduleName !== tree.policy.moduleName.normalize('NFC')) bad('PKG_INVALID_MANIFEST', '模块名不是 NFC');
+  // display 存在 ⇔ files[] 同时含两个显示排版路径（1.1；display 不存在时这两个路径只是普通载荷）
+  if (tree.display !== undefined && !DISPLAY_PATHS.every((x) => paths.includes(x))) bad('PKG_INVALID_MANIFEST', 'display 存在但 files[] 缺显示排版文件');
   if (tree.coreIr.version !== 2) bad('PKG_UNSUPPORTED_IR', `coreIr.version ${tree.coreIr.version}`);
   return tree;
 }

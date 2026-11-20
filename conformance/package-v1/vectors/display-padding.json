@@ -1,0 +1,56 @@
+{
+  "description": "L9 补空格向量（ADR 0059 修订 4 §4）：padded 为 padStructuralSpans(layout) 的结果 P。",
+  "version": 1,
+  "cases": [
+    {
+      "id": "jingyesi",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"床前\"},{\"canonical\":\" \",\"display\":\"\"},{\"text\":\"明月光\"},{\"canonical\":\"。\\n\",\"display\":\"，\\n\"},{\"text\":\"疑是\"},{\"canonical\":\" \",\"display\":\"\"},{\"text\":\"地上霜\"},{\"canonical\":\"，\",\"display\":\"。\\n\"},{\"text\":\"举头\"},{\"canonical\":\" \",\"display\":\"\"},{\"text\":\"望明月\"},{\"canonical\":\"：\\n  \",\"display\":\"，\\n\"},{\"text\":\"低头\"},{\"canonical\":\" \",\"display\":\"\"},{\"text\":\"思故乡\"},{\"canonical\":\"。\\n\",\"display\":\"。\"}]}",
+      "padded": "床前   明月光 。\n疑是   地上霜 ， 举头   望明月 ：\n  低头   思故乡 。\n"
+    },
+    {
+      "id": "no-structural-spans",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"Return x.\"}]}",
+      "padded": "Return x."
+    },
+    {
+      "id": "structural-at-start-and-end",
+      "layoutText": "{\"v\":1,\"spans\":[{\"canonical\":\"# \",\"display\":\"\"},{\"text\":\"x\"},{\"canonical\":\".\",\"display\":\"\"}]}",
+      "padded": "#  x ."
+    },
+    {
+      "id": "indentation-not-padded",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"A\"},{\"canonical\":\":\\n  \",\"display\":\"：\"},{\"text\":\"B\"}]}",
+      "padded": "A :\n  B"
+    },
+    {
+      "id": "tab-indentation-not-padded",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"A:\\n\\t\"},{\"canonical\":\"x\",\"display\":\"y\"},{\"text\":\"B\"}]}",
+      "padded": "A:\n\tx B"
+    },
+    {
+      "id": "after-newline-not-padded",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"A\"},{\"canonical\":\"\\n\",\"display\":\" \"},{\"text\":\"B\"}]}",
+      "padded": "A \nB"
+    },
+    {
+      "id": "after-cr-not-padded",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"A\"},{\"canonical\":\"\\r\",\"display\":\" \"},{\"text\":\"B\"}]}",
+      "padded": "A \rB"
+    },
+    {
+      "id": "adjacent-structural-boundary-once",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"a\"},{\"canonical\":\"+\",\"display\":\"+\"},{\"canonical\":\"-\",\"display\":\"-\"},{\"text\":\"b\"}]}",
+      "padded": "a + - b"
+    },
+    {
+      "id": "string-swallowed",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"Return \\\"x\"},{\"canonical\":\" \",\"display\":\"·\"},{\"text\":\"y\\\".\"}]}",
+      "padded": "Return \"x   y\"."
+    },
+    {
+      "id": "indent-then-text-padded",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"A\\n  b\"},{\"canonical\":\" \",\"display\":\"\"},{\"text\":\"c\"}]}",
+      "padded": "A\n  b   c"
+    }
+  ]
+}

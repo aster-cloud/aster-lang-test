@@ -1,0 +1,4 @@
+Module display.swallow.
+
+Rule f, produce Text:
+  Return "a".
