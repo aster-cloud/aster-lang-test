@@ -21,7 +21,7 @@
   },
   "source-single-word-alias": {
     "ok": false,
-    "error": "CnlParseException: 用户自定义别名校验失败: 别名 'whenever'（IF）必须是多词短语；单词别名会占用标识符命名空间，破坏用户空间"
+    "error": "CnlParseException: 用户自定义别名校验失败: 别名 'whenever'（IF）必须是多词短语，或 zh 下 2–8 个汉字的单词；其余单词别名会占用标识符命名空间，破坏用户空间"
   },
   "source-syntax-error": {
     "ok": false,
@@ -73,6 +73,14 @@
   },
   "source-only-ideographic-space-is-not-blank": {
     "ok": false,
+    "error": "CnlParseException: CNL syntax error — Line 1, column 1: Unrecognized character '　'"
+  },
+  "source-zh-only-ideographic-space-is-blank": {
+    "ok": false,
     "error": "CnlParseException: CNL 源代码不能为空"
+  },
+  "source-de-only-medium-math-space-is-not-blank": {
+    "ok": false,
+    "error": "CnlParseException: CNL-Syntaxfehler — Zeile 1, Spalte 1: Unbekanntes Zeichen ' '"
   }
 }

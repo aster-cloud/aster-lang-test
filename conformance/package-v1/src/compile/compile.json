@@ -513,6 +513,33 @@
       "pinnedTsDivergence": "aster-cloud/aster-lang-ts#348"
     },
     {
+      "name": "source-zh-only-ideographic-space-is-blank",
+      "args": [
+        "compile",
+        "sources/zh-ideographic-space-only.aster",
+        "--locale",
+        "zh-CN"
+      ],
+      "platform": {
+        "source": "sources/zh-ideographic-space-only.aster",
+        "locale": "zh-CN"
+      }
+    },
+    {
+      "name": "source-de-only-medium-math-space-is-not-blank",
+      "args": [
+        "compile",
+        "sources/de-medium-math-space-only.aster",
+        "--locale",
+        "de-DE"
+      ],
+      "platform": {
+        "source": "sources/de-medium-math-space-only.aster",
+        "locale": "de-DE"
+      },
+      "pinnedTsDivergence": "aster-cloud/aster-lang-ts#348"
+    },
+    {
       "name": "package-a-blank-policy",
       "args": [
         "compile",
