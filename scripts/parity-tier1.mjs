@@ -59,7 +59,7 @@ import {
 } from './lib/ir-byte-parity.mjs';
 import { inputRefsProblems } from './lib/input-refs-expect.mjs';
 import { collectEvalCaseProblem, entryForCase, expectsError } from './lib/eval-cases.mjs';
-import { inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
+import { inventoryCountProblem, inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
 // 按样本 meta.lexicon 驱动 TS 解析：与 equivalence-nightly.mjs 共用（issue #205，单一事实源）。
 import { lexiconOf, loadTsLexicons, selectTsLexicon, tsParseOne } from './lib/sample-lexicon.mjs';
 import { MUST_REJECT_DIR, judgeMustReject, javaRejection, checkMustRejectManifest } from './lib/must-reject.mjs';
@@ -403,6 +403,8 @@ function runJavaParse(samples) {
       'or the test did not actually run. Refusing to report a verdict.',
     );
   }
+  const countProblem = inventoryCountProblem(inventory);
+  if (countProblem) fail(countProblem);
   const { results, unobserved } = judgeSamples(samples.map((x) => x.rel), inventory);
   if (unobserved.length > 0) {
     fail(

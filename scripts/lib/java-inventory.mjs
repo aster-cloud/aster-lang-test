@@ -13,7 +13,7 @@
  *   `Discovered N samples (...)`                          总数
  *   `| corpus/<path> | ❌ | <err> |`                       失败行（仅失败）
  *   `OBSERVED corpus/<path>`                               逐样本观测行
- *   `Total: T, Pass: P, Fail: F, Pass-rate: X%`           汇总
+ *   `Total: T, Pass: P, Fail: F, Pass-rate: X%`           汇总（inventoryCountProblem 据此核对逐行解析的计数）
  *
  * ★注意 core 只扫描 meta.engines 含 "ts" 且 tier != 3 的样本；
  * tier2-divergent/java-only（engines=["java"]）不在其中，放进去的样本会被判为未观测。
@@ -44,7 +44,10 @@ export function parseInventoryOutput(output) {
   const observed = new Set();
   const failed = new Set();
   const errors = new Map();
+  let summary = null;
   for (const line of output.split('\n')) {
+    const t = line.match(/^\s*Total:\s*(\d+),\s*Pass:\s*(\d+),\s*Fail:\s*(\d+),/);
+    if (t) summary = { total: Number(t[1]), pass: Number(t[2]), fail: Number(t[3]) };
     const o = line.match(/^\s*OBSERVED\s+(\S+\.aster)\s*$/);
     if (o) observed.add(o[1].replace(/^corpus\//, ''));
     // 错误文本用 [^\n]* 而不是 .*：`.` 不匹配 U+2028 / U+2029，Java 报「token recognition error at: '<U+2028>'」时
@@ -55,7 +58,30 @@ export function parseInventoryOutput(output) {
     failed.add(rel);
     errors.set(rel, f[2].trim());
   }
-  return { observed, failed, errors };
+  return { observed, failed, errors, summary };
+}
+
+/**
+ * 计数交叉核对（aster-lang-test#226 m-1）。返回 null 表示一致；否则返回可直接报错的说明。
+ *
+ * 失败行与 OBSERVED 行都靠正则逐行识别，任何一行因格式意外（例如错误文本里出现原始换行）失配，
+ * 该样本就会悄悄变成「不在失败清单 = 通过」。core 的汇总行 `Total: T, Pass: P, Fail: F` 与逐行输出出自同一次扫描，
+ * 解析出的失败样本数必须等于 F、已观测样本数必须等于 T，否则拒绝给出结论（fail-closed）。
+ */
+export function inventoryCountProblem({ observed, failed, summary }) {
+  if (summary === null || summary === undefined) {
+    return 'aster-lang-core inventory output has no "Total: T, Pass: P, Fail: F" summary line; refusing to report a verdict.';
+  }
+  const problems = [];
+  if (failed.size !== summary.fail) {
+    problems.push(`parsed ${failed.size} failure row(s) but the summary says Fail: ${summary.fail}`);
+  }
+  if (observed.size !== summary.total) {
+    problems.push(`parsed ${observed.size} OBSERVED line(s) but the summary says Total: ${summary.total}`);
+  }
+  if (problems.length === 0) return null;
+  return 'aster-lang-core inventory output does not add up — some rows were not recognised and would fail open:\n  - '
+    + problems.join('\n  - ');
 }
 
 /**
