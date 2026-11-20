@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.7.0
+
+### 新增
+
+- tier1 parity 样本（ADR 0058 修订 2，aster-lang-ts#346，#241）：本地化类型别名引导词 `types/type-alias-keyword-zh`（`类型`）、
+  `types/type-alias-keyword-de`（`Typ`）、`types/type-alias-keyword-hi`（`प्रकार`）。
+- 带词汇的 tier1 parity 样本（ADR 0060 修订 1）：字面量触发词与关键词同形时关键词优先——`vocab-en/literal-trigger-keyword`、
+  `vocab-zh/literal-trigger-keyword`、`vocab-zh/literal-trigger-english-keyword`（R16'，#239）；字面量宏内容含弯引号、反斜杠与
+  ASCII 双引号——`vocab-en/literal-curly-quotes`、`vocab-zh/literal-curly-quotes`（R18，#240）。各带 eval case。
+- tier1 parity 样本：`syntax/corner-quote-in-string-zh`（字符串内容含 `」`，aster-lang-ts#362 第 3 项，#237）、
+  `syntax/result-is-zh`（`结果为`）与 `syntax/function-syntax-whitespace-zh`（aster-lang-locales#147、aster-lang-ts#357 第 4 行，#236）、
+  `syntax/blank-line-after-block-header`（规则体 / If 块头后可空行，ADR 0056 修订 A4，#242）。
+- tier1 必拒样本（ADR 0056 修订 A4，aster-lang-ts#338 / #357，#242）：`reject-bare-lowercase-type`、`reject-lowercase-generic-after-comma`、
+  `reject-lowercase-map-after-comma`（E055）、`reject-raw-newline-in-string`、`reject-raw-newline-in-string-zh`（E051）、
+  `reject-line-break-after-header-comma`（E062）；zh 函数头与 `结果为` 旁的 Unicode 空白（#236）：`reject-whitespace-em-space-after-rule-keyword-zh`、
+  `reject-whitespace-nbsp-before-paren-zh`、`reject-whitespace-em-space-after-paren-zh`、`reject-whitespace-nbsp-after-result-is-zh`、
+  `reject-whitespace-em-space-after-result-is-zh`。
+- 已有样本与向量逐字节不变（只新增；`tier1-parity/manifest.json` 只追加条目并刷新 `basedOnEquivalence.history`）。这些样本的期望依赖
+  aster-lang-core / aster-lang-locales / aster-lang-hi 1.0.53 与 aster-lang-ts 3.6.0。包入口 API 无变化。
+
 ## 2.6.0
 
 ### 新增
