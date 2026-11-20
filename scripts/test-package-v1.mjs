@@ -536,6 +536,20 @@ await httpsAnchorTests();
   check(coverageProblems({ expected: 0, ran: 0 }).length === 1, '无 --filter 时零用例应失败');
   check(coverageProblems({ expected: 554, ran: 553 }).length === 1, '少跑一条应失败');
   check(coverageProblems({ expected: 554, ran: 554 }).length === 0, '全部跑完应通过');
+  {
+    const { timingSummary } = await import('./lib/package-v1/gate.mjs');
+    const rows = [
+      { name: 'a', status: 'ok', node: 100, jre: 300 },
+      { name: 'b', status: 'fail', node: 70_000, jre: 400 },
+      { name: 'c', status: 'ok', node: 200, jre: 500 },
+      { name: 'd', status: 'ok', node: 300, jre: 200 },
+    ];
+    const t = timingSummary(rows, { timeoutMs: 120_000, top: 2 });
+    check(t.sides.node.median === 200 && t.sides.node.max === 70_000 && t.sides.jre.p95 === 500, '耗时：每侧中位数 / p95 / 最大值（#226 m-3）');
+    check(t.slowest.map((r) => r.name).join() === 'b,c', '耗时：最慢的行按两侧较大耗时降序');
+    check(t.slow.join() === 'b', '耗时：达到超时一半的行被标出');
+    check(timingSummary([], { timeoutMs: 1 }).sides.jre.median === null, '耗时：无用例时为 null');
+  }
   check(coverageProblems({ expected: 1, ran: 1, filter: 'x' }).length === 0, '--filter 至少一条匹配应通过');
 
   const ok = { res: { exit: 0, stdout: '{"ok":true}\n' }, problems: [], comparable: 'A' };
