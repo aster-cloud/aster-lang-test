@@ -1,0 +1,10 @@
+模块 parity.syntax.cornerQuoteInStringZh。
+
+规则 curly 给定 x 作为 整数，产出 文本：
+  返回 “a」b”。
+
+规则 ascii 给定 x 作为 整数，产出 文本：
+  返回 "引用「甲」与」，。Ａ"。
+
+规则 plain 给定 x 作为 整数，产出 文本：
+  返回 「无」。

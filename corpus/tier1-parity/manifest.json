@@ -331,6 +331,7 @@
     "tier1-parity/syntax/unicode-space-in-string-and-comment.aster",
     "tier1-parity/syntax/quotes-in-string-literal.aster",
     "tier1-parity/syntax/quotes-in-string-literal-zh.aster",
+    "tier1-parity/syntax/corner-quote-in-string-zh.aster",
     "tier1-parity/syntax/let-be-ideographic-space-zh.aster",
     "tier1-parity/types/inferred-field-constraints.aster",
     "tier1-parity/workflow/workflow-bare-io-capability.aster",
