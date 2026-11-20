@@ -1,0 +1,10 @@
+模块 parity.types.aliasKeywordZh。
+
+类型 金额 作为 整数。
+
+Type 标签 作为 文本。
+
+定义 盒子 包含 类型 作为 文本。
+
+规则 total 给定 a 作为 金额，l 作为 标签，b 作为 盒子，产出 整数：
+  返回 a。
