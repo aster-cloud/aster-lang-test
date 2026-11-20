@@ -30,7 +30,7 @@ CLI 行为定死为可执行的字节：两个 `aster` CLI（Node T2–T5、JVM 
 | `tamper/test-time.json` | 体积类夹具的生成配方（几十 MiB，不入库，由 CLI 测试运行时生成） | 生成 |
 | `inputs-invalid/cases.json` | `INPUT_INVALID` 夹具（作用于黄金包） | 生成 |
 | `compile/` | `compile` 子命令夹具：源码与 aliasSet / 词汇文件、`cases.json`（见「compile」） | 生成（源码类期望由 `--capture-compile` 按 InProcessCnlParser 解析 + 降级序列 采集） |
-| `src/` | 生成器的输入：源码、`fixture.json`、采集的平台 IR（`platform-core.json`）与期望值（`expected.json`）、篡改与非法输入定义；`src/display/` 为 1.1 黄金包（另有 `layout.json` 与 `displays/*.txt`）与 `pending-ts-release.json` | 手写 + `--capture` |
+| `src/` | 生成器的输入：源码、`fixture.json`、采集的平台 IR（`platform-core.json`）与期望值（`expected.json`）、篡改与非法输入定义；`src/display/` 为 1.1 黄金包（另有 `layout.json` 与 `displays/*.txt`） | 手写 + `--capture` |
 
 跨 CLI 一致性门（T11，CI job 与 required status check 均为 `package-conformance`，PR-blocking）：
 
@@ -62,10 +62,10 @@ node scripts/build-package-fixtures.mjs --verify-engines --ts ../aster-lang-ts -
 - ts 解释器复算每个成功用例、`EVAL_ERROR` 用例与 probes（probes 无损读取）；
 - 全部 `expectedStdout` 符合 `envelope.schema.json`，message / 退出码与 `exit-codes.json` 一致；签名向量的期望码与参照判定一致。
 
-CI 中的兄弟仓固定在被测版本（aster-lang-ts `v3.2.0`、aster-guard `v0.3.0`），不跟随 main：夹具的 IR 与期望值属于这一版本的编译器
-（生态 1.0.49），main 上的 IR 变化（例如 aster-cloud/aster-lang-ts#339 的列对齐）不应让本仓变红。
+CI 中的兄弟仓固定在已发布的被测版本（aster-lang-ts `v3.6.0`、aster-guard `v0.3.0`），不跟随 main：1.0 夹具的 IR 与期望值采集自生态 1.0.49，
+在 ts 3.6.0 下复算一致；display 夹具（包格式 1.1）的引擎复算需要 ts ≥ 3.6.0（列车 eco-1.0.53）。main 上的 IR 变化（例如 aster-cloud/aster-lang-ts#339 的列对齐）不应让本仓变红。
 源夹具 `src/compile/compile.json` 的 `pinnedTsDivergence`（只在 src，不进 `cases.json`）标出「两个 CLI 期望已一致、但固定的 ts 版本早于修复」的行
-（目前是 aster-cloud/aster-lang-ts#348 的三行）：`--verify-engines` 断言所用 ts 仍给出不同结论，升级固定版本后分歧消失即报错，提醒去掉该字段。
+（目前没有；aster-cloud/aster-lang-ts#348 的三行随固定版本升到 v3.6.0 已去掉）：`--verify-engines` 断言所用 ts 仍给出不同结论，升级固定版本后分歧消失即报错，提醒去掉该字段。
 
 ### 重新采集（`--capture`，本地手动，CI 不跑）
 
@@ -97,7 +97,7 @@ CI 中的兄弟仓固定在被测版本（aster-lang-ts `v3.2.0`、aster-guard `
   逐字节比较；退出码与 `expectedExit` 比较。`code` 是期望的错误码（成功为 `null`；`verify` 为第一项失败检查的码），供只断言错误码的单测使用。
 - `engines` 字段保留给只适用于一侧的用例；v1 夹具没有这样的用例，**全部用例两侧都跑**。
 - `requiresFormat`（修订 4，计划裁决 PR1）：用例只适用于支持该包格式版本的 CLI。一致性门先跑两侧 `version`，**两侧** `formatVersions` 都含该值才运行，否则记为 skipped 并在报告中列出；
-  `--strict-formats`（列车 eco-1.0.53 之后，T5 Step 4）使任一侧缺少即失败。各 CLI 自己的一致性单测按本 CLI 的 `formatVersions` 同样门控。
+  `--strict-formats`（列车 eco-1.0.53 之后，T5 Step 4；CI 的一致性门已开启）使任一侧缺少即失败。各 CLI 自己的一致性单测按本 CLI 的 `formatVersions` 同样门控。
   **裁决（PR1 的落地）**：1.1 用例放在单独的 `display/` 目录而不是 `packages/`、`tamper/`——两个 CLI 现有的运行器遍历后者且不认识 `requiresFormat`，
   放进去会让尚未支持 1.1 的 CLI 主干变红；新错误码同理放在 `exit-codes.json` 的 `codesSince["1.1"]`（见「输出」）。
 - `compile/cases.json` 的成功用例以 `expectedPositionFreeSha256` 代替逐字节比较 stdout（见「compile」）。
@@ -461,8 +461,8 @@ entry（`--entry` 或 manifest 缺省入口，须存在于**派生模块**，`EN
 从 entry 阶段起（含 `ENTRY_NOT_FOUND`、`INPUT_INVALID`、求值结果）`entry` 为所选入口、`irRecompiled:true`、`display:{"canonicalSha256":sha256(C′ 的 UTF-8),"matchesPackage":positionFreeSha256(IR(C′)) == manifest.coreIr.positionFreeSha256}`。
 `signed` 只表示包的签名已核验。求值之前 stderr 先打印一行「正在运行由显示文本派生的程序，不在包签名覆盖之内」，再原样打印 C′。
 
-**pendingTsRelease**：`--verify-engines` 对 display 夹具的引擎复算（编译、L8 / L9、`matchesPackage`、求值）要求所用 ts 支持 1.1；`src/display/pending-ts-release.json` 列出的条目在 ts < `tsNext`
-时跳过复算，ts ≥ `tsNext` 时清单非空即失败（列车 T5 Step 4 清空）。本地用同名分支的未发布 ts 时可加 `--assume-ts-display` 强制复算。
+**引擎复算**：`--verify-engines` 对全部 display 夹具做引擎复算（编译、L8 / L9、`matchesPackage`、求值），要求所用 ts 支持包格式 1.1（≥ 3.6.0）。
+T1 期间的 `pendingTsRelease` 跳过清单与本地开关 `--assume-ts-display` 已随列车 eco-1.0.53（T5 Step 4）删除。
 
 ## 黄金包一览
 
