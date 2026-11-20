@@ -458,6 +458,18 @@
       "vocab": true
     },
     {
+      "path": "tier1-parity/vocab-en/literal-trigger-keyword.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-zh/literal-trigger-keyword.aster",
+      "vocab": true
+    },
+    {
+      "path": "tier1-parity/vocab-zh/literal-trigger-english-keyword.aster",
+      "vocab": true
+    },
+    {
       "path": "tier1-parity/vocab-en/literal-curly-quotes.aster",
       "vocab": true
     },

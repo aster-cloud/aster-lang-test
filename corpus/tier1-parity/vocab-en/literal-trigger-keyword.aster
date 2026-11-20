@@ -1,0 +1,4 @@
+Module parity.vocab.literalTriggerKeyword.
+
+Rule label given x as Int, produce Text:
+  Return greeting.
