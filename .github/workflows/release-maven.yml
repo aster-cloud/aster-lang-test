@@ -60,16 +60,20 @@ jobs:
           repository: aster-cloud/aster-lang-platform
           path: aster-lang-platform
           token: ${{ secrets.CROSS_REPO_TOKEN }}
-      - uses: actions/setup-java@v5
-        with: { java-version: '25', distribution: 'temurin' }
+      # aster-lang-platform#138：JDK + Gradle 依赖缓存（先恢复再解析；列车 dispatch 跑在 main，本组缓存读写），并把
+      # gradle-retry.sh（Maven Central 429 时退避重试）/ gradle-version.sh 加进 PATH。须在全部 checkout 之后。
+      - uses: aster-cloud/aster-lang-platform/.github/actions/setup-gradle-cached@main
+        with:
+          cache-group: release
       - name: Bootstrap version catalog to Maven Local
-        run: cd aster-lang-platform && ./gradlew publishToMavenLocal
+        run: cd aster-lang-platform && gradle-retry.sh ./gradlew publishToMavenLocal
       - name: Create & push release tag
         env:
           VERSION: ${{ inputs.version }}
           FORCE_TESTS: ${{ inputs.forceTests }}
         run: |
-          RESOLVED=$(cd packages/jvm && ./gradlew -q properties | sed -n 's/^version: //p' | head -n1)
+          # Gradle 失败（限流重试用尽也算）或读不到版本时 gradle-version.sh 退出非 0，本步在赋值处终止，不会拿空串去比（#138）。
+          RESOLVED=$(gradle-version.sh packages/jvm)
           if [ "$VERSION" != "$RESOLVED" ]; then
             echo "::error::dispatch version ($VERSION) != Gradle-resolved catalog version ($RESOLVED)"
             exit 1
@@ -117,13 +121,13 @@ jobs:
           repository: aster-cloud/aster-lang-platform
           path: aster-lang-platform
           token: ${{ secrets.CROSS_REPO_TOKEN }}
-      - uses: actions/setup-java@v5
+      # aster-lang-platform#138：JDK + gradle-retry.sh / gradle-version.sh；缓存由下面的 setup-gradle 负责。
+      - uses: aster-cloud/aster-lang-platform/.github/actions/setup-gradle-cached@main
         with:
-          distribution: 'temurin'
-          java-version: '25'
+          cache: none
       - uses: gradle/actions/setup-gradle@v6
       - name: Bootstrap version catalog to Maven Local
-        run: cd aster-lang-platform && ./gradlew publishToMavenLocal
+        run: cd aster-lang-platform && gradle-retry.sh ./gradlew publishToMavenLocal
       # tag 前缀已与 npm 分离（v* / npm-v*），本 gate 只防手工推了与 catalog 派生版本
       # 不符的 v tag：不符时 skip 而非 fail，不发布错误版本。version 是 catalog-derived，
       # 故用 Gradle 解析而非 sed 字面量；bootstrap 已在前完成，skip 路径也能解析。
@@ -131,7 +135,8 @@ jobs:
         id: gate
         run: |
           TAG_VERSION="${GITHUB_REF_NAME#v}"
-          PKG_VERSION=$(cd packages/jvm && ./gradlew -q properties | sed -n 's/^version: //p' | head -n1)
+          # Gradle 失败（限流重试用尽也算）或读不到版本时 gradle-version.sh 退出非 0，本步在赋值处终止，不会拿空串去比（#138）。
+          PKG_VERSION=$(gradle-version.sh packages/jvm)
           if [ "$TAG_VERSION" = "$PKG_VERSION" ]; then
             echo "match=true" >> "$GITHUB_OUTPUT"
             echo "tag v$TAG_VERSION matches JVM package version $PKG_VERSION → publish"
