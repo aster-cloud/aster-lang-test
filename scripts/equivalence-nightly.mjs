@@ -25,7 +25,7 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync, writeFileSync, existsSync, appendFileSync, readdirSync, statSync } from 'node:fs';
 import { dirname, resolve, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
+import { inventoryCountProblem, inventoryOutputProblem, parseInventoryOutput, judgeSamples } from './lib/java-inventory.mjs';
 import { declaredLexiconOf, loadTsLexicons, selectTsLexicon, tsParseOne } from './lib/sample-lexicon.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -121,6 +121,8 @@ function runJavaParse(samples) {
       'than the observed-list change or the test did not actually run. Refusing to report.',
     );
   }
+  const countProblem = inventoryCountProblem(inventory);
+  if (countProblem) throw new Error(countProblem);
   const rels = samples.map((abs) => relative(CORPUS, abs));
   const { results, unobserved } = judgeSamples(rels, inventory);
   if (unobserved.length > 0) {

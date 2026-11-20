@@ -77,3 +77,27 @@ export function formatGate(row, sideFormats, { strict = false } = {}) {
   if (both) return 'run';
   return strict ? 'fail' : 'skipped';
 }
+
+/** 升序数组的 p 分位（最近秩法，p ∈ (0, 1]）；空数组为 null。 */
+function percentile(sorted, p) {
+  if (sorted.length === 0) return null;
+  return sorted[Math.min(sorted.length - 1, Math.ceil(p * sorted.length) - 1)];
+}
+
+/**
+ * 每条用例两侧耗时的汇总（aster-lang-test#226 m-3）：判断一次不一致是负载抖动还是真分歧。
+ * 负载下的超时、被杀或启动慢会让某一侧的耗时远高于同侧其余用例，接近 timeoutMs 时更可疑。
+ * rows：[{ name, status, node: ms, jre: ms }]；返回每侧的 { median, p95, max } 与按两侧较大耗时降序的前 top 条，
+ * 并标出耗时达到 timeoutMs 一半的行（slow）。
+ */
+export function timingSummary(rows, { timeoutMs, top = 10 }) {
+  const sides = {};
+  for (const side of ['node', 'jre']) {
+    const ms = rows.map((r) => r[side]).filter((x) => Number.isFinite(x)).sort((a, b) => a - b);
+    sides[side] = { median: percentile(ms, 0.5), p95: percentile(ms, 0.95), max: ms.length ? ms[ms.length - 1] : null };
+  }
+  const worst = (r) => Math.max(r.node ?? 0, r.jre ?? 0);
+  const slowest = [...rows].sort((a, b) => worst(b) - worst(a) || a.name.localeCompare(b.name)).slice(0, top);
+  const slow = rows.filter((r) => worst(r) >= timeoutMs / 2).map((r) => r.name);
+  return { sides, slowest, slow };
+}
