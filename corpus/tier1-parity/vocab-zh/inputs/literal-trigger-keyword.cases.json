@@ -1,0 +1,12 @@
+{
+  "entry": "label",
+  "cases": [
+    {
+      "name": "关键词同形的触发词不展开，greeting 展开为 hi",
+      "input": [
+        1
+      ],
+      "expectedOutput": "hi"
+    }
+  ]
+}

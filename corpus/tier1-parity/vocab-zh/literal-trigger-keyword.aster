@@ -1,0 +1,4 @@
+模块 parity.vocab.literalTriggerKeywordZh。
+
+规则 label 给定 x 作为 整数，产出 文本：
+  返回 greeting。

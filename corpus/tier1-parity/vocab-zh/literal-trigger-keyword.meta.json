@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "zh-CN 字面量触发词与关键词同形时关键词优先（ADR 0060 修订 1 R16'，aster-lang-core#290、aster-lang-ts#368）：触发词 文本、返回 不展开，照常按关键词读；greeting 照常展开。修复前 core 关键词优先、ts 先展开（E055 / E064）"
+}
