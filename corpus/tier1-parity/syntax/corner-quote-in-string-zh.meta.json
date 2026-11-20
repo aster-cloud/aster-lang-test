@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "zh-CN 的 “…” 与 \"…\" 字符串内容含 」（aster-lang-ts#362 第 3 项）：」 是内容，不闭合字符串，内容里的全角字符与中文标点原样保留。修复前 ts 把定界符换成「」后在内容的 」 处提前闭合，报 E050 '」'；core 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定字符串字面量值的 Core IR"
+}
