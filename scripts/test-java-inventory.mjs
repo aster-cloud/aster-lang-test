@@ -12,6 +12,7 @@
 import assert from 'node:assert';
 import {
   INVENTORY_MARKER,
+  inventoryCountProblem,
   inventoryOutputProblem,
   parseInventoryOutput,
   judgeSamples,
@@ -121,6 +122,37 @@ check('★错误文本含 U+2028 / U+2029 / U+0085 / U+00A0 时仍记为失败�
     assert.strictEqual(results['tier1-equivalence/policies/b.aster'].ok, false, `U+${code.toString(16)}`);
     assert.strictEqual(results['tier1-equivalence/policies/b.aster'].err, `L4:11 token recognition error at: '${ch}'`);
   }
+});
+
+check('计数一致（失败行数 = Fail、OBSERVED 数 = Total）→ 无问题；汇总行被解析', () => {
+  const inv = parseInventoryOutput(OUTPUT);
+  assert.deepStrictEqual(inv.summary, { total: 3, pass: 2, fail: 1 });
+  assert.strictEqual(inventoryCountProblem(inv), null);
+});
+
+check('★失败行失配（错误文本含原始换行）→ 失败行数少于 Fail，拒绝给出结论（#226 m-1，此前 fail-open）', () => {
+  const out = OUTPUT.replace('| mismatched input |', '| L4:9 unexpected\ntoken |');
+  const inv = parseInventoryOutput(out);
+  assert.strictEqual(inv.failed.size, 0, '失配行不应被识别');
+  const p = inventoryCountProblem(inv);
+  assert.ok(p && /parsed 0 failure row\(s\) but the summary says Fail: 1/.test(p), p);
+});
+
+check('OBSERVED 行失配 → 已观测数少于 Total，拒绝给出结论', () => {
+  const out = OUTPUT.replace('OBSERVED corpus/tier1-equivalence/policies/c.aster', 'OBSERVED  corpus/tier1-equivalence/policies/c.aster extra');
+  const p = inventoryCountProblem(parseInventoryOutput(out));
+  assert.ok(p && /parsed 2 OBSERVED line\(s\) but the summary says Total: 3/.test(p), p);
+});
+
+check('没有汇总行 → 拒绝给出结论', () => {
+  const out = OUTPUT.replace(/\n\s*Total:[^\n]*$/, '');
+  const p = inventoryCountProblem(parseInventoryOutput(out));
+  assert.ok(p && /no "Total: T, Pass: P, Fail: F" summary/.test(p), p);
+});
+
+check('gradle -i 前缀缩进与重复输出不影响计数（集合去重，取最后一个汇总行）', () => {
+  const twice = OUTPUT + '\n' + OUTPUT.split('\n').map((l) => `    ${l}`).join('\n');
+  assert.strictEqual(inventoryCountProblem(parseInventoryOutput(twice)), null);
 });
 
 console.log(`\njava-inventory guard: ${pass} passed, ${fail} failed`);
