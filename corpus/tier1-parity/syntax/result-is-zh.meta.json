@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "source": "zh-CN 的 结果为 X 与 返回 X 同义（aster-lang-ts#357 第 4 行、#362 第 4 项）：语句行首与 Match 分支逗号之后（全角、半角逗号）都可用，空白可为空格、tab 或 U+3000。修复前 ts 报 E064，core 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定 结果为 改写成 Return 后的 Core IR"
+}

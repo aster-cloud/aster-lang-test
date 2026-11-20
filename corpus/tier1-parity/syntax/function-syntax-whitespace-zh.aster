@@ -1,0 +1,11 @@
+模块 parity.syntax.functionSyntaxWhitespaceZh。
+
+规则　same（x 作为 整数）　，产出 整数：
+  返回 x。
+
+规则	first	(x 作为 整数)	，产出 整数：
+  返回 x。
+
+规则 pick（
+  x 作为 整数，y 作为 整数），产出 整数：
+  返回 y。
