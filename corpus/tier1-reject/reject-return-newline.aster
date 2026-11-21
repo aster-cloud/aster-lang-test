@@ -1,0 +1,5 @@
+Module reject.returnNewline.
+
+Rule f given x as Int, produce Int:
+  Return
+  x.

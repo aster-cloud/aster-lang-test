@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "Rule 与规则名之间换行（aster-lang-ts#357 第 3 行，ADR 0056 修订 A4 §2）：两引擎都在换行处拒绝，同为 E062。修复前 ts 报 E055「Expected identifier」"
+}
