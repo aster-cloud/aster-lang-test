@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "en-US 英语所有格 a's b 与成员访问 a.b 同义（Wave C N1）：链式所有格与 The result is 组合均可。修复前 ts 在撇号上报 E050（en-US 未启用 english-possessive），core 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定所有格改写成成员访问后的 Core IR"
+}

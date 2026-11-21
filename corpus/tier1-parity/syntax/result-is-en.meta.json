@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "en-US 的 The result is X 与 Return X 同义（Wave C N1，aster-lang-core#298）：语句行首与 Match 分支逗号之后都可用，大小写不敏感，空白可为空格或 tab；字符串里的同形文字不改写。修复前 ts 报 E064（en-US 未启用 result-is），core 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定 The result is 改写成 Return 后的 Core IR"
+}
