@@ -1,0 +1,4 @@
+Module reject.indentedAfterDecl.
+
+Define Point with x as Int.
+  Define Size with w as Int.

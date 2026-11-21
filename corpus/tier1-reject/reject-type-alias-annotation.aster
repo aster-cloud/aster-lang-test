@@ -1,0 +1,6 @@
+Module reject.typeAliasAnnotation.
+
+@pii(L1, email) Type Email as Text.
+
+Rule f given e as Email, produce Text:
+  Return e.
