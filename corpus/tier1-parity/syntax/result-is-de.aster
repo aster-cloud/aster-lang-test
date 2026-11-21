@@ -1,0 +1,12 @@
+Modul parity.syntax.resultIsDe.
+
+Regel vorzeichen gegeben x als Ganzzahl, liefert Ganzzahl:
+  wenn x größer als 0:
+    Ergebnis ist 1.
+  ergebnis ist	0.
+
+Regel stufe gegeben x als Ganzzahl, liefert Ganzzahl:
+  pruefe x:
+    bei 1, Ergebnis ist 10.
+    bei y,
+      ERGEBNIS IST y.

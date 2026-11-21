@@ -1,5 +1,5 @@
 模块 parity.syntax.letBeIdeographicSpaceZh。
 
-规则 f 给定 x 作为 整数，产出 整数：
-　 令　total	定义为　x。
-  返回 total。
+规则 求和 给定 数值 作为 整数，产出 整数：
+　 令　合计	定义为　数值。
+  返回 合计。

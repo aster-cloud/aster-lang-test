@@ -1,0 +1,11 @@
+Module parity.syntax.possessiveEn.
+
+Define Engine with power as Int.
+
+Define Car with engine as Engine, seats as Int.
+
+Rule seats given car as Car, produce Int:
+  Return car's seats.
+
+Rule power given car as Car, produce Int:
+  The result is car's engine's power.

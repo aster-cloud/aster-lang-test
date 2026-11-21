@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "规则头没有逗号就换行再写 produce（aster-lang-ts#357 第 3 行，ADR 0056 修订 A4 §2）：规则头写在一行，两引擎都在换行处拒绝，且同码（换行后同列续写为 E061，缩进为 E062）。修复前 ts 报 E056「Expected . or : after return type」"
+}

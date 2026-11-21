@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "类型别名前的声明级注解（aster-lang-ts#380，Wave C 裁决 D1）：声明级注解只能写在 Rule 前，两引擎都在别名引导词处报 E056。修复前 core 接受且注解不进 Core IR（与不带注解的 IR 相同，静默无效），ts 已拒绝。标记 PII 请把注解写在字段或形参的类型上"
+}

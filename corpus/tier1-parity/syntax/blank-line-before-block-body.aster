@@ -1,0 +1,15 @@
+Module parity.syntax.blankLineBeforeBlockBody.
+
+Rule label given x as Int, produce Int:
+  Match x:
+
+    When 1,
+
+      Return 10.
+    When y, Return y.
+
+Rule twice given x as Int, produce Int:
+  Let g be function with a, produce Int:
+
+    Return a times 2.
+  Return g(x).

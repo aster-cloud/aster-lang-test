@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "The result is 之后换行。两引擎都拒绝（Wave C 裁决 D2，aster-lang-core#298）：the result is / Ergebnis ist / 结果为 之后的分隔空白只认 ASCII 空格与 tab（zh-CN 另认 U+3000），不认 VT、FF 与换行。修复前 core 的 \\s 收换行与 VT，把下一行拼进同一条 Return 而接受，ts 拒绝"
+}
