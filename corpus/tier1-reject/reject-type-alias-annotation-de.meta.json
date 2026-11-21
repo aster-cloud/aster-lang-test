@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "de-DE 本地化引导词 Typ 前的声明级注解（aster-lang-ts#380，D1）：两引擎都报 E056。修复前 core 接受"
+}

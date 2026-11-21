@@ -591,6 +591,10 @@
     "tier1-reject/reject-lowercase-map-after-comma.aster",
     "tier1-reject/reject-raw-newline-in-string.aster",
     "tier1-reject/reject-raw-newline-in-string-zh.aster",
+    "tier1-reject/reject-type-alias-annotation.aster",
+    "tier1-reject/reject-type-alias-annotation-de.aster",
+    "tier1-reject/reject-indented-top-level-declaration.aster",
+    "tier1-reject/reject-indented-top-level-declaration-after-decl.aster",
     "tier1-reject/reject-line-break-after-header-comma.aster"
   ]
 }
