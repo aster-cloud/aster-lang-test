@@ -1,0 +1,21 @@
+Module parity.workflow.blankLineBeforeBlock.
+
+Rule runSaga, produce. It performs io:
+  workflow:
+
+    step reserve:
+
+      Return ok of 1.
+    compensate:
+
+      Return ok of 10.
+
+    step charge depends on ["reserve"]:
+      Return ok of 2.
+
+    retry:
+
+      max attempts: 3.
+      backoff: linear.
+
+  .

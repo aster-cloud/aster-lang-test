@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "任何块头之后都可以先空行再写块（Wave C 裁决 D3，推广 ADR 0056 修订 A4 §2）：Match、When 分支块与 lambda 块头。修复前 Match 两引擎都拒绝，When 分支块与 lambda core 拒绝、ts 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定块头后空行不影响 Core IR"
+}

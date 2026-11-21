@@ -5,7 +5,7 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "块头冒号之后先空行再写块（ADR 0056 修订 A4 §2，aster-lang-ts#357 第 2 行）：规则体与 If / Otherwise 的块头都接受（Match 等其余块头 ts 同样不收空行，两引擎维持原状）。修复前 core 报 Unexpected newline，ts 接受",
+  "source": "块头冒号之后先空行再写块（ADR 0056 修订 A4 §2，aster-lang-ts#357 第 2 行）：规则体与 If / Otherwise 的块头都接受（其余块头见 blank-line-before-block-body，Wave C 裁决 D3）。修复前 core 报 Unexpected newline，ts 接受",
   "evalExempt": true,
   "evalExemptReason": "ir-only",
   "evalExemptDetail": "只锁定块头后空行不影响 Core IR"
