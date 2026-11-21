@@ -1,0 +1,3 @@
+Module reject.indentedTopLevel.
+
+  Type Email as Text.
