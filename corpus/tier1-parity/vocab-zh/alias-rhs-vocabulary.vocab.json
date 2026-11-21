@@ -1,0 +1,24 @@
+{
+  "id": "parity.vocab.zh-alias-rhs",
+  "name": "别名右侧写词汇类型名",
+  "locale": "zh-CN",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Driver",
+      "localized": "驾驶员",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "age",
+      "localized": "年龄",
+      "kind": "field",
+      "parent": "Driver"
+    }
+  ],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}

@@ -1,0 +1,14 @@
+{
+  "entry": "年龄值",
+  "cases": [
+    {
+      "name": "经别名取年龄",
+      "input": [
+        {
+          "age": 42
+        }
+      ],
+      "expectedOutput": 42
+    }
+  ]
+}

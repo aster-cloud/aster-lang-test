@@ -1,0 +1,17 @@
+{
+  "id": "parity.vocab.e800-alias-rhs-unknown",
+  "name": "别名右侧是未知类型名",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Driver",
+      "localized": "Fahrer",
+      "kind": "struct"
+    }
+  ],
+  "fields": [],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}
