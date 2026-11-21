@@ -1,0 +1,4 @@
+Modul ablehnen.strukturwortname.
+
+Regel f gegeben wenn als Ganzzahl, liefert Ganzzahl:
+  gib zurueck 1.

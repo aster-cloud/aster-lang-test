@@ -1,0 +1,6 @@
+Modul beispiel.schluesselwortname.
+
+Definiere Antrag mit erlauben als Ganzzahl, gleich als Ganzzahl.
+
+Regel summe gegeben a als Antrag, liefert Ganzzahl:
+  gib zurueck a.erlauben plus a.gleich.

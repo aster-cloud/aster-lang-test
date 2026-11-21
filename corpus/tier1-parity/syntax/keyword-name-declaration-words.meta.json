@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "声明与约束用词当名字（ADR 0056 修订 A6 K2）：version / type / given / module / be / required / between 作字段名、成员访问与形参（变量引用）两引擎都接受；修复前 core 在成员访问、变量引用与 given / module / be 字段处报语法错误、ts 接受"
+}

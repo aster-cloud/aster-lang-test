@@ -1,0 +1,22 @@
+{
+  "entry": "total",
+  "cases": [
+    {
+      "name": "en: 声明用词作字段与形参",
+      "input": [
+        {
+          "__type": "Software",
+          "version": 1,
+          "type": 2,
+          "given": 3,
+          "module": 4,
+          "be": 5,
+          "required": 6,
+          "between": 7
+        },
+        10
+      ],
+      "expectedOutput": 38
+    }
+  ]
+}

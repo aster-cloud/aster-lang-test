@@ -1,0 +1,6 @@
+Module sample.keywordNames.
+
+Define Software with version as Int, type as Int, given as Int, module as Int, be as Int, required as Int, between as Int.
+
+Rule total given s as Software, type as Int, produce Int:
+  Return s.version + s.type + s.given + s.module + s.be + s.required + s.between + type.

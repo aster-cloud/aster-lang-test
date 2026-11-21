@@ -1,0 +1,6 @@
+模块 sample.keywordNamesZh。
+
+定义 Software 包含 版本 作为 整数，允许 作为 整数。
+
+规则 total 给定 s 作为 Software，产出 整数：
+  返回 s.版本 加上 s.允许。

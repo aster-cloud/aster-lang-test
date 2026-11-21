@@ -1,0 +1,16 @@
+{
+  "entry": "get",
+  "cases": [
+    {
+      "name": "hi-IN: 运行时键是关键词的英文拼写",
+      "input": [
+        {
+          "__type": "Software",
+          "allow": 7,
+          "in": 1
+        }
+      ],
+      "expectedOutput": 7
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "entry": "summe",
+  "cases": [
+    {
+      "name": "de-DE: 运行时键是关键词的英文拼写",
+      "input": [
+        {
+          "__type": "Antrag",
+          "allow": 1,
+          "be": 2
+        }
+      ],
+      "expectedOutput": 3
+    }
+  ]
+}
