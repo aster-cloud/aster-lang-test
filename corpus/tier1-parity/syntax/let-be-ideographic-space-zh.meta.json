@@ -5,7 +5,7 @@
     "ts"
   ],
   "lexicon": "zh-CN",
-  "source": "zh-CN 的 令 X 定义为 Y 里，全角空格 U+3000 与制表符照常是空白（aster-lang-locales#143）：core 的 ChineseLetBeTransformer 收紧到 [ \\t\\u3000] 后仍须接受",
+  "source": "zh-CN 的 令 X 定义为 Y 里，全角空格 U+3000 与制表符照常是空白（aster-lang-locales#143）：core 的 ChineseLetBeTransformer 收紧到 [ \\t\\u3000] 后仍须接受；规则名与变量名用汉字（aster-lang-test#226 m-2）",
   "evalExempt": true,
   "evalExemptReason": "ir-only",
   "evalExemptDetail": "只锁定 Let 绑定的 Core IR"
