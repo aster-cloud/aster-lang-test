@@ -1,0 +1,18 @@
+Module parity.syntax.resultIsEn.
+
+Rule sign given x as Int, produce Int:
+  If x is greater than 0:
+    The result is 1.
+  If x is less than 0:
+		the result is	2.
+  THE RESULT IS 0.
+
+Rule label given x as Int, produce Int:
+  Match x:
+    When 1, the result is 10.
+    When 2,The Result Is 20.
+    When y,
+      the result is y.
+
+Rule echo, produce Text:
+  The result is "The result is kept".
