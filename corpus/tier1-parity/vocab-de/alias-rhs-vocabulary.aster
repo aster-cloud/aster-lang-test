@@ -1,0 +1,10 @@
+Modul versicherung.alias.
+
+Definiere Fahrer hat alter als Ganzzahl.
+
+Typ Lenker als Fahrer.
+
+Typ VielleichtLenker als vielleicht Lenker.
+
+Regel alterVon gegeben l als Lenker, liefert Ganzzahl:
+  gib zurueck l.alter.

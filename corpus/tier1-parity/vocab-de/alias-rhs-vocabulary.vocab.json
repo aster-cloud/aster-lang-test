@@ -1,0 +1,24 @@
+{
+  "id": "parity.vocab.de-alias-rhs",
+  "name": "别名右侧写词汇类型名",
+  "locale": "de-DE",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Driver",
+      "localized": "Fahrer",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "age",
+      "localized": "alter",
+      "kind": "field",
+      "parent": "Driver"
+    }
+  ],
+  "functions": [],
+  "enumValues": [],
+  "literals": []
+}
