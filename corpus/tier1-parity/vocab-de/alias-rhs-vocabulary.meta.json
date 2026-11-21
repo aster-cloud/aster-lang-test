@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "类型别名右侧写词汇里的本地类型名（ADR 0051 修订 1，aster-lang-test#174 第 5 项）：别名右侧在 TYPE 位置解析，Fahrer 经词汇解析为规范名 Driver，vielleicht Lenker 递归解析到另一个别名；修复前右侧不解析"
+}

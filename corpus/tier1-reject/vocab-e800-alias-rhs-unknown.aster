@@ -1,0 +1,8 @@
+Modul versicherung.aliasunbekannt.
+
+Definiere Fahrer hat alter als Ganzzahl.
+
+Typ Lenker als Lieferant.
+
+Regel f gegeben x als Ganzzahl, liefert Ganzzahl:
+  gib zurueck x.

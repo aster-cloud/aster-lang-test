@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "expect": "reject",
+  "expectCode": "E800",
+  "source": "ADR 0051 修订 1（aster-lang-test#174 第 5 项）：别名右侧在 TYPE 位置解析，Lieferant 既不是声明也不在词汇里 → E800（UNRESOLVED_TYPE）。修复前两引擎都静默接受"
+}
