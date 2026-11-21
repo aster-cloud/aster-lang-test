@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.8.0
+
+### 新增（Wave C，#252）
+
+- tier1 parity 样本：`syntax/result-is-en`、`syntax/result-is-de`、`syntax/possessive-en`（en-US / de-DE 的 `result-is` 与
+  `english-possessive`，aster-lang-core#298，Wave C 裁决 D2）；`syntax/blank-line-before-block-body`、
+  `workflow/workflow-blank-line-before-block`（任何块头之后可先空行，裁决 D3）；带词汇的 `vocab-de/alias-rhs-vocabulary`、
+  `vocab-zh/alias-rhs-vocabulary`（类型别名右侧写词汇本地类型名，ADR 0051 修订 1，#174 第 5 项），各带 eval case。
+- tier1 必拒样本：`reject-indented-top-level-declaration`、`reject-indented-top-level-declaration-after-decl`（裁决 D1）、
+  `reject-type-alias-annotation`、`reject-type-alias-annotation-de`（类型别名前的声明级注解 E056）、`reject-result-is-newline`、
+  `reject-result-is-newline-de`、`reject-result-is-newline-zh`、`reject-result-is-vertical-tab`（裁决 D2）、`reject-return-newline`、
+  `reject-rule-header-newline-no-comma`、`reject-rule-name-newline`（aster-lang-ts#357 第 3 行，裁决 D4）、
+  `vocab-e800-alias-rhs-unknown`（E800）。
+
+### 变更
+
+- `syntax/ideographic-space-zh`、`syntax/let-be-ideographic-space-zh` 改用汉字规则名与变量名（#226 m-2：U+3000 与 CJK 标识符同在
+  一份源码里），期望不变；`syntax/blank-line-after-block-header` 只改 meta 说明。`tier1-parity/manifest.json` 只追加条目并刷新
+  `basedOnEquivalence.history`。无删除。这些样本的期望依赖 aster-lang-core 1.0.55 与 aster-lang-ts 3.7.0。包入口 API 无变化。
+
 ## 2.7.0
 
 ### 新增
