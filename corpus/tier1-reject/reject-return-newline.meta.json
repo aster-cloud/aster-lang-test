@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "Return 与返回值之间换行（aster-lang-ts#357 第 3 行，Wave C 裁决 D4）：语句中间不能换行，两引擎都在 Return 处报 E063。修复前 ts 在换行处报 E064"
+}

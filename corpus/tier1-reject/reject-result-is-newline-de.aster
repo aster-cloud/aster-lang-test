@@ -1,0 +1,5 @@
+Modul reject.resultIsNewlineDe.
+
+Regel f gegeben x als Ganzzahl, liefert Ganzzahl:
+  Ergebnis ist
+  x.

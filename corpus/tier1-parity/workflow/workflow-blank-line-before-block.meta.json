@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "workflow / step / compensate / retry 块头之后先空行再写块（Wave C 裁决 D3）。修复前 workflow 与 retry 两引擎都拒绝，step 与 compensate core 拒绝、ts 接受",
+  "evalExempt": true,
+  "evalExemptReason": "effects",
+  "evalExemptDetail": "workflow 声明 It performs io：副作用推断 / 强制属编译期关注，运行时无确定性输出可作 golden"
+}

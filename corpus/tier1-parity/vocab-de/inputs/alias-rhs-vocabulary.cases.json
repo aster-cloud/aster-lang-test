@@ -1,0 +1,14 @@
+{
+  "entry": "alterVon",
+  "cases": [
+    {
+      "name": "alter-ueber-alias",
+      "input": [
+        {
+          "age": 42
+        }
+      ],
+      "expectedOutput": 42
+    }
+  ]
+}

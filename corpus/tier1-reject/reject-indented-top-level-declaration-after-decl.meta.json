@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "已有顶层声明之后再缩进的声明（aster-lang-ts#380，D1）：两引擎都在缩进处报 E052（缩进过深）。修复前 ts 接受，core 拒绝"
+}

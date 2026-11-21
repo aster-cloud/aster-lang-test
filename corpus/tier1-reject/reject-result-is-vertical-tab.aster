@@ -1,0 +1,4 @@
+Module reject.resultIsVerticalTab.
+
+Rule f given x as Int, produce Int:
+  The result isx.

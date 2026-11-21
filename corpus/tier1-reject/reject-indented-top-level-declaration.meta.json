@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "缩进的顶层声明（aster-lang-ts#380，Wave C 裁决 D1）：顶层声明从行首写起，模块头之后第一条声明缩进时两引擎都在缩进处报 E063。修复前 ts 跳过顶层缩进而接受，core 拒绝"
+}

@@ -337,13 +337,22 @@
     "tier1-parity/syntax/corner-quote-in-string-zh.aster",
     "tier1-parity/syntax/let-be-ideographic-space-zh.aster",
     "tier1-parity/syntax/result-is-zh.aster",
+    "tier1-parity/syntax/result-is-en.aster",
+    "tier1-parity/syntax/result-is-de.aster",
+    "tier1-parity/syntax/possessive-en.aster",
     "tier1-parity/syntax/blank-line-after-block-header.aster",
+    "tier1-parity/syntax/blank-line-before-block-body.aster",
     "tier1-parity/syntax/function-syntax-whitespace-zh.aster",
     "tier1-parity/types/inferred-field-constraints.aster",
     "tier1-parity/workflow/workflow-bare-io-capability.aster",
+    "tier1-parity/workflow/workflow-blank-line-before-block.aster",
     "tier1-parity/workflow/workflow-compensate.aster",
     "tier1-parity/workflow/workflow-multistep.aster",
     "tier1-parity/workflow/workflow-single-step.aster",
+    {
+      "path": "tier1-parity/vocab-de/alias-rhs-vocabulary.aster",
+      "vocab": true
+    },
     {
       "path": "tier1-parity/vocab-de/case-only-fields.aster",
       "vocab": true
@@ -445,6 +454,10 @@
       "vocab": true
     },
     {
+      "path": "tier1-parity/vocab-zh/alias-rhs-vocabulary.aster",
+      "vocab": true
+    },
+    {
       "path": "tier1-parity/vocab-zh/enum-variant-v2.aster",
       "vocab": true
     },
@@ -520,6 +533,9 @@
     "tier1-reject/reject-rule-header-newline-after-comma.aster",
     "tier1-reject/reject-rule-header-given-multiline.aster",
     "tier1-reject/reject-rule-header-effect-next-line.aster",
+    "tier1-reject/reject-rule-header-newline-no-comma.aster",
+    "tier1-reject/reject-rule-name-newline.aster",
+    "tier1-reject/reject-return-newline.aster",
     "tier1-reject/reject-is-enum-comparison.aster",
     "tier1-reject/reject-not-call-bare-equals.aster",
     "tier1-reject/reject-type-list-ambiguous-comma.aster",
@@ -563,6 +579,10 @@
       "path": "tier1-reject/vocab-e807-duplicate-declaration.aster",
       "vocab": true
     },
+    {
+      "path": "tier1-reject/vocab-e800-alias-rhs-unknown.aster",
+      "vocab": true
+    },
     "tier1-reject/reject-whitespace-nbsp-only.aster",
     "tier1-reject/reject-whitespace-ideographic-space-only.aster",
     "tier1-reject/reject-whitespace-nbsp-between-tokens.aster",
@@ -586,11 +606,19 @@
     "tier1-reject/reject-whitespace-em-space-after-paren-zh.aster",
     "tier1-reject/reject-whitespace-nbsp-after-result-is-zh.aster",
     "tier1-reject/reject-whitespace-em-space-after-result-is-zh.aster",
+    "tier1-reject/reject-result-is-newline.aster",
+    "tier1-reject/reject-result-is-vertical-tab.aster",
+    "tier1-reject/reject-result-is-newline-de.aster",
+    "tier1-reject/reject-result-is-newline-zh.aster",
     "tier1-reject/reject-bare-lowercase-type.aster",
     "tier1-reject/reject-lowercase-generic-after-comma.aster",
     "tier1-reject/reject-lowercase-map-after-comma.aster",
     "tier1-reject/reject-raw-newline-in-string.aster",
     "tier1-reject/reject-raw-newline-in-string-zh.aster",
+    "tier1-reject/reject-type-alias-annotation.aster",
+    "tier1-reject/reject-type-alias-annotation-de.aster",
+    "tier1-reject/reject-indented-top-level-declaration.aster",
+    "tier1-reject/reject-indented-top-level-declaration-after-decl.aster",
     "tier1-reject/reject-line-break-after-header-comma.aster"
   ]
 }
