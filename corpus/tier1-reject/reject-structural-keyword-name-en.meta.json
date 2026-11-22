@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "结构关键词的规范拼写当字段名（ADR 0056 修订 A6 K1）：两引擎都报 E901；修复前 core 经软关键字收作名字 Return、ts 报 E055。小写 return 不是规范拼写，照旧是名字"
+}

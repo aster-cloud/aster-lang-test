@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "结构关键词当形参名（ADR 0056 修订 A6 K1）：wenn 规范化为 If，两引擎都报 E901；修复前 core 静默改名为 If、ts 报 E055"
+}

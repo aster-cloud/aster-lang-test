@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "hi-IN",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "结构关键词当字段名（ADR 0056 修订 A6 K1）：जब 规范化为 When，两引擎都报 E901；修复前 core 静默改名为 When、ts 报 E055"
+}

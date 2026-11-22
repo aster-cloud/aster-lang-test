@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "hi-IN",
+  "source": "关键词当名字（ADR 0056 修订 A6 K3）：hi 字段 अनुमति / में 是内置关键词的本地化拼写，两引擎都按英文拼写取名（allow / in）并各报 W802"
+}

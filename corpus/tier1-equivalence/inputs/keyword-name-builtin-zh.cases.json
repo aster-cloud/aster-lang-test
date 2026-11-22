@@ -1,0 +1,16 @@
+{
+  "entry": "total",
+  "cases": [
+    {
+      "name": "zh-CN: 运行时键是关键词的英文拼写",
+      "input": [
+        {
+          "__type": "Software",
+          "version": 2,
+          "allow": 3
+        }
+      ],
+      "expectedOutput": 5
+    }
+  ]
+}
