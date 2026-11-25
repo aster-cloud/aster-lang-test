@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "hi-IN",
+  "source": "名字转义（ADR 0064 §4）：hi 字段 `अनुमति`（ALLOW）与 `जब`（WHEN）。转义段不翻译，IR 名字原样保留"
+}

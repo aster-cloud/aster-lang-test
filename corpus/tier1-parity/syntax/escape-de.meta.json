@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "名字转义（ADR 0064 §4）：de 字段 `wenn`（结构关键词）、`bei`（结构关键词）、`erlauben`（内置关键词 ALLOW）。转义段不翻译，IR 名字原样保留"
+}
