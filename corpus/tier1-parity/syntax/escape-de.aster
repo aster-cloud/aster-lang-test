@@ -1,0 +1,6 @@
+Modul beispiel.escapeDe.
+
+Definiere Antrag mit `wenn` als Ganzzahl, `bei` als Ganzzahl, `erlauben` als Ganzzahl.
+
+Regel summe gegeben a als Antrag, liefert Ganzzahl:
+  gib zurueck a.`wenn` plus a.`bei` plus a.`erlauben`.

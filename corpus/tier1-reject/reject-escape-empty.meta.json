@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "空的名字转义（ADR 0064 N1a）：两个反引号之间没有内容，两引擎都报 E902 reason=empty"
+}

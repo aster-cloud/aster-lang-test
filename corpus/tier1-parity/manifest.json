@@ -496,7 +496,11 @@
     "tier1-parity/syntax/keyword-name-builtin-zh.aster",
     "tier1-parity/syntax/keyword-name-builtin-de.aster",
     "tier1-parity/syntax/keyword-name-builtin-hi.aster",
-    "tier1-parity/syntax/keyword-name-declaration-words.aster"
+    "tier1-parity/syntax/keyword-name-declaration-words.aster",
+    "tier1-parity/syntax/escape-en.aster",
+    "tier1-parity/syntax/escape-zh.aster",
+    "tier1-parity/syntax/escape-de.aster",
+    "tier1-parity/syntax/escape-hi.aster"
   ],
   "_vocabComment": "ADR 0051 §8: entries written as {\"path\", \"vocab\": true} carry a sibling <case>.vocab.json (DomainVocabulary JSON) passed to BOTH engines in parse/ir/eval. Vocabulary samples live under tier1-parity/vocab-<locale>/ with their .cases.json beside them; vocabulary must-reject samples live in tier1-reject/ and declare meta.expectCode (both engines must reject in name resolution with the same error codes). See scripts/lib/vocab-corpus.mjs.",
   "_mustRejectComment": "Inverse contract: samples under tier1-reject/ that BOTH engines must reject with a parse error (meta.expect=reject, optional meta.expectErrorLine). Parse mode only; excluded from ir/eval and from the eval-exemption counts. See corpus/tier1-parity/README.md.",
@@ -627,6 +631,10 @@
     "tier1-reject/reject-structural-keyword-name-zh.aster",
     "tier1-reject/reject-structural-keyword-name-de.aster",
     "tier1-reject/reject-structural-keyword-name-hi.aster",
-    "tier1-reject/reject-structural-keyword-name-en.aster"
+    "tier1-reject/reject-structural-keyword-name-en.aster",
+    "tier1-reject/reject-escape-unterminated.aster",
+    "tier1-reject/reject-escape-empty.aster",
+    "tier1-reject/reject-escape-invalid-char.aster",
+    "tier1-reject/reject-escape-fullwidth.aster"
   ]
 }

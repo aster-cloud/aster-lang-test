@@ -1,0 +1,18 @@
+{
+  "entry": "total",
+  "cases": [
+    {
+      "name": "en: 转义名作字段、形参与 Let 名",
+      "input": [
+        {
+          "__type": "Software",
+          "version": 1,
+          "type": 2,
+          "given": 3
+        },
+        10
+      ],
+      "expectedOutput": 16
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "entry": "get",
+  "cases": [
+    {
+      "name": "hi: 转义名作字段",
+      "input": [
+        {
+          "__type": "Software",
+          "अनुमति": 7,
+          "जब": 1
+        }
+      ],
+      "expectedOutput": 8
+    }
+  ]
+}
