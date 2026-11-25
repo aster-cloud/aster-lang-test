@@ -30,7 +30,7 @@ CLI 行为定死为可执行的字节：两个 `aster` CLI（Node T2–T5、JVM 
 | `tamper/test-time.json` | 体积类夹具的生成配方（几十 MiB，不入库，由 CLI 测试运行时生成） | 生成 |
 | `inputs-invalid/cases.json` | `INPUT_INVALID` 夹具（作用于黄金包） | 生成 |
 | `compile/` | `compile` 子命令夹具：源码与 aliasSet / 词汇文件、`cases.json`（见「compile」） | 生成（源码类期望由 `--capture-compile` 按 InProcessCnlParser 解析 + 降级序列 采集） |
-| `src/` | 生成器的输入：源码、`fixture.json`、采集的平台 IR（`platform-core.json`）与期望值（`expected.json`）、篡改与非法输入定义；`src/display/` 为 1.1 黄金包（另有 `layout.json` 与 `displays/*.txt`） | 手写 + `--capture` |
+| `src/` | 生成器的输入：源码、`fixture.json`、采集的平台 IR（`platform-core.json`）与期望值（`expected.json`）、篡改与非法输入定义；`src/display/` 为 1.1 黄金包（另有 `layout.json` 与 `displays/*.txt`）与 `pending-ts-release.json` | 手写 + `--capture` |
 
 跨 CLI 一致性门（T11，CI job 与 required status check 均为 `package-conformance`，PR-blocking）：
 
@@ -463,7 +463,7 @@ entry（`--entry` 或 manifest 缺省入口，须存在于**派生模块**，`EN
 从 entry 阶段起（含 `ENTRY_NOT_FOUND`、`INPUT_INVALID`、求值结果）`entry` 为所选入口、`irRecompiled:true`、`display:{"canonicalSha256":sha256(C′ 的 UTF-8),"matchesPackage":positionFreeSha256(IR(C′)) == manifest.coreIr.positionFreeSha256}`。
 `signed` 只表示包的签名已核验。求值之前 stderr 先打印一行「正在运行由显示文本派生的程序，不在包签名覆盖之内」，再原样打印 C′。
 
-**引擎复算**：`--verify-engines` 对全部 display 夹具做引擎复算（编译、L8 / L9 / L10、`matchesPackage`、求值），要求所用 ts 支持包格式 1.1 与名字转义（≥ 3.8.0）。
+**引擎复算**：`--verify-engines` 对 display 夹具做引擎复算（编译、L8 / L9 / L10、`matchesPackage`、求值），要求所用 ts 支持包格式 1.1；名字转义与 L10 的夹具还要求 ts ≥ 3.8.0。**pendingTsRelease**：`src/display/pending-ts-release.json` 列出的条目在 ts < `tsNext` 时跳过引擎复算，ts ≥ `tsNext` 时清单非空即失败（列车 eco-1.0.56 发布后把 CI 固定版本升到 `tsNext` 并清空清单）。本地用同名分支的未发布 ts 时加 `--assume-ts-display` 强制复算。
 T1 期间的 `pendingTsRelease` 跳过清单与本地开关 `--assume-ts-display` 已随列车 eco-1.0.53（T5 Step 4）删除。
 
 ## 黄金包一览
