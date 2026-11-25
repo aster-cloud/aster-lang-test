@@ -32,7 +32,7 @@ const QUOTES = /["“”「」『』]/u;
 const IDENT = /[\p{L}\p{M}\p{Nd}_]/u;
 const DIGIT = /\p{Nd}/u;
 
-/** 规则失败：rule 为 'L1'…'L9'，message 只用于诊断（不跨实现比较）。 */
+/** 规则失败：rule 为 'L1'…'L9'、'L10a'、'L10b'，message 只用于诊断（不跨实现比较）。 */
 export class DisplayRuleError extends Error {
   constructor(rule, message) {
     super(`${rule}: ${message}`);
@@ -342,15 +342,70 @@ export function checkPackageLayout({ layoutBytes, displayBytes, source, layoutVe
   checkContentParity(layout);
   checkStructuralValues(layout, vocabularyLocalized, literalKeywords);
   checkOperators(layout, operatorSpellings);
+  hiddenEscapeTriples(layout);
   return layout;
 }
 
-/** 派生排版 L'（run --display / show --from-display）：L2、L5、L6、L7。 */
+/** 派生排版 L'（run --display / show --from-display）：L2、L5、L6、L7 与 L10a（L10b 要编译，在调用方）。 */
 export function checkDerivedLayout(layout, vocabularyLocalized, literalKeywords, operatorSpellings) {
   checkLimits(layout, toCanonical(layout));
   checkContentParity(layout);
   checkStructuralValues(layout, vocabularyLocalized, literalKeywords);
   checkOperators(layout, operatorSpellings);
+  hiddenEscapeTriples(layout);
+}
+
+// ---------------------------------------------------------------------------
+// L10 隐藏转义符（ADR 0059 修订 5）：参照实现只做不编译的部分（L10a、C⁻(S)、L9 的内侧边界豁免）
+// ---------------------------------------------------------------------------
+export const MAX_HIDDEN_ESCAPES = 4;
+const ESCAPE_CONTENT = /^[\p{L}\p{M}\p{Nd}_]+$/u;
+const isDelimiter = (s) => !isContent(s) && s.canonical === '`' && s.display === '';
+
+/**
+ * L10a：任何结构 span 的 display 不含反引号；canonical 含反引号的结构 span 恰为 {"`",""}，从左到右配成
+ * 「反引号结构 span、内容 span、反引号结构 span」三元组；内容全由 [\p{L}\p{M}\p{Nd}_] 组成；至多 4 个。
+ * 返回 [{ spanIndex, name, openOffset, closeOffset }]（偏移为 UTF-16）。
+ */
+export function hiddenEscapeTriples(layout) {
+  const spans = layout.spans;
+  const out = [];
+  let at = 0;
+  for (let i = 0; i < spans.length; i++) {
+    const s = spans[i];
+    if (!isContent(s)) {
+      if (s.display.includes('`')) fail('L10a', `structural span ${i} displays a backtick`);
+      if (s.canonical.includes('`')) {
+        if (!isDelimiter(s)) fail('L10a', `backtick structural span ${i} must be exactly {"\`",""}`);
+        const content = spans[i + 1];
+        const close = spans[i + 2];
+        if (!content || !isContent(content) || !close || isContent(close) || !close.canonical.includes('`')) {
+          fail('L10a', `backtick structural span ${i} is not part of an escape triple`);
+        }
+        if (close.display.includes('`')) fail('L10a', `structural span ${i + 2} displays a backtick`);
+        if (!isDelimiter(close)) fail('L10a', `backtick structural span ${i + 2} must be exactly {"\`",""}`);
+        if (!ESCAPE_CONTENT.test(content.text)) fail('L10a', `hidden escape content of span ${i + 1} is not a single name`);
+        out.push({ spanIndex: i, name: content.text, openOffset: at, closeOffset: at + 1 + content.text.length });
+        if (out.length > MAX_HIDDEN_ESCAPES) fail('L10a', `more than ${MAX_HIDDEN_ESCAPES} hidden escapes`);
+        at += 2 + content.text.length;
+        i += 2;
+        continue;
+      }
+    }
+    at += canonicalOf(s).length;
+  }
+  return out;
+}
+
+/** C⁻(S)：删去子集 subset（第 k 位为 1 表示第 k 个三元组）里各三元组的两个反引号。 */
+export function stripHiddenEscapes(source, triples, subset) {
+  let out = source;
+  for (let k = triples.length - 1; k >= 0; k--) {
+    if ((subset & (1 << k)) === 0) continue;
+    const e = triples[k];
+    out = out.slice(0, e.openOffset) + out.slice(e.openOffset + 1, e.closeOffset) + out.slice(e.closeOffset + 1);
+  }
+  return out;
 }
 
 // ---------------------------------------------------------------------------
@@ -396,13 +451,20 @@ const isNewline = (c) => c === '\n' || c === '\r';
  */
 export function padStructuralSpans(layout) {
   const c = toCanonical(layout);
+  // 转义三元组的两个内侧边界不补空格（ADR 0059 修订 5 §2.2）；L10a 未过时照修订 4
+  let inner = new Set();
+  try {
+    inner = new Set(hiddenEscapeTriples(layout).flatMap((e) => [e.openOffset + 1, e.closeOffset]));
+  } catch (e) {
+    if (!(e instanceof DisplayRuleError)) throw e;
+  }
   const bounds = new Set();
   let at = 0;
   for (const s of layout.spans) {
     const len = canonicalOf(s).length;
     if (!isContent(s)) {
-      bounds.add(at);
-      bounds.add(at + len);
+      if (!inner.has(at)) bounds.add(at);
+      if (!inner.has(at + len)) bounds.add(at + len);
     }
     at += len;
   }

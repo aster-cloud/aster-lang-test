@@ -1,5 +1,5 @@
 {
-  "description": "显示排版的篡改夹具（ADR 0059 修订 4；派生自 display/packages/b-jingyesi，全部重新签名）。普通 run 不检查排版；verify 在 display（L1–L7）或 display-ir（L8–L9，仅 --recompile）检查项失败；show 先过 L1–L7。",
+  "description": "显示排版的篡改夹具（ADR 0059 修订 4、修订 5；派生自 display/packages/b-jingyesi 与 b-display-escape，全部重新签名）。普通 run 不检查排版；verify 在 display（L1–L7）或 display-ir（L8–L9，仅 --recompile）检查项失败；show 先过 L1–L7。",
   "requiresFormat": "1.1",
   "cases": [
     {
@@ -570,6 +570,80 @@
       "expectedStdout": "{\"error\":{\"code\":\"PKG_UNSIGNED\",\"message\":\"package is unsigned; pass --allow-unsigned to accept it\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":false},\"ok\":false}\n",
       "expectedExit": 3,
       "code": "PKG_UNSIGNED"
+    },
+    {
+      "name": "display-escape-delimiter-shown-resigned",
+      "base": "b-display-escape",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "display-escape-delimiter-shown-resigned",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"当\":7}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be39cbcc56ebb320308769233bfe83896d601b2b7e519f6af3437f6a171f31bc\",\"engine\":\"<ENGINE>\",\"entry\":\"床前\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":7}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-escape-delimiter-shown-resigned (verify)",
+      "base": "b-display-escape",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-escape-delimiter-shown-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"code\":\"PKG_DISPLAY_INVALID\",\"name\":\"display\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be39cbcc56ebb320308769233bfe83896d601b2b7e519f6af3437f6a171f31bc\",\"engine\":\"<ENGINE>\",\"entry\":\"床前\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "display-escape-delimiter-shown-resigned (verify --recompile)",
+      "base": "b-display-escape",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "display-escape-delimiter-shown-resigned",
+        "--recompile",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"code\":\"PKG_DISPLAY_INVALID\",\"name\":\"display\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be39cbcc56ebb320308769233bfe83896d601b2b7e519f6af3437f6a171f31bc\",\"engine\":\"<ENGINE>\",\"entry\":\"床前\",\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "display-escape-delimiter-shown-resigned (inspect)",
+      "base": "b-display-escape",
+      "requiresFormat": "1.1",
+      "args": [
+        "inspect",
+        "display-escape-delimiter-shown-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"inspect\":{\"display\":{\"layoutVersion\":1},\"effects\":{\"declared\":[],\"io\":false},\"governance\":{\"enforced\":false,\"factSources\":[],\"verdict\":false},\"policy\":{\"controls\":[],\"entries\":[{\"default\":true,\"function\":\"床前\",\"inputSchema\":\"#/$defs/entry.床前\",\"outputSchema\":\"#/$defs/entry.床前\"}],\"moduleName\":\"诗.床前\",\"profile\":null,\"ruleId\":null},\"runtime\":{\"cli\":{\"name\":\"@aster-cloud/aster-lang-ts\",\"version\":\"3.2.0\"},\"ecosystem\":\"1.0.49\",\"engine\":\"aster-lang-ts-interpreter\",\"requires\":{\"node\":\">=24\"}},\"schemas\":{\"input\":{\"$defs\":{\"entry.床前\":{\"additionalProperties\":false,\"properties\":{\"当\":{\"maximum\":2147483647,\"minimum\":-2147483648,\"type\":\"integer\"}},\"required\":[\"当\"],\"type\":\"object\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"诗.床前 entry inputs\"},\"output\":{\"$defs\":{\"entry.床前\":{\"type\":\"integer\"}},\"$schema\":\"https://json-schema.org/draft/2020-12/schema\",\"title\":\"诗.床前 entry outputs\"}},\"tests\":{\"nodeCheck\":null,\"probes\":1,\"probesSha256\":\"ee2ebe8d0aff54faa361f85771bb37563d4f5ada082375ef4d73167c1ae01d92\"}},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be39cbcc56ebb320308769233bfe83896d601b2b7e519f6af3437f6a171f31bc\",\"engine\":\"<ENGINE>\",\"entry\":\"床前\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "display-escape-delimiter-shown-resigned (show)",
+      "base": "b-display-escape",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "display-escape-delimiter-shown-resigned",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_DISPLAY_INVALID\",\"message\":\"package display layout is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
     }
   ]
 }

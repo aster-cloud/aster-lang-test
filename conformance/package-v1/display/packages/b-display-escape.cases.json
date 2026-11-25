@@ -1,0 +1,131 @@
+{
+  "description": "B 包，zh-CN，形参 `当`（结构关键词 WHEN）在声明与返回两处都隐藏反引号（ADR 0059 修订 5 E1 / E19 形状）：去掉任意一组反引号 当 出现在名字位置报 E901、编译失败，L10b 通过；verify --recompile 通过；show 打印不带反引号的显示文本（stderr 列出 hidden escape）；run --display 把名字改成 若 照常运行，改成会被静默改名的 版本 由派生排版的 L10b 拒绝（DISPLAY_REJECTED）。",
+  "package": "b-display-escape",
+  "requiresFormat": "1.1",
+  "cases": [
+    {
+      "name": "run",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-escape",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"当\":7}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be39cbcc56ebb320308769233bfe83896d601b2b7e519f6af3437f6a171f31bc\",\"engine\":\"<ENGINE>\",\"entry\":\"床前\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":7}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "b-display-escape",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"display\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be39cbcc56ebb320308769233bfe83896d601b2b7e519f6af3437f6a171f31bc\",\"engine\":\"<ENGINE>\",\"entry\":\"床前\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-recompile",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "b-display-escape",
+        "--recompile",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"display\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true},{\"name\":\"display-ir\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"be39cbcc56ebb320308769233bfe83896d601b2b7e519f6af3437f6a171f31bc\",\"engine\":\"<ENGINE>\",\"entry\":\"床前\",\"irRecompiled\":true,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "show",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-display-escape",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "模块 诗.床前。\n\n规则 床前 给定 当 作为 整数，产出 整数：\n  返回 当。\n\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "show-canonical",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-display-escape",
+        "--canonical",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "模块 诗.床前。\n\n规则 床前 给定 `当` 作为 整数，产出 整数：\n  返回 `当`。\n\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "run-display-unchanged",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-escape",
+        "--display",
+        "../edits/b-display-escape/unchanged.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"当\":7}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"077289c22b2605925d31f28aa8d2381a5d187e291edf8dfa2bda4ccc660e8436\",\"matchesPackage\":true},\"engine\":\"<ENGINE>\",\"entry\":\"床前\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":7}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "run-display-renamed",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-escape",
+        "--display",
+        "../edits/b-display-escape/renamed.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"若\":7}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"display\":{\"canonicalSha256\":\"ec3da683e4f17d15e59c362f6d0841ef4de81e8577555a71c1b21a9b6ea58e1d\",\"matchesPackage\":false},\"engine\":\"<ENGINE>\",\"entry\":\"床前\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":7}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "run-display-silent-rename",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-escape",
+        "--display",
+        "../edits/b-display-escape/silent-rename.txt",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"版本\":7}",
+      "expectedStdout": "{\"error\":{\"code\":\"DISPLAY_REJECTED\",\"message\":\"edited display text would hide a value from readers\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 2,
+      "code": "DISPLAY_REJECTED"
+    }
+  ]
+}

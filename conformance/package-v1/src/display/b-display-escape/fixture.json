@@ -1,0 +1,87 @@
+{
+  "description": "B 包，zh-CN，形参 `当`（结构关键词 WHEN）在声明与返回两处都隐藏反引号（ADR 0059 修订 5 E1 / E19 形状）：去掉任意一组反引号 当 出现在名字位置报 E901、编译失败，L10b 通过；verify --recompile 通过；show 打印不带反引号的显示文本（stderr 列出 hidden escape）；run --display 把名字改成 若 照常运行，改成会被静默改名的 版本 由派生排版的 L10b 拒绝（DISPLAY_REJECTED）。",
+  "mode": "b",
+  "target": "node",
+  "locale": "zh-CN",
+  "aliasSet": null,
+  "allowStructural": false,
+  "claimedRefVersion": 1,
+  "entries": [
+    {
+      "function": "床前",
+      "default": true
+    }
+  ],
+  "probes": [
+    {
+      "entry": "床前",
+      "input": {
+        "当": 7
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "run",
+      "command": "run",
+      "input": {
+        "当": 7
+      },
+      "value": "7"
+    },
+    {
+      "name": "verify",
+      "command": "verify"
+    },
+    {
+      "name": "verify-recompile",
+      "command": "verify",
+      "args": [
+        "--recompile"
+      ]
+    },
+    {
+      "name": "show",
+      "command": "show"
+    },
+    {
+      "name": "show-canonical",
+      "command": "show",
+      "args": [
+        "--canonical"
+      ]
+    },
+    {
+      "name": "run-display-unchanged",
+      "command": "run",
+      "display": "unchanged.txt",
+      "input": {
+        "当": 7
+      },
+      "value": "7",
+      "matchesPackage": true
+    },
+    {
+      "name": "run-display-renamed",
+      "command": "run",
+      "display": "renamed.txt",
+      "input": {
+        "若": 7
+      },
+      "value": "7",
+      "matchesPackage": false
+    },
+    {
+      "name": "run-display-silent-rename",
+      "command": "run",
+      "display": "silent-rename.txt",
+      "input": {
+        "版本": 7
+      },
+      "matchesPackage": false,
+      "expect": {
+        "code": "DISPLAY_REJECTED"
+      }
+    }
+  ]
+}

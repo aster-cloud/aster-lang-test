@@ -1,0 +1,1 @@
+{"v":1,"spans":[{"text":"模块 诗.版本。\n\n定义 软件 包含 "},{"canonical":"`","display":""},{"text":"版本"},{"canonical":"`","display":""},{"text":" 作为 整数。\n\n规则 取值 给定 s 作为 软件，产出 整数：\n  返回 s."},{"canonical":"`","display":""},{"text":"版本"},{"canonical":"`","display":""},{"text":"。\n"}]}

@@ -36,7 +36,8 @@ import { InputError, validateInput } from './lib/package-v1/input.mjs';
 import { parseStrictJson } from './lib/package-v1/strict-json.mjs';
 import { parseCommand, decodeSource, isBlankSource, readDisplayFile } from './lib/package-v1/argv.mjs';
 import {
-  DisplayRuleError, checkPackageLayout, irNameStrings, padStructuralSpans, reconstructFromDisplay, structuralNameHits, toCanonical,
+  DisplayRuleError, checkPackageLayout, hiddenEscapeTriples, irNameStrings, padStructuralSpans, reconstructFromDisplay, stripHiddenEscapes,
+  structuralNameHits, toCanonical,
 } from './lib/package-v1/display.mjs';
 import { ruleContext } from './lib/package-v1/display-fixtures.mjs';
 import { displayFixtures } from './lib/package-v1/display-fixtures.mjs';
@@ -1033,8 +1034,21 @@ function verifyDisplay({ ts, display, out, refOpts, loadAnchor, expect, count, e
           if (got === 'COMPILE_ERROR') expect(core === null, `${name}: ts 编译派生源码成功，夹具为 COMPILE_ERROR`);
           else if (core !== null) {
             const padded = tsCompileFiles(ts, m, new Map([...files, ['policy/policy.aster', utf8(padStructuralSpans(rec.layout))]]));
-            const rejected = structuralNameHits(rec.layout, irNameStrings(core)).length > 0 || padded === null || pfOf(padded) !== pfOf(core);
-            expect(rejected === (got === 'DISPLAY_REJECTED'), `${name}: ts 复算 L8/L9 ${rejected ? '拒绝' : '通过'}，夹具 ${got}`);
+            // L10（ADR 0059 修订 5）：派生排版的 L10a，及去掉被隐藏反引号的每个非空子集编译失败或同一 IR（L10b）
+            let triples = [];
+            let l10a = false;
+            try {
+              triples = hiddenEscapeTriples(rec.layout);
+            } catch (e) {
+              if (!(e instanceof DisplayRuleError)) throw e;
+              l10a = true;
+            }
+            const l10b = !l10a && Array.from({ length: (1 << triples.length) - 1 }, (_, k) => k + 1).some((subset) => {
+              const variant = tsCompileFiles(ts, m, new Map([...files, ['policy/policy.aster', utf8(stripHiddenEscapes(canonical, triples, subset))]]));
+              return variant !== null && pfOf(variant) !== pfOf(core);
+            });
+            const rejected = structuralNameHits(rec.layout, irNameStrings(core)).length > 0 || padded === null || pfOf(padded) !== pfOf(core) || l10a || l10b;
+            expect(rejected === (got === 'DISPLAY_REJECTED'), `${name}: ts 复算 L8/L9/L10 ${rejected ? '拒绝' : '通过'}，夹具 ${got}`);
             if (env.meta.display) expect(env.meta.display.matchesPackage === (pfOf(core) === m.coreIr.positionFreeSha256), `${name}: matchesPackage 与 ts 复算不符`);
             if (cmd === 'run' && got === null) {
               const entry = entryOfArgs(flags, m);

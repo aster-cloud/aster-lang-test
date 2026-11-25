@@ -254,7 +254,174 @@ function paddingCases() {
   return rows.map((r) => ({ id: r.id, layoutText: ser(r.layout), padded: r.padded }));
 }
 
-/** 四个向量文件的内容（generate() 写盘）。 */
+
+// ---------------------------------------------------------------------------
+// L10 隐藏转义符（ADR 0059 修订 5 §6）
+// ---------------------------------------------------------------------------
+
+/** 合并相邻内容 span、去掉空内容（规范形态）。 */
+const mergeSpans = (spans) => spans.reduce((out, s) => {
+  if ('text' in s && s.text === '') return out;
+  const last = out[out.length - 1];
+  if ('text' in s && last && 'text' in last) out[out.length - 1] = C(last.text + s.text);
+  else out.push(s);
+  return out;
+}, []);
+
+/**
+ * 把 canonical 里第 n 次出现的 `name` 做成转义三元组（hidden: [[name, n]]），structural: [[text, n, display]] 做成结构 span。
+ */
+function hide(canonical, hidden, structural = []) {
+  const nth = (text, n) => {
+    let at = -1;
+    for (let k = 0; k <= n; k++) at = canonical.indexOf(text, at + 1);
+    if (at < 0) throw new Error(`hide: 找不到第 ${n} 个 ${text}`);
+    return at;
+  };
+  const marks = [
+    ...hidden.map(([name, n]) => ({ at: nth(`\`${name}\``, n), len: name.length + 2, esc: name })),
+    ...structural.map(([text, n, display]) => ({ at: nth(text, n), len: text.length, display })),
+  ].sort((a, b) => a.at - b.at);
+  const spans = [];
+  let pos = 0;
+  for (const m of marks) {
+    spans.push(C(canonical.slice(pos, m.at)));
+    if (m.esc !== undefined) spans.push(S('`', ''), C(m.esc), S('`', ''));
+    else spans.push(S(canonical.slice(m.at, m.at + m.len), m.display));
+    pos = m.at + m.len;
+  }
+  spans.push(C(canonical.slice(pos)));
+  return { v: 1, spans: mergeSpans(spans) };
+}
+
+const ZHM = '模块 探针.样例。\n\n';
+const ENM = 'Module probe.sample.\n\n';
+const SRC = {
+  E1: `${ZHM}规则 取值 给定 \`如果\` 作为 整数，产出 整数：\n  返回 \`如果\`。\n`,
+  E2: `${ZHM}定义 软件 包含 \`版本\` 作为 整数。\n`,
+  E3: `${ENM}Rule f given \`count\` as Int, produce Int:\n  Return \`count\`.\n`,
+  E4: `${ENM}Rule f given x as Int, produce Int:\n  Let \`none\` be x.\n  Return \`none\`.\n`,
+  E5: `${ZHM}规则 甲，产出 文本：\n  令 \`思故乡\` 定义为 「床前」。\n  返回 \`思故乡\`。\n`,
+  E6: `${ZHM}规则 取值，产出 文本：\n  返回 "a\`b\`c"。\n`,
+  E8: `${ENM}Rule f given x as Int, produce Int:\n  Return \`a\`x\`b\`.\n`,
+  E9: `${ENM}Rule g given x as Int, produce Int:\n  Return x.\n\nRule f given x as Int, produce Int:\n  \`g\`(x).\n  Return x.\n`,
+  E10: `${ENM}# 床前\`当\`明月光\nRule f given x as Int, produce Int:\n  Return x.\n`,
+  E11: `${ENM}Rule f given \`x\` as Int, produce Int:\n  Return \`x\`.\n`,
+  E14: `${ZHM}规则 取值 给定 x 作为 整数，产出 整数：\n  如果 x 大于 1：\n    返回 1。\n  返回 2。\n`,
+  E16: `${ENM}Rule f given \`a\` as Int, \`b\` as Int, \`c\` as Int, \`d\` as Int, \`e\` as Int, produce Int:\n  Return a.\n`,
+  E17: `${ZHM}规则 取值 给定 \`低头\` 作为 整数，产出 整数：\n  低头 \`低头\`。\n`,
+  E18: `${ZHM}定义 软件 包含 \`版本\` 作为 整数。\n\n规则 取值 给定 s 作为 软件，产出 整数：\n  返回 s.\`版本\`。\n`,
+  E19: `${ZHM}定义 明月光 包含 长度 作为 整数。\n\n规则 床前 给定 \`当\` 作为 明月光，产出 整数：\n  返回 \`当\`.长度。\n`,
+};
+const POEM_VOCAB = {
+  id: 'probe.poem', name: '静夜思', locale: 'zh-CN', version: '1.0.0', structs: [], fields: [], functions: [], enumValues: [],
+  literals: [{ canonical: '静夜思', localized: '思故乡', kind: 'literal' }],
+};
+const E19_LAYOUT = hide(SRC.E19, [['当', 0]], [['规则 ', 0, ''], [' 给定 ', 0, ''], [' 作为 ', 1, '']]);
+
+/** 与 SRC 逐个对应的排版；E11–E16 是手工改坏的形状。 */
+function escapeLayouts() {
+  const e11 = hide(SRC.E11, [['x', 0], ['x', 1]]);
+  e11.spans[0] = C(e11.spans[0].text.slice(0, -1));
+  e11.spans[1] = S(' `', '');
+  const e13 = hide(SRC.E11, [['x', 0]]);
+  e13.spans[1] = S('`', '`');
+  const e13b = hide(SRC.E11, [['x', 0]]);
+  e13b.spans[1] = S('`', '「');
+  const strHead = `${ENM}Rule f given x as Int, produce Text:\n  Return "`;
+  return {
+    E1: hide(SRC.E1, [['如果', 0], ['如果', 1]]),
+    E2: hide(SRC.E2, [['版本', 0]]),
+    E3: hide(SRC.E3, [['count', 0], ['count', 1]]),
+    E4: hide(SRC.E4, [['none', 1]]),
+    E5: hide(SRC.E5, [['思故乡', 0], ['思故乡', 1]]),
+    E6: hide(SRC.E6, [['b', 0]]),
+    E8: { v: 1, spans: [C(`${ENM}Rule f given x as Int, produce Int:\n  Return \`a`), S('`', ''), C('x'), S('`', ''), C('b`.\n')] },
+    E9: hide(SRC.E9, [['g', 0]]),
+    E10: hide(SRC.E10, [['当', 0]]),
+    E11: e11,
+    E12: { v: 1, spans: [C(`${ENM}Rule f given `), S('`', ''), C('x` as Int, produce Int:\n  Return x.\n')] },
+    E13: e13,
+    E13b: e13b,
+    E14: hide(SRC.E14, [], [['如果', 0, '`如果`']]),
+    E15: { v: 1, spans: [C(strHead), S('`', ''), C('a.b'), S('`', ''), C('".\n')] },
+    E15b: { v: 1, spans: [C(strHead), S('`', ''), C('当 前'), S('`', ''), C('".\n')] },
+    E16: hide(SRC.E16, [['a', 0], ['b', 0], ['c', 0], ['d', 0], ['e', 0]]),
+    E17: hide(SRC.E17, [['低头', 0], ['低头', 1]]),
+    E18: hide(SRC.E18, [['版本', 1]]),
+    E19: E19_LAYOUT,
+    E20a: hide(SRC.E1, [['如果', 0], ['如果', 1]], [['返回', 0, '还给']]),
+    E20b: hide(SRC.E18, [['版本', 0], ['版本', 1]], [['返回', 0, '还给']]),
+  };
+}
+
+/** display-escape.json 的用例：expect 手写（L10a 不编译；L9、L10b 由 core / ts 用各自编译器判定）。 */
+function escapeCases() {
+  const L = escapeLayouts();
+  const firstGone = (src, name) => src.replace(`\`${name}\``, name);
+  const lastGone = (src, name) => {
+    const at = src.lastIndexOf(`\`${name}\``);
+    return src.slice(0, at) + name + src.slice(at + name.length + 2);
+  };
+  const rows = [
+    ['E1', 'zh 形参 `如果`（结构关键词）在声明与使用两处，两组都隐藏：每个子集去掉反引号后 如果 出现在名字位置报 E901，编译失败', 'zh-CN', 'ok',
+      { triples: ['如果', '如果'], stripped: [firstGone(SRC.E1, '如果'), lastGone(SRC.E1, '如果'), SRC.E1.replaceAll('`', '')] }],
+    ['E2', 'zh 字段 `版本` 隐藏：C⁻ 编译成字段 version，IR 不同', 'zh-CN', 'L10b', { triples: ['版本'] }],
+    ['E3', 'en 冗余转义 `count` 两处都隐藏：每个子集的 C⁻ 都是同一 IR', 'en-US', 'ok', { triples: ['count', 'count'] }],
+    ['E4', 'en 局部变量 `none` 的使用处隐藏：C⁻ 返回空值字面量，能编译且 IR 不同', 'en-US', 'L10b', { triples: ['none'] }],
+    ['E5', '词汇字面量 思故乡 → "静夜思"；`思故乡` 作局部变量，定义处与使用处都隐藏：子集 {使用处} 的 C⁻ 返回 "静夜思"（能编译、IR 不同），子集 {两处} 编译失败——必须穷举子集',
+      'zh-CN', 'L10b', { vocabulary: POEM_VOCAB, triples: ['思故乡', '思故乡'] }],
+    ['E6', '字符串 "a`b`c" 里把 b 两侧的反引号做成三元组：L9 在外侧边界补的空格进入字符串，值改变', 'zh-CN', 'L9', { triples: ['b'] }],
+    ['E9', '行首（缩进后）的真转义 `g` 作语句首词并隐藏：o_k 因缩进条件不补空格，C⁻ 同一 IR', 'en-US', 'ok', { triples: ['g'] }],
+    ['E10', '注释里的 `当` 隐藏：整个三元组在注释里，无害', 'en-US', 'ok', { triples: ['当'] }],
+    ['E11', '结构 span {canonical:" `", display:""}（空格与反引号合并）', 'en-US', 'L10a', {}],
+    ['E12', '只有一个反引号结构 span（不成对）', 'en-US', 'L10a', {}],
+    ['E13', '反引号结构 span 的 display 为 "`"', 'en-US', 'L10a', {}],
+    ['E13b', '反引号结构 span 的 display 为 「', 'en-US', 'L10a', {}],
+    ['E14', '结构 span {canonical:"如果", display:"`如果`"}（把关键词伪装成转义名）', 'zh-CN', 'L10a', {}],
+    ['E15', '三元组内容为 a.b（不是单个名字）', 'en-US', 'L10a', {}],
+    ['E15b', '三元组内容为 当 前（含空格）', 'en-US', 'L10a', {}],
+    ['E16', '5 个三元组', 'en-US', 'L10a', {}],
+    ['E17', 'aliasSet RETURN=低头；`低头` 作名字并隐藏，正文另有别名 低头 作关键词：C⁻ 里 低头 出现在名字位置，编译失败', 'zh-CN', 'ok',
+      { aliasSet: { RETURN: ['低头'] }, allowStructural: true, triples: ['低头', '低头'] }],
+    ['E18', '限定名 s.`版本` 只隐藏成员这一段：C⁻ 的 s.版本 读作 s.version，字段 版本 下查不到，编译失败（实测；ADR 表中的「拒绝」对应 E20b 的两处都隐藏）',
+      'zh-CN', 'ok', { triples: ['版本'] }],
+    ['E19', '隐藏空格与隐藏反引号相邻（床前 `当` 明月光 的诗句排版）：它们是独立的结构 span，L9 只免去内侧边界', 'zh-CN', 'ok', { triples: ['当'] }],
+    ['E20a', '两个三元组都隐藏，另有结构 span {返回 → 还给} 紧邻第二个三元组：三个子集都编译失败', 'zh-CN', 'ok', { triples: ['如果', '如果'] }],
+    ['E20b', '字段声明与访问两处 `版本` 都隐藏，结构 span 同 E20a：子集 {两处} 的 C⁻ 编译通过、字段与访问都成了 version，IR 不同', 'zh-CN', 'L10b',
+      { triples: ['版本', '版本'] }],
+  ];
+  return rows.map(([id, intent, lexicon, expect, extra]) => ({ id, intent, lexicon, layoutText: ser(L[id]), ...extra, expect }));
+}
+
+/** L9 补空格：转义三元组的内侧边界不补（padded 手写）。 */
+function escapePaddingCases() {
+  const L = escapeLayouts();
+  return [
+    { id: 'escape-E1', layout: L.E1, padded: `${ZHM}规则 取值 给定  \`如果\`  作为 整数，产出 整数：\n  返回  \`如果\` 。\n` },
+    { id: 'escape-E9', layout: L.E9, padded: `${ENM}Rule g given x as Int, produce Int:\n  Return x.\n\nRule f given x as Int, produce Int:\n  \`g\` (x).\n  Return x.\n` },
+    { id: 'escape-E19', layout: L.E19, padded: `${ZHM}定义 明月光 包含 长度 作为 整数。\n\n规则  床前  给定  \`当\`  作为  明月光，产出 整数：\n  返回 \`当\`.长度。\n` },
+    { id: 'escape-E6', layout: L.E6, padded: `${ZHM}规则 取值，产出 文本：\n  返回 "a \`b\` c"。\n` },
+    { id: 'escape-E8', layout: L.E8, padded: `${ENM}Rule f given x as Int, produce Int:\n  Return \`a \`x\` b\`.\n` },
+  ].map((r) => ({ id: r.id, layoutText: ser(r.layout), padded: r.padded }));
+}
+
+/** 反向映射：E19 的诗句形状（字符串层面，不编译）。 */
+function escapeReconstructCases() {
+  const layout = { v: 1, spans: [C('床前'), S(' ', ''), S('`', ''), C('当'), S('`', ''), S(' ', ''), C('明月光')] };
+  const rows = [
+    ['escape-R1', '床前当明月光', 'unique', '床前 `当` 明月光'],
+    ['escape-R2', '床前若明月光', 'unique', '床前 `若` 明月光'],
+    ['escape-R3', '床前当当明月光', 'ambiguous'],
+    ['escape-R4', '床后若明月照', 'unmappable'],
+    ['escape-R5', '床前甲 乙明月光', 'unique', '床前 `甲 乙` 明月光'],
+    ['escape-R6', '床前版本明月光', 'unique', '床前 `版本` 明月光'],
+    ['escape-R7', '床前明月光', 'unmappable'],
+  ];
+  return rows.map(([id, edited, expect, canonical]) => ({ id, layoutText: ser(layout), edited, expect, ...(canonical !== undefined ? { canonical } : {}) }));
+}
+
+/** 五个向量文件的内容（generate() 写盘）。 */
 export function displayVectors() {
   return {
     'vectors/layout.json': {
@@ -265,13 +432,18 @@ export function displayVectors() {
     'vectors/display-reconstruct.json': {
       description: '反向映射向量（ADR 0059 修订 4 D7）：edited 为已严格 UTF-8 解码、已去 BOM 的编辑后显示文本（文末换行规则由 reconstruct 处理）；expect 为 unique / unmappable / ambiguous，unique 时 canonical 为 toCanonical(L′)。performance 为配方：layout = unit 重复 units 次，edited = editUnit 重复 editRepeat 次接 editTail，各须在 2 s 内给出结论；canonicalUnit 给出时 toCanonical(L′) = canonicalUnit 重复 units 次。',
       version: 1,
-      cases: reconstructCases(),
+      cases: [...reconstructCases(), ...escapeReconstructCases()],
       performance: performanceCases(),
     },
     'vectors/display-padding.json': {
-      description: 'L9 补空格向量（ADR 0059 修订 4 §4）：padded 为 padStructuralSpans(layout) 的结果 P。',
+      description: 'L9 补空格向量（ADR 0059 修订 4 §4）：padded 为 padStructuralSpans(layout) 的结果 P。 escape-* 为隐藏转义符（ADR 0059 修订 5 §2.2）：转义三元组的两个内侧边界（开反引号之后、闭反引号之前）不补空格，外侧边界照原条件补；escape-E6（字符串里的反引号）与 escape-E8（前一个转义的闭反引号当开）补空格后编译失败或值改变，由 L9 拒绝。',
       version: 1,
-      cases: paddingCases(),
+      cases: [...paddingCases(), ...escapePaddingCases()],
+    },
+    'vectors/display-escape.json': {
+      description: 'L10 隐藏转义符向量（ADR 0059 修订 5 §6）：layoutText 为 policy/display/layout.json 的 UTF-8 文本，规范源码为其 toCanonical；lexicon / aliasSet / allowStructural / vocabulary 是编译输入。expect 为 ok 或第一条失败的规则：L10a（形状，不编译）、L9（补空格后编译失败或投影哈希改变）、L10b（某个非空子集去掉反引号后编译成另一个程序）；按 L1–L7、L10a、L8–L9、L10b 的次序判定。triples 为 L10a 通过时各三元组的名字（按出现顺序），stripped 给出时第 k 项为子集 {k}（k < 三元组数）与全部去掉的 C⁻(S)。参照实现只判 L10a 与 C⁻(S)，L9 / L10b 由 core 与 ts 用各自的编译器判定。E7（跨行字符串）不再适用：两引擎的字符串都不得跨行（#357）；E8 只能以补空格向量覆盖（见 display-padding.json）；E21 测的是显示面给出切分与标记，由包一致性（show 的 stderr）覆盖。',
+      version: 1,
+      cases: escapeCases(),
     },
     'vectors/keyword-spellings.json': KEYWORD_SPELLINGS,
   };
