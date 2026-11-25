@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "名字转义含非法字符（ADR 0064 N1a）：转义内容只能是一个标识符词素，`a.b` 的 . 报 E902 reason=invalid_char char='.'；限定名写作 `a`.`b`"
+}

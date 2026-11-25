@@ -1,0 +1,9 @@
+Module sample.escapeEn.
+
+Define Software with `version` as Int, `type` as Int, `given` as Int.
+
+Define `If` as one of `Return`, Other.
+
+Rule total given s as Software, `if` as Int, produce Int:
+  Let `return` be s.`version` plus s.type plus `if`.
+  Return `return` plus s.`given`.

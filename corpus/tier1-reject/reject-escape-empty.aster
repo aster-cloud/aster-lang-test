@@ -1,0 +1,4 @@
+Module reject.escapeEmpty.
+
+Rule f given x as Int, produce Int:
+  Return ``.

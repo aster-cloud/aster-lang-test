@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "名字转义（ADR 0064 §3）：`version` / `type` / `given` 作字段，`If` 作类型名、`Return` 作枚举成员（不报 E901），`if` 作形参、`return` 作 Let 名；成员访问 s.`version`。转义名永远是名字，IR 名字是转义内容本身"
+}
