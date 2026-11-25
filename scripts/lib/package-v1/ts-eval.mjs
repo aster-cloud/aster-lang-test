@@ -5,6 +5,9 @@
  *
  * 生成器的调用方都是同步的，所以这里用一个常驻 Worker 做同步往返：主线程 postMessage 后在共享标志上 Atomics.wait，
  * Worker 求值完把结果发到专用 MessagePort 并置位、notify，主线程再用 receiveMessageOnPort 取回。Worker 只加载一次 ts。
+ *
+ * 故障：Worker 启动时先握手（加载 ts 成功或失败都立即回报），加载失败在创建时就抛出；求值抛出的异常按求值失败返回；
+ * Worker 中途退出（如超出 resourceLimits）时主线程收不到事件，只能等到 waitMs 超时，抛错并终止 Worker。
  */
 import { MessageChannel, Worker, isMainThread, parentPort, receiveMessageOnPort, workerData } from 'node:worker_threads';
 import { createRequire } from 'node:module';
@@ -14,14 +17,15 @@ import { parseValueTree, valueJson } from './value-json.mjs';
 
 /** 与 aster-lang-ts policy-package/cli.ts 的 WORKER_STACK_SIZE_MB 相同。 */
 const WORKER_STACK_SIZE_MB = 32;
-/** 单次求值的等待上限：Worker 卡死或崩溃时报错，而不是让生成器永远挂起。 */
+/** 缺省的等待上限（握手与单次求值）：Worker 卡死或退出时报错，而不是让生成器永远挂起。 */
 const WAIT_MS = 120_000;
 
 /**
- * 启动常驻求值 Worker，返回同步求值函数 `(coreJson, entry, input, maxSteps) → {ok:true,value}|{ok:false,error}`。
- * input 为 validateInput 的结果（结构化克隆传给 Worker）；value 为值规范 JSON 文本。
+ * 启动常驻求值 Worker，返回同步求值函数 `(coreJson, entry, input, maxSteps) → {ok:true,value}|{ok:false,error}`，
+ * 另带 `close()`。input 为 validateInput 的结果（结构化克隆传给 Worker）；value 为值规范 JSON 文本。
+ * ts 加载失败时在这里同步抛出。
  */
-export function createTsEvaluator(tsDir) {
+export function createTsEvaluator(tsDir, { waitMs = WAIT_MS } = {}) {
   const { port1, port2 } = new MessageChannel();
   const flag = new Int32Array(new SharedArrayBuffer(4));
   const worker = new Worker(new URL(import.meta.url), {
@@ -30,15 +34,31 @@ export function createTsEvaluator(tsDir) {
     resourceLimits: { stackSizeMb: WORKER_STACK_SIZE_MB },
   });
   worker.unref();
-  return (coreJson, entry, input, maxSteps) => {
+  const close = () => {
+    port1.close();
+    void worker.terminate();
+  };
+  const await_ = (what) => {
+    if (Atomics.wait(flag, 0, 0, waitMs) === 'timed-out') {
+      close();
+      throw new Error(`ts 求值 Worker ${waitMs} ms 内无响应（${what}；Worker 可能已退出，如超出 resourceLimits）`);
+    }
+    const reply = receiveMessageOnPort(port1)?.message;
+    if (!reply) throw new Error(`ts 求值 Worker 未返回结果（${what}）`);
+    if (reply.crash) {
+      close();
+      throw new Error(`ts 求值 Worker 出错（${what}）：${reply.crash}`);
+    }
+    return reply;
+  };
+  await_('加载 ts');
+  const evaluate = (coreJson, entry, input, maxSteps) => {
     Atomics.store(flag, 0, 0);
     worker.postMessage({ coreJson, entry, input, maxSteps });
-    if (Atomics.wait(flag, 0, 0, WAIT_MS) === 'timed-out') throw new Error(`ts 求值 Worker ${WAIT_MS} ms 内无响应（${entry}）`);
-    const reply = receiveMessageOnPort(port1)?.message;
-    if (!reply) throw new Error(`ts 求值 Worker 未返回结果（${entry}）`);
-    if (reply.crash) throw new Error(`ts 求值 Worker 出错：${reply.crash}`);
-    return reply.result;
+    return await_(entry).result;
   };
+  evaluate.close = close;
+  return evaluate;
 }
 
 /**
@@ -111,16 +131,25 @@ function evaluateOnce(ts, { coreJson, entry, input, maxSteps }) {
 
 if (!isMainThread && workerData?.tsEvalWorker) {
   const { port, flag } = workerData;
-  const ts = await loadInterpreter(workerData.tsDir);
-  parentPort.on('message', (job) => {
-    let reply;
-    try {
-      reply = { result: evaluateOnce(ts, job) };
-    } catch (e) {
-      reply = { crash: e instanceof Error ? e.stack ?? e.message : String(e) };
-    }
-    port.postMessage(reply);
+  const reply = (message) => {
+    port.postMessage(message);
     Atomics.store(flag, 0, 1);
     Atomics.notify(flag, 0);
-  });
+  };
+  let ts = null;
+  try {
+    ts = await loadInterpreter(workerData.tsDir);
+    reply({ ready: true });
+  } catch (e) {
+    reply({ crash: e instanceof Error ? e.stack ?? e.message : String(e) });
+  }
+  if (ts) {
+    parentPort.on('message', (job) => {
+      try {
+        reply({ result: evaluateOnce(ts, job) });
+      } catch (e) {
+        reply({ crash: e instanceof Error ? e.stack ?? e.message : String(e) });
+      }
+    });
+  }
 }
