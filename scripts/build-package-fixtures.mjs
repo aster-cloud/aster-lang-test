@@ -1046,6 +1046,19 @@ function verifyDisplay({ ts, display, out, refOpts, loadAnchor, expect, count, e
           const canonical = toCanonical(rec.layout);
           if (env.meta.display) expect(env.meta.display.canonicalSha256 === sha256Hex(utf8(canonical)), `${name}: canonicalSha256 与参照还原不符`);
           expect(env.meta.coreIrSha256 === null, `${name}: run --display 的 coreIrSha256 必须为 null`);
+          // 派生排版的 L10a 在编译之前（derived 阶段）：失败即 DISPLAY_REJECTED，不依赖编译器
+          let derivedL10a = false;
+          try {
+            hiddenEscapeTriples(rec.layout);
+          } catch (e) {
+            if (!(e instanceof DisplayRuleError)) throw e;
+            derivedL10a = true;
+          }
+          if (derivedL10a) {
+            expect(got === 'DISPLAY_REJECTED', `${name}: 派生排版 L10a 失败，应为 DISPLAY_REJECTED，夹具 ${got}`);
+            count();
+            continue;
+          }
           // 依赖编译器的复算：派生程序编译、L8 / L9 / L10、matchesPackage、求值
           if (pendingIds.has(name)) {
             count();

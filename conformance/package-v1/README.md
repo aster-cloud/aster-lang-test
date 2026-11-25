@@ -464,7 +464,7 @@ entry（`--entry` 或 manifest 缺省入口，须存在于**派生模块**，`EN
 `signed` 只表示包的签名已核验。求值之前 stderr 先打印一行「正在运行由显示文本派生的程序，不在包签名覆盖之内」，再原样打印 C′。
 
 **引擎复算**：`--verify-engines` 对 display 夹具做引擎复算（编译、L8 / L9 / L10、`matchesPackage`、求值），要求所用 ts 支持包格式 1.1；名字转义与 L10 的夹具还要求 ts ≥ 3.8.0。**pendingTsRelease**：`src/display/pending-ts-release.json` 列出的条目在 ts < `tsNext` 时跳过引擎复算，ts ≥ `tsNext` 时清单非空即失败（列车 eco-1.0.56 发布后把 CI 固定版本升到 `tsNext` 并清空清单）。本地用同名分支的未发布 ts 时加 `--assume-ts-display` 强制复算。
-T1 期间的 `pendingTsRelease` 跳过清单与本地开关 `--assume-ts-display` 已随列车 eco-1.0.53（T5 Step 4）删除。
+同一机制在列车 eco-1.0.53 的 T1 期间用过，T5 Step 4 删除；本列车为名字转义与 L10 重新启用。派生排版的 L10a 不依赖编译器，对清单中的条目照常检查。
 
 ## 黄金包一览
 
