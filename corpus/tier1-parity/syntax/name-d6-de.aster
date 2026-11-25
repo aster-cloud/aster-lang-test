@@ -1,0 +1,5 @@
+Modul sample.nameD6De.
+
+Regel gesamt gegeben x als Int, liefert Int:
+  sei Betrag gleich x.
+  gib zurueck Betrag.

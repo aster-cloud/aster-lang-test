@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "裁决 D6：小写结构词 if 作形参，在 `Return if.` 里是名字（后跟句点）；大写开头的 Let 名 Total、IF（不是结构关键词的规范拼写，不报 E901）"
+}
