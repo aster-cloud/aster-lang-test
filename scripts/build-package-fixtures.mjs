@@ -29,6 +29,7 @@ import {
 } from './lib/package-v1/fixtures.mjs';
 import { canonicalJson } from './lib/package-v1/canonical.mjs';
 import { parseValueTree, valueJson } from './lib/package-v1/value-json.mjs';
+import { createTsEvaluator } from './lib/package-v1/ts-eval.mjs';
 import { positionFreeTree, sha256Hex } from './lib/package-v1/position-free.mjs';
 import { publicKeyFromRaw, verifyManifest } from './lib/package-v1/signing.mjs';
 import { checkPackage } from './lib/package-v1/reference-check.mjs';
@@ -261,8 +262,8 @@ function javaCompile(cpFile, requests) {
 async function loadTs(tsDir) {
   const at = (p) => import(pathToFileURL(join(tsDir, p)).href);
   if (!existsSync(join(tsDir, 'dist/src/browser.js'))) throw new Error(`${tsDir} 未构建（缺 dist/src/browser.js）：先 pnpm install && pnpm build`);
-  const [browser, lexMod, interp, readIr, canon, tokenKind] = await Promise.all([
-    at('dist/src/browser.js'), at('dist/src/config/lexicons/index.js'), at('dist/src/core/interpreter.js'),
+  const [browser, lexMod, readIr, canon, tokenKind] = await Promise.all([
+    at('dist/src/browser.js'), at('dist/src/config/lexicons/index.js'),
     at('dist/src/core/read-core-ir.js'), at('dist/src/core/canonical-json.js'), at('dist/src/config/token-kind.js'),
   ]);
   lexMod.initializeAllBundledLexicons();
@@ -272,8 +273,8 @@ async function loadTs(tsDir) {
   return {
     compile: browser.compile,
     lexicon: (locale) => lexMod.LexiconRegistry.get(locale),
-    evaluate: interp.evaluate,
-    serializeGuestValue: interp.serializeGuestValue,
+    // 求值在与 Node CLI 同条件的 Worker 里（stackSizeMb 32、maxCallDepth 10 000，见 ts-eval.mjs）
+    evalSync: createTsEvaluator(tsDir),
     readCoreIr: readIr.readCoreIr,
     canonicalJson: canon.canonicalJson,
     isSemanticTokenKind: (k) => Object.hasOwn(tokenKind.SemanticTokenKind, k),
@@ -325,45 +326,6 @@ function tsCompile(ts, def) {
 }
 
 /**
- * 包格式输入 → ts 解释器的上下文（T3 parseInput 的职责，这里只为复算期望值）：Decimal 字符串 → decimal.js 实例；
- * Long → BigInt；Int / Double → number；List / Map / Data 递归；Maybe：null → None，否则内层值（解释器接受这两种宿主形态）；
- * Enum：变体名字符串。输入可以来自 JSON.parse（number）或 parseValueTree（BigInt）。
- */
-function tsContext(ts, input, func, ir) {
-  const datas = new Map(ir.decls.filter((d) => d.kind === 'Data').map((d) => [d.name, d]));
-  const conv = (v, type) => {
-    switch (type.kind) {
-      case 'List': return v.map((x) => conv(x, type.type));
-      case 'Map': return Object.fromEntries(Object.entries(v).map(([k, x]) => [k, conv(x, type.val)]));
-      case 'Maybe':
-      case 'Option': return v === null ? null : conv(v, type.type);
-      default: break;
-    }
-    if (type.name === 'Decimal') return new ts.Decimal(String(v));
-    if (type.name === 'Long') return BigInt(v);
-    if (type.name === 'Int' || type.name === 'Double') return Number(v);
-    const data = datas.get(type.name);
-    if (data) return Object.fromEntries(data.fields.map((f) => [f.name, conv(v[f.name], f.type)]));
-    return v;
-  };
-  return Object.fromEntries(func.params.map((p) => [p.name, conv(input[p.name], p.type)]));
-}
-
-/** ts 求值结果 → 值规范 JSON（Enum 删去 ts 多出的 "__type":"?"，VALUE-FORMS.md）。 */
-function tsValueJson(ts, value) {
-  const drop = (v) => {
-    if (Array.isArray(v)) return v.map(drop);
-    if (v !== null && typeof v === 'object') {
-      const o = {};
-      for (const [k, x] of Object.entries(v)) if (!(k === '__type' && x === '?')) o[k] = drop(x);
-      return o;
-    }
-    return v;
-  };
-  return valueJson(drop(parseValueTree(ts.serializeGuestValue(value))));
-}
-
-/**
  * 一条探针是否与期望相符（README「tests/probes.json」）：entry 必须是 manifest 中的入口、input 必须通过「输入」规则、
  * expected 必须恰为 {"ok":true,"value":V} 或 {"code":"EVAL_ERROR","ok":false}；求值以步数上限代替超时（参照实现不跑 Worker），
  * 超出即视为超时 → 不符。任何一项不满足都是 PROBE_MISMATCH。p 来自 parseValueTree（整数为 BigInt）。
@@ -389,11 +351,9 @@ function probeMatches(ts, coreJson, manifest, p) {
   return okShape ? r.ok && r.value === valueJson(e.value) : !r.ok;
 }
 
+/** 与 Node CLI 同条件求值（Worker、maxCallDepth 10 000）：{ok:true,value} 或 {ok:false,error}。 */
 function tsEval(ts, coreJson, entry, input, maxSteps = Number.MAX_SAFE_INTEGER) {
-  const ir = JSON.parse(coreJson);
-  const func = ir.decls.find((d) => d.kind === 'Func' && d.name === entry);
-  const r = ts.evaluate(ts.readCoreIr(coreJson), entry, tsContext(ts, input, func, ir), { maxSteps });
-  return r.success ? { ok: true, value: tsValueJson(ts, r.value) } : { ok: false, error: r.error };
+  return ts.evalSync(coreJson, entry, input, maxSteps);
 }
 
 async function capture() {
@@ -644,9 +604,11 @@ async function verifyEngines() {
     }
     if (c.code === 'INPUT_INVALID') expect(inputError !== null, `${name}: 参照输入校验通过了，夹具期望 INPUT_INVALID`);
     else expect(inputError === null, `${name}: 参照输入校验拒绝（${inputError}）`);
-    if (inputError === null && (c.code === null || c.code === 'EVAL_ERROR')) {
+    if (inputError === null && (c.code === null || c.code === 'EVAL_ERROR' || c.code === 'RESOURCE_EXHAUSTED')) {
       const t = tsEval(ts, JSON.stringify(ir), entry, input);
       if (c.code === null) expect(t.ok && c.expectedStdout.endsWith(`,"ok":true,"value":${t.value}}\n`), `${name}: ts 结果 ${t.value ?? t.error} ≠ 期望`);
+      // 资源耗尽只有调用深度一种能在参照里确定地复现（ADR 0063）：与 Node CLI 同条件求值须得到同一条消息
+      else if (c.code === 'RESOURCE_EXHAUSTED') expect(!t.ok && t.error === 'Maximum call depth (10000) exceeded', `${name}: ts 应超出调用深度，得 ${t.value ?? t.error}`);
       else expect(!t.ok, `${name}: ts 应求值失败`);
     }
     count();
