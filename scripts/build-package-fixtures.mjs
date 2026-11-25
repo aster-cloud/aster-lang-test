@@ -1021,6 +1021,18 @@ function verifyDisplay({ ts, display, out, refOpts, loadAnchor, expect, count, e
       const cmd = c.args[0];
       const displayCheck = env.checks?.find((k) => k.name === 'display');
       if (cmd === 'verify') expect(Boolean(displayCheck) === Boolean(m.display) && (!displayCheck || displayCheck.ok === (layoutRule === null)), `${name}: verify 的 display 检查项与参照 L1–L7（${layoutRule ?? 'ok'}）不符`);
+      // verify --recompile：包源码的重编译与包排版的 L8 / L9 / L10b（display-ir 检查项）依赖编译器
+      if (cmd === 'verify' && flags.includes('--recompile') && layout && !pendingIds.has(name)) {
+        const source = r.files.get('policy/policy.aster').toString('utf8');
+        const core = tsCompileFiles(ts, m, r.files);
+        const recompile = env.checks.find((k) => k.name === 'recompile');
+        expect(recompile?.ok === (core !== null && pfOf(core) === m.coreIr.positionFreeSha256), `${name}: verify 的 recompile 检查项与 ts 复算不符`);
+        if (core !== null) {
+          const displayIr = env.checks.find((k) => k.name === 'display-ir');
+          const rejected = displayIrRejected(ts, m, r.files, layout, source, core, pfOf);
+          expect(displayIr?.ok === !rejected, `${name}: verify 的 display-ir 检查项与 ts 复算 L8/L9/L10（${rejected ? '拒绝' : '通过'}）不符`);
+        }
+      }
       const editIdx = flags.findIndex((f) => f === '--display' || f === '--from-display');
       if ((cmd === 'show' || editIdx >= 0) && m.display && layoutRule !== null) expect(got === 'PKG_DISPLAY_INVALID', `${name}: 包排版 ${layoutRule} 失败，应为 PKG_DISPLAY_INVALID`);
       if (editIdx >= 0 && !m.display) expect(got === 'PKG_DISPLAY_INVALID', `${name}: 包无排版，应为 PKG_DISPLAY_INVALID`);
@@ -1043,21 +1055,7 @@ function verifyDisplay({ ts, display, out, refOpts, loadAnchor, expect, count, e
           const core = tsCompileFiles(ts, m, files);
           if (got === 'COMPILE_ERROR') expect(core === null, `${name}: ts 编译派生源码成功，夹具为 COMPILE_ERROR`);
           else if (core !== null) {
-            const padded = tsCompileFiles(ts, m, new Map([...files, ['policy/policy.aster', utf8(padStructuralSpans(rec.layout))]]));
-            // L10（ADR 0059 修订 5）：派生排版的 L10a，及去掉被隐藏反引号的每个非空子集编译失败或同一 IR（L10b）
-            let triples = [];
-            let l10a = false;
-            try {
-              triples = hiddenEscapeTriples(rec.layout);
-            } catch (e) {
-              if (!(e instanceof DisplayRuleError)) throw e;
-              l10a = true;
-            }
-            const l10b = !l10a && Array.from({ length: (1 << triples.length) - 1 }, (_, k) => k + 1).some((subset) => {
-              const variant = tsCompileFiles(ts, m, new Map([...files, ['policy/policy.aster', utf8(stripHiddenEscapes(canonical, triples, subset))]]));
-              return variant !== null && pfOf(variant) !== pfOf(core);
-            });
-            const rejected = structuralNameHits(rec.layout, irNameStrings(core)).length > 0 || padded === null || pfOf(padded) !== pfOf(core) || l10a || l10b;
+            const rejected = displayIrRejected(ts, m, files, rec.layout, canonical, core, pfOf);
             expect(rejected === (got === 'DISPLAY_REJECTED'), `${name}: ts 复算 L8/L9/L10 ${rejected ? '拒绝' : '通过'}，夹具 ${got}`);
             if (env.meta.display) expect(env.meta.display.matchesPackage === (pfOf(core) === m.coreIr.positionFreeSha256), `${name}: matchesPackage 与 ts 复算不符`);
             if (cmd === 'run' && got === null) {
@@ -1072,6 +1070,28 @@ function verifyDisplay({ ts, display, out, refOpts, loadAnchor, expect, count, e
       count();
     }
   }
+}
+
+/**
+ * 依赖编译器的显示排版规则：L8（结构 span 不含 IR 名字）、L9（结构 span 补空格不改 IR）、L10a（形状）与 L10b
+ * （去掉被隐藏反引号的每个非空子集编译失败或同一 IR，ADR 0059 修订 5）。canonical 为 layout 的规范源码，core 为其 IR。
+ */
+function displayIrRejected(ts, manifest, files, layout, canonical, core, pfOf) {
+  const withSource = (text) => tsCompileFiles(ts, manifest, new Map([...files, ['policy/policy.aster', utf8(text)]]));
+  if (structuralNameHits(layout, irNameStrings(core)).length > 0) return true;
+  const padded = withSource(padStructuralSpans(layout));
+  if (padded === null || pfOf(padded) !== pfOf(core)) return true;
+  let triples;
+  try {
+    triples = hiddenEscapeTriples(layout);
+  } catch (e) {
+    if (!(e instanceof DisplayRuleError)) throw e;
+    return true;
+  }
+  return Array.from({ length: (1 << triples.length) - 1 }, (_, k) => k + 1).some((subset) => {
+    const variant = withSource(stripHiddenEscapes(canonical, triples, subset));
+    return variant !== null && pfOf(variant) !== pfOf(core);
+  });
 }
 
 /** a ≥ b（只比较 major.minor.patch）。 */
