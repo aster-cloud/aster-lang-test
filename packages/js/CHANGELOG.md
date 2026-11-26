@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.9.0
+
+### 新增（Wave D）
+
+- tier1 parity 样本：名字转义 `syntax/escape-{en,de,zh,hi}`（ADR 0064 E1，#257）；关键词当名字 `syntax/keyword-name-builtin-{de,zh,hi}`、
+  `syntax/keyword-name-declaration-words`（ADR 0056 修订 A6，#256）；D6 的 `syntax/name-d6-{en,de}`（#259），各带 eval case。
+- tier1 必拒样本：`reject-escape-empty`、`reject-escape-fullwidth`、`reject-escape-invalid-char`、`reject-escape-unterminated`
+  （名字转义，#257）；`reject-structural-keyword-name-{en,de,hi,zh}`（结构关键词作名字，#256）；`reject-it-performs-newline`、
+  `reject-of-newline`（aster-lang-ts#389 的换行诊断，#259）。
+
+### 变更
+
+- `tier1-parity/manifest.json` 只追加条目。无删除，`packages/js/src` 无改动，包入口 API 无变化。这些样本的期望依赖 aster-lang-core 1.0.56
+  与 aster-lang-ts 3.8.0。
+
 ## 2.8.0
 
 ### 新增（Wave C，#252）
