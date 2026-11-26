@@ -62,8 +62,8 @@ node scripts/build-package-fixtures.mjs --verify-engines --ts ../aster-lang-ts -
 - ts 解释器复算每个成功用例、`EVAL_ERROR` 用例、调用深度的 `RESOURCE_EXHAUSTED` 用例（须得到 `Maximum call depth (10000) exceeded`）与 probes（probes 无损读取）。求值条件与 Node CLI 相同：在 `stackSizeMb = 32` 的常驻 Worker 里、`maxCallDepth = 10 000`（`scripts/lib/package-v1/ts-eval.mjs`，aster-lang-test#254）；
 - 全部 `expectedStdout` 符合 `envelope.schema.json`，message / 退出码与 `exit-codes.json` 一致；签名向量的期望码与参照判定一致。
 
-CI 中的兄弟仓固定在已发布的被测版本（aster-lang-ts `v3.6.0`、aster-guard `v0.3.0`），不跟随 main：1.0 夹具的 IR 与期望值采集自生态 1.0.49，
-在 ts 3.6.0 下复算一致；display 夹具（包格式 1.1）的引擎复算需要 ts ≥ 3.6.0（列车 eco-1.0.53）。main 上的 IR 变化（例如 aster-cloud/aster-lang-ts#339 的列对齐）不应让本仓变红。
+CI 中的兄弟仓固定在已发布的被测版本（aster-lang-ts `v3.8.0`、aster-guard `v0.3.0`），不跟随 main：1.0 夹具的 IR 与期望值采集自生态 1.0.49，
+在 ts 3.8.0 下复算一致；display 夹具（包格式 1.1）的引擎复算需要 ts ≥ 3.6.0（列车 eco-1.0.53），名字转义与 L10 的夹具需要 ts ≥ 3.8.0（列车 eco-1.0.56，`pending-ts-release.json` 已随之清空）。main 上的 IR 变化（例如 aster-cloud/aster-lang-ts#339 的列对齐）不应让本仓变红。
 源夹具 `src/compile/compile.json` 的 `pinnedTsDivergence`（只在 src，不进 `cases.json`）标出「两个 CLI 期望已一致、但固定的 ts 版本早于修复」的行
 （目前没有；aster-cloud/aster-lang-ts#348 的三行随固定版本升到 v3.6.0 已去掉）：`--verify-engines` 断言所用 ts 仍给出不同结论，升级固定版本后分歧消失即报错，提醒去掉该字段。
 
