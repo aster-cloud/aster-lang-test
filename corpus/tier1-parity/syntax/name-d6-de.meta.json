@@ -1,0 +1,9 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "de-DE",
+  "source": "裁决 D6：德语名词大写，Let 名 Betrag（sei Betrag gleich x）两引擎都收"
+}

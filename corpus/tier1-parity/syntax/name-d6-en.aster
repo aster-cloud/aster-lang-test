@@ -1,0 +1,9 @@
+Module sample.nameD6En.
+
+Rule pick given if as Int, produce Int:
+  Return if.
+
+Rule total given x as Int, produce Int:
+  Let Total be pick(x).
+  Let IF be Total.
+  Return IF.
