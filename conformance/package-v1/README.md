@@ -69,7 +69,7 @@ CI 中的兄弟仓固定在已发布的被测版本（aster-lang-ts `v3.8.0`、a
 
 ### 重新采集（`--capture`，本地手动，CI 不跑）
 
-升级被测编译器（生态 / ts 版本）时，由发起升级的人（列车负责人）重新采集并在同一 PR 里提交：
+采集来源（生态 / aster-api 的生产编译）或期望值本应改变时，由发起升级的人（列车负责人）重新采集并在同一 PR 里提交。只升 CI 的固定 ts 版本（如 v3.6.0、v3.8.0）时不重采：`--check` 与 `--verify-engines` 在新版本下复算一致即可；复算不一致才说明需要重采或修正。重新采集的步骤：
 
 1. 构建对应版本的 aster-api（`./gradlew quarkusBuild -x test`），把 `build/quarkus-app` 的 `lib/main/*.jar`、`lib/boot/*.jar` 与 app jar
    以冒号连接写入 `cp.txt`；起 PG / Redis（podman）后以 `ASTER_SECURITY_APIKEY_ENABLED=false ASTER_SECURITY_SIGNATURE_ENABLED=false
