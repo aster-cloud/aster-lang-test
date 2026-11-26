@@ -1,5 +1,5 @@
 {
-  "description": "L9 补空格向量（ADR 0059 修订 4 §4）：padded 为 padStructuralSpans(layout) 的结果 P。",
+  "description": "L9 补空格向量（ADR 0059 修订 4 §4）：padded 为 padStructuralSpans(layout) 的结果 P。 escape-* 为隐藏转义符（ADR 0059 修订 5 §2.2）：转义三元组的两个内侧边界（开反引号之后、闭反引号之前）不补空格，外侧边界照原条件补；escape-E6（字符串里的反引号）与 escape-E8（前一个转义的闭反引号当开）补空格后编译失败或值改变，由 L9 拒绝。",
   "version": 1,
   "cases": [
     {
@@ -51,6 +51,31 @@
       "id": "indent-then-text-padded",
       "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"A\\n  b\"},{\"canonical\":\" \",\"display\":\"\"},{\"text\":\"c\"}]}",
       "padded": "A\n  b   c"
+    },
+    {
+      "id": "escape-E1",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"模块 探针.样例。\\n\\n规则 取值 给定 \"},{\"canonical\":\"`\",\"display\":\"\"},{\"text\":\"如果\"},{\"canonical\":\"`\",\"display\":\"\"},{\"text\":\" 作为 整数，产出 整数：\\n  返回 \"},{\"canonical\":\"`\",\"display\":\"\"},{\"text\":\"如果\"},{\"canonical\":\"`\",\"display\":\"\"},{\"text\":\"。\\n\"}]}",
+      "padded": "模块 探针.样例。\n\n规则 取值 给定  `如果`  作为 整数，产出 整数：\n  返回  `如果` 。\n"
+    },
+    {
+      "id": "escape-E9",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"Module probe.sample.\\n\\nRule g given x as Int, produce Int:\\n  Return x.\\n\\nRule f given x as Int, produce Int:\\n  \"},{\"canonical\":\"`\",\"display\":\"\"},{\"text\":\"g\"},{\"canonical\":\"`\",\"display\":\"\"},{\"text\":\"(x).\\n  Return x.\\n\"}]}",
+      "padded": "Module probe.sample.\n\nRule g given x as Int, produce Int:\n  Return x.\n\nRule f given x as Int, produce Int:\n  `g` (x).\n  Return x.\n"
+    },
+    {
+      "id": "escape-E19",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"模块 探针.样例。\\n\\n定义 明月光 包含 长度 作为 整数。\\n\\n\"},{\"canonical\":\"规则 \",\"display\":\"\"},{\"text\":\"床前\"},{\"canonical\":\" 给定 \",\"display\":\"\"},{\"canonical\":\"`\",\"display\":\"\"},{\"text\":\"当\"},{\"canonical\":\"`\",\"display\":\"\"},{\"canonical\":\" 作为 \",\"display\":\"\"},{\"text\":\"明月光，产出 整数：\\n  返回 `当`.长度。\\n\"}]}",
+      "padded": "模块 探针.样例。\n\n定义 明月光 包含 长度 作为 整数。\n\n规则  床前  给定  `当`  作为  明月光，产出 整数：\n  返回 `当`.长度。\n"
+    },
+    {
+      "id": "escape-E6",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"模块 探针.样例。\\n\\n规则 取值，产出 文本：\\n  返回 \\\"a\"},{\"canonical\":\"`\",\"display\":\"\"},{\"text\":\"b\"},{\"canonical\":\"`\",\"display\":\"\"},{\"text\":\"c\\\"。\\n\"}]}",
+      "padded": "模块 探针.样例。\n\n规则 取值，产出 文本：\n  返回 \"a `b` c\"。\n"
+    },
+    {
+      "id": "escape-E8",
+      "layoutText": "{\"v\":1,\"spans\":[{\"text\":\"Module probe.sample.\\n\\nRule f given x as Int, produce Int:\\n  Return `a\"},{\"canonical\":\"`\",\"display\":\"\"},{\"text\":\"x\"},{\"canonical\":\"`\",\"display\":\"\"},{\"text\":\"b`.\\n\"}]}",
+      "padded": "Module probe.sample.\n\nRule f given x as Int, produce Int:\n  Return `a `x` b`.\n"
     }
   ]
 }

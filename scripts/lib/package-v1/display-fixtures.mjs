@@ -272,14 +272,33 @@ const TAMPERS = {
   'display-files-without-member': (base) => ({ pkg: rebuild(base, { edit: (m) => { delete m.display; } }), noDisplay: true }),
   /** 无签名的 1.1 包：show 须 --allow-unsigned，照常打印并在 stderr 提示未核验。 */
   'display-unsigned': (base) => ({ pkg: rebuild(base, { unsigned: true }), unsigned: true }),
+  /**
+   * 隐藏转义的开反引号结构 span 显示成反引号本身（ADR 0059 修订 5 L10a 第 1 条，向量 E13）：派生自 b-display-escape，
+   * display.aster 同步重算并重新签名；verify 在 display 检查项失败，show 同样拒绝，普通 run 不检查排版。
+   */
+  'display-escape-delimiter-shown-resigned': {
+    base: 'b-display-escape',
+    input: { 当: 7 },
+    value: '7',
+    make: (base) => {
+      const layout = JSON.parse(base.files.get('policy/display/layout.json').toString('utf8'));
+      const at = layout.spans.findIndex((s) => !('text' in s) && s.canonical === '`');
+      layout.spans[at] = { canonical: '`', display: '`' };
+      const text = `{"v":1,"spans":[${layout.spans.map((s) => ('text' in s ? `{"text":${JSON.stringify(s.text)}}` : `{"canonical":${JSON.stringify(s.canonical)},"display":${JSON.stringify(s.display)}}`)).join(',')}]}`;
+      return { pkg: rebuild(base, { set: { 'policy/display/layout.json': utf8(text), 'policy/display/display.aster': utf8(toDisplay(layout)) } }), rule: 'L10a' };
+    },
+  },
 };
 
 export function displayTampers(dpkgs, exitCodes) {
-  const base = dpkgs.get('b-jingyesi');
   const files = new Map();
   const rows = [];
-  const def = base.def;
-  for (const [name, make] of Object.entries(TAMPERS)) {
+  for (const [name, spec] of Object.entries(TAMPERS)) {
+    // 多数篡改派生自 b-jingyesi；带 base 的篡改另给基包与 run 的输入、值
+    const baseName = typeof spec === 'function' ? 'b-jingyesi' : spec.base;
+    const base = dpkgs.get(baseName);
+    const def = base.def;
+    const make = typeof spec === 'function' ? spec : spec.make;
     const t = make(base);
     const pkg = { ...t.pkg, def: { ...def, name } };
     for (const [p, b] of pkg.files) files.set(`${name}/${p}`, b);
@@ -300,7 +319,7 @@ export function displayTampers(dpkgs, exitCodes) {
     const unsigned = t.unsigned === true;
     const anchor = unsigned ? ['--allow-unsigned'] : ANCHOR;
     const push = (suffix, args, out, stdin) => {
-      const row = { name: suffix ? `${name} (${suffix})` : name, base: 'b-jingyesi', requiresFormat: REQUIRES, args: [...args, ...anchor] };
+      const row = { name: suffix ? `${name} (${suffix})` : name, base: baseName, requiresFormat: REQUIRES, args: [...args, ...anchor] };
       if (stdin !== undefined) row.stdin = stdin;
       rows.push(Object.assign(row, { expectedStdout: out.stdout, expectedExit: out.exit, code: out.code }));
     };
@@ -313,10 +332,11 @@ export function displayTampers(dpkgs, exitCodes) {
       push('show', ['show', name], errorOut(t.manifestCode, SHOW_META(false), exitCodes));
       continue;
     }
-    const value = '"静夜思"';
+    const value = typeof spec === 'function' ? '"静夜思"' : spec.value;
+    const stdin = typeof spec === 'function' ? '{}' : inputJson(spec.input);
     const entry = def.entries.find((e) => e.default).function;
     // 普通 run 不检查显示排版（只运行签名覆盖的规范源码）
-    push('', ['run', name, '--input', '-'], { stdout: okEnvelope(runMeta(pkg, 'done', { entry, allowUnsigned: unsigned }), value), exit: 0, code: null }, '{}');
+    push('', ['run', name, '--input', '-'], { stdout: okEnvelope(runMeta(pkg, 'done', { entry, allowUnsigned: unsigned }), value), exit: 0, code: null }, stdin);
     const failure = t.rule === 'L9' ? { stage: 'display-ir', code: 'PKG_DISPLAY_INVALID' } : t.rule ? { stage: 'display', code: 'PKG_DISPLAY_INVALID' } : null;
     push('verify', ['verify', name], verifyOutput(pkg, flagsU, failure, exitCodes));
     push('verify --recompile', ['verify', name, '--recompile'], verifyOutput(pkg, [...flagsU, '--recompile'], failure, exitCodes));
@@ -329,12 +349,12 @@ export function displayTampers(dpkgs, exitCodes) {
     }
     if (unsigned) {
       // 不给 --allow-unsigned：PKG_UNSIGNED（signature 阶段）
-      const row = { name: `${name} (show without --allow-unsigned)`, base: 'b-jingyesi', requiresFormat: REQUIRES, args: ['show', name] };
+      const row = { name: `${name} (show without --allow-unsigned)`, base: baseName, requiresFormat: REQUIRES, args: ['show', name] };
       const out = errorOut('PKG_UNSIGNED', SHOW_META(false), exitCodes);
       rows.push(Object.assign(row, { expectedStdout: out.stdout, expectedExit: out.exit, code: out.code }));
     }
   }
-  return { files, cases: { description: '显示排版的篡改夹具（ADR 0059 修订 4；派生自 display/packages/b-jingyesi，全部重新签名）。普通 run 不检查排版；verify 在 display（L1–L7）或 display-ir（L8–L9，仅 --recompile）检查项失败；show 先过 L1–L7。', requiresFormat: REQUIRES, cases: rows } };
+  return { files, cases: { description: '显示排版的篡改夹具（ADR 0059 修订 4、修订 5；派生自 display/packages/b-jingyesi 与 b-display-escape，全部重新签名）。普通 run 不检查排版；verify 在 display（L1–L7）或 display-ir（L8–L9，仅 --recompile）检查项失败；show 先过 L1–L7。', requiresFormat: REQUIRES, cases: rows } };
 }
 
 /** 1.0 包上的 show（计划裁决 Q4）：b-credit-limit。 */

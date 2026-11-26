@@ -664,6 +664,28 @@ await httpsAnchorTests();
     check(`padding 向量 ${c.id}`, () => assert.strictEqual(D.padStructuralSpans(JSON.parse(c.layoutText)), c.padded));
   }
 
+  // L10（ADR 0059 修订 5）：参照实现只判不编译的部分——L10a 与 C⁻(S)；L9 / L10b 的结论由 core 与 ts 用各自编译器复算
+  for (const c of vectors['vectors/display-escape.json'].cases) {
+    check(`escape 向量 ${c.id}：L10a ${c.expect === 'L10a' ? '拒绝' : '通过'}`, () => {
+      const layout = JSON.parse(c.layoutText);
+      let triples;
+      try {
+        triples = D.hiddenEscapeTriples(layout);
+      } catch (e) {
+        if (!(e instanceof D.DisplayRuleError)) throw e;
+        assert.strictEqual(e.rule, c.expect);
+        return;
+      }
+      assert.notStrictEqual(c.expect, 'L10a', '应在 L10a 拒绝');
+      if (c.triples) assert.deepStrictEqual(triples.map((t) => t.name), c.triples);
+      if (c.stripped) {
+        const source = D.toCanonical(layout);
+        triples.forEach((_, k) => assert.strictEqual(D.stripHiddenEscapes(source, triples, 1 << k), c.stripped[k]));
+        assert.strictEqual(D.stripHiddenEscapes(source, triples, (1 << triples.length) - 1), c.stripped[triples.length]);
+      }
+    });
+  }
+
   // 反向映射的定义（修订 D7）与实现无关：穷举全部切分作独立判官，在小规模随机排版上与 DP 比对结论与唯一解
   check('reconstruct：随机小排版上与按定义穷举的结论一致（2 000 例）', () => {
     let seed = 0x0059a4;

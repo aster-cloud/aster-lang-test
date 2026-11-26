@@ -1,0 +1,13 @@
+{
+  "description": "pendingTsRelease（ADR 0059 修订 5 / ADR 0064，列车 eco-1.0.56）：依赖编译器复算、而 CI 固定的 aster-lang-ts 版本尚不支持名字转义与 L10 的显示排版夹具。--verify-engines 在 ts 版本 < tsNext 时跳过这些条目的引擎复算（编译、L8 / L9 / L10、matchesPackage、求值），ts ≥ tsNext 时本清单非空即失败——列车发布后把固定版本升到 tsNext 并清空本清单。不依赖编译器的检查（schema、签名、参照流水线、L1–L7 与 L10a、反向映射结论、错误码与 meta）照常对全部条目执行。packages/<name> 表示该黄金包本身的重编译与 L8 / L9；verify-recompile 用例的条目表示 recompile 与 display-ir 检查项的复算。",
+  "tsNext": "3.8.0",
+  "cases": [
+    "packages/b-display-escape",
+    "packages/b-display-escape-l10b",
+    "display/packages/b-display-escape.cases.json/verify-recompile",
+    "display/packages/b-display-escape.cases.json/run-display-unchanged",
+    "display/packages/b-display-escape.cases.json/run-display-renamed",
+    "display/packages/b-display-escape.cases.json/run-display-silent-rename",
+    "display/packages/b-display-escape-l10b.cases.json/verify-recompile"
+  ]
+}
