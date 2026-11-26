@@ -1,0 +1,60 @@
+{
+  "description": "B 包，zh-CN，字段 `版本` 的声明与访问两处都隐藏反引号（ADR 0059 修订 5 L10b，向量 E20b）：去掉两处反引号后字段与访问都成了 version，能编译且 IR 不同。普通 verify 只跑 L10a，通过；verify --recompile 在 display-ir 失败；show 补跑 L10b，同样 PKG_DISPLAY_INVALID；普通 run 不检查排版。",
+  "mode": "b",
+  "target": "node",
+  "locale": "zh-CN",
+  "aliasSet": null,
+  "allowStructural": false,
+  "claimedRefVersion": 1,
+  "entries": [
+    {
+      "function": "取值",
+      "default": true
+    }
+  ],
+  "probes": [
+    {
+      "entry": "取值",
+      "input": {
+        "s": {
+          "版本": 3
+        }
+      }
+    }
+  ],
+  "cases": [
+    {
+      "name": "run",
+      "command": "run",
+      "input": {
+        "s": {
+          "版本": 3
+        }
+      },
+      "value": "3"
+    },
+    {
+      "name": "verify",
+      "command": "verify"
+    },
+    {
+      "name": "verify-recompile",
+      "command": "verify",
+      "args": [
+        "--recompile"
+      ],
+      "failure": {
+        "stage": "display-ir",
+        "code": "PKG_DISPLAY_INVALID"
+      }
+    },
+    {
+      "name": "show",
+      "command": "show",
+      "expect": {
+        "code": "PKG_DISPLAY_INVALID",
+        "stage": "display"
+      }
+    }
+  ]
+}

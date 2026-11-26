@@ -1,0 +1,1 @@
+{"probes":[{"entry":"取值","expected":{"ok":true,"value":3},"input":{"s":{"版本":3}}}]}
