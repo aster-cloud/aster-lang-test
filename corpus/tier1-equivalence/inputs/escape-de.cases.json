@@ -1,0 +1,17 @@
+{
+  "entry": "summe",
+  "cases": [
+    {
+      "name": "de: 转义名作字段",
+      "input": [
+        {
+          "__type": "Antrag",
+          "wenn": 1,
+          "bei": 2,
+          "erlauben": 4
+        }
+      ],
+      "expectedOutput": 7
+    }
+  ]
+}

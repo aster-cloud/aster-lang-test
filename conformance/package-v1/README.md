@@ -1,7 +1,7 @@
 # 包格式 v1 真相源与一致性夹具（ADR 0059 P1 T1）
 
 规范来源（aster-api 仓）：`docs/adr/0059-executable-policy-export.md`、`docs/adr/0059-amendment-1-p0-findings.md`（修订 1，A0–A5）、
-`docs/adr/0059-amendment-4-display-layout-in-packages.md`（修订 4，D1–D16、L1–L9：包格式 1.1 与显示排版，见「显示排版」及其后两节）、
+`docs/adr/0059-amendment-4-display-layout-in-packages.md`（修订 4，D1–D16、L1–L9：包格式 1.1 与显示排版，见「显示排版」及其后两节）、`docs/adr/0059-amendment-5-hidden-escape-delimiters.md`（修订 5，L10：隐藏名字转义的反引号）、
 实施计划 `docs/superpowers/plans/2026-11-16-adr0059-p0-p1.md`（Global Constraints、Review Focus、T1）。本目录把其中的包格式与
 CLI 行为定死为可执行的字节：两个 `aster` CLI（Node T2–T5、JVM T6–T9）与跨 CLI 一致性门（T11）只消费这里的文件。
 **本 README 中标为「裁决」的条目细化或修正了计划原文，实现以本 README 为准**（计划与 ADR 的同步修订见 ADR 0059 修订 2，wontlost-ltd/aster-api#559，ACCEPTED 2026-11-17）。
@@ -23,14 +23,14 @@ CLI 行为定死为可执行的字节：两个 `aster` CLI（Node T2–T5、JVM 
 | `vectors/value-json.json` | 值规范 JSON 向量（平台采集 + 边界值 + 嵌套层级 + 两组各 10 000 个随机 double） | 生成 |
 | `vectors/position-free-hash.json` | `coreIr.positionFreeSha256` 向量（含一对只差 col 的 Java / ts IR） | 生成 |
 | `vectors/stdout-normalize.json` | 归一向量 | 生成 |
-| `vectors/layout.json`、`vectors/display-reconstruct.json`、`vectors/display-padding.json`、`vectors/keyword-spellings.json` | 显示排版的四组共享向量（L1–L7、D7 反向映射与性能配方、L9 的补空格、各 locale 的字面量关键词与运算符拼写）；core 与 ts 各存逐字节副本并断言 sha256 | 生成（期望手写在 `scripts/lib/package-v1/display-vectors.mjs`） |
+| `vectors/layout.json`、`vectors/display-reconstruct.json`、`vectors/display-padding.json`、`vectors/keyword-spellings.json`、`vectors/display-escape.json` | 显示排版的五组共享向量（L1–L7、D7 反向映射与性能配方、L9 的补空格、各 locale 的字面量关键词与运算符拼写、L10 隐藏转义符）；core 与 ts 各存逐字节副本并断言 sha256 | 生成（期望手写在 `scripts/lib/package-v1/display-vectors.mjs`） |
 | `display/` | 包格式 1.1 的夹具：`display/packages/<name>/` 与 `<name>.cases.json`（含 1.0 包上的 `show`）、`display/edits/<name>/*.txt`（编辑后的显示文本）、`display/tamper/`。全部用例带 `requiresFormat:"1.1"` | 生成 |
 | `packages/<name>/` + `packages/<name>.cases.json` | 15 个黄金包（目录形态）与用例；`b-credit-limit.zip`、`b-zh.zip` 为 zip 形态；`b-credit-limit-dir.zip/`（目录）与 `b-credit-limit-zip-no-extension`（zip）验证按文件类型而非扩展名判形态 | 生成 |
 | `tamper/<name>/`、`tamper/<name>.zip`、`tamper/cases.json` | 篡改与畸形 zip 夹具，每个夹具 run / verify / inspect 各一条用例 | 生成 |
 | `tamper/test-time.json` | 体积类夹具的生成配方（几十 MiB，不入库，由 CLI 测试运行时生成） | 生成 |
 | `inputs-invalid/cases.json` | `INPUT_INVALID` 夹具（作用于黄金包） | 生成 |
 | `compile/` | `compile` 子命令夹具：源码与 aliasSet / 词汇文件、`cases.json`（见「compile」） | 生成（源码类期望由 `--capture-compile` 按 InProcessCnlParser 解析 + 降级序列 采集） |
-| `src/` | 生成器的输入：源码、`fixture.json`、采集的平台 IR（`platform-core.json`）与期望值（`expected.json`）、篡改与非法输入定义；`src/display/` 为 1.1 黄金包（另有 `layout.json` 与 `displays/*.txt`） | 手写 + `--capture` |
+| `src/` | 生成器的输入：源码、`fixture.json`、采集的平台 IR（`platform-core.json`）与期望值（`expected.json`）、篡改与非法输入定义；`src/display/` 为 1.1 黄金包（另有 `layout.json` 与 `displays/*.txt`）与 `pending-ts-release.json` | 手写 + `--capture` |
 
 跨 CLI 一致性门（T11，CI job 与 required status check 均为 `package-conformance`，PR-blocking）：
 
@@ -151,7 +151,7 @@ CI 中的兄弟仓固定在已发布的被测版本（aster-lang-ts `v3.6.0`、a
 使带新字段的 1.1 manifest 报 `PKG_UNSUPPORTED_FORMAT`（ADR §3 的本意）而不是 `PKG_INVALID_MANIFEST`（夹具 `format-version-1.1-with-new-field`）。
 
 `verify`：
-- 检查项依次为 `schema`、`signature`、`integrity`、`ir`（**仅 A 包**：严格读入 `compiled/core.json`，失败码 `PKG_UNSUPPORTED_IR`，与 `run` 一致，对应 ADR §4.1 的「运行时兼容」）、`display`（仅 1.1 且有 `display`：L1–L7，失败码 `PKG_DISPLAY_INVALID`）、`recompile`（仅 `--recompile`）、`display-ir`（仅 `--recompile` 且有 `display`：L8–L9，与 `recompile` 同一组编译输入，失败码 `PKG_DISPLAY_INVALID`）、`probes`（仅 `--probes`），**在第一项失败处停止**，之后的项不输出。1.0 包与无 `display` 的 1.1 包输出与修订 4 之前逐字节相同。
+- 检查项依次为 `schema`、`signature`、`integrity`、`ir`（**仅 A 包**：严格读入 `compiled/core.json`，失败码 `PKG_UNSUPPORTED_IR`，与 `run` 一致，对应 ADR §4.1 的「运行时兼容」）、`display`（仅 1.1 且有 `display`：L1–L7 与 L10a，失败码 `PKG_DISPLAY_INVALID`）、`recompile`（仅 `--recompile`）、`display-ir`（仅 `--recompile` 且有 `display`：L8–L9 与 L10b，与 `recompile` 同一组编译输入，失败码 `PKG_DISPLAY_INVALID`）、`probes`（仅 `--probes`），**在第一项失败处停止**，之后的项不输出。1.0 包与无 `display` 的 1.1 包输出与修订 4 之前逐字节相同。
 - `recompile`：对 A、B 都按 manifest 本地编译 `policy/`，按 `positionFreeSha256` 比对，失败码 `PKG_IR_DRIFT`。
 - `probes`：按 `tests/probes.json` 逐条以 `run` 的 entry → input → eval 路径求值（B 包先本地编译，失败码 `PKG_IR_DRIFT`；A 包严格读入
   `compiled/core.json`，失败码 `PKG_UNSUPPORTED_IR`），每条的超时为 `--timeout`（缺省 5 s，按条计）。**任何一条不符都报 `PROBE_MISMATCH`**：结果与期望不同、
@@ -410,7 +410,7 @@ policy/display/display.aster   # toDisplay(layout) 的 UTF-8 字节，不加任�
 两者都列入 `files[]`（经 manifest 被签名覆盖、进入 `SHA256SUMS`），都**不是编译输入**：本地重编译、`positionFreeSha256`、`source.envelopeSha256` 一律不读它们。
 不带排版的包仍是 `1.0`，与修订 4 之前逐字节相同。
 
-**规则 L1–L9**（参照实现 `scripts/lib/package-v1/display.mjs`；core `aster.core.layout` 与 ts `./layout` 照此实现，跑同一组向量）。共同约定：文本是严格 UTF-8 解码后的字符串，
+**规则 L1–L10**（参照实现 `scripts/lib/package-v1/display.mjs`；core `aster.core.layout` 与 ts `./layout` 照此实现，跑同一组向量）。共同约定：文本是严格 UTF-8 解码后的字符串，
 偏移单位为 UTF-16 code unit；换行符指 `\n` 与 `\r`，不归一；`foldKey` = NFC → Unicode 15.1 简单折叠（C+S）→ NFC（`scripts/lib/package-v1/casefold-15.1.json`，取自 aster-lang-locales）；
 「整词出现」= 在 `foldKey` 后的被查文本中出现，且该出现的前一码点与后一码点（若有）都不属标识符字符类 `[\p{L}\p{M}\p{Nd}_]`。
 
@@ -424,17 +424,19 @@ policy/display/display.aster   # toDisplay(layout) 的 UTF-8 字节，不加任�
 | L6 | 每个结构 `canonical`：不含 `\p{Nd}`；不整词出现词汇任一条目的 `localized`（全部 kind，含字面量触发词）；不整词出现包 locale 与 en-US 词法表的 TRUE / FALSE / NULL / NONE 拼写 | 否 |
 | L7 | 运算符集合 O = ASCII `+ - * / % < > = ! & \| ^ ~` ∪ 包 locale 与 en-US 词法表 11 个运算符 kind 的全部拼写 ∪ aliasSet 中这些 kind 的别名（均经 `foldKey`）。运算符序列：在 `foldKey` 后的文本上从左到右，每个位置按「码点数降序、同长按码点序」尝试 O 的成员，含标识符字符的拼写须整词出现，命中即记下并跳过，否则前进一个码点。每个结构 span 的 `canonical` 与 `display` 的运算符序列必须完全相同 | 否 |
 | L8 | 编译源码得 IR；IR 中键为 `name` 或 `written` 的全部字符串值不得整词出现在任一结构 `canonical` 中 | 是 |
-| L9 | 补空格不变性：B = 全部结构 span 的起止偏移；对 B 中满足 0 < p < \|C\|、`C[p-1]` 不是换行符、p 不在行首缩进内（`C` 中 p 之前最后一个换行符或文首到 p 之间不全是空格与制表符）的 p，按 p 从大到小插入一个 U+0020 得 P；P 必须编译成功且 `positionFreeSha256(P)` = `positionFreeSha256(C)` | 是 |
+| L9 | 补空格不变性：B = 全部结构 span 的起止偏移；对 B 中满足 0 < p < \|C\|、`C[p-1]` 不是换行符、p 不在行首缩进内（`C` 中 p 之前最后一个换行符或文首到 p 之间不全是空格与制表符）的 p，按 p 从大到小插入一个 U+0020 得 P；P 必须编译成功且 `positionFreeSha256(P)` = `positionFreeSha256(C)`。L10a 的转义三元组的两个**内侧**边界（开反引号之后、闭反引号之前）不在 B 中，外侧边界照常 | 是 |
+| L10a | 隐藏转义符的形状（修订 5 §2.1）：结构 span 的 `display` 不含反引号（U+0060）；`canonical` 含反引号的结构 span 恰为 `` {"`",""} ``，且从左到右配成「反引号结构 span、内容 span、反引号结构 span」三元组；内容全由 `[\p{L}\p{M}\p{Nd}_]` 组成；至多 4 个三元组 | 否 |
+| L10b | 去反引号不变性（修订 5 §2.3）：对三元组的每个非空子集 S，从 C 删去 S 各三元组的两个反引号得 `C⁻(S)`；用与 C 相同的编译输入编译，`C⁻(S)` 必须编译失败，或 `positionFreeSha256(C⁻(S))` = `positionFreeSha256(C)`。没有三元组时不编译 | 是 |
 
 L6(c) 与 L7 的拼写：每个引擎取自己编译所用的词法表（ts `lexiconForLocale`，Java locales SPI），并断言与 `vectors/keyword-spellings.json` 相同（计划裁决 PR4）。
 
-`verify` 的 `display` 检查 L1–L7，`display-ir` 检查 L8–L9（见「检查顺序」）。**裁决（普通 `run` 不检查排版）**：`run`（不带 `--display`）执行签名覆盖的规范源码，排版不是执行输入（D1），
+`verify` 的 `display` 检查 L1–L7 与 L10a，`display-ir` 检查 L8–L9 与 L10b（见「检查顺序」）；`show` 与 `run --display` 在 display 阶段之后对包排版补跑 L10b（`PKG_DISPLAY_INVALID`）。**裁决（普通 `run` 不检查排版）**：`run`（不带 `--display`）执行签名覆盖的规范源码，排版不是执行输入（D1），
 所以普通 `run`、`inspect`、`compile` 不做 display 阶段，排版被改坏的签名包照常运行（篡改夹具 `display-text-tampered-resigned` 的 `run` 成功、`verify` 与 `show` 为 `PKG_DISPLAY_INVALID`）。
 `inspect` 在 manifest 有 `display` 时多一个成员 `display`，原样取自 manifest。
 
 ## show（修订 4 D6）
 
-`aster show <pkg> [--canonical | --from-display <file>] [--jwks|--pubkey|--allow-unsigned]`：阶段 usage → read → manifest → signature → integrity →（有 `display` 时）display（L1–L7）。
+`aster show <pkg> [--canonical | --from-display <file>] [--jwks|--pubkey|--allow-unsigned]`：阶段 usage → read → manifest → signature → integrity →（有 `display` 时）display（L1–L7、L10a；有隐藏转义时另跑 L10b）。stderr 在结构映射之后对每个隐藏的转义另起一行 `` hidden escape: "`当`" (name) ``（JSON 字符串形式，按出现顺序；不跨 CLI 比较）。
 
 - stdout：有排版时为 `display.aster` 的字节 + `\n`；无排版或给了 `--canonical` 时为 `policy/policy.aster` 的字节 + `\n`；`--from-display` 为按「run --display」还原出的规范源码 + `\n`（经 L1–L9 全部检查、含编译，不求值）。
 - 包没有排版时 `--from-display` 为 `PKG_DISPLAY_INVALID`（没有可对照的排版；`run --display` 同）。
@@ -450,7 +452,7 @@ L6(c) 与 L7 的拼写：每个引擎取自己编译所用的词法表（ts `lex
 在 reconstruct 阶段为 `DISPLAY_UNMAPPABLE`（防止为一个必然被拒的文件读入任意大的数据；参照实现 `argv.mjs` 的 `readDisplayFile`）。
 
 **阶段**：usage → read → manifest → signature → integrity → display（包排版 L1–L7，`PKG_DISPLAY_INVALID`；包无排版同码）→ reconstruct（`DISPLAY_UNMAPPABLE` / `DISPLAY_AMBIGUOUS`）→
-derived（派生排版 L′ 的 L2、L5、L6、L7，`DISPLAY_REJECTED`）→ compile（用 manifest 的 locale、aliasSet、allowStructural、词汇编译 C′，`COMPILE_ERROR`）→ display-ir（L8、L9，`DISPLAY_REJECTED`）→
+derived（派生排版 L′ 的 L2、L5、L6、L7、L10a，`DISPLAY_REJECTED`）→ compile（用 manifest 的 locale、aliasSet、allowStructural、词汇编译 C′，`COMPILE_ERROR`）→ display-ir（L8、L9、L10b，`DISPLAY_REJECTED`）→
 entry（`--entry` 或 manifest 缺省入口，须存在于**派生模块**，`ENTRY_NOT_FOUND`）→ input（按派生 IR 的形参类型，`INPUT_INVALID`）→ eval（沙箱、超时与资源规则不变）。包自身的本地重编译（`PKG_IR_DRIFT`）不在这条路径上。
 
 **还原**（参照实现 `display.mjs` 的 `reconstructFromDisplay`）：显示文本 E 的 UTF-8 长度 > 24 576 为 unmappable；若 `toDisplay(L)` 不以 `\n` 结尾而 E 以 `\n` 结尾，去掉 E 末尾一个 `\n`（及其前一个 `\r`）——编辑器保存时补的；
@@ -461,8 +463,8 @@ entry（`--entry` 或 manifest 缺省入口，须存在于**派生模块**，`EN
 从 entry 阶段起（含 `ENTRY_NOT_FOUND`、`INPUT_INVALID`、求值结果）`entry` 为所选入口、`irRecompiled:true`、`display:{"canonicalSha256":sha256(C′ 的 UTF-8),"matchesPackage":positionFreeSha256(IR(C′)) == manifest.coreIr.positionFreeSha256}`。
 `signed` 只表示包的签名已核验。求值之前 stderr 先打印一行「正在运行由显示文本派生的程序，不在包签名覆盖之内」，再原样打印 C′。
 
-**引擎复算**：`--verify-engines` 对全部 display 夹具做引擎复算（编译、L8 / L9、`matchesPackage`、求值），要求所用 ts 支持包格式 1.1（≥ 3.6.0）。
-T1 期间的 `pendingTsRelease` 跳过清单与本地开关 `--assume-ts-display` 已随列车 eco-1.0.53（T5 Step 4）删除。
+**引擎复算**：`--verify-engines` 对 display 夹具做引擎复算（编译、L8 / L9 / L10、`matchesPackage`、求值），要求所用 ts 支持包格式 1.1；名字转义与 L10 的夹具还要求 ts ≥ 3.8.0。**pendingTsRelease**：`src/display/pending-ts-release.json` 列出的条目在 ts < `tsNext` 时跳过引擎复算，ts ≥ `tsNext` 时清单非空即失败（列车 eco-1.0.56 发布后把 CI 固定版本升到 `tsNext` 并清空清单）。本地用同名分支的未发布 ts 时加 `--assume-ts-display` 强制复算。
+同一机制在列车 eco-1.0.53 的 T1 期间用过，T5 Step 4 删除；本列车为名字转义与 L10 重新启用。派生排版的 L10a 不依赖编译器，对清单中的条目照常检查。
 
 ## 黄金包一览
 
@@ -484,6 +486,8 @@ T1 期间的 `pendingTsRelease` 跳过清单与本地开关 `--assume-ts-display
 | `display/packages/b-jingyesi` | B，zh-CN，1.1 + 排版，jre | 《静夜思》：`run` 得 `静夜思`；`show` 打印原诗；`run --display` 的唯一解 / 不可映射 / 歧义、编辑器文末换行、BOM + CRLF 结尾、CRLF 全文、超大文件、入口改名、派生源码编译失败；`show` 与 `--display` 的命令行；篡改夹具的基础 |
 | `display/packages/b-display-swallow` | B，en-US，1.1 + 排版，node | 结构 span `{" ","·"}`：包合规；改成 `Return "x·y"` 后字符串吞进结构 span → L9 `DISPLAY_REJECTED` |
 | `display/packages/b-display-params` | B，en-US，1.1 + 排版，jre | 带形参：派生 IR 改形参类型或名字后按旧形态输入 `INPUT_INVALID`；`--entry` 不在派生模块 `ENTRY_NOT_FOUND` |
+| `display/packages/b-display-escape` | B，zh-CN，1.1 + 排版，node | 形参 `` `当` `` 两处隐藏反引号（修订 5 E1 / E19）：`verify --recompile` 通过；`show` 打印不带反引号的显示文本；`run --display` 改名为 若 照常运行，改成静默改名的 版本 由派生排版 L10b `DISPLAY_REJECTED`；篡改夹具 `display-escape-delimiter-shown-resigned`（L10a）的基础 |
+| `display/packages/b-display-escape-l10b` | B，zh-CN，1.1 + 排版，node | 字段 `` `版本` `` 声明与访问两处隐藏（修订 5 E20b）：普通 `verify` 通过（只跑 L10a），`verify --recompile` 在 `display-ir` 失败，`show` 补跑 L10b 同样 `PKG_DISPLAY_INVALID` |
 
 已知风险（交给 T8）：JVM 沙箱的 `statementLimit 10_000_000` 可能在 1 s 之内先于看门狗耗尽，使 `a-timeout` 在很快的机器上得到 `RESOURCE_EXHAUSTED`
 而不是 `TIMEOUT`（P0 实测 1 056 ms 时被取消，尚未触及上限）。T8 须在 CI 硬件上确认。

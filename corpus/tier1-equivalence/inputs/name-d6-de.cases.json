@@ -1,0 +1,12 @@
+{
+  "entry": "gesamt",
+  "cases": [
+    {
+      "name": "de: Let 名 Betrag",
+      "input": [
+        7
+      ],
+      "expectedOutput": 7
+    }
+  ]
+}

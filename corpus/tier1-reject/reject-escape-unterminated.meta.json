@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "名字转义未闭合（ADR 0064 N1a）：同一行没有闭合的反引号，两引擎都报 E902 reason=unterminated，位置是开头的反引号"
+}

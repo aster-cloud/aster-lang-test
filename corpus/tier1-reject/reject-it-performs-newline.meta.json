@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "句点后的 `It` 之后换行（aster-lang-ts#389）：两引擎都报 E055 kw.performs"
+}

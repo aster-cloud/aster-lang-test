@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "`of` 之后直接换行（aster-lang-ts#389）：两引擎都报 E062，报在换行处"
+}

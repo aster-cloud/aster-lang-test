@@ -1,0 +1,63 @@
+{
+  "description": "B 包，zh-CN，字段 `版本` 的声明与访问两处都隐藏反引号（ADR 0059 修订 5 L10b，向量 E20b）：去掉两处反引号后字段与访问都成了 version，能编译且 IR 不同。普通 verify 只跑 L10a，通过；verify --recompile 在 display-ir 失败；show 补跑 L10b，同样 PKG_DISPLAY_INVALID；普通 run 不检查排版。",
+  "package": "b-display-escape-l10b",
+  "requiresFormat": "1.1",
+  "cases": [
+    {
+      "name": "run",
+      "requiresFormat": "1.1",
+      "args": [
+        "run",
+        "b-display-escape-l10b",
+        "--input",
+        "-",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "stdin": "{\"s\":{\"版本\":3}}",
+      "expectedStdout": "{\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"8f9ad23f5e91dfb634f11dc7be63285e2986e98336042af2fc599fac330a412f\",\"engine\":\"<ENGINE>\",\"entry\":\"取值\",\"irRecompiled\":true,\"signed\":true},\"ok\":true,\"value\":3}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "b-display-escape-l10b",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"display\",\"ok\":true}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"8f9ad23f5e91dfb634f11dc7be63285e2986e98336042af2fc599fac330a412f\",\"engine\":\"<ENGINE>\",\"entry\":\"取值\",\"irRecompiled\":false,\"signed\":true},\"ok\":true}\n",
+      "expectedExit": 0,
+      "code": null
+    },
+    {
+      "name": "verify-recompile",
+      "requiresFormat": "1.1",
+      "args": [
+        "verify",
+        "b-display-escape-l10b",
+        "--recompile",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"checks\":[{\"name\":\"schema\",\"ok\":true},{\"name\":\"signature\",\"ok\":true},{\"name\":\"integrity\",\"ok\":true},{\"name\":\"display\",\"ok\":true},{\"name\":\"recompile\",\"ok\":true},{\"code\":\"PKG_DISPLAY_INVALID\",\"name\":\"display-ir\",\"ok\":false}],\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":\"8f9ad23f5e91dfb634f11dc7be63285e2986e98336042af2fc599fac330a412f\",\"engine\":\"<ENGINE>\",\"entry\":\"取值\",\"irRecompiled\":true,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    },
+    {
+      "name": "show",
+      "requiresFormat": "1.1",
+      "args": [
+        "show",
+        "b-display-escape-l10b",
+        "--jwks",
+        "../../keys/test-jwks.json"
+      ],
+      "expectedStdout": "{\"error\":{\"code\":\"PKG_DISPLAY_INVALID\",\"message\":\"package display layout is not valid\"},\"meta\":{\"cliVersion\":\"<CLI_VERSION>\",\"coreIrSha256\":null,\"engine\":\"<ENGINE>\",\"entry\":null,\"irRecompiled\":false,\"signed\":true},\"ok\":false}\n",
+      "expectedExit": 4,
+      "code": "PKG_DISPLAY_INVALID"
+    }
+  ]
+}

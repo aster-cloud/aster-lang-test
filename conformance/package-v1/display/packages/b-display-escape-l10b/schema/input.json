@@ -1,0 +1,1 @@
+{"$defs":{"data.软件":{"additionalProperties":false,"properties":{"版本":{"maximum":2147483647,"minimum":-2147483648,"type":"integer"}},"required":["版本"],"type":"object"},"entry.取值":{"additionalProperties":false,"properties":{"s":{"$ref":"#/$defs/data.软件"}},"required":["s"],"type":"object"}},"$schema":"https://json-schema.org/draft/2020-12/schema","title":"诗.version entry inputs"}

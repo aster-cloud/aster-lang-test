@@ -1,0 +1,12 @@
+{
+  "entry": "total",
+  "cases": [
+    {
+      "name": "en: 形参 if 与大写 Let 名",
+      "input": [
+        5
+      ],
+      "expectedOutput": 5
+    }
+  ]
+}

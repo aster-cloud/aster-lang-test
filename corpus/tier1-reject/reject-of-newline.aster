@@ -1,0 +1,5 @@
+Module sample.rejectOfNewline.
+
+Rule f given x as List of
+  Int, produce Int:
+  Return 1.

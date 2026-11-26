@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "zh-CN",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "全角反引号不是名字转义（ADR 0064 Q2）：定界符只认 ASCII 反引号，全角 ｀（U+FF40）不做全角转半角，两引擎都报 E050；修复前两引擎都把它折叠成 ASCII 反引号"
+}
