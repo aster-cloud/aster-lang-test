@@ -117,7 +117,7 @@ jobs:
           path: aster-lang-test
       # 兄弟仓固定在已发布的被测版本，不跟随 main：ts v3.8.0（列车 eco-1.0.56，首个支持名字转义与 L10 的 ts，display 夹具
       # 的引擎复算依赖它；1.0 夹具的 IR 与期望值仍是生态 1.0.49 采集的，在 3.8.0 下复算一致）。main 上的 IR 变化
-      # （如 aster-lang-ts#339 的列对齐）不应让本仓变红。升级时按 conformance/package-v1/README.md「重新采集」同时改这里的 ref。
+      # （如 aster-lang-ts#339 的列对齐）不应让本仓变红。升固定版本时改这里的 ref 并本地跑 --check 与 --verify-engines（复算一致即可，不必重采，见 conformance/package-v1/README.md「重新采集」）。
       - name: Checkout aster-lang-ts (pinned)
         uses: actions/checkout@v6
         with:
