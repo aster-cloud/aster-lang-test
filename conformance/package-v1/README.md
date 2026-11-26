@@ -59,7 +59,7 @@ node scripts/build-package-fixtures.mjs --verify-engines --ts ../aster-lang-ts -
 - 每个黄金 manifest 符合 schema，其字节 = aster-guard `jcs.ts` = ts `canonicalJson`；签名成立；ts 重编译源码得到同一 `positionFreeSha256`；
 - **参照流水线**（`scripts/lib/package-v1/reference-check.mjs` 与 `input.mjs`，按本 README 的检查顺序与规则独立实现）对每条 `run`
   用例给出的错误码与阶段（从而 `meta`）都与夹具一致；不该失败的用例通过；每个 `inputs-invalid` 用例被拒绝、每个成功用例的输入被接受；
-- ts 解释器复算每个成功用例、`EVAL_ERROR` 用例与 probes（probes 无损读取）；
+- ts 解释器复算每个成功用例、`EVAL_ERROR` 用例、调用深度的 `RESOURCE_EXHAUSTED` 用例（须得到 `Maximum call depth (10000) exceeded`）与 probes（probes 无损读取）。求值条件与 Node CLI 相同：在 `stackSizeMb = 32` 的常驻 Worker 里、`maxCallDepth = 10 000`（`scripts/lib/package-v1/ts-eval.mjs`，aster-lang-test#254）；
 - 全部 `expectedStdout` 符合 `envelope.schema.json`，message / 退出码与 `exit-codes.json` 一致；签名向量的期望码与参照判定一致。
 
 CI 中的兄弟仓固定在已发布的被测版本（aster-lang-ts `v3.6.0`、aster-guard `v0.3.0`），不跟随 main：1.0 夹具的 IR 与期望值采集自生态 1.0.49，
@@ -396,7 +396,7 @@ zip 夹具是确定性的：mtime 1980-01-01、无 extra field（ZIP64 夹具除
 - **平台 `/evaluate-json` 无法传入非整数 Decimal 与字符串形态的 Long**（JSON 字符串被当作 Text；带小数的 JSON 数字被当作 Double）。
   采集时把整数值的 Decimal 写成数字 token 发给平台；非整数 Decimal 与字符串 Long 的用例期望取自 ts 解释器（`source: "ts"`）。
   两个 CLI 都必须自己把这些字符串转成 Decimal / Long guest 值，不能照搬平台的 JSON 入参转换。
-- `a-deep-recursion/depth-20000` 与 `a-multi-entry` 的除零用例已在平台上确认同样失败；`TIMEOUT` 与资源类结果按修订 A4 / P0 实测设定。
+- `a-deep-recursion/depth-20000` 与 `a-multi-entry` 的除零用例已在平台上确认同样失败；`depth-9999` 超出平台请求线程的缺省栈，期望值取自 ts（`source: "ts"`），`depth-10000` 不采平台结果；`TIMEOUT` 与资源类结果按修订 A4 / P0 实测设定。
 
 ## 显示排版（包格式 1.1，修订 4 D1–D2、§4）
 
@@ -481,7 +481,7 @@ entry（`--entry` 或 manifest 缺省入口，须存在于**派生模块**，`EN
 | `a-inputs` | A，jre | Double / Long / List / Map / Maybe / Enum / Text 入参形态、int32 边界、结果超出 2⁵³ 的无损 probes |
 | `a-multi-entry` | A，jre | 多个入口（无 `main`）、缺省与 `--entry`、Double 结果、0 参入口、`EVAL_ERROR`、`ENTRY_NOT_FOUND`、期望失败的 probe、命令行语法与 `USAGE` |
 | `a-timeout` | A，node | `spin(60)` 在 `--timeout 1s` 下 `TIMEOUT` |
-| `a-deep-recursion` | A，jre | `deep(20000)` 两侧 `RESOURCE_EXHAUSTED` |
+| `a-deep-recursion` | A，jre | 调用深度上限 10 000（ADR 0063）：`deep(9999)` 两侧成功，`deep(10000)`、`deep(20000)` 两侧 `RESOURCE_EXHAUSTED` |
 | `unsigned` | A（派生自 a-multi-entry），无签名 | 缺省 `PKG_UNSIGNED`；`--allow-unsigned` 运行且 `signed=false`；`verify` 两种 |
 | `display/packages/b-jingyesi` | B，zh-CN，1.1 + 排版，jre | 《静夜思》：`run` 得 `静夜思`；`show` 打印原诗；`run --display` 的唯一解 / 不可映射 / 歧义、编辑器文末换行、BOM + CRLF 结尾、CRLF 全文、超大文件、入口改名、派生源码编译失败；`show` 与 `--display` 的命令行；篡改夹具的基础 |
 | `display/packages/b-display-swallow` | B，en-US，1.1 + 排版，node | 结构 span `{" ","·"}`：包合规；改成 `Return "x·y"` 后字符串吞进结构 span → L9 `DISPLAY_REJECTED` |

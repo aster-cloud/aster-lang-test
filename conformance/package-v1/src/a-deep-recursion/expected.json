@@ -4,6 +4,10 @@
       "source": "platform",
       "error": "evaluation_failed Policy evaluation failed"
     },
+    "depth-9999": {
+      "source": "ts",
+      "value": "9999"
+    },
     "depth-10": {
       "source": "platform",
       "value": "10"

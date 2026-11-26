@@ -24,6 +24,7 @@ import { normalizeStdout } from '../conformance/package-v1/normalize-stdout.mjs'
 import { parseStrictJson, StrictJsonError } from './lib/package-v1/strict-json.mjs';
 import { validateInput, InputError } from './lib/package-v1/input.mjs';
 import { isPackagePath, isSafeRoot } from './lib/package-v1/reference-check.mjs';
+import { createTsEvaluator } from './lib/package-v1/ts-eval.mjs';
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const require = createRequire(import.meta.url);
@@ -811,6 +812,52 @@ await httpsAnchorTests();
       rmSync(dir, { recursive: true, force: true });
     }
   });
+}
+
+// ---- ts-eval：与 Node CLI 同条件的求值 Worker（#254）。用一个最小的假 ts 目录，不依赖已构建的 aster-lang-ts ----
+{
+  const { mkdtempSync, mkdirSync: mk, writeFileSync: wf, rmSync: rm } = await import('node:fs');
+  const { tmpdir } = await import('node:os');
+  const fake = mkdtempSync(join(tmpdir(), 'ts-eval-'));
+  const put = (rel, text) => {
+    mk(dirname(join(fake, rel)), { recursive: true });
+    wf(join(fake, rel), text);
+  };
+  put('package.json', '{"name":"fake-ts","type":"module"}');
+  put('dist/src/core/interpreter.js', [
+    'export function evaluate(core, entry, ctx, opts) {',
+    "  if (entry === 'hang') for (;;) {}",
+    "  if (entry === 'boom') throw new Error('boom');",
+    "  if (entry === 'limits') return { success: false, error: `depth ${opts.maxCallDepth} steps ${opts.maxSteps}` };",
+    '  const f = (n) => (n === 0 ? 0 : 1 + f(n - 1));',
+    '  return { success: true, value: f(ctx.n) };',
+    '}',
+    'export function serializeGuestValue(v) { return JSON.stringify(v); }',
+  ].join('\n'));
+  put('dist/src/core/read-core-ir.js', 'export function readCoreIr(x) { return JSON.parse(x); }');
+  put('dist/src/policy-package/evaluate-package.js', 'export const CLI_MAX_CALL_DEPTH = 10_000;');
+  put('node_modules/decimal.js/package.json', '{"name":"decimal.js","version":"0.0.0"}');
+  put('node_modules/decimal.js/decimal.mjs', 'export default class Decimal {}');
+  const ir = (name) => JSON.stringify({ decls: [{ kind: 'Func', name, params: [{ name: 'n', type: { kind: 'TypeName', name: 'Int' } }] }] });
+  try {
+    const ev = createTsEvaluator(fake);
+    check('ts-eval: 同步往返取回值规范 JSON', () => assert.deepStrictEqual(ev(ir('deep'), 'deep', { n: 5n }), { ok: true, value: '5' }));
+    check('ts-eval: Worker 的 32 MiB 栈容得下主线程缺省栈放不下的递归', () => assert.deepStrictEqual(ev(ir('deep'), 'deep', { n: 100000n }), { ok: true, value: '100000' }));
+    check('ts-eval: 传入 Node CLI 的调用深度上限与步数上限', () => assert.deepStrictEqual(ev(ir('limits'), 'limits', { n: 1n }, 7), { ok: false, error: 'depth 10000 steps 7' }));
+    check('ts-eval: 求值抛出的异常按求值失败返回', () => assert.deepStrictEqual(ev(ir('boom'), 'boom', { n: 1n }), { ok: false, error: 'boom' }));
+    ev.close();
+    check('ts-eval: ts 加载失败在创建时立即抛出', () => {
+      const t0 = Date.now();
+      assert.throws(() => createTsEvaluator(join(fake, 'missing')), /加载 ts/);
+      assert.ok(Date.now() - t0 < 10_000);
+    });
+    check('ts-eval: Worker 无响应时按 waitMs 超时报错', () => {
+      const slow = createTsEvaluator(fake, { waitMs: 300 });
+      assert.throws(() => slow(ir('hang'), 'hang', { n: 1n }), /无响应/);
+    });
+  } finally {
+    rm(fake, { recursive: true, force: true });
+  }
 }
 
 console.log(`test-package-v1: ${pass} passed, ${fail} failed`);
