@@ -329,6 +329,7 @@
     "tier1-parity/types/field-annotations.aster",
     "tier1-parity/types/field-annotations-zh.aster",
     "tier1-parity/syntax/use-keyword-case.aster",
+    "tier1-parity/syntax/keyword-case-decl.aster",
     "tier1-parity/syntax/ascii-vt-ff-before-punct-zh.aster",
     "tier1-parity/syntax/ideographic-space-zh.aster",
     "tier1-parity/syntax/unicode-space-in-string-and-comment.aster",
