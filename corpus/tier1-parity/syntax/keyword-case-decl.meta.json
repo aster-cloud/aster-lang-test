@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "关键词大小写 K-a（aster-lang-ts#338 第 1 部分，ADR 0056 修订 A4 §1.1、修订 A7 D1）：module、given、as、produce、with、has、one、of、use、version、it / performs 在声明与句首位置不区分大小写（MODULE、GIVEN、As、wITH…），同形词作名字照旧（Define Given、g as Given）。修复前 core 只认规范拼写（其余拼写报语法错误），ts 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定声明头的 Core IR"
+}

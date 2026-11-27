@@ -1,0 +1,24 @@
+MODULE parity.syntax.keywordcasedecl.
+
+Use lib.alpha VERSION 2 AS Alpha.
+use lib.beta Version 3 As Beta.
+
+Define Account WITH id AS Text and balance As Int.
+DEFINE Ledger HAS owner aS Text, entries AS List Of Int.
+Define Given With major AS Int.
+Define Status AS ONE OF Open, Closed.
+
+Type Money AS Int.
+
+Rule total GIVEN items AS List OF Int, PRODUCE Int:
+  Return 0.
+
+Rule make GIVEN a As Account Produce Account:
+  Return Account With id set to a.id, balance set to a.balance.
+
+Rule wrap gIVEN v AS Int, Produce Result Of Int and Text. IT PERFORMS io:
+  Return ok OF v.
+
+Rule pick Given g AS Given, pRODUCE Int:
+  Let f be function With x aS Int, PRODUCE Int: Return x.
+  Return f(g.major).
