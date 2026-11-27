@@ -575,6 +575,32 @@ await httpsAnchorTests();
   check(stale.status === 'fail' && stale.reasons.some((r) => r.startsWith('stale knownEngineDivergence: remove marker')), '标记、分歧已消失 → stale 失败');
   check(st({ c: { name: 'n', knownEngineDivergence: 'x#1' } }, tsDiverges, ok) === 'fail', '标记缺 knownDivergentEngine → fail');
   check(st({ c: { ...marked.c, knownDivergentEngine: 'jre' } }, ok, tsDiverges) === 'known', '标 jre 分歧时对称');
+  // ADR 0063 T4：原生侧（native 与 jre 同为 Truffle 引擎）
+  {
+    const st3 = (row, node, jre, nat) => judgeRow(row, { node, jre, native: nat }).status;
+    const jreMarked = { c: { ...marked.c, knownDivergentEngine: 'jre' } };
+    check(st3(plain, ok, ok, ok) === 'ok', '三侧：一致且等于期望 → ok');
+    check(st3(plain, ok, ok, tsDiverges) === 'fail', '三侧：原生一侧不符 → fail');
+    const three = judgeRow(plain, { node: ok, jre: ok, native: { ...ok, comparable: 'Z' } });
+    check(three.status === 'fail' && three.reasons.join() === '各侧归一后不一致：node = jre ≠ native', `三侧：说明写出哪几侧一致，得到 ${three.reasons.join()}`);
+    check(judgeRow(plain, { node: ok, jre: { ...ok, comparable: 'Z' } }).reasons.join() === '两侧归一后不一致', '两侧时沿用原措辞');
+    check(judgeRow(plain, { node: ok, native: ok }).status === 'ok', 'Node ↔ 原生两侧（不给 --jar）：一致 → ok');
+    check(judgeRow(plain, { node: ok, native: tsDiverges }).status === 'fail', 'Node ↔ 原生两侧：原生不符 → fail');
+    check(st3(jreMarked, ok, tsDiverges, tsDiverges) === 'known', '标 jre：jre 与原生同样分歧 → known');
+    const split = judgeRow(jreMarked, { node: ok, jre: tsDiverges, native: { ...tsDiverges, comparable: 'Y' } });
+    check(split.status === 'fail' && split.reasons.some((r) => r.includes('同一引擎（jre）')), '标 jre：jar 与原生彼此不一致 → fail');
+    check(st3(jreMarked, ok, tsDiverges, crashed) === 'fail', '标 jre：原生崩溃 → fail');
+    check(st3(jreMarked, ok, tsDiverges, ok) === 'fail', '标 jre：只有 jar 分歧、原生等于期望 → fail（同一引擎须一致）');
+    check(judgeRow(jreMarked, { node: ok, native: tsDiverges }).status === 'known', '标 jre：Node ↔ 原生两侧时豁免原生');
+    check(st3(marked, tsDiverges, ok, ok) === 'known', '标 node：jre 与原生都等于期望 → known');
+    check(st3(marked, tsDiverges, ok, tsDiverges) === 'fail', '标 node：原生不符 → fail');
+    const stale3 = judgeRow(jreMarked, { node: ok, jre: ok, native: ok });
+    check(stale3.status === 'fail' && stale3.reasons.some((r) => r.startsWith('stale knownEngineDivergence')), '三侧：分歧已消失 → stale 失败');
+    check(st3({ c: { ...marked.c, knownDivergentEngine: 'native' } }, ok, ok, tsDiverges) === 'fail', 'knownDivergentEngine 只接受引擎名 node / jre');
+    const { timingSummary } = await import('./lib/package-v1/gate.mjs');
+    const t3 = timingSummary([{ name: 'a', status: 'ok', node: 1, jre: 2, native: 90_000 }, { name: 'b', status: 'ok', node: 5, jre: 6, native: 3 }], { timeoutMs: 120_000, sides: ['node', 'jre', 'native'] });
+    check(t3.sides.native.max === 90_000 && t3.slowest[0].name === 'a' && t3.slow.join() === 'a', '耗时：原生列计入中位数 / 最慢 / 超时一半');
+  }
   // G-3：不同 routes 的配方各自成组，相同的合并
   const r1 = { '/a': { status: 200 } };
   const rows = [
@@ -587,6 +613,26 @@ await httpsAnchorTests();
   check(groups.size === 2, `两种 routes 应分成 2 组，得到 ${groups.size}`);
   check(groups.get(routeSetKey(r1)) === r1, '组内取到声明的 routes');
   check(routeSetKey({ '/b': 1, '/a': 2 }) === routeSetKey({ '/a': 2, '/b': 1 }), 'routes 键序不影响分组');
+}
+
+// ---- 原生可执行文件的来源选择（fetch-native-cli.mjs，ADR 0063 T4） ----
+{
+  const { orderRuns, nativeJob, nativeArtifact } = await import('./lib/package-v1/native-artifact.mjs');
+  const check = (cond, msg) => (cond ? pass++ : (fail++, console.error(`✗ ${msg}`)));
+  const runs = [
+    { id: 10, head_sha: 'a', event: 'push' },
+    { id: 30, head_sha: 'b', event: 'pull_request' },
+    { id: 20, head_sha: 'a', event: 'push' },
+    { id: 40, head_sha: 'c', event: 'workflow_dispatch' },
+  ];
+  const o = orderRuns(runs, 'a');
+  check(o.exact?.id === 20, '原生来源：同 commit 取最新的 run');
+  check(o.fallbacks.map((r) => r.id).join() === '30', '原生来源：回落列表按 id 降序、不含同 commit 与非 push / PR 事件');
+  check(orderRuns(runs, 'z').exact === null && orderRuns(runs, 'z').fallbacks.map((r) => r.id).join() === '30,20,10', '原生来源：没有同 commit 的 run 时全部回落');
+  check(nativeJob([{ name: 'native (linux-x64)' }, { name: 'native (linux-x64-ce)' }], 'linux-x64')?.name === 'native (linux-x64)', '原生来源：按显示名精确取 job（不混入 -ce）');
+  check(nativeJob([{ name: 'native (linux-x64)' }, { name: 'native (linux-x64)' }], 'linux-x64') === null, '原生来源：重名 job 不取');
+  check(nativeArtifact([{ name: 'aster-native-linux-x64', expired: true }], 'linux-x64') === null, '原生来源：过期产物不取');
+  check(nativeArtifact([{ name: 'aster-native-linux-x64-ce', expired: false }, { name: 'aster-native-linux-x64', expired: false, id: 7 }], 'linux-x64')?.id === 7, '原生来源：按名字精确取产物');
 }
 
 // ---- 初始 --jwks URL 在 usage 阶段校验（README「信任锚」V-1） ----
@@ -790,6 +836,10 @@ await httpsAnchorTests();
     assert.strictEqual(formatGate(row, { node: null, jre: ['1.0', '1.1'] }), 'skipped');
     assert.strictEqual(formatGate(row, { node: ['1.0'], jre: ['1.0'] }, { strict: true }), 'fail');
     assert.strictEqual(formatGate({ c: {} }, { node: ['1.0'], jre: ['1.0'] }, { strict: true }), 'run');
+    // ADR 0063 T4：原生侧同样参与能力门控
+    assert.strictEqual(formatGate(row, { node: ['1.0', '1.1'], jre: ['1.0', '1.1'], native: ['1.0'] }), 'skipped');
+    assert.strictEqual(formatGate(row, { node: ['1.0', '1.1'], jre: ['1.0', '1.1'], native: ['1.0', '1.1'] }), 'run');
+    assert.strictEqual(formatGate(row, { node: ['1.0', '1.1'], native: null }, { strict: true }), 'fail');
   });
 
   check('显示文本文件：去至多一个 BOM、超大不读、非法 UTF-8 与缺文件为 USAGE', () => {
