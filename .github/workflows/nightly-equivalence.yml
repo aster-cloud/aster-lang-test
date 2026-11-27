@@ -96,6 +96,10 @@ jobs:
           distribution: 'temurin'
           cache: 'gradle'
 
+      # Maven Central 限流（429）防护：此后的 Gradle 构建优先走 Central 镜像，缺货回落原仓库（制品逐字节相同）。
+      # 本地路径引用：platform 已由 checkout-sibling 按同名分支检出到 ./aster-lang-platform。
+      - uses: ./aster-lang-platform/.github/actions/maven-central-mirror
+
       - name: Build aster-lang-ts
         working-directory: aster-lang-ts
         run: pnpm install --frozen-lockfile && pnpm build

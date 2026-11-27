@@ -94,6 +94,10 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
       - uses: gradle/actions/setup-gradle@v6
+
+      # Maven Central 限流（429）防护：此后的 Gradle 构建优先走 Central 镜像，缺货回落原仓库（制品逐字节相同）。
+      # 本地路径引用：platform 已由 checkout-sibling 按同名分支检出到 ./aster-lang-platform。
+      - uses: ./aster-lang-platform/.github/actions/maven-central-mirror
       # catalog bootstrap（ADR 0023 §9）：packages/jvm version=catalog-derived，settings 从
       # mavenLocal 解析 catalog → 须先把已 checkout 的 platform publishToMavenLocal。
       - name: Bootstrap version catalog to Maven Local
@@ -237,6 +241,10 @@ jobs:
           distribution: 'temurin'
           java-version: '25'
           cache: 'gradle'
+
+      # Maven Central 限流（429）防护：此后的 Gradle 构建优先走 Central 镜像，缺货回落原仓库（制品逐字节相同）。
+      # 本地路径引用：platform 已由 checkout-sibling 按同名分支检出到 ./aster-lang-platform。
+      - uses: ./aster-lang-platform/.github/actions/maven-central-mirror
       # truffle 的 cli 依赖 core 的 aster.core.embed 与 catalog 中的生态制品：按 truffle 自身 CI 的顺序发布到 Maven Local
       - name: Publish JVM siblings to Maven Local
         run: |
@@ -533,6 +541,11 @@ jobs:
           java-version: '25'
           distribution: 'temurin'
           cache: 'gradle'
+
+      # Maven Central 限流（429）防护：此后的 Gradle 构建优先走 Central 镜像，缺货回落原仓库（制品逐字节相同）。
+      # 本地路径引用：platform 已由 checkout-sibling 按同名分支检出到 ./aster-lang-platform。
+      - if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
+        uses: ./aster-lang-platform/.github/actions/maven-central-mirror
 
       - name: Build aster-lang-ts
         if: steps.changed.outputs.parity == 'true' || github.event_name == 'push'
