@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "调用结果上的成员访问（ADR 0056 修订 A8 第 3 条）：core 读作成员访问并报 E064（不支持在非名字表达式上取成员），ts 同样报 E064。修复前 ts 把点读作语句结尾，再因裸名字语句 x. 报 lowerStmt 错误"
+}

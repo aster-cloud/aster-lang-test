@@ -1,0 +1,5 @@
+Module reject.stringStatement.
+
+Rule f given v as Text, produce Text:
+  "a" + v.
+  Return v.

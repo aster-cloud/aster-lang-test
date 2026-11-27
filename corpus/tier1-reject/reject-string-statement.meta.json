@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "行首字符串开头的语句（ADR 0056 修订 A8 第 3 条）：core 规范化时丢掉这种行的缩进，两引擎都在第 4 行第 1 列报 E061。修复前 core 拒绝、ts 把 \"a\" + v. 当裸表达式语句接受"
+}

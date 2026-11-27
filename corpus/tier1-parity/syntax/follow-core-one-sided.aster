@@ -1,0 +1,38 @@
+Module parity.syntax.followcoreonesided.
+
+Point has x as Int and y as Int.
+
+Pair with left as Int
+, right as Int.
+
+Define Box with width as Int
+, height as Int
+and depth as Int.
+
+Rule origin, produce Point:
+  Return Point with x set to 0 and Y set to 0.
+
+Rule pair given n as Int, produce Pair:
+  Return Pair with Left set to n, Right set to 1.
+
+Rule box given n as Int, produce Box:
+  Let b be Box has width set to n And Height set to n and depth set to 1.
+  Return b.
+
+Rule bump given v as Int, produce Int:
+  Let y be 1.
+  Return v.Set y to v plus 2.
+
+Rule calls given v as Int, produce Int:
+  v.
+  1.
+  ok of v.
+  [v, 1].
+  (v).
+  Some(v).
+  helper.inc(v).
+  inc(v).inc(1).
+  Return v.
+
+Rule inc given v as Int, produce Int:
+  Return v plus 1.

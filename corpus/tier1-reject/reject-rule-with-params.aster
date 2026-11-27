@@ -1,0 +1,4 @@
+Module reject.ruleWithParams.
+
+Rule add with a as Int and b as Int, produce Int:
+  Return a plus b.

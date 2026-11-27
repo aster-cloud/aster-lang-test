@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 4,
+  "source": "点之后的 core 大写关键词记号 On（ADR 0056 修订 A8 第 3 条）：core 的成员后缀不收 ON 记号，点是语句结尾，其后的 On. 开不了语句，两引擎都拒。修复前 core 拒绝、ts 读作成员 v.On"
+}
