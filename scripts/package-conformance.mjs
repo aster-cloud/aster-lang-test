@@ -4,18 +4,21 @@
  * aster-cli fat jar）各跑一遍 conformance/package-v1 的全部用例：
  *   packages/*.cases.json、tamper/cases.json、inputs-invalid/cases.json、compile/cases.json、tamper/test-time.json（运行时生成），
  *   以及包格式 1.1 的 display/packages/*.cases.json、display/tamper/cases.json（ADR 0059 修订 4）。
+ * 原生侧（ADR 0063 T4）：再给 --native <exe> 时，aster-cli 的 GraalVM 原生可执行文件作为第三侧以同样的规则参与比较；
+ * 只给 --node 与 --native（不给 --jar）时比较 Node ↔ 原生两侧。下文的「两侧」此时指全部参与比较的侧。
  * 带 requiresFormat 的用例只在两侧 `version` 的 formatVersions 都含该版本时运行，否则记为 skipped 并列入报告；
  * 给 --strict-formats 时（列车之后）任一侧不支持即失败。show 成功时 stdout 不是 JSON，按字节与 expectedStdout 比较。
  * 每条用例两侧的 stdout 先经 normalize-stdout.mjs 归一（修订 A0），再比较：①两侧归一后的 stdout 与退出码逐字节相同；
  * ②每一侧都等于用例的 expectedStdout / expectedExit。compile 成功用例比较投影哈希（README「compile」）。
  * 带 knownEngineDivergence 的用例只豁免 knownDivergentEngine 那一侧的期望比较：另一侧仍须等于期望，分歧一侧仍须正常运行；
+ * native 与 jre 是同一个引擎，标 jre 的分歧同样豁免 native，但 jar 与原生两侧归一后仍须一致；
  * 分歧消失（两侧一致且等于期望）判失败，提醒去掉标记（判定见 lib/package-v1/gate.mjs）。
  * 用例数有下限：不给 --filter 时须跑完各 cases 文件的全部行（每个文件都不得缺失或为空），给 --filter 时至少匹配一条。
  * 报告列出运行环境（并发、核数、前后负载）与每条用例两侧耗时（aster-lang-test#226 m-3），用来区分负载抖动与真分歧。
  *
  * 用法：
- *   node scripts/package-conformance.mjs --node <aster.mjs> --jar <aster-cli.jar> [--report-only] [--concurrency 4]
- *        [--filter <子串>] [--report <file.md>] [--strict-formats]
+ *   node scripts/package-conformance.mjs --node <aster.mjs> (--jar <aster-cli.jar> | --native <aster> | 两者都给)
+ *        [--report-only] [--concurrency 4] [--filter <子串>] [--report <file.md>] [--strict-formats]
  *   --report-only：只出报告，退出码恒为 0（接入 CI 之前用）。
  * 退出码：0 全部一致（或 --report-only）；1 有不一致或用例数不足；2 用法错误（含 CLI 文件不存在）。
  */
@@ -38,11 +41,12 @@ const opt = (k, d) => {
 };
 const nodeCli = opt('--node');
 const jar = opt('--jar');
-if (!nodeCli || !jar) {
-  console.error('用法：node scripts/package-conformance.mjs --node <aster.mjs> --jar <aster-cli.jar> [--report-only] [--concurrency N] [--filter s] [--report f]');
+const nativeExe = opt('--native');
+if (!nodeCli || (!jar && !nativeExe)) {
+  console.error('用法：node scripts/package-conformance.mjs --node <aster.mjs> (--jar <aster-cli.jar> | --native <aster>) [--report-only] [--concurrency N] [--filter s] [--report f] [--strict-formats]');
   process.exit(2);
 }
-for (const f of [nodeCli, jar]) {
+for (const f of [nodeCli, jar, nativeExe].filter(Boolean)) {
   if (!existsSync(f)) {
     console.error(`package-conformance: ${f} 不存在`);
     process.exit(2);
@@ -54,11 +58,18 @@ const filter = opt('--filter');
 const strictFormats = argv.includes('--strict-formats');
 const PROCESS_TIMEOUT_MS = 120_000;
 
-/** 两侧 CLI 的调用方式。每次都清掉会影响结果的环境变量（ASTER_TRUFFLE_FUNC 会使 JVM CLI 直接 USAGE）。 */
+/**
+ * 各侧 CLI 的调用方式（键序即报告里的列序）。每次都清掉会影响结果的环境变量（ASTER_TRUFFLE_FUNC 会使 JVM CLI 直接 USAGE，
+ * 原生可执行文件读同一组环境变量）。
+ */
 const SIDES = {
   node: (args) => [process.execPath, [resolve(nodeCli), ...args]],
-  jre: (args) => ['java', ['-jar', resolve(jar), ...args]],
+  ...(jar && { jre: (args) => ['java', ['-jar', resolve(jar), ...args]] }),
+  ...(nativeExe && { native: (args) => [resolve(nativeExe), args] }),
 };
+const SIDE_LIST = Object.keys(SIDES);
+/** 两侧时报告措辞与加原生侧之前逐字节相同。 */
+const SIDES_WORD = SIDE_LIST.length === 2 ? '两侧' : '各侧';
 function baseEnv() {
   const env = { ...process.env };
   delete env.ASTER_TRUFFLE_FUNC;
@@ -194,7 +205,8 @@ async function runRow(row, ctx) {
     for (const f of prep.cleanups) f();
   }
   const { status, reasons } = judgeRow(row, results);
-  return { row, results, sameAcross: results.node.comparable === results.jre.comparable, status, reasons, known: row.c.knownEngineDivergence };
+  const sameAcross = SIDE_LIST.every((s) => results[s].comparable === results.node.comparable);
+  return { row, results, sameAcross, status, reasons, known: row.c.knownEngineDivergence };
 }
 
 // ---------------------------------------------------------------------------
@@ -211,7 +223,8 @@ async function formatsOf(side) {
 
 async function main() {
   const loaded = loadCases();
-  const sideFormats = { node: await formatsOf('node'), jre: await formatsOf('jre') };
+  const sideFormats = {};
+  for (const side of SIDE_LIST) sideFormats[side] = await formatsOf(side);
   const gateOf = new Map(loaded.map((r) => [r, formatGate(r, sideFormats, { strict: strictFormats })]));
   const skipped = loaded.filter((r) => gateOf.get(r) === 'skipped');
   const gateFailed = loaded.filter((r) => gateOf.get(r) === 'fail');
@@ -248,13 +261,14 @@ async function main() {
   const knownDiverging = outcomes.filter((o) => o.status === 'known');
   const identical = outcomes.filter((o) => o.status === 'ok').length;
   const coverage = coverageProblems({ expected: loaded.length, ran: outcomes.length + skipped.length + gateFailed.length, filter });
-  const formatLine = `- formatVersions：node ${JSON.stringify(sideFormats.node)}，jre ${JSON.stringify(sideFormats.jre)}；按 requiresFormat 跳过：${skipped.length}${strictFormats ? '（--strict-formats）' : ''}`;
+  const formatLine = `- formatVersions：${SIDE_LIST.map((s) => `${s} ${JSON.stringify(sideFormats[s])}`).join('，')}；按 requiresFormat 跳过：${skipped.length}${strictFormats ? '（--strict-formats）' : ''}`;
   const lines = [
     '# 跨 CLI 一致性门（ADR 0059 P1 T11）',
     '',
     `- Node CLI：\`${nodeCli}\``,
-    `- JVM CLI：\`${jar}\``,
-    `- 用例：${outcomes.length}；两侧一致且等于期望：**${identical}/${outcomes.length}**；不一致：**${failing.length}**；已知引擎分歧（不计失败）：${knownDiverging.length}`,
+    ...(jar ? [`- JVM CLI：\`${jar}\``] : []),
+    ...(nativeExe ? [`- 原生 CLI：\`${nativeExe}\``] : []),
+    `- 用例：${outcomes.length}；${SIDES_WORD}一致且等于期望：**${identical}/${outcomes.length}**；不一致：**${failing.length}**；已知引擎分歧（不计失败）：${knownDiverging.length}`,
     formatLine,
     `- 运行环境：并发 ${concurrency}，${cpus().length} 核，墙钟 ${wallMs} ms；1 分钟负载 开始 ${loadBefore[0].toFixed(2)} / 结束 ${loadAfter[0].toFixed(2)}（单进程超时 ${PROCESS_TIMEOUT_MS} ms）`,
     ...coverage.map((p) => `- **用例数不足**：${p}`),
@@ -262,8 +276,8 @@ async function main() {
     '',
   ];
   const describe = (o) => {
-    const out = [`### ${o.row.file} / ${o.row.c.name}${o.known ? `（已知分歧：${o.known}）` : ''}`, '', `- 参数：\`${JSON.stringify(o.row.c.args)}\``, `- 两侧归一后一致：${o.sameAcross ? '是' : '否'}`, ...o.reasons.map((r) => `- **${r}**`)];
-    for (const side of ['node', 'jre']) {
+    const out = [`### ${o.row.file} / ${o.row.c.name}${o.known ? `（已知分歧：${o.known}）` : ''}`, '', `- 参数：\`${JSON.stringify(o.row.c.args)}\``, `- ${SIDES_WORD}归一后一致：${o.sameAcross ? '是' : '否'}`, ...o.reasons.map((r) => `- **${r}**`)];
+    for (const side of SIDE_LIST) {
       const r = o.results[side];
       out.push(`- ${side}（${r.res.ms} ms，退出码 ${r.res.exit}）：${r.problems.length ? '' : '符合期望'}`);
       for (const p of r.problems) out.push(`  - ${p}`);
@@ -274,29 +288,29 @@ async function main() {
   };
   if (failing.length) lines.push('## 不一致', '', ...failing.flatMap(describe));
   if (knownDiverging.length) lines.push('## 已知引擎分歧', '', ...knownDiverging.flatMap(describe));
-  // 每条用例两侧耗时（#226 m-3）：不一致的行若耗时远高于同侧中位数、或接近超时，多半是负载抖动而非真分歧
-  const timingRows = outcomes.map((o) => ({ name: `${o.row.file}/${o.row.c.name}`, status: o.status, node: o.results.node.res.ms, jre: o.results.jre.res.ms }));
-  const timing = timingSummary(timingRows, { timeoutMs: PROCESS_TIMEOUT_MS });
-  const fmt = (x) => (x === null ? '-' : `${x}`);
+  // 每条用例各侧耗时（#226 m-3）：不一致的行若耗时远高于同侧中位数、或接近超时，多半是负载抖动而非真分歧
+  const timingRows = outcomes.map((o) => ({ name: `${o.row.file}/${o.row.c.name}`, status: o.status, ...Object.fromEntries(SIDE_LIST.map((s) => [s, o.results[s].res.ms])) }));
+  const timing = timingSummary(timingRows, { timeoutMs: PROCESS_TIMEOUT_MS, sides: SIDE_LIST });
+  const fmt = (x) => (x === null || x === undefined ? '-' : `${x}`);
+  const caseHeader = [`| 用例 | 结论 | ${SIDE_LIST.map((s) => `${s} ms`).join(' | ')} |`, `|---|---|${SIDE_LIST.map(() => '---|').join('')}`];
+  const caseRow = (r) => `| ${r.name} | ${r.status} | ${SIDE_LIST.map((s) => fmt(r[s])).join(' | ')} |`;
   lines.push(
     '## 耗时',
     '',
     '| 侧 | 中位数 ms | p95 ms | 最大 ms |',
     '|---|---|---|---|',
-    ...['node', 'jre'].map((side) => `| ${side} | ${fmt(timing.sides[side].median)} | ${fmt(timing.sides[side].p95)} | ${fmt(timing.sides[side].max)} |`),
+    ...SIDE_LIST.map((side) => `| ${side} | ${fmt(timing.sides[side].median)} | ${fmt(timing.sides[side].p95)} | ${fmt(timing.sides[side].max)} |`),
     '',
     ...(timing.slow.length ? [`- **耗时达到超时一半的用例**（${timing.slow.length}）：${timing.slow.join('、')}`, ''] : []),
     `最慢的 ${timing.slowest.length} 条：`,
     '',
-    '| 用例 | 结论 | node ms | jre ms |',
-    '|---|---|---|---|',
-    ...timing.slowest.map((r) => `| ${r.name} | ${r.status} | ${fmt(r.node)} | ${fmt(r.jre)} |`),
+    ...caseHeader,
+    ...timing.slowest.map(caseRow),
     '',
     '<details><summary>全部用例耗时</summary>',
     '',
-    '| 用例 | 结论 | node ms | jre ms |',
-    '|---|---|---|---|',
-    ...timingRows.map((r) => `| ${r.name} | ${r.status} | ${fmt(r.node)} | ${fmt(r.jre)} |`),
+    ...caseHeader,
+    ...timingRows.map(caseRow),
     '',
     '</details>',
     '',
