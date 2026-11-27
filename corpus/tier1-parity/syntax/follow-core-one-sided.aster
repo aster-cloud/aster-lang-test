@@ -23,6 +23,10 @@ Rule bump given v as Int, produce Int:
   Let y be 1.
   Return v.Set y to v plus 2.
 
+Rule mapped given v as Int, produce Int:
+  Let y be v.Map(y).
+  Return y.
+
 Rule calls given v as Int, produce Int:
   v.
   1.

@@ -656,6 +656,8 @@
     "tier1-reject/reject-literal-homograph-param.aster",
     "tier1-reject/reject-rule-with-params.aster",
     "tier1-reject/reject-dot-core-token.aster",
+    "tier1-reject/reject-dot-core-token-it.aster",
+    "tier1-reject/reject-dot-core-token-use.aster",
     "tier1-reject/reject-string-statement.aster",
     "tier1-reject/reject-member-on-call.aster"
   ]

@@ -5,7 +5,7 @@
     "ts"
   ],
   "lexicon": "en-US",
-  "source": "ADR 0056 修订 A8 第 3 条（产品裁决 2026-11-28「处处照 core」）：ts 照 core 接受的写法——顶层省略 Define 的数据类型（Point has … / Pair with …）、字段列表里换行起头的逗号、构造里首字母大写的字段名（首个字段与 and / 逗号之后，Y / Left / Height 按字段名解析）、点之后的 Set 是语句结尾（Return v.Set y to … = Return v. 加 Set y to ….）、裸表达式语句（名字、字面量、ok of、列表、括号、Some(…) 调用、限定名调用与方法调用链）降为 Let _。修复前 ts 拒绝这些写法（或 v.Set 读作成员），core 接受",
+  "source": "ADR 0056 修订 A8 第 3 条（产品裁决 2026-11-28「处处照 core」）：ts 照 core 接受的写法——顶层省略 Define 的数据类型（Point has … / Pair with …）、字段列表里换行起头的逗号、构造里首字母大写的字段名（首个字段与 and / 逗号之后，Y / Left / Height 按字段名解析）、点之后的 Set 与 Map 是语句结尾（Return v.Set y to … = Return v. 加 Set y to ….；Let y be v.Map(y). = Let y be v. 加 Map(y).）、裸表达式语句（名字、字面量、ok of、列表、括号、Some(…) 调用、限定名调用与方法调用链）降为 Let _。修复前 ts 拒绝这些写法（或 v.Set 读作成员），core 接受",
   "evalExempt": true,
   "evalExemptReason": "ir-only",
   "evalExemptDetail": "只锁定这些写法两引擎同一 Core IR"

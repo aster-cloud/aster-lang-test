@@ -1,0 +1,5 @@
+Module reject.dotCoreTokenUse.
+
+Rule f given v as Int, produce Int:
+  Let y be v.Use.
+  Return y.
