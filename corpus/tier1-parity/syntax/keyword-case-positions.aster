@@ -1,0 +1,38 @@
+Module parity.syntax.keywordcasepositions.
+
+Define Color as one of Red Or Green, Blue AND Black oR White and Gray.
+Define Shade as one of Light OR Dark.
+
+Define Point with x as Int
+And y as Int
+AND z as Int.
+
+Define Pair has left as Int, right as Int.
+
+Rule add given a as Int And b as Int AND c as Int, produce Int:
+  Return a plus b plus c.
+
+Rule inc given v as Int, produce Int:
+  Return v plus 1.
+
+Rule bump given n as Int, produce Int:
+  Let m be apply inc To n.
+  Return apply inc TO m.
+
+Rule origin, produce Point:
+  Return Point with x set to 0 and y SET to 0 AND z Set to 0.
+
+Rule pair given n as Int, produce Pair:
+  Return Pair has left set to n and right sET to 0.
+
+Rule other given n as Int, produce Pair:
+  Return Pair HAS left set to n, right set to n.
+
+Rule third given n as Int, produce Pair:
+  Let p be Pair Has left set to 1 and right set to n.
+  Return p.
+
+Rule sum given v as Int, produce Int:
+  Let f be function given a as Int And b as Int, produce Int: Return a plus b.
+  Let g be function with a as Int AND b as Int aND c as Int, produce Int: Return a plus b plus c.
+  Return f(v, g(v, v, v)).
