@@ -1,0 +1,37 @@
+{
+  "id": "parity.vocab.alias-receiver",
+  "name": "别名接收者展开",
+  "locale": "en-US",
+  "version": "1.0.0",
+  "structs": [
+    {
+      "canonical": "Driver",
+      "localized": "Fahrer",
+      "kind": "struct"
+    }
+  ],
+  "fields": [
+    {
+      "canonical": "age",
+      "localized": "alter",
+      "kind": "field",
+      "parent": "Driver"
+    }
+  ],
+  "functions": [],
+  "enumValues": [
+    {
+      "canonical": "High",
+      "localized": "Hoch",
+      "kind": "enum_value",
+      "parent": "Level"
+    },
+    {
+      "canonical": "Low",
+      "localized": "Niedrig",
+      "kind": "enum_value",
+      "parent": "Level"
+    }
+  ],
+  "literals": []
+}
