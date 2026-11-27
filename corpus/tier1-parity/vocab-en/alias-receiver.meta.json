@@ -1,0 +1,10 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expectWarnings": [],
+  "source": "类型别名接收者展开（aster-lang-core#313，ADR 0056 修订 A7 D1）：别名类型按目标类型解析。x 为 Fz（Fahrer 的别名），x.alter 经词汇按 Driver 解析为 x.age，不再报 W801；Match 主语为 L（Level 的别名），裸名 Hoch / Niedrig 是成员（PatCtor High / Low）。修复前主语类型被当作非枚举的已知类型名，两个裸名都是绑定，第一臂吞掉所有输入"
+}

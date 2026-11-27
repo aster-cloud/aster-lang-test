@@ -1,0 +1,17 @@
+Module parity.aliasReceiver.
+
+Define Fahrer has alter as Int.
+
+Define Level as one of Hoch, Niedrig.
+
+Type Fz as Fahrer.
+
+Type L as Level.
+
+Rule punkte given s as L, produce Int:
+  Match s:
+    When Hoch, Return 2.
+    When Niedrig, Return 1.
+
+Rule alterVon given x as Fz, produce Int:
+  Return x.alter.
