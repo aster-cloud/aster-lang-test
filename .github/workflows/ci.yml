@@ -178,7 +178,10 @@ jobs:
   # --strict-formats（ADR 0059 A4 计划 T5 Step 4，列车 eco-1.0.53 之后）：带 requiresFormat 的用例不再按能力跳过，任一侧 CLI 的
   # formatVersions 缺该版本即失败。
   package-conformance:
-    # 显示名必须恰为 package-conformance：分支保护的 required check 按它匹配（Package format v1 跨 CLI 一致性门，Node ↔ JVM）
+    # Package format v1 跨 CLI 一致性门（Node ↔ JVM）。当前**不是**必需检查：main 分支保护只要求 `Build & test (JDK)` 与
+    # `Build & test (Node)`，.github/main-ci-gate.json 也只列这两个，所以本 job 失败时 PR 上是红叉、但不拦合并，发布门禁
+    # （require-main-ci-green）对它的红只告警。要把它升为必需检查：仓库管理员在分支保护里加 `package-conformance`，同一改动把它
+    # 加进 main-ci-gate.json 的 requiredJobs。显示名保持恰为 package-conformance，届时两处都按它匹配。
     name: package-conformance
     runs-on: ubuntu-latest
     steps:
@@ -264,7 +267,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build
           ls -l dist/runner/
-      - name: Run package format v1 cross-CLI conformance, Node ↔ JVM (PR-blocking)
+      - name: Run package format v1 cross-CLI conformance, Node ↔ JVM
         working-directory: aster-lang-test
         shell: bash
         run: |
