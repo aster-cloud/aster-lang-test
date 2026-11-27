@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "关键词大小写 K-c（aster-lang-ts#338 第 1 部分，ADR 0056 修订 A4 §1.1、修订 A7 D1，产品裁决 D2 / D3）：运算符与字面量不区分大小写——times、PLUS、Minus、MODULO，比较词前的 Is / IS / iS（Is Greater Than、IS AT LEAST、Is Not Equal To、iS over），NOT EQUAL TO，软比较词 Under；TRUE / True / False 是布尔字面量，模式里的 Null 是 null 模式（D2）；Not(x) / NOT (x) 读作 not（D3）。修复前 core 只认小写拼写（其余拼写报语法错误或读作名字），ts 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定运算符与字面量的 Core IR"
+}

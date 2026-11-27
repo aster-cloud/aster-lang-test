@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "关键词大小写 K-c，产品裁决 D2：true / false / null 的其余大小写拼写不能作声明的名字（数据类型名 Null），两引擎都报 E055，写 `Null` 转义后照旧是名字。修复前 core 收作名字（之后的引用会被 K-c 读成字面量，静默改变含义），ts 以 E055 拒绝"
+}

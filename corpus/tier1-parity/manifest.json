@@ -331,6 +331,7 @@
     "tier1-parity/syntax/use-keyword-case.aster",
     "tier1-parity/syntax/keyword-case-decl.aster",
     "tier1-parity/syntax/keyword-case-stmt.aster",
+    "tier1-parity/syntax/keyword-case-ops.aster",
     "tier1-parity/syntax/ascii-vt-ff-before-punct-zh.aster",
     "tier1-parity/syntax/ideographic-space-zh.aster",
     "tier1-parity/syntax/unicode-space-in-string-and-comment.aster",
@@ -645,6 +646,10 @@
     "tier1-reject/reject-escape-unterminated.aster",
     "tier1-reject/reject-escape-empty.aster",
     "tier1-reject/reject-escape-invalid-char.aster",
-    "tier1-reject/reject-escape-fullwidth.aster"
+    "tier1-reject/reject-escape-fullwidth.aster",
+    "tier1-reject/reject-literal-homograph-variant.aster",
+    "tier1-reject/reject-literal-homograph-type-name.aster",
+    "tier1-reject/reject-literal-homograph-let.aster",
+    "tier1-reject/reject-literal-homograph-param.aster"
   ]
 }
