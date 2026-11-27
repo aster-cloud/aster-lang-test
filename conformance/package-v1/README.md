@@ -45,6 +45,20 @@ node scripts/package-conformance.mjs --node ../aster-lang-ts/dist/runner/aster.m
 用例数有下限：每个 cases 文件都须存在且非空，不给 `--filter` 时须跑完它们的全部行，给 `--filter` 时至少匹配一条，零条即失败。
 同一 `routes` 的 https 配方共用一个服务，`routes` 不同的各起一个。兄弟仓走 checkout-sibling（同名分支优先），夹具与两侧 CLI 的联合改动可在合并前一起验证。
 
+原生侧（ADR 0063 T4）：`--native <aster>` 把 aster-cli 的 GraalVM 原生可执行文件作为第三侧加入，规则同上（`--strict-formats` 的能力门控也看原生的 `version`）；
+`--jar` 与 `--native` 至少给一个，只给 `--native` 时比较 Node ↔ 原生两侧。原生与 jar 是同一个引擎：`knownDivergentEngine: "jre"` 同样豁免原生，
+但 jar 与原生两侧归一后必须一致（原生构建自己的缺陷不能借引擎分歧的标记过关）；`knownDivergentEngine` 只接受 `node` / `jre`。报告的耗时表多一列 `native ms`。
+
+```bash
+node scripts/fetch-native-cli.mjs --branch main --sha <truffle commit> --target linux-x64 --out /tmp/native-cli   # 末行打印可执行文件路径
+node scripts/package-conformance.mjs --node ../aster-lang-ts/dist/runner/aster.mjs --native <aster> [--jar <aster-cli.jar>] --strict-formats
+```
+
+原生产物没有发布渠道（ADR 0063 §6.3 的签名凭据到位前不发布），`fetch-native-cli.mjs` 从 aster-lang-truffle CI 的 `native (<target>)` job 下载 artifact
+`aster-native-<target>`（保留 7 天）：首选与检出的 truffle commit 相同的 run，否则回落到同名分支 / main 最新的未过期产物并告警。
+CI job `package-conformance native (linux-x64)` / `(linux-x64-ce)` 跑 Node ↔ 原生，**非阻塞**（不进分支保护与 `.github/main-ci-gate.json`），
+原生资产进入 truffle `release.yml` 时（计划 T6）升为必需检查。
+
 生成与校验（Node ≥ 24，无 npm 依赖）：
 
 ```bash

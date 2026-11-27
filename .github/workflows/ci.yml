@@ -272,6 +272,81 @@ jobs:
           path: aster-lang-test/package-conformance-report.md
           if-no-files-found: warn
 
+  # ADR 0063 T4：跨 CLI 一致性门的原生侧。aster-cli 的 GraalVM 原生可执行文件以 package-conformance.mjs --native 参与比较，规则与 jre 侧相同
+  # （--strict-formats、knownEngineDivergence 按引擎豁免、stdout 归一与退出码逐字节比较、用例数下限）。
+  # 二进制不在这里编译：取 aster-lang-truffle CI 的 `native (<target>)` job 上传的 artifact `aster-native-<target>`（scripts/fetch-native-cli.mjs）。
+  # truffle 按 checkout-sibling 的规则解析（同名分支优先，否则 main），首选与检出 commit 相同的 run（其原生 job 未结束时最多等 20 分钟），
+  # 没有时回落到该分支 / main 最新的未过期产物并在 summary 里告警。这里只比较 Node ↔ 原生（不再构建 jar）：jar ↔ Node 已由上面的
+  # package-conformance job 把关，两侧都须等于同一份期望，所以原生 ↔ jar 也随之一致（带 knownEngineDivergence 的行例外：那时 jar 与原生
+  # 的相互一致要三侧一起跑，`--jar` 与 `--native` 同时给；目前没有这样的行）。
+  # 两个目标：linux-x64（Oracle GraalVM，计划 T6 升为必需的那一条）与 linux-x64-ce（ADR 0063 Q1 推荐的发行版）。
+  #
+  # 非阻塞：独立 job、不进分支保护、也不进 .github/main-ci-gate.json（ADR 0053 A2 的发布门禁对非必需 job 的红只告警）。
+  # 不用 continue-on-error：那会把失败的 job 显示成绿色，原生分歧就没人看见；独立的非必需 job 失败时在 PR 上是红叉、但不拦合并。
+  # 原生产物进入 truffle release.yml 时（ADR 0063 §5 第 3 条、计划 T6）与 truffle 的 `native (linux-x64)` 一起升为必需检查。
+  package-conformance-native:
+    name: package-conformance native (${{ matrix.target }})
+    runs-on: ubuntu-24.04
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        target: [linux-x64, linux-x64-ce]
+    steps:
+      - name: Self checkout
+        uses: actions/checkout@v6
+        with:
+          path: aster-lang-test
+      - name: Checkout aster-lang-truffle (resolves the commit whose native build is used)
+        id: truffle
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
+        with:
+          repository: aster-cloud/aster-lang-truffle
+          path: aster-lang-truffle
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - name: Checkout aster-lang-ts
+        uses: aster-cloud/aster-lang-platform/.github/actions/checkout-sibling@main
+        with:
+          repository: aster-cloud/aster-lang-ts
+          path: aster-lang-ts
+          token: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+      - uses: pnpm/action-setup@v6
+        with:
+          version: 9
+      - uses: actions/setup-node@v6
+        with:
+          node-version: '24'
+          cache: pnpm
+          cache-dependency-path: aster-lang-ts/pnpm-lock.yaml
+      - name: Download native CLI from aster-lang-truffle CI
+        id: native
+        working-directory: aster-lang-test
+        env:
+          GH_TOKEN: ${{ secrets.CROSS_REPO_TOKEN || github.token }}
+        run: |
+          node scripts/fetch-native-cli.mjs --branch "${{ steps.truffle.outputs.resolved-ref }}" \
+            --sha "$(git -C ../aster-lang-truffle rev-parse HEAD)" --target ${{ matrix.target }} \
+            --out "$RUNNER_TEMP/native-cli" --wait-minutes 20
+      - name: Build Node CLI (dist/runner/aster.mjs)
+        working-directory: aster-lang-ts
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+      - name: Run package format v1 cross-CLI conformance, Node ↔ native (non-blocking)
+        working-directory: aster-lang-test
+        shell: bash
+        run: |
+          set -o pipefail
+          node scripts/package-conformance.mjs --node ../aster-lang-ts/dist/runner/aster.mjs --native "${{ steps.native.outputs.exe }}" \
+            --concurrency 4 --strict-formats --report package-conformance-native-report.md > /dev/null
+      - name: Upload conformance report
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: package-conformance-native-${{ matrix.target }}-${{ github.run_id }}
+          path: aster-lang-test/package-conformance-native-report.md
+          if-no-files-found: warn
+
   # Cross-engine inventory gate is enforced on the consumer side:
   #   - aster-lang-ts CI runs `node scripts/java-corpus-parse-inventory.mjs`
   #   - aster-lang-core CI runs `./gradlew test --tests TsSampleParseInventoryTest`
