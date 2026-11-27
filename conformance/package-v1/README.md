@@ -36,7 +36,7 @@ CLI 行为定死为可执行的字节：两个 `aster` CLI（Node T2–T5、JVM 
 
 > 门禁现状：`package-conformance` **不是**必需检查。main 分支保护只要求 `Build & test (JDK)` 与 `Build & test (Node)`，
 > 发布门禁 `.github/main-ci-gate.json`（ADR 0053 A2，`require-main-ci-green`）也只要求这两个 job。本 job 失败时 PR 上显示红叉，
-> 但不拦合并；发布时对它的红只告警。合并前请人工确认它是绿的。
+> 但不拦合并；发布时对它的红只告警。合并前由评审人自行确认它是绿的（人工约定，不是仓库强制的合并条件）。
 > 升为必需检查需要仓库管理员在 main 分支保护里加上 `package-conformance`，并在同一改动里把它加进 `main-ci-gate.json` 的 `requiredJobs`。
 
 ```bash

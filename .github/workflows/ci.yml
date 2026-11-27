@@ -267,7 +267,7 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm build
           ls -l dist/runner/
-      - name: Run package format v1 cross-CLI conformance, Node ↔ JVM (PR-blocking)
+      - name: Run package format v1 cross-CLI conformance, Node ↔ JVM
         working-directory: aster-lang-test
         shell: bash
         run: |
