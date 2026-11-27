@@ -18,7 +18,7 @@ Rule origin, produce Point:
 
 
 
-Rule one, produce Int:
+Rule single, produce Int:
   Return 1.
 
 
