@@ -92,10 +92,20 @@ function finish(run, exe, exact) {
   process.exit(0);
 }
 
-const runsOn = (b) => api(`repos/${repo}/actions/workflows/ci.yml/runs?branch=${encodeURIComponent(b)}&per_page=50`).workflow_runs;
+/** ci.yml 的 run（翻完全部页）。query 为 head_sha=… 或 branch=…&created=>=…；--jq 逐条输出，避免多页 JSON 对象拼接。 */
+const listRuns = (query) =>
+  gh('api', '--paginate', `repos/${repo}/actions/workflows/ci.yml/runs?${query}&per_page=100`, '--jq', '.workflow_runs[] | tojson')
+    .split('\n')
+    .filter(Boolean)
+    .map((l) => JSON.parse(l));
+// 产物保留 7 天：回落只需看最近 8 天的 run
+const since = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10);
+const runsOn = (b) => listRuns(`branch=${encodeURIComponent(b)}&created=${encodeURIComponent(`>=${since}`)}`);
 
 async function main() {
-  const { exact, fallbacks } = orderRuns(runsOn(branch), sha);
+  // 同 commit 的 run 按 head_sha 直接查（不限分支：该 commit 只在 main 上有 run 时也能命中）
+  const { exact } = orderRuns(listRuns(`head_sha=${sha}`), sha);
+  const { fallbacks } = orderRuns(runsOn(branch), sha);
   if (exact) {
     const job = await awaitNativeJob(exact);
     if (!job) {
