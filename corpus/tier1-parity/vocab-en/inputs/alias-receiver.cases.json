@@ -1,0 +1,19 @@
+{
+  "entry": "punkte",
+  "cases": [
+    {
+      "name": "High → 2",
+      "input": [
+        "High"
+      ],
+      "expectedOutput": 2
+    },
+    {
+      "name": "Low → 1（修复前第一臂是绑定，得 2）",
+      "input": [
+        "Low"
+      ],
+      "expectedOutput": 1
+    }
+  ]
+}

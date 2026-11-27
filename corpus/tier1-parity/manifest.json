@@ -493,6 +493,10 @@
       "path": "tier1-parity/vocab-zh/literal-curly-quotes.aster",
       "vocab": true
     },
+    {
+      "path": "tier1-parity/vocab-en/alias-receiver.aster",
+      "vocab": true
+    },
     "tier1-parity/syntax/keyword-name-builtin-zh.aster",
     "tier1-parity/syntax/keyword-name-builtin-de.aster",
     "tier1-parity/syntax/keyword-name-builtin-hi.aster",
