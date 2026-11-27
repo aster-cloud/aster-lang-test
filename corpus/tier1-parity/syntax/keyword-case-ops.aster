@@ -1,0 +1,28 @@
+Module parity.syntax.keywordcaseops.
+
+Define Order with qty as Int, price as Int, flagged as Bool.
+
+Rule total given o as Order, produce Int:
+  Return o.qty Times o.price PLUS 1 Minus o.qty MODULO 3.
+
+Rule big given o as Order, produce Bool:
+  If o.qty Is Greater Than 10:
+    Return TRUE.
+  If o.price IS AT LEAST 100 and o.qty Is Not Equal To 0:
+    Return True.
+  Return o.price Under 5 OR o.qty iS over 50.
+
+Rule same given a as Int, b as Int, produce Bool:
+  Return a Is Equal To b and a NOT EQUAL TO 0.
+
+Rule small given o as Order, produce Bool:
+  Return Not(o.qty Is Less Than 3) and NOT (o.flagged).
+
+Rule pick given n as Int?, produce Int:
+  Match n:
+    When Null, Return 0.
+    When 1, Return 1.
+  Return 2.
+
+Rule fresh, produce Order:
+  Return Order with qty set to 1, price set to 2, flagged set to False.

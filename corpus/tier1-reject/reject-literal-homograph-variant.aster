@@ -1,0 +1,6 @@
+Module parity.reject.literalvariant.
+
+Define Flag as one of True, Other.
+
+Rule get, produce Flag:
+  Return True.

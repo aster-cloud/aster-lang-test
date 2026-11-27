@@ -1,0 +1,5 @@
+Module parity.reject.literallet.
+
+Rule get given x as Int, produce Int:
+  Let FALSE be x.
+  Return FALSE.

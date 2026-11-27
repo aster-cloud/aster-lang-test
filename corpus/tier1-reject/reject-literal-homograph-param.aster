@@ -1,0 +1,4 @@
+Module parity.reject.literalparam.
+
+Rule get given tRUE as Int, produce Int:
+  Return tRUE.
