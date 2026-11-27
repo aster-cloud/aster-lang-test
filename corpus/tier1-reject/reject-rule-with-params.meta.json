@@ -1,0 +1,11 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "expect": "reject",
+  "expectErrorLine": 3,
+  "source": "规则头里 with 引导的形参（ADR 0056 修订 A8 第 3 条，产品裁决 2026-11-28「处处照 core」）：core 的规则头只收 given 引导的形参，两引擎都在 with 上报 E062（同码、同位置、同参数）。修复前 core 拒绝、ts 把 with 当 given 的同义词接受"
+}

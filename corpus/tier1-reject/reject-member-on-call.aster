@@ -1,0 +1,4 @@
+Module reject.memberOnLiteral.
+
+Rule f given v as Int, produce Int:
+  Return f(v).x.

@@ -334,6 +334,7 @@
     "tier1-parity/syntax/keyword-case-ops.aster",
     "tier1-parity/syntax/keyword-case-workflow.aster",
     "tier1-parity/syntax/keyword-case-positions.aster",
+    "tier1-parity/syntax/follow-core-one-sided.aster",
     "tier1-parity/syntax/ascii-vt-ff-before-punct-zh.aster",
     "tier1-parity/syntax/ideographic-space-zh.aster",
     "tier1-parity/syntax/unicode-space-in-string-and-comment.aster",
@@ -652,6 +653,12 @@
     "tier1-reject/reject-literal-homograph-variant.aster",
     "tier1-reject/reject-literal-homograph-type-name.aster",
     "tier1-reject/reject-literal-homograph-let.aster",
-    "tier1-reject/reject-literal-homograph-param.aster"
+    "tier1-reject/reject-literal-homograph-param.aster",
+    "tier1-reject/reject-rule-with-params.aster",
+    "tier1-reject/reject-dot-core-token.aster",
+    "tier1-reject/reject-dot-core-token-it.aster",
+    "tier1-reject/reject-dot-core-token-use.aster",
+    "tier1-reject/reject-string-statement.aster",
+    "tier1-reject/reject-member-on-call.aster"
   ]
 }

@@ -1,0 +1,4 @@
+Module reject.dotCoreTokenIt.
+
+Rule f given v as Int, produce Int:
+  Return v.It(1).
