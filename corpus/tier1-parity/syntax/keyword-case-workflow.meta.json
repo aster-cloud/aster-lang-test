@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "关键词大小写 K-d（aster-lang-ts#338 第 1 部分，ADR 0056 修订 A4 §1.1、修订 A7 D1）：workflow 与约束关键词不区分大小写——WORKFLOW / wORKFLOW、STEP / sTEP / Step、COMPENSATE、DEPENDS ON / Depends oN、RETRY / rETRY、MAX ATTEMPTS / Max Attempts、BACKOFF / bACKOFF、TIMEOUT / tIMEOUT、SECONDS / Second，字段与形参约束 REQUIRED / Required / rEQUIRED、BETWEEN / bETWEEN、Matching / MATCHING（pattern 只认小写，ts 同样只认小写）。与全小写写法 Core IR 相同。修复前 core 只认小写（workflow 词另认首字母大写）拼写，其余拼写报语法错误，ts 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定 workflow 与约束关键词的 Core IR"
+}

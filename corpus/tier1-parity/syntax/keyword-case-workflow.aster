@@ -1,0 +1,36 @@
+Module parity.syntax.keywordcaseworkflow.
+
+Define Applicant has name as Text REQUIRED, age as Int Required BETWEEN 18 and 120, code as Text Matching pattern "^[A-Z]+$".
+
+Rule screen given age as Int rEQUIRED bETWEEN 0 and 150, code as Text MATCHING "^[A-Z]+$", produce Bool:
+  Return age greater than 20.
+
+Rule settle, produce. It performs io:
+  WORKFLOW:
+    STEP reserve:
+      Return ok of 1.
+    COMPENSATE:
+      Return ok of 10.
+
+    sTEP charge DEPENDS ON ["reserve"]:
+      Return ok of 2.
+
+    Step ship Depends oN ["charge"]:
+      Return ok of 3.
+
+    RETRY:
+      MAX ATTEMPTS: 3.
+      BACKOFF: exponential.
+
+    TIMEOUT: 30 SECONDS.
+  .
+
+Rule poll, produce. It performs io:
+  wORKFLOW:
+    sTEP once:
+      Return ok of 1.
+    rETRY:
+      bACKOFF: linear.
+      Max Attempts: 2.
+    tIMEOUT: 1 Second.
+  .
