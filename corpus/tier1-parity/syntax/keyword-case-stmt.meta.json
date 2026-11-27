@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "关键词大小写 K-b（aster-lang-ts#338 第 1 部分，ADR 0056 修订 A4 §1.1 / §1.3、修订 A7 D1）：be、set、to、not、and、or、function、map 在语句、表达式与类型位置不区分大小写（Let x BE、SET x TO、NOT a、a AND b、MAP Text TO Int、FUNCTION given …），小写 map 在类型位置是 Map 类型（aster-lang-core#314）。形参之间的 and 只用小写开头的拼写（aND）：ts 只在小写开头拼写上认它。修复前 core 只认规范拼写（其余拼写报语法错误），ts 接受",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定语句、表达式与类型的 Core IR"
+}

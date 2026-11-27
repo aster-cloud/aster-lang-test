@@ -1,0 +1,34 @@
+Module parity.syntax.keywordcasestmt.
+
+Define Account with id as Text AND balance as Int And open as Bool.
+Define Point with x as Int, y as Int.
+
+Type Ledger as MAP Text TO Int.
+Type Index as map Text to Int.
+
+Rule bump given n as Int, produce Int:
+  Let m BE n.
+  SET m TO m plus 1.
+  Return m.
+
+Rule both given a as Bool aND b as Bool, produce Bool:
+  Return a AND NOT b Or a.
+
+Rule either given a as Bool, b as Bool, produce Bool:
+  If NOT a OR b:
+    Return true.
+  Return Not b.
+
+Rule origin, produce Point:
+  Return Point with x SET TO 0, y Set To 0.
+
+Rule open given a as Account, produce Bool:
+  Return a.open aND nOT a.open oR a.balance > 0.
+
+Rule twice given v as Int, produce Int:
+  Let f BE FUNCTION given x as Int, Produce Int: Return x plus x.
+  Return f(v).
+
+Rule lookup given l as Ledger, k as Text, produce Int:
+  Let g be Function With x as Map Text To Int, produce Int: Return 0.
+  Return g(l).
