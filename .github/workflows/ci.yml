@@ -178,10 +178,10 @@ jobs:
   # --strict-formats（ADR 0059 A4 计划 T5 Step 4，列车 eco-1.0.53 之后）：带 requiresFormat 的用例不再按能力跳过，任一侧 CLI 的
   # formatVersions 缺该版本即失败。
   package-conformance:
-    # Package format v1 跨 CLI 一致性门（Node ↔ JVM）。当前**不是**必需检查：main 分支保护只要求 `Build & test (JDK)` 与
-    # `Build & test (Node)`，.github/main-ci-gate.json 也只列这两个，所以本 job 失败时 PR 上是红叉、但不拦合并，发布门禁
-    # （require-main-ci-green）对它的红只告警。要把它升为必需检查：仓库管理员在分支保护里加 `package-conformance`，同一改动把它
-    # 加进 main-ci-gate.json 的 requiredJobs。显示名保持恰为 package-conformance，届时两处都按它匹配。
+    # Package format v1 跨 CLI 一致性门（Node ↔ JVM）。**合并门禁：必需**——仓库规则集 `main`（Settings → Rules → Rulesets）要求
+    # `package-conformance` 与 `Package format v1 fixtures` 两个检查；经典分支保护另要求 `Build & test (JDK)` / `Build & test (Node)`。
+    # 发布门禁 .github/main-ci-gate.json（ADR 0053 A2，require-main-ci-green）目前只列那两个 Build job，对本 job 的红只告警。
+    # 显示名必须恰为 package-conformance（规则集按它匹配）；改名时同步改规则集。
     name: package-conformance
     runs-on: ubuntu-latest
     steps:
@@ -292,7 +292,7 @@ jobs:
   # 的相互一致要三侧一起跑，`--jar` 与 `--native` 同时给；目前没有这样的行）。
   # 两个目标：linux-x64（Oracle GraalVM，计划 T6 升为必需的那一条）与 linux-x64-ce（ADR 0063 Q1 推荐的发行版）。
   #
-  # 非阻塞：独立 job、不进分支保护、也不进 .github/main-ci-gate.json（ADR 0053 A2 的发布门禁对非必需 job 的红只告警）。
+  # 非阻塞：独立 job，不在规则集 `main` 与分支保护的必需检查里，也不进 .github/main-ci-gate.json（ADR 0053 A2 的发布门禁对非必需 job 的红只告警）。
   # 不用 continue-on-error：那会把失败的 job 显示成绿色，原生分歧就没人看见；独立的非必需 job 失败时在 PR 上是红叉、但不拦合并。
   # 原生产物进入 truffle release.yml 时（ADR 0063 §5 第 3 条、计划 T6）与 truffle 的 `native (linux-x64)` 一起升为必需检查。
   package-conformance-native:

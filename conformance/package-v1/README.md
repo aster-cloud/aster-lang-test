@@ -34,10 +34,9 @@ CLI 行为定死为可执行的字节：两个 `aster` CLI（Node T2–T5、JVM 
 
 跨 CLI 一致性门（T11，CI job 名 `package-conformance`）：
 
-> 门禁现状：`package-conformance` **不是**必需检查。main 分支保护只要求 `Build & test (JDK)` 与 `Build & test (Node)`，
-> 发布门禁 `.github/main-ci-gate.json`（ADR 0053 A2，`require-main-ci-green`）也只要求这两个 job。本 job 失败时 PR 上显示红叉，
-> 但不拦合并；发布时对它的红只告警。合并前由评审人自行确认它是绿的（人工约定，不是仓库强制的合并条件）。
-> 升为必需检查需要仓库管理员在 main 分支保护里加上 `package-conformance`，并在同一改动里把它加进 `main-ci-gate.json` 的 `requiredJobs`。
+> 门禁现状：`package-conformance` **是**合并的必需检查——仓库规则集 `main`（Settings → Rules → Rulesets）要求 `package-conformance`
+> 与 `Package format v1 fixtures`；经典分支保护另要求 `Build & test (JDK)` 与 `Build & test (Node)`。发布门禁 `.github/main-ci-gate.json`
+> （ADR 0053 A2，`require-main-ci-green`）目前只要求那两个 Build job，对本 job 的红只告警；要让发布也拦它，把它加进 `requiredJobs`。
 
 ```bash
 node scripts/package-conformance.mjs --node ../aster-lang-ts/dist/runner/aster.mjs --jar ../aster-lang-truffle/cli/build/libs/aster-cli-<ver>.jar [--report-only] [--concurrency 4] [--filter s] [--report f.md]
@@ -61,8 +60,8 @@ node scripts/package-conformance.mjs --node ../aster-lang-ts/dist/runner/aster.m
 
 原生产物没有发布渠道（ADR 0063 §6.3 的签名凭据到位前不发布），`fetch-native-cli.mjs` 从 aster-lang-truffle CI 的 `native (<target>)` job 下载 artifact
 `aster-native-<target>`（保留 30 天）：首选与检出的 truffle commit 相同的 run，否则回落到同名分支 / main 最新的未过期产物并告警。
-CI job `package-conformance native (linux-x64)` / `(linux-x64-ce)` 跑 Node ↔ 原生，**非阻塞**（不进分支保护与 `.github/main-ci-gate.json`），
-原生资产进入 truffle `release.yml` 时（计划 T6）升为必需检查（与 `package-conformance` 一样，需仓库管理员改分支保护）。
+CI job `package-conformance native (linux-x64)` / `(linux-x64-ce)` 跑 Node ↔ 原生，**非阻塞**（不在规则集 `main` 与分支保护的必需检查里，也不进 `.github/main-ci-gate.json`），
+原生资产进入 truffle `release.yml` 时（计划 T6）升为必需检查（需仓库管理员把它加进规则集 `main` 的必需检查）。
 
 生成与校验（Node ≥ 24，无 npm 依赖）：
 
