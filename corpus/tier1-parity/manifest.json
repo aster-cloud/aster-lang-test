@@ -333,6 +333,7 @@
     "tier1-parity/syntax/keyword-case-stmt.aster",
     "tier1-parity/syntax/keyword-case-ops.aster",
     "tier1-parity/syntax/keyword-case-workflow.aster",
+    "tier1-parity/syntax/keyword-case-positions.aster",
     "tier1-parity/syntax/ascii-vt-ff-before-punct-zh.aster",
     "tier1-parity/syntax/ideographic-space-zh.aster",
     "tier1-parity/syntax/unicode-space-in-string-and-comment.aster",

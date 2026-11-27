@@ -1,0 +1,12 @@
+{
+  "tier": 1,
+  "engines": [
+    "java",
+    "ts"
+  ],
+  "lexicon": "en-US",
+  "source": "关键词大小写在列表分隔符与构造位置（aster-lang-ts#411，ADR 0059 A4 §1.1，产品裁决 2026-11-28）：形参之间的 and（规则头与 lambda，And / AND / aND）、变体之间的 or / and（Or / OR / oR、AND / and）、apply 的 to（To / TO）、构造里 and 之后的 set（SET / Set / sET）不区分大小写；字段列表里换行起头（不缩进）的 and（And / AND）与 has 构造（has / HAS / Has，与 with 同义）。修复前 core 在前四处只认小写开头的拼写，ts 在前四处只认小写开头的拼写，且不收变体之间的 and、换行起头的 and 与 has 构造",
+  "evalExempt": true,
+  "evalExemptReason": "ir-only",
+  "evalExemptDetail": "只锁定列表分隔符与构造位置关键词的 Core IR"
+}
