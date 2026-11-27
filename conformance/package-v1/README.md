@@ -55,7 +55,7 @@ node scripts/package-conformance.mjs --node ../aster-lang-ts/dist/runner/aster.m
 ```
 
 原生产物没有发布渠道（ADR 0063 §6.3 的签名凭据到位前不发布），`fetch-native-cli.mjs` 从 aster-lang-truffle CI 的 `native (<target>)` job 下载 artifact
-`aster-native-<target>`（保留 7 天）：首选与检出的 truffle commit 相同的 run，否则回落到同名分支 / main 最新的未过期产物并告警。
+`aster-native-<target>`（保留 30 天）：首选与检出的 truffle commit 相同的 run，否则回落到同名分支 / main 最新的未过期产物并告警。
 CI job `package-conformance native (linux-x64)` / `(linux-x64-ce)` 跑 Node ↔ 原生，**非阻塞**（不进分支保护与 `.github/main-ci-gate.json`），
 原生资产进入 truffle `release.yml` 时（计划 T6）升为必需检查。
 

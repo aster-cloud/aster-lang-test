@@ -1,7 +1,7 @@
 /**
  * 从 aster-lang-truffle CI 的 `native (<target>)` job 取原生可执行文件（ADR 0063 T4，scripts/fetch-native-cli.mjs 用）的选择规则，
  * 独立成纯函数以便单测。原生产物没有发布渠道（ADR 0063 §6.3 的签名凭据到位前不发布），唯一来源是 truffle CI 上传的
- * workflow artifact `aster-native-<target>`（保留 7 天）。
+ * workflow artifact `aster-native-<target>`（保留 30 天）。
  *
  * 规则：
  *   1. 首选与检出的 truffle commit（checkout-sibling 解析出的同名分支或 main 的 tip）相同 head_sha 的 run；

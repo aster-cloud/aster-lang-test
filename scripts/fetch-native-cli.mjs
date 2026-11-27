@@ -2,7 +2,7 @@
 /**
  * 取 aster-cli 的 GraalVM 原生可执行文件，供 package-conformance.mjs --native 使用（ADR 0063 T4）。
  * 原生产物还没有发布渠道（ADR 0063 §6.3：签名凭据到位前不发布），唯一来源是 aster-lang-truffle CI 的 `native (<target>)` job
- * 上传的 workflow artifact `aster-native-<target>`（保留 7 天）。选择规则见 lib/package-v1/native-artifact.mjs：
+ * 上传的 workflow artifact `aster-native-<target>`（保留 30 天）。选择规则见 lib/package-v1/native-artifact.mjs：
  * 首选与 --sha（checkout-sibling 检出的 truffle commit）相同的 run，其原生 job 未结束时最多等 --wait-minutes；
  * 没有该 commit 的 run 时回落到 --branch 上最新一个带未过期产物的 run（--branch 不是 main 时其后再找 main），并写明 commit 不同。
  *
@@ -98,8 +98,8 @@ const listRuns = (query) =>
     .split('\n')
     .filter(Boolean)
     .map((l) => JSON.parse(l));
-// 产物保留 7 天：回落只需看最近 8 天的 run
-const since = new Date(Date.now() - 8 * 86_400_000).toISOString().slice(0, 10);
+// 产物保留 30 天（truffle ci.yml 的 retention-days）：回落只需看最近 31 天的 run
+const since = new Date(Date.now() - 31 * 86_400_000).toISOString().slice(0, 10);
 const runsOn = (b) => listRuns(`branch=${encodeURIComponent(b)}&created=${encodeURIComponent(`>=${since}`)}`);
 
 async function main() {
@@ -125,7 +125,7 @@ async function main() {
     const exe = download(run);
     if (exe) return finish(run, exe, false);
   }
-  log(`${repo} ${branch}${branch === 'main' ? '' : ' / main'} 上没有带未过期 ${nativeArtifactName(target)} 的 run（产物保留 7 天）`);
+  log(`${repo} ${branch}${branch === 'main' ? '' : ' / main'} 上没有带未过期 ${nativeArtifactName(target)} 的 run（产物保留 30 天）`);
   process.exit(1);
 }
 
