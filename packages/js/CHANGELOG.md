@@ -1,5 +1,18 @@
 # Changelog
 
+## 2.10.0
+
+### 新增（eco-1.0.57）
+
+- tier1 parity 样本：关键词不区分大小写 `syntax/keyword-case-{decl,stmt,ops,workflow}`（aster-lang-ts#338 第 1 部分 K-a..K-d，#267 #268 #269 #270）；
+  别名接收者 `vocab-en/alias-receiver`（含 `.vocab.json` 与 eval cases `inputs/alias-receiver.cases.json`，aster-lang-core#313，#266）。
+- tier1 必拒样本：`reject-literal-homograph-{let,param,type-name,variant}`（K-c 的 D2 必拒样本，#269）。
+
+### 变更
+
+- `tier1-parity/manifest.json` 只追加条目。无删除，`packages/js/src` 无改动，包入口 API 无变化。这些样本的期望依赖 aster-lang-core 1.0.57
+  与 aster-lang-ts 3.9.0。
+
 ## 2.9.0
 
 ### 新增（Wave D）
